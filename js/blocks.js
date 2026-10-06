@@ -197,6 +197,13 @@ export class Batch {
     g.translate(x, y, z);
     this.add(material, g);
   }
+  /** 材質整張貼滿每一面（黑板、電視螢幕這種一整張的圖） */
+  plain(material, w, h, d, x, y, z) {
+    if (w <= 0.001 || h <= 0.001 || d <= 0.001) return;
+    const g = new THREE.BoxGeometry(w, h, d);
+    g.translate(x, y, z);
+    this.add(material, g);
+  }
   build(parent, { cast = true, receive = true } = {}) {
     const meshes = [];
     for (const [m, geos] of this.list) {

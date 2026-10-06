@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=9';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=9';
+import { PanoViewer } from './pano.js?v=10';
+import { furnishFloor } from './furniture.js?v=10';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=10';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -99,6 +100,8 @@ function addRoomWalls(room) {
       gaps = at.map((c) => [Math.max(0.15, c * len - w / 2), Math.min(len - 0.15, c * len + w / 2)]);
     }
     const ux = (bx - ax) / len, uz = (bz - az) / len;
+    // 記下門的位置（掛門牌用）
+    for (const [a, b] of gaps) (room.doorPts ||= []).push({ x: ax + ux * (a + b) / 2, z: az + uz * (a + b) / 2, side: s });
     const push = (a, b) => b - a > 0.05 && f.segs.push({
       ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h: WALL_H, color, kind: 'wall', bld: room.building,
     });
@@ -492,6 +495,8 @@ function buildFloor(f) {
     f.labels.add(makeLabel(s.id, s.elevator ? '可到 1F～4F' : `${s.floors[0]}～${s.floors.at(-1)}`, s.cx, f.y + 2.4, s.cz, { bg: s.elevator ? '#2f6fb5' : '#d9730d', h: 1.0 }));
   }
   f.wallMeshes = batch.build(f.group).filter((m) => !m.material.transparent);
+  // 教室裝潢 + 門牌
+  f.group.add(furnishFloor(f, WALL_T));
   // 房間名稱
   for (const r of f.rooms) {
     if (r.hidden || r.type === 'wc') continue;
