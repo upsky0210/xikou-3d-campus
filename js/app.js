@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=10';
-import { furnishFloor } from './furniture.js?v=10';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=10';
+import { PanoViewer } from './pano.js?v=11';
+import { furnishFloor } from './furniture.js?v=11';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=11';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -62,7 +62,10 @@ for (const r of D.rooms) {
   f.walk.push({ m: room.m, kind: 'room', room });
 }
 for (const f of floors) {
-  for (const c of D.corridors[f.id] || []) f.walk.push({ m: rectM(c), kind: 'corridor' });
+  for (const c of D.corridors[f.id] || []) {
+    const o = Array.isArray(c) ? { rect: c } : c;     // 走廊可以只寫座標，或寫成 { rect, noCeil, bleacher }
+    f.walk.push({ m: rectM(o.rect), kind: 'corridor', noCeil: o.noCeil, bleacher: o.bleacher });
+  }
   if (f.level === 0) f.walk.push({ m: rectM(D.outdoor.walk), kind: 'outdoor' });
 }
 const stairs = D.stairs.map((s) => ({ ...s, m: rectM(s.rect) }));
@@ -102,11 +105,21 @@ function addRoomWalls(room) {
     const ux = (bx - ax) / len, uz = (bz - az) / len;
     // 記下門的位置（掛門牌用）
     for (const [a, b] of gaps) (room.doorPts ||= []).push({ x: ax + ux * (a + b) / 2, z: az + uz * (a + b) / 2, side: s });
-    const push = (a, b) => b - a > 0.05 && f.segs.push({
-      ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h: WALL_H, color, kind: 'wall', bld: room.building,
-    });
+    // 挑高的空間（活動中心）：牆一路蓋到上一層的天花板
+    const h = room.tall ? FLOOR_H + WALL_H : WALL_H;
+    const above = room.tall ? floors[f.idx + 1] : null;
+    const seg = (a, b, extra) => ({ ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h, color, kind: 'wall', bld: room.building, ...extra });
+    const push = (a, b) => {
+      if (b - a <= 0.05) return;
+      f.segs.push(seg(a, b));
+      if (above) above.segs.push(seg(a, b, { noRender: true }));   // 上一層也要擋得住（只算碰撞，不重複畫）
+    };
     let t = 0;
-    for (const [a, b] of gaps) { push(t, a); t = b; }
+    for (const [a, b] of gaps) {
+      push(t, a); t = b;
+      // 挑高空間的門：門上方補一段牆（門楣），上一層同位置留開口通往看台
+      if (room.tall) f.segs.push(seg(a, b, { y0: 2.4, h: FLOOR_H, overhead: true }));
+    }
     push(t, len);
   };
   side('N', x1, z1, x2, z1); side('S', x1, z2, x2, z2);
@@ -399,6 +412,27 @@ function addPlanters(f, m) {
   }
   b.build(f.group);
 }
+// 看台：靠外牆那側三層階梯（越靠牆越高），靠挑空那側留走道
+function addBleachers(f, m, side) {
+  const b = new Batch();
+  const seatCols = ['#2e6fd8', '#d9a31a', '#d32f2f'];
+  const depth = side === 'W' ? m.x2 - m.x1 : m.z2 - m.z1;
+  const t = depth * 0.2;
+  for (let k = 0; k < 3; k++) {
+    const h = 0.75 - k * 0.25, o = t * k + t / 2;       // k=0 最靠牆、最高
+    const col = mat('wool', seatCols[k]), base = mat('planks', '#e2c8a0');
+    if (side === 'N' || side === 'S') {
+      const z = side === 'N' ? m.z1 + o : m.z2 - o, L = m.x2 - m.x1 - 0.6;
+      b.box(base, L, h - 0.08, t, (m.x1 + m.x2) / 2, f.y + (h - 0.08) / 2, z);
+      b.box(col, L, 0.08, t, (m.x1 + m.x2) / 2, f.y + h - 0.04, z);
+    } else {
+      const x = m.x1 + o, L = m.z2 - m.z1 - 0.6;
+      b.box(base, t, h - 0.08, L, x, f.y + (h - 0.08) / 2, (m.z1 + m.z2) / 2);
+      b.box(col, t, 0.08, L, x, f.y + h - 0.04, (m.z1 + m.z2) / 2);
+    }
+  }
+  b.build(f.group);
+}
 // 方塊風：外牆用校舍實際的米色，再帶一點各棟的代表色方便辨認
 const BEIGE = new THREE.Color('#efe0bf');
 function wallMat(bld) {
@@ -422,17 +456,26 @@ function buildFloor(f) {
     if (w.room) { slab.userData.room = w.room; pickables.push(slab); }
     f.group.add(slab);
     if (w.room?.farm) addPlanters(f, w.m);
+    const bl = w.bleacher || w.room?.bleacher;
+    if (bl) addBleachers(f, w.m, bl);
   }
   // 天花板 / 屋頂：上面一層沒有蓋到的地方就是屋頂
   const above = floors[f.idx + 1];
   const ceilBatch = new Batch();
   for (const w of f.walk) {
-    if (w.kind === 'outdoor' || w.room?.type === 'garden') continue;
+    if (w.kind === 'outdoor' || w.room?.type === 'garden' || w.noCeil || w.room?.noCeil || w.room?.tall) continue;
     const { x1, z1, x2, z2 } = w.m, cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
     const covered = above && above.walk.some((a) => a.kind !== 'outdoor' && inRect(a.m, cx, cz));
     const bld = w.room?.building;
     const m = covered ? mat('concrete', '#f4f2ec') : mat('roof', BLOCKY ? (ROOF_COLOR[bld] || '#d8d8d2') : '#c9c9c9');
     ceilBatch.box(m, x2 - x1, CEIL_T, z2 - z1, cx, f.y + WALL_H + CEIL_T / 2, cz);
+  }
+  // 下一層的挑高空間（活動中心）：屋頂蓋在這一層的高度（放在這層的天花板群組，鳥瞰選這層時會拿掉，才看得到看台）
+  for (const r of floors[f.idx - 1]?.rooms || []) {
+    if (!r.tall) continue;
+    const { x1, z1, x2, z2 } = r.m;
+    ceilBatch.box(mat('roof', BLOCKY ? (ROOF_COLOR[r.building] || '#d8d8d2') : '#c9c9c9'),
+      x2 - x1 + WALL_T, CEIL_T, z2 - z1 + WALL_T, (x1 + x2) / 2, f.y + WALL_H + CEIL_T / 2, (z1 + z2) / 2);
   }
   f.ceil = new THREE.Group();
   f.ceilMeshes = ceilBatch.build(f.ceil);
@@ -441,6 +484,7 @@ function buildFloor(f) {
   const batch = new Batch();
   const glass = mat('glass'), railMat = mat('brick', BLOCKY ? '#ffffff' : '#9aa7b0');
   for (const s of f.segs) {
+    if (s.noRender) continue;                      // 只用來擋路的牆（例如挑高空間在上一層的部分）
     const horiz = Math.abs(s.az - s.bz) < 1e-6;
     const len = Math.hypot(s.bx - s.ax, s.bz - s.az) + WALL_T;
     const cx = (s.ax + s.bx) / 2, cz = (s.az + s.bz) / 2;
@@ -452,19 +496,26 @@ function buildFloor(f) {
     if (s.kind === 'rail') { piece(railMat, 0, s.h); continue; }
     if (s.kind === 'hedge') { piece(mat('leaves'), 0, s.h); continue; }
     const wm = wallMat(s.bld);
+    if (s.overhead) { piece(wm, s.y0, s.h); continue; }   // 門楣
     if (len < 1.4) { piece(wm, 0, s.h); continue; }
-    piece(wm, 0, 1.0);
-    piece(wm, 2.2, s.h);
-    // 窗戶之間每隔約 2.5 公尺一根柱子
+    // 每一層樓高各有一排窗（挑高的牆會有兩排）；窗戶之間每隔約 2.5 公尺一根柱子
+    const storeys = s.h > FLOOR_H ? 2 : 1;
     const n = Math.max(1, Math.round(len / 2.5)), pw = 0.3;
-    for (let i = 0; i <= n; i++) {
-      const p = -len / 2 + (len * i) / n;
-      piece(wm, 1.0, 2.2, Math.max(-len / 2, p - pw / 2), Math.min(len / 2, p + pw / 2));
-      if (i < n) {
-        const a = p + pw / 2, b = -len / 2 + (len * (i + 1)) / n - pw / 2;
-        if (b > a) piece(glass, 1.0, 2.2, a, b);
+    let y = 0;
+    for (let k = 0; k < storeys; k++) {
+      const b0 = k * FLOOR_H + 1.0, b1 = k * FLOOR_H + 2.2;
+      piece(wm, y, b0);
+      for (let i = 0; i <= n; i++) {
+        const p = -len / 2 + (len * i) / n;
+        piece(wm, b0, b1, Math.max(-len / 2, p - pw / 2), Math.min(len / 2, p + pw / 2));
+        if (i < n) {
+          const a = p + pw / 2, b = -len / 2 + (len * (i + 1)) / n - pw / 2;
+          if (b > a) piece(glass, b0, b1, a, b);
+        }
       }
+      y = b1;
     }
+    piece(wm, y, s.h);
   }
   // 樓梯（裝飾用的階梯）
   for (const s of f.stairs) {
@@ -644,6 +695,7 @@ function placeAt(f, x, z, yaw) {
 function collide(f, x, z) {
   for (let iter = 0; iter < 2; iter++) {
     for (const s of f.segs) {
+      if (s.overhead) continue;                    // 門楣在頭上，不擋路
       const dx = s.bx - s.ax, dz = s.bz - s.az, L2 = dx * dx + dz * dz;
       let t = ((x - s.ax) * dx + (z - s.az) * dz) / L2;
       t = Math.max(0, Math.min(1, t));
@@ -684,6 +736,7 @@ function getGrid(f) {
     free[j * W + i] = isWalkable(f, minx + (i + 0.5) * CELL, minz + (j + 0.5) * CELL, 0) ? 1 : 0;
   }
   for (const s of f.segs) {
+    if (s.overhead) continue;
     const i0 = Math.max(0, Math.floor((Math.min(s.ax, s.bx) - CLEAR - minx) / CELL));
     const i1 = Math.min(W - 1, Math.floor((Math.max(s.ax, s.bx) + CLEAR - minx) / CELL));
     const j0 = Math.max(0, Math.floor((Math.min(s.az, s.bz) - CLEAR - minz) / CELL));

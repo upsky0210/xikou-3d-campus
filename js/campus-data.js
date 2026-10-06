@@ -20,7 +20,7 @@
     { id: '2F', name: '2 樓', level: 1 },
     { id: '3F', name: '3 樓', level: 2 },
     { id: '4F', name: '4 樓', level: 3 },
-    { id: '5F', name: '頂樓', level: 4 },
+    { id: '5F', name: '5 樓', level: 4 },
   ];
 
   const buildings = {
@@ -56,7 +56,15 @@
     '2F': [C.A_north, C.A_mid, C.A_south, C.A_west, C.D, C.C, C.B, C.lobby],
     '3F': [C.A_north, C.A_mid, C.A_south, C.A_west, C.D, C.C, C.B, C.lobby],
     '4F': [[645, 150, 705, 585], C.D, C.C, C.B, C.lobby],
-    '5F': [],
+    // 5F：活動中心看台（環繞中間挑空），西邊接乙梯
+    //   noCeil：沒有自己的天花板（活動中心整個是挑高兩層，屋頂另外蓋）
+    //   bleacher：看台階梯往哪一側升高
+    '5F': [
+      [645, 150, 705, 585],
+      { rect: [705, 150, 1510, 218], noCeil: true, bleacher: 'N' },
+      { rect: [705, 517, 1510, 585], noCeil: true, bleacher: 'S' },
+      { rect: [1370, 218, 1510, 517], noCeil: true },
+    ],
   };
 
   // ---- 房間 ----
@@ -152,7 +160,7 @@
   R('3F', 'C', [1355, 1105, 1510, 1245], { no: '322', code: '302', type: 'class', doors: 'N' });
 
   // 4F
-  R('4F', 'A', [705, 150, 1510, 585], { name: '活動中心', type: 'hall', doors: 'WE' });
+  R('4F', 'A', [705, 150, 1510, 585], { name: '活動中心', type: 'hall', doors: 'WE', tall: true });   // 挑高兩層（4F 球場 + 5F 看台）
   R('4F', 'B', [1555, 400, 1690, 480], { no: '404', name: '儲藏室（教具）', type: 'storage', doors: 'W' });
   R('4F', 'B', [1555, 480, 1690, 585], { no: '405', name: '儲藏室（資訊設備）', type: 'storage', doors: 'W' });
   R('4F', 'B', [1555, 595, 1690, 750], { no: '420', name: '客語教室', type: 'special', doors: 'W' });
@@ -167,8 +175,8 @@
   R('4F', 'C', [1195, 1105, 1355, 1245], { no: '414', code: '502', type: 'class', doors: 'N' });
   R('4F', 'C', [1355, 1105, 1510, 1245], { no: '415', code: '503', type: 'class', doors: 'N' });
 
-  // 5F 頂樓
-  R('5F', 'A', [645, 150, 1555, 585], { name: '頂樓平台', type: 'garden', open: true });
+  // 5F：活動中心看台（西側；北、南、東側在上面的走廊資料）
+  R('5F', 'A', [705, 218, 773, 517], { name: '活動中心看台', type: 'hall', open: true, noCeil: true, bleacher: 'W' });
   R('5F', 'B', [1555, 595, 1690, 1065], { name: '頂樓菜園', type: 'garden', open: true, farm: true });   // 504、505、客語教室的樓上
 
   // ---- 戶外（平面圖上沒有；依 2026-10 使用者提供的空拍圖與街景估計） ----
