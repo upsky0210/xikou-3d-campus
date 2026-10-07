@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=13';
+import { Batch, mat } from './blocks.js?v=14';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -43,6 +43,13 @@ const tvMat = () => once('tv', () => new THREE.MeshLambertMaterial({ map: bigTex
   c.fillText('溪口國小', w / 2, h / 2 - 6);
   c.font = '500 24px "Noto Sans TC", sans-serif'; c.fillText('Xikou Elementary School', w / 2, h / 2 + 34);
 }), emissive: '#0d1a33', emissiveIntensity: 0.4 }));
+const whiteboardMat = () => once('wb', () => new THREE.MeshLambertMaterial({ map: bigTex(640, 150, (c, w, h) => {
+  c.fillStyle = '#f7f8f8'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(40,80,160,.55)'; c.lineWidth = 2;
+  for (let i = 0; i < 5; i++) { c.beginPath(); c.moveTo(24, 30 + i * 18); c.lineTo(130 + Math.random() * 60, 30 + i * 18); c.stroke(); }
+  for (let i = 0; i < 6; i++) { c.beginPath(); c.moveTo(w - 200, 26 + i * 16); c.lineTo(w - 40 - Math.random() * 50, 26 + i * 16); c.stroke(); }
+  c.fillStyle = '#f7a8c8'; c.fillRect(200, 12, 30, 40);
+}) }));
 const corkMat = () => once('cork', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 128, (c, w, h) => {
   c.fillStyle = '#c9a26a'; c.fillRect(0, 0, w, h);
   const cols = ['#fff7b0', '#ffd1dc', '#c8f0ff', '#d8ffc8', '#ffffff'];
@@ -97,8 +104,8 @@ const M = {
 
 /* ---------- 房間座標框架 ---------- */
 
-// 班級教室的前後方向（依學校實際）：思源樓維持原方向，其他棟前後對調
-const flipped = (room) => room.type === 'class' && room.building !== 'D';
+// 班級教室的前後方向（依學校實際）：至善樓、思源樓前後對調，勤學樓維持原方向
+const flipped = (room) => room.type === 'class' && room.building !== 'C';
 
 function frameOf(room, wallT, flip = false) {
   const m = room.m, d = room.doors || '';
@@ -123,6 +130,13 @@ function placer(batch, fr, y0) {
     const [w, d] = fr.alongX ? [du, dv] : [dv, du];
     (plain ? batch.plain : batch.box).call(batch, material, w, h, d, x, y0 + y + h / 2, z);
   };
+  // 任意幾何（例如六角柱）：中心放在 (u, v)，y 是中心高度；rotY 是繞垂直軸旋轉
+  put.geo = (material, geo, u, v, y, rotY = 0) => {
+    const [x, z] = fr.toWorld(u, v);
+    if (rotY) geo.rotateY(rotY);
+    geo.translate(x, y0 + y, z);
+    batch.add(material, geo);
+  };
   return put;
 }
 
@@ -144,13 +158,13 @@ function chairAt(put, u, v, faceBack = true) {
   put(M.metal(), 0.3, 0.3, 0.4, u, v, 0);
 }
 // 前面牆：黑板 + 86 吋電視
-function frontWall(put, fr, { board = true, tv = true } = {}) {
+function frontWall(put, fr, { board = true, tv = true, white = false } = {}) {
   const W = fr.W;
   // 黑板置中；86 吋電視掛在黑板正中間（學校實際配置），兩側露出黑板
   if (board) {
     const bw = Math.min(5.2, W * 0.75);
     put(M.frame(), 0.05, bw + 0.16, 1.36, 0.025, 0, 0.82);
-    put(blackboardMat(), 0.06, bw, 1.2, 0.04, 0, 0.9, true);
+    put(white ? whiteboardMat() : blackboardMat(), 0.06, bw, 1.2, 0.04, 0, 0.9, true);
     put(M.frame(), 0.12, bw, 0.04, 0.08, 0, 0.86);       // 粉筆槽
   }
   if (tv) {
@@ -241,6 +255,129 @@ function computerRoom(put, fr) {
       chairAt(put, u + 0.6, v, true);
     }
   }
+}
+
+// 3F 電腦教室二（依照片）：六座彩色六角電腦島，每座底下一圈下凹圓形地板，紅棕色木地板，前面白板＋電視
+function computerRoomHex(put, fr) {
+  const W = fr.W, L = fr.L;
+  put(mat('planks', '#b8664a'), L, W, 0.012, L / 2, 0, 0);                  // 紅棕色木地板
+  frontWall(put, fr, { white: true });
+  const colors = ['#7ac943', '#2f9fd8', '#f2a33a', '#b9a6e0', '#f5d82e', '#f26b3a'];
+  const cols = 3, rows = 2, grey = mat('wool', '#9aa0a6');
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const col = colors[r * cols + c];
+    const u = 2.6 + c * (L - 4.2) / (cols - 1), v = (r === 0 ? -1 : 1) * Math.min(1.8, W / 4);
+    // 下凹圓形地板：外圈同色的邊、裡面深一點的木地板
+    put.geo(mat('wool', col), new THREE.CylinderGeometry(1.45, 1.45, 0.02, 40), u, v, 0.022);
+    put.geo(mat('planks', '#8f4a35'), new THREE.CylinderGeometry(1.3, 1.3, 0.02, 40), u, v, 0.026);
+    // 中柱、灰色六角桌面、彩色六角頂板
+    put.geo(M.metal(), new THREE.CylinderGeometry(0.1, 0.12, 1.25, 8), u, v, 0.63);
+    put.geo(grey, new THREE.CylinderGeometry(1.05, 1.05, 0.05, 6), u, v, 0.76);
+    put.geo(mat('wool', col), new THREE.CylinderGeometry(0.72, 0.72, 0.04, 6), u, v, 1.27);
+    // 三台電腦朝外：螢幕、主機、鍵盤
+    for (let k = 0; k < 3; k++) {
+      const a = (k * 2 * Math.PI) / 3 + (r + c) * 0.5;
+      const du = Math.cos(a), dv = Math.sin(a);
+      // (u, v) 方向換成世界座標的旋轉角，讓螢幕面朝外
+      const [wx, wz] = fr.alongX ? [du, dv] : [dv, du];
+      const rot = Math.atan2(wx, wz);
+      const at = (rad) => [u + du * rad, v + dv * rad];
+      put.geo(M.dark(), new THREE.BoxGeometry(0.5, 0.33, 0.04), ...at(0.45), 0.97, rot);
+      put.geo(screenMat(), new THREE.BoxGeometry(0.46, 0.29, 0.01), ...at(0.475), 0.97, rot);
+      put.geo(M.dark(), new THREE.BoxGeometry(0.1, 0.18, 0.1), ...at(0.4), 0.87, rot);
+      put.geo(M.grey(), new THREE.BoxGeometry(0.42, 0.02, 0.14), ...at(0.82), 0.79, rot);
+      put.geo(M.dark(), new THREE.BoxGeometry(0.3, 0.08, 0.32), ...at(0.2), 0.83, rot + 0.5);
+    }
+  }
+  // 後面的格子書櫃
+  for (let i = 0; i < 3; i++) put(mat('wool', '#f1ebc8'), 0.35, 0.8, 1.1, L - 0.2, fr.away * (W / 2 - 0.6 - i * 0.85), 0);
+}
+
+// 2F 教師會辦公室（依照片）：兩張米白大理石長桌＋黑底花紋椅、後牆成果展示櫃、吧台與冰箱、花紋壁紙
+const loungeChairMat = () => once('lchair', () => new THREE.MeshLambertMaterial({ map: (() => {
+  const t = bigTex(128, 128, (c, w, h) => {
+    c.fillStyle = '#1c1d22'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = '#c9c9c9'; c.lineWidth = 3;
+    for (let i = 0; i < 5; i++) {
+      const x = 15 + (i * 37) % 110, y = 20 + (i * 53) % 100;
+      c.beginPath(); c.ellipse(x, y, 14, 6, i, 0, Math.PI * 2); c.stroke();
+      c.beginPath(); c.moveTo(x - 10, y + 12); c.quadraticCurveTo(x, y, x + 12, y - 14); c.stroke();
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+})() }));
+const wallpaperMat = () => once('wallpaper', () => new THREE.MeshLambertMaterial({ map: (() => {
+  const t = bigTex(128, 128, (c, w, h) => {
+    c.fillStyle = '#b89a6e'; c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(120,90,50,.45)';
+    for (const [x, y] of [[32, 32], [96, 96], [96, 32], [32, 96]]) {
+      for (let k = 0; k < 6; k++) { c.beginPath(); c.ellipse(x, y, 16, 6, (k * Math.PI) / 3, 0, Math.PI * 2); c.fill(); }
+    }
+    c.fillStyle = 'rgba(255,240,210,.25)';
+    for (let i = 0; i < 40; i++) c.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 2);
+  return t;
+})() }));
+const displayWallMat = () => once('display', () => new THREE.MeshLambertMaterial({ emissive: '#3a2a10', emissiveIntensity: 0.35, map: bigTex(900, 300, (c, w, h) => {
+  c.fillStyle = '#5a3e26'; c.fillRect(0, 0, w, h);
+  for (let x = 0; x < w; x += 18) for (let y = 0; y < h; y += 18) {   // 馬賽克磚
+    c.fillStyle = 'hsl(' + (30 + ((x * 7 + y * 3) % 30)) + ',30%,' + (28 + ((x + y) % 5) * 4) + '%)';
+    c.fillRect(x + 1, y + 1, 16, 16);
+  }
+  c.fillStyle = 'rgba(255,255,255,.55)';
+  for (const y of [120, 200, 268]) c.fillRect(30, y, w - 60, 4);     // 玻璃層板
+  const cols = ['#fff', '#cfe8ff', '#ffe0a0', '#e0f0d0'];
+  for (let i = 0; i < 22; i++) { c.fillStyle = cols[i % 4]; c.fillRect(60 + (i % 11) * 72, i < 11 ? 66 : 146, 46, 52); }   // 成果、海報
+  for (let i = 0; i < 18; i++) { c.fillStyle = ['#d33', '#3a8', '#36c', '#eb3'][i % 4]; c.fillRect(70 + i * 44, 230, 26, 36); }  // 作品
+  c.font = '900 40px "Noto Sans TC", sans-serif'; c.textBaseline = 'top';
+  c.fillStyle = '#ffe14d'; c.fillText('解鎖', 60, 12); c.fillStyle = '#7fd4ff'; c.fillText('新溪望', 150, 12);
+  c.fillStyle = '#9fe8ff'; c.fillText('航向幸福', w - 290, 12); c.fillStyle = '#ffd36b'; c.fillText('入口岸', w - 130, 12);
+}) }));
+// 花紋餐椅：faceU = ±1 面向 ±u；faceU = 0 時用 faceV 面向 ±v
+function loungeChair(put, u, v, faceU, faceV = 0) {
+  const m = loungeChairMat(), wood = mat('wool', '#3a2a22');
+  put(wood, 0.42, 0.42, 0.44, u, v, 0);
+  put(m, 0.44, 0.44, 0.08, u, v, 0.44);
+  if (faceU) put(m, 0.06, 0.44, 0.55, u - faceU * 0.2, v, 0.52);
+  else put(m, 0.44, 0.06, 0.55, u, v - faceV * 0.2, 0.52);
+}
+function teachersLounge(put, fr) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;     // A：窗戶那一側；D：門那一側
+  put(mat('tile', '#f6f4ef'), L, W, 0.012, L / 2, 0, 0);                    // 白色地磚
+  // 牆面：前後牆花紋壁紙；窗戶那面下段木作腰板＋捲簾
+  put(wallpaperMat(), 0.03, W - 0.1, 2.95, 0.02, 0, 0, true);
+  put(wallpaperMat(), 0.03, W - 0.1, 2.95, L - 0.02, 0, 0, true);
+  put(mat('planks', '#8a6040'), L - 0.2, 0.04, 1.0, L / 2, A * (W / 2 - 0.02), 0);
+  put(mat('wool', '#e8dcc0', { transparent: true, opacity: 0.85 }), L - 0.4, 0.03, 1.2, L / 2, A * (W / 2 - 0.05), 1.0);
+  // 後牆：成果展示櫃（燈光照亮的層架）
+  const dispW = Math.min(5.5, W - 1.4);
+  put(mat('planks', '#9a7048'), 0.45, dispW, 0.85, L - 0.3, 0, 0);
+  put(displayWallMat(), 0.05, dispW, 1.6, L - 0.08, 0, 0.9, true);
+  // 展示櫃前一排白色折疊桌＋椅子
+  for (const dv of [-1.1, 1.1]) {
+    put(M.white(), 0.5, 1.8, 0.04, L - 1.35, dv, 0.72);
+    put(M.metal(), 0.4, 1.6, 0.72, L - 1.35, dv, 0);
+    for (const k of [-0.6, 0, 0.6]) loungeChair(put, L - 0.85, dv + k, -1);
+  }
+  // 兩張米白大理石長桌，各 6 張花紋椅
+  const u0 = L * 0.42;
+  for (const dv of [-W * 0.22, W * 0.24]) {
+    put(mat('wool', '#3a2a22'), 3.0, 1.0, 0.72, u0, dv, 0);
+    put(mat('wool', '#f1e8d2'), 3.1, 1.1, 0.05, u0, dv, 0.72);
+    for (const du of [-1.0, 0, 1.0]) { loungeChair(put, u0 + du, dv - 0.8, 0, 1); loungeChair(put, u0 + du, dv + 0.8, 0, -1); }
+  }
+  // 門那一側：吧台（上面放冰箱）、櫃子、紙箱
+  put(mat('planks', '#9a7048'), 2.6, 0.5, 1.02, 1.6, D * (W / 2 - 0.4), 0);
+  put(mat('wool', '#1b1b1b'), 2.6, 0.6, 0.06, 1.6, D * (W / 2 - 0.45), 1.02);
+  put(mat('wool', '#b9bdc2'), 0.6, 0.55, 0.9, 0.6, D * (W / 2 - 0.45), 1.08);
+  put(mat('planks', '#8a6040'), 1.6, 0.5, 1.2, 3.8, D * (W / 2 - 0.3), 0);
+  put(mat('wool', '#e0c58a'), 0.6, 0.45, 0.35, 3.5, D * (W / 2 - 0.3), 1.2);
+  // 電腦桌（在長桌前面、靠吧台那側）
+  put(M.white(), 0.6, 1.2, 0.74, u0 - 2.2, D * (W / 2 - 1.5), 0);
+  put(M.dark(), 0.05, 0.55, 0.36, u0 - 2.3, D * (W / 2 - 1.5), 0.78);
+  put(screenMat(), 0.02, 0.5, 0.32, u0 - 2.275, D * (W / 2 - 1.5), 0.8);
 }
 
 function library(put, fr) {
@@ -437,7 +574,9 @@ function furnishRoom(room, fr, put) {
   if (t === 'class') return classroom(put, fr);
   if (n.includes('圖書館')) return library(put, fr);
   if (n.includes('音樂')) return musicRoom(put, fr);
-  if (n.includes('電腦')) return computerRoom(put, fr);   // 3F 電腦教室二之後依照片調整
+  if (n.includes('電腦教室二')) return computerRoomHex(put, fr);   // 依照片：彩色六角電腦島
+  if (n.includes('電腦')) return computerRoom(put, fr);
+  if (n.includes('教師會')) return teachersLounge(put, fr);
   if (n.includes('健康中心')) return healthCenter(put, fr);
   if (n.includes('活動中心')) return gym(put, fr);
   if (n.includes('舞蹈') || n.includes('律動')) return danceRoom(put, fr);

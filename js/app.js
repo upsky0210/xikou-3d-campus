@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=13';
-import { furnishFloor } from './furniture.js?v=13';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=13';
+import { PanoViewer } from './pano.js?v=14';
+import { furnishFloor } from './furniture.js?v=14';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=14';
 
 /* =========================================================
  * 溪口國小 3D 校園
