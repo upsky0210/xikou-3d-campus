@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=14';
-import { furnishFloor } from './furniture.js?v=14';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=14';
+import { PanoViewer } from './pano.js?v=15';
+import { furnishFloor } from './furniture.js?v=15';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=15';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -223,7 +223,6 @@ scene.add(ground);
 
 // 樹（裝飾）
 const treeSpots = [
-  ...[[800, 650], [1000, 640], [1400, 660], [790, 980], [1420, 990], [1180, 1000]].map(([x, y], i) => [x, y, 1 + (i % 3) * 0.2]),
   ...[[380, 300], [220, 980], [1850, 400], [1850, 900], [250, 1500], [1960, 1500], [220, 1900], [1980, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
 ];
 if (BLOCKY) {
