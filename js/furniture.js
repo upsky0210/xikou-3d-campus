@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=11';
+import { Batch, mat } from './blocks.js?v=12';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -25,12 +25,14 @@ function bigTex(w, h, draw) {
 const T = {};
 const once = (k, f) => (T[k] ||= f());
 
-const blackboardMat = () => once('bb', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 170, (c, w, h) => {
+const blackboardMat = () => once('bb', () => new THREE.MeshLambertMaterial({ map: bigTex(640, 150, (c, w, h) => {
   c.fillStyle = '#2f5d47'; c.fillRect(0, 0, w, h);
   c.fillStyle = 'rgba(255,255,255,.06)';
   for (let i = 0; i < 40; i++) c.fillRect(Math.random() * w, Math.random() * h, 30 + Math.random() * 60, 6);
-  c.fillStyle = 'rgba(255,255,255,.75)'; c.font = '700 30px "Noto Sans TC", sans-serif';
-  c.fillText('值日生：', 24, 46); c.fillText('今天也要加油！', 300, 120);
+  // 中間會被電視擋住，字寫在兩側
+  c.fillStyle = 'rgba(255,255,255,.78)'; c.font = '700 26px "Noto Sans TC", sans-serif';
+  c.fillText('值日生：', 18, 40); c.fillText('聯絡簿', 18, 80);
+  c.fillText('今天也要', w - 130, 40); c.fillText('加油！', w - 110, 80);
 }) }));
 const tvMat = () => once('tv', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 290, (c, w, h) => {
   c.fillStyle = '#111'; c.fillRect(0, 0, w, h);
@@ -95,14 +97,17 @@ const M = {
 
 /* ---------- 房間座標框架 ---------- */
 
-function frameOf(room, wallT) {
+function frameOf(room, wallT, flip = false) {
   const m = room.m, d = room.doors || '';
   const inset = wallT / 2 + 0.02;
   const alongX = /[NS]/.test(d) || (!/[EW]/.test(d) && (m.x2 - m.x1) >= (m.z2 - m.z1));
   const L = (alongX ? m.x2 - m.x1 : m.z2 - m.z1) - inset * 2;   // 前後長度
   const W = (alongX ? m.z2 - m.z1 : m.x2 - m.x1) - inset * 2;   // 左右寬度
   const xc = (m.x1 + m.x2) / 2, zc = (m.z1 + m.z2) / 2;
-  const toWorld = (u, v) => (alongX ? [m.x1 + inset + u, zc + v] : [xc + v, m.z1 + inset + u]);
+  // flip：教室前面改在另一端（班級教室依學校實際配置）
+  const toWorld = flip
+    ? (u, v) => (alongX ? [m.x2 - inset - u, zc + v] : [xc + v, m.z2 - inset - u])
+    : (u, v) => (alongX ? [m.x1 + inset + u, zc + v] : [xc + v, m.z1 + inset + u]);
   // 門在 v 的哪一邊；大型家具（床、鋼琴、櫃子）放另一邊才不會擋門
   const doorSide = alongX ? (d.includes('S') && !d.includes('N') ? 1 : -1) : (d.includes('E') && !d.includes('W') ? 1 : -1);
   return { L, W, alongX, toWorld, away: -doorSide };
@@ -138,17 +143,18 @@ function chairAt(put, u, v, faceBack = true) {
 // 前面牆：黑板 + 86 吋電視
 function frontWall(put, fr, { board = true, tv = true } = {}) {
   const W = fr.W;
+  // 黑板置中；86 吋電視掛在黑板正中間（學校實際配置），兩側露出黑板
   if (board) {
-    const bw = Math.min(3.6, W * 0.5), bv = tv ? -W * 0.12 : 0;
-    put(M.frame(), 0.05, bw + 0.16, 1.36, 0.025, bv, 0.82);
-    put(blackboardMat(), 0.06, bw, 1.2, 0.04, bv, 0.9, true);
-    put(M.frame(), 0.12, bw, 0.04, 0.08, bv, 0.86);      // 粉筆槽
+    const bw = Math.min(5.2, W * 0.75);
+    put(M.frame(), 0.05, bw + 0.16, 1.36, 0.025, 0, 0.82);
+    put(blackboardMat(), 0.06, bw, 1.2, 0.04, 0, 0.9, true);
+    put(M.frame(), 0.12, bw, 0.04, 0.08, 0, 0.86);       // 粉筆槽
   }
   if (tv) {
     const tv86 = [1.9, 1.07];                            // 86 吋：約 190 × 107 公分
-    const tvV = board ? Math.min(W / 2 - 1.1, W * 0.12 + Math.min(3.6, W * 0.5) / 2 + 1.15) : 0;
-    put(M.dark(), 0.07, tv86[0] + 0.06, tv86[1] + 0.06, 0.035, tvV, 0.97);
-    put(tvMat(), 0.08, tv86[0], tv86[1], 0.05, tvV, 1.0, true);
+    const tu = board ? 0.1 : 0.035;                      // 在黑板前面一點
+    put(M.dark(), 0.07, tv86[0] + 0.06, tv86[1] + 0.06, tu, 0, 0.97);
+    put(tvMat(), 0.08, tv86[0], tv86[1], tu + 0.015, 0, 1.0, true);
   }
 }
 function teacherDesk(put, u, v) {
@@ -318,6 +324,59 @@ function gym(put, fr) {
   }
 }
 
+// 各處室的辦公桌組數（依學校實際）
+const OFFICE_DESKS = [['教務處', 6], ['學務處', 6], ['輔導室', 6], ['總務處', 6], ['人事室', 2], ['會計室', 2]];
+
+function deskSet(put, u, v) {
+  put(M.desk(), 0.7, 1.3, 0.75, u, v, 0);
+  put(M.dark(), 0.05, 0.5, 0.32, u - 0.2, v, 0.8); put(screenMat(), 0.02, 0.46, 0.28, u - 0.225, v, 0.82);
+  put(M.grey(), 0.16, 0.42, 0.02, u + 0.05, v, 0.75);          // 鍵盤
+  chairAt(put, u + 0.6, v, true);
+}
+function officeDesks(put, fr, count) {
+  const W = fr.W, L = fr.L, usableL = L - 1.0;                  // 後面留給公文櫃
+  let rows, cols;
+  if (count) {
+    rows = count <= 2 ? 1 : 2;
+    cols = Math.ceil(count / rows);
+    // 空間不夠排兩排就改一排
+    if (rows === 2 && usableL < 3.8) { rows = 1; cols = count; }
+  } else {
+    rows = Math.max(1, Math.floor((usableL - 0.4) / 1.9)); cols = Math.max(1, Math.floor((W - 1.4) / 1.5));
+  }
+  let placed = 0;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (count && placed >= count) return;
+    const u = 1.2 + r * Math.min(1.9, (usableL - 1.2) / Math.max(1, rows - 0.5));
+    const v = -(W - 1.2) / 2 + (W - 1.2) * (c + 0.5) / cols;
+    deskSet(put, u, v);
+    placed++;
+  }
+}
+// 資訊室：前面兩組辦公桌，後半部是機房（伺服器機櫃、交換器），中間有玻璃隔間
+const rackMat = () => once('rack', () => new THREE.MeshLambertMaterial({ emissive: '#0a1a10', emissiveIntensity: 0.5, map: bigTex(128, 256, (c, w, h) => {
+  c.fillStyle = '#1b1f24'; c.fillRect(0, 0, w, h);
+  for (let i = 0; i < 14; i++) {
+    const y = 10 + i * 17;
+    c.fillStyle = i % 4 === 0 ? '#3a4048' : '#2a2f36'; c.fillRect(10, y, w - 20, 13);
+    const lights = ['#3dff6e', '#3dff6e', '#ffb02e', '#38b6ff'];
+    for (let k = 0; k < 5; k++) { c.fillStyle = lights[(i + k) % lights.length]; c.fillRect(16 + k * 7, y + 5, 3, 3); }
+    if (i % 3 === 1) { c.fillStyle = '#4b535c'; for (let k = 0; k < 12; k++) c.fillRect(56 + k * 5, y + 4, 3, 5); }   // 交換器網路孔
+  }
+}) }));
+function infoRoom(put, fr) {
+  const W = fr.W, L = fr.L, A = fr.away;
+  // 機房在 v 的一半（不靠門那側）
+  const split = A * 0.3;
+  put(mat('glass'), L - 0.4, 0.06, 2.4, L / 2, split, 0);                 // 玻璃隔間
+  const nR = Math.max(2, Math.floor((L - 1.2) / 0.75));
+  for (let i = 0; i < nR; i++) put(rackMat(), 0.65, 0.9, 2.0, 0.7 + i * 0.75, A * (W / 2 - 0.6), 0, true);   // 機櫃（含交換器）
+  put(mat('wool', '#e9edf0'), 0.5, 0.5, 1.6, L - 0.4, A * (W / 2 - 2.0), 0);   // 冷氣（機房空調）
+  // 前半：兩組辦公桌 + 電腦
+  for (let k = 0; k < 2; k++) deskSet(put, 1.0 + k * (L > 4 ? 1.9 : 1.6), -A * (W / 4) );
+  put(cabinetMat(), 0.45, 0.9, 1.8, L - 0.24, -A * (W / 2 - 1.0), 0, true);
+}
+
 function office(put, fr, name) {
   const W = fr.W, L = fr.L;
   if (name.includes('會議室')) {
@@ -332,15 +391,12 @@ function office(put, fr, name) {
     put(mat('wool', '#7a4a2a'), 0.8, 2.2, 0.45, L - 1.0, W / 4, 0);   // 沙發
     put(mat('wool', '#7a4a2a'), 0.2, 2.2, 0.4, L - 0.5, W / 4, 0.45);
     put(M.desk(), 0.7, 1.2, 0.4, L - 2.1, W / 4, 0);                  // 茶几
+  } else if (name.includes('資訊室')) {
+    return infoRoom(put, fr);
   } else {
-    // 辦公桌：兩兩相對
-    const rows = Math.max(1, Math.floor((L - 1.5) / 1.9)), cols = Math.max(1, Math.floor((W - 1.4) / 1.5));
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      const u = 1.4 + r * 1.9, v = -(W - 1.4) / 2 + (W - 1.4) * (c + 0.5) / cols;
-      put(M.desk(), 0.7, 1.3, 0.75, u, v, 0);
-      put(M.dark(), 0.05, 0.5, 0.32, u - 0.2, v, 0.8); put(screenMat(), 0.02, 0.46, 0.28, u - 0.225, v, 0.82);
-      chairAt(put, u + 0.6, v, true);
-    }
+    // 辦公桌 + 電腦：處室 6 組、人事會計室 2 組，其他依空間大小
+    const count = OFFICE_DESKS.find(([k]) => name.includes(k))?.[1];
+    officeDesks(put, fr, count);
   }
   // 公文櫃：後面靠牆
   const n = Math.max(1, Math.floor((W - 1) / 0.95));
@@ -409,7 +465,8 @@ function signTexture(title, sub, kind) {
 }
 
 function addSign(room, f, group, wallT) {
-  const door = room.doorPts?.[0];
+  // 班級教室的前門在黑板那一端（前後對調後是最後一扇門）
+  const door = room.type === 'class' ? room.doorPts?.at(-1) : room.doorPts?.[0];
   if (!door) return;
   let title, sub, kind;
   if (room.type === 'class') { title = room.display; sub = room.code; kind = 'class'; }
@@ -438,7 +495,7 @@ function addSign(room, f, group, wallT) {
 export function furnishFloor(f, wallT) {
   const batch = new Batch();
   for (const room of f.rooms) {
-    const fr = frameOf(room, wallT);
+    const fr = frameOf(room, wallT, room.type === 'class');
     furnishRoom(room, fr, placer(batch, fr, f.y));
   }
   const g = new THREE.Group();

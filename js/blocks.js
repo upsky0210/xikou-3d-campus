@@ -255,9 +255,43 @@ function hairTexture(gender, side) {
   }, 33, 16, { smooth: false });
 }
 
+// 上衣前 / 後片貼圖（寬 0.46 × 高 0.6）
+function shirtTexture(front) {
+  const cv = document.createElement('canvas');
+  cv.width = 184; cv.height = 240;
+  const c = cv.getContext('2d'), w = 184, h = 240;
+  c.fillStyle = '#d42a2a'; c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(0,0,0,.05)';
+  for (let y = 0; y < h; y += 4) c.fillRect(0, y, w, 1);           // 運動布料細紋
+  c.fillStyle = '#9ea2a8';
+  const band = 22, sideW = 22;
+  for (const sgn of [-1, 1]) {
+    // 從領口（中間附近）斜到腋下（外側約 1/3 高），再沿側邊往下
+    const x0 = w / 2 + sgn * 34, x1 = sgn < 0 ? 0 : w;
+    c.beginPath();
+    c.moveTo(x0, 0); c.lineTo(x0 + sgn * band, 0);
+    c.lineTo(x1, h * 0.28);
+    c.lineTo(x1, h); c.lineTo(x1 - sgn * sideW, h);
+    c.lineTo(x1 - sgn * sideW, h * 0.3 + band);
+    c.closePath(); c.fill();
+  }
+  if (front) {
+    // 左胸（看的人的右邊）白色名牌：校徽 + 班級
+    const px = w * 0.6, py = 30;
+    c.fillStyle = '#ffffff'; c.fillRect(px, py, 44, 30);
+    c.strokeStyle = '#c22'; c.lineWidth = 2; c.strokeRect(px + 2, py + 2, 40, 26);
+    c.fillStyle = '#3a9a4a'; c.beginPath(); c.arc(px + 11, py + 15, 7, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#c22'; c.fillRect(px + 21, py + 9, 18, 3); c.fillRect(px + 21, py + 16, 18, 3);
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
 /**
  * 方塊學生。gender: 'boy' | 'girl'
- * 制服：紅色 polo 衫（灰色滾邊、白色鈕扣）＋ 黑色運動短褲（灰色側條）＋ 白襪
+ * 制服：紅色 polo 衫（灰色斜條與側片、左胸名牌）＋ 黑色運動短褲（灰色側條）＋ 白襪
  */
 export function makeBlockPerson(gender = 'boy') {
   const g = new THREE.Group();
@@ -290,21 +324,24 @@ export function makeBlockPerson(gender = 'boy') {
     box(g, 0.12, 0.08, 0.06, cloth('#ff5c8a'), 0.17, 1.74, -0.2);   // 髮夾
   }
 
-  // 上衣：紅色 polo，兩側灰色滾邊
-  box(g, 0.46, 0.6, 0.26, polo, 0, 1.0, 0);
-  for (const s of [-1, 1]) box(g, 0.02, 0.52, 0.2, trim, s * 0.235, 0.98, 0);   // 側邊灰條
+  // 上衣：紅色 polo（依學校制服照片）
+  //   前後片：灰色斜條從領口斜到腋下，再沿兩側一路往下；左胸白色名牌
+  //   側面：灰色；袖子：全紅，左袖有綠色小校徽
+  const shirtFront = new THREE.MeshLambertMaterial({ map: shirtTexture(true) });
+  const shirtBack = new THREE.MeshLambertMaterial({ map: shirtTexture(false) });
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.6, 0.26), [trim, trim, polo, polo, shirtBack, shirtFront]);   // +x -x +y -y +z(背) -z(胸)
+  torso.position.set(0, 1.0, 0); torso.castShadow = true; g.add(torso);
   box(g, 0.44, 0.07, 0.28, collar, 0, 1.28, 0);             // 領子
-  box(g, 0.45, 0.025, 0.285, trim, 0, 1.24, 0);             // 領口灰邊
-  box(g, 0.06, 0.16, 0.02, collar, 0, 1.15, -0.135);        // 門襟
-  box(g, 0.03, 0.03, 0.02, white, 0, 1.19, -0.147);         // 鈕扣
-  box(g, 0.03, 0.03, 0.02, white, 0, 1.12, -0.147);
+  box(g, 0.45, 0.02, 0.285, trim, 0, 1.31, 0);              // 領子上緣灰邊
+  box(g, 0.06, 0.15, 0.02, collar, 0, 1.17, -0.135);        // 門襟
+  box(g, 0.025, 0.025, 0.02, collar, 0, 1.2, -0.147);       // 鈕扣（同色）
+  box(g, 0.025, 0.025, 0.02, collar, 0, 1.13, -0.147);
 
-  // 手臂：短袖（紅，袖口和肩線灰邊）＋ 手臂（膚色）
+  // 手臂：短袖（全紅）＋ 手臂（膚色）；左袖綠色小校徽
   const arm = (side) => {
     const p = pivot(side * 0.33, 1.3);
     box(p, 0.2, 0.22, 0.22, polo, 0, -0.11, 0);
-    box(p, 0.21, 0.04, 0.23, trim, 0, -0.2, 0);             // 袖口
-    box(p, 0.02, 0.2, 0.12, trim, side * 0.1, -0.1, 0);     // 袖子外側灰條
+    if (side === -1) box(p, 0.01, 0.06, 0.06, cloth('#2e9e4f'), -0.105, -0.08, 0);   // 校徽
     box(p, 0.16, 0.36, 0.18, skin, 0, -0.4, 0);
     box(p, 0.17, 0.1, 0.19, skin, 0, -0.62, 0);
     return p;
