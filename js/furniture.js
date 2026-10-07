@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=12';
+import { Batch, mat } from './blocks.js?v=13';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -96,6 +96,9 @@ const M = {
 };
 
 /* ---------- 房間座標框架 ---------- */
+
+// 班級教室的前後方向（依學校實際）：思源樓維持原方向，其他棟前後對調
+const flipped = (room) => room.type === 'class' && room.building !== 'D';
 
 function frameOf(room, wallT, flip = false) {
   const m = room.m, d = room.doors || '';
@@ -465,8 +468,8 @@ function signTexture(title, sub, kind) {
 }
 
 function addSign(room, f, group, wallT) {
-  // 班級教室的前門在黑板那一端（前後對調後是最後一扇門）
-  const door = room.type === 'class' ? room.doorPts?.at(-1) : room.doorPts?.[0];
+  // 班牌掛在黑板那一端的門（前門）
+  const door = flipped(room) ? room.doorPts?.at(-1) : room.doorPts?.[0];
   if (!door) return;
   let title, sub, kind;
   if (room.type === 'class') { title = room.display; sub = room.code; kind = 'class'; }
@@ -495,7 +498,7 @@ function addSign(room, f, group, wallT) {
 export function furnishFloor(f, wallT) {
   const batch = new Batch();
   for (const room of f.rooms) {
-    const fr = frameOf(room, wallT, room.type === 'class');
+    const fr = frameOf(room, wallT, flipped(room));
     furnishRoom(room, fr, placer(batch, fr, f.y));
   }
   const g = new THREE.Group();

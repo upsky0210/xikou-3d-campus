@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=12';
-import { furnishFloor } from './furniture.js?v=12';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=12';
+import { PanoViewer } from './pano.js?v=13';
+import { furnishFloor } from './furniture.js?v=13';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=13';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -431,7 +431,7 @@ function addBleachers(f, m, side) {
       b.box(col, t, 0.08, L, x, f.y + h - 0.04, (m.z1 + m.z2) / 2);
     }
   }
-  b.build(f.group);
+  return b.build(f.group);
 }
 // 方塊風：外牆用校舍實際的米色，再帶一點各棟的代表色方便辨認
 const BEIGE = new THREE.Color('#efe0bf');
@@ -455,9 +455,10 @@ function buildFloor(f) {
     slab.receiveShadow = true;
     if (w.room) { slab.userData.room = w.room; pickables.push(slab); }
     f.group.add(slab);
+    (f.slabs ||= []).push(slab);
     if (w.room?.farm) addPlanters(f, w.m);
     const bl = w.bleacher || w.room?.bleacher;
-    if (bl) addBleachers(f, w.m, bl);
+    if (bl) f.slabs.push(...addBleachers(f, w.m, bl));
   }
   // 天花板 / 屋頂：上面一層沒有蓋到的地方就是屋頂
   const above = floors[f.idx + 1];
@@ -1396,7 +1397,8 @@ function update(dt) {
     let dist = 5.5;
     if (player.floor.wallMeshes) {
       camRay.set(head, dir); camRay.far = dist;
-      const hit = camRay.intersectObjects([...player.floor.wallMeshes, ...player.floor.ceilMeshes], false)[0];
+      const above = floors[player.floor.idx + 1];
+      const hit = camRay.intersectObjects([...player.floor.wallMeshes, ...player.floor.ceilMeshes, ...(above?.slabs || [])], false)[0];
       if (hit) dist = Math.max(0.8, hit.distance - 0.25);
     }
     camera.position.copy(head).addScaledVector(dir, dist);
