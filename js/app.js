@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=15';
-import { furnishFloor } from './furniture.js?v=15';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=15';
+import { PanoViewer } from './pano.js?v=16';
+import { furnishFloor } from './furniture.js?v=16';
+import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=16';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=16';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -14,7 +15,8 @@ const S = D.PX_PER_M, [OX, OY] = D.ORIGIN;
 const FLOOR_H = 3.6, WALL_H = 3.0, RAIL_H = 1.1, WALL_T = BLOCKY ? 0.3 : 0.16;
 const LABEL_FONT = '"Noto Sans TC", "Microsoft JhengHei", sans-serif';
 const CEIL_T = FLOOR_H - WALL_H - 0.3;      // 天花板厚度：牆頂到上一層地板底
-const PLAYER_R = 0.28, EYE_H = 1.45;
+const AVATAR_SCALE = 0.8;                 // 角色大小（學生比例，進教室才不會太大）
+const PLAYER_R = 0.28, EYE_H = 1.55 * AVATAR_SCALE;
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches;
 
 const mx = (px) => (px - OX) / S;
@@ -169,9 +171,10 @@ for (const f of floors) addRailings(f);
     f1.segs.push({ ax: x, az: mz(O.gate.y2) + 0.7, bx: x, bz: mz(1110), h: 1.5, color, kind: 'hedge' });
   }
   if (O.pool) {
-    const m = rectM(O.pool), color = new THREE.Color('#dddddd'), h = 6;
-    for (const [ax, az, bx, bz] of [[m.x1, m.z1, m.x2, m.z1], [m.x1, m.z2, m.x2, m.z2], [m.x1, m.z1, m.x1, m.z2], [m.x2, m.z1, m.x2, m.z2]]) {
-      f1.segs.push({ ax, az, bx, bz, h, color, kind: 'wall', bld: null });
+    // 游泳館：白色浪板外牆（依照片），北牆西段（藍色立面旁）留 2 公尺入口
+    const m = rectM(O.pool), color = new THREE.Color('#eeeeee'), h = 6, d0 = m.x1 + 5.0, d1 = m.x1 + 7.0;
+    for (const [ax, az, bx, bz] of [[m.x1, m.z1, d0, m.z1], [d1, m.z1, m.x2, m.z1], [m.x1, m.z2, m.x2, m.z2], [m.x1, m.z1, m.x1, m.z2], [m.x2, m.z1, m.x2, m.z2]]) {
+      f1.segs.push({ ax, az, bx, bz, h, color, kind: 'poolwall' });
     }
   }
 }
@@ -280,11 +283,8 @@ function buildOutdoor() {
   if (O.pool) {
     // 條紋屋頂建築（牆已經在資料階段加進碰撞），這裡蓋屋頂
     const m = rectM(O.pool);
-    const roof = new THREE.Mesh(new THREE.BoxGeometry(m.x2 - m.x1, 0.4, m.z2 - m.z1), new THREE.MeshLambertMaterial({ map: stripeRoofTexture(m.x2 - m.x1) }));
-    roof.position.set((m.x1 + m.x2) / 2, 6.2, (m.z1 + m.z2) / 2);
-    roof.castShadow = roof.receiveShadow = true;
-    g.add(roof);
-    floors[1].labels.add(makeLabel('游泳池', '', (m.x1 + m.x2) / 2, 8.5, (m.z1 + m.z2) / 2, { bg: '#2f6fb5', h: 1.4 }));
+    buildPool(g, m, stripeRoofTexture(m.x2 - m.x1));
+    floors[1].labels.add(makeLabel('水漾游泳館', '游泳池', (m.x1 + m.x2) / 2, 8.5, (m.z1 + m.z2) / 2, { bg: '#2f6fb5', h: 1.4 }));
   }
   if (O.gate) {
     // 正門：兩根白柱子 + 彩虹拱門
@@ -332,16 +332,8 @@ function buildOutdoor() {
   }
   if (O.playground) {
     const m = rectM(O.playground);
-    flat(tiled(m.x2 - m.x1, m.z2 - m.z1), '#3d5a80', 0.02, 'wool').position.set((m.x1 + m.x2) / 2, 0.02, (m.z1 + m.z2) / 2);
-    const colors = ['#ef476f', '#ffd166', '#06d6a0'];
-    for (let i = 0; i < 3; i++) {
-      const h = 1 + i;
-      const post = new THREE.Mesh(blockBox(1, h, 1), mat('wool', colors[i]));
-      post.position.set(m.x1 + (i + 1) * (m.x2 - m.x1) / 4, h / 2, (m.z1 + m.z2) / 2);
-      post.castShadow = true;
-      g.add(post);
-    }
-    floors[1].labels.add(makeLabel('遊戲場', est, (m.x1 + m.x2) / 2, 3.5, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
+    buildPoolPlayground(g, m);
+    floors[1].labels.add(makeLabel('遊戲場', '', (m.x1 + m.x2) / 2, 6.8, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
   }
 }
 
@@ -495,6 +487,7 @@ function buildFloor(f) {
     };
     if (s.kind === 'rail') { piece(railMat, 0, s.h); continue; }
     if (s.kind === 'hedge') { piece(mat('leaves'), 0, s.h); continue; }
+    if (s.kind === 'poolwall') { piece(BLOCKY ? poolWallMat() : mat('wool', '#eeeeee'), 0, s.h); continue; }
     const wm = wallMat(s.bld);
     if (s.overhead) { piece(wm, s.y0, s.h); continue; }   // 門楣
     if (len < 1.4) { piece(wm, 0, s.h); continue; }
@@ -618,11 +611,13 @@ function savedGender() {
   try { const v = localStorage.getItem(AVATAR_KEY); return v === 'boy' || v === 'girl' ? v : null; } catch { return null; }
 }
 let avatar = makeBlockPerson(savedGender() || 'boy');
+avatar.scale.setScalar(AVATAR_SCALE);
 scene.add(avatar);
 
 function setGender(gender) {
   try { localStorage.setItem(AVATAR_KEY, gender); } catch { /* 私密模式，忽略 */ }
   const next = makeBlockPerson(gender);
+  next.scale.setScalar(AVATAR_SCALE);
   next.rotation.copy(avatar.rotation);
   next.position.copy(avatar.position);
   next.visible = avatar.visible;
@@ -1049,7 +1044,8 @@ function pick(e) {
   raycaster.setFromCamera(ndc, camera);
   const vis = pickables.filter((o) => { let p = o; while (p) { if (!p.visible) return false; p = p.parent; } return true; });
   const hit = raycaster.intersectObjects(vis, false)[0];
-  if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
+  if (hit?.object.userData.cat) meetCat();
+  else if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
   else if (hit) showInfo(hit.object.userData.room);
   else hideInfo();
 }
@@ -1332,6 +1328,21 @@ gallery.addEventListener('click', (e) => {
 });
 document.getElementById('openGallery').onclick = openGallery;
 
+/* ---------------- 橘貓彩蛋（依照片：游泳池後面的橘貓） ---------------- */
+
+const CAT_KEY = 'campus-cat-found';
+const cat = makeCat();
+cat.position.set(mx(1200), 0, mz(2183));    // 游泳館南側後面
+cat.rotation.y = Math.PI / 2;               // 面向西邊（從遊戲場那邊走過來會看到）
+floors[1].group.add(cat);
+cat.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.cat = true; pickables.push(o); } });
+let catNear = false;
+function meetCat() {
+  let first = true;
+  try { first = !localStorage.getItem(CAT_KEY); localStorage.setItem(CAT_KEY, '1'); } catch { /* 私密模式，忽略 */ }
+  toast(first ? '🐱 喵～你找到了躲在游泳池後面的橘貓！' : '🐱 喵～又見面了！');
+}
+
 /* ---------------- 主迴圈 ---------------- */
 
 const clock = new THREE.Clock();
@@ -1374,6 +1385,9 @@ function update(dt) {
     }
     updateStairPanel();
     updatePanoPrompt();
+    const nearCat = player.floor.level === 0 && Math.hypot(player.x - cat.position.x, player.z - cat.position.z) < 1.8;
+    if (nearCat && !catNear) meetCat();
+    catNear = nearCat;
     if (nav.target && (navTick += dt) > 0.3) {
       navTick = 0;
       updateNavBar();
@@ -1390,10 +1404,10 @@ function update(dt) {
     camera.position.set(player.x, py + EYE_H, player.z);
     camera.rotation.set(player.pitch, player.yaw, 0, 'YXZ');
   } else if (mode === 'third') {
-    const head = new THREE.Vector3(player.x, py + 1.6, player.z);
+    const head = new THREE.Vector3(player.x, py + 1.6 * AVATAR_SCALE, player.z);
     const pitch = Math.max(-0.9, Math.min(0.5, player.pitch - 0.35));
     const dir = new THREE.Vector3(Math.sin(player.yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(player.yaw) * Math.cos(pitch));
-    let dist = 5.5;
+    let dist = 5.5 * AVATAR_SCALE;
     if (player.floor.wallMeshes) {
       camRay.set(head, dir); camRay.far = dist;
       const above = floors[player.floor.idx + 1];
@@ -1406,6 +1420,7 @@ function update(dt) {
     orbit.update();
   }
 
+  if (floors[1].group.visible) cat.userData.anim(t);
   // 雲慢慢飄
   if (clouds) {
     const sp = clouds.userData.spread;
@@ -1474,5 +1489,5 @@ document.getElementById('changeAvatar').onclick = () => { document.getElementByI
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { rooms, floors, player, nav, navigateTo, placeAt, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys,
+window.__campus = { rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
