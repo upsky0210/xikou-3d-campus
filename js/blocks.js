@@ -128,6 +128,11 @@ function tex(name) {
     }, 20),
     track: () => canvasTex((c, r) => mottle(c, r, '#93414b', { amt: 0.06, n: 400, min: 1, max: 4 }), 21),
     wool: () => canvasTex((c, r) => mottle(c, r, '#f2f2f2', { amt: 0.04, n: 220 }), 22),
+    // 磨石子（走廊、教室地板，依照片）：灰白底＋深淺碎石點
+    terrazzo: () => canvasTex((c, r) => {
+      mottle(c, r, '#d9d8d3', { amt: 0.03, n: 120 });
+      for (let i = 0; i < 260; i++) { c.fillStyle = ['#8f8e8a', '#f7f7f4', '#b5b3ad', '#6f6e6a'][i % 4]; c.fillRect(r() * S, r() * S, 1 + r() * 1.6, 1 + r() * 1.6); }
+    }, 25),
     // 屋頂：浪板
     roof: () => canvasTex((c, r) => {
       mottle(c, r, '#f0f0ee', { amt: 0.03 });

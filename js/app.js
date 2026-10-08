@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=17';
-import { furnishFloor } from './furniture.js?v=17';
-import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=17';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=17';
+import { PanoViewer } from './pano.js?v=19';
+import { furnishFloor } from './furniture.js?v=19';
+import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=19';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=19';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -92,6 +92,11 @@ function lighten(hex, amt) {
 }
 
 function addRoomWalls(room) {
+  if (room.endWall === 'E') {
+    // 穿堂東端（依照片）：中間一道主題牆，兩側各留約 1.2 公尺通道往中庭
+    const { x2, z1, z2 } = room.m, gap = 1.25;
+    room.f.segs.push({ ax: x2, az: z1 + gap, bx: x2, bz: z2 - gap, h: WALL_H, color: new THREE.Color('#dddddd'), kind: 'wall', bld: room.building });
+  }
   if (room.open) return;
   const f = room.f, { x1, z1, x2, z2 } = room.m;
   const doors = room.doors || '';
@@ -373,31 +378,35 @@ function stripeRoofTexture(widthM) {
   return t;
 }
 
-const FLOOR_TEX = { class: 'planks', hall: 'planks', storage: 'planks', stair: 'planks', garden: 'grass', kinder: 'wool' };
+const FLOOR_TEX = { class: 'terrazzo', corridor: 'terrazzo', hall: 'planks', storage: 'planks', stair: 'planks', garden: 'grass', kinder: 'wool' };
 function floorMat(type, f, room) {
   if (type === 'garden' && f?.level === 4) {
     if (room?.building === 'A') return mat('roof', BLOCKY ? ROOF_COLOR.A : '#c9c9c9');   // 敬業樓藍色屋頂
     return mat('tile', '#cfc8ba');                                                        // 其他頂樓：地磚
   }
   const kind = FLOOR_TEX[type] || 'tile';
-  const color = BLOCKY && kind === 'grass' ? '#ffffff' : (TYPE_COLORS[type] || '#eeeeee');
+  const color = BLOCKY && (kind === 'grass' || kind === 'terrazzo') ? '#ffffff' : (TYPE_COLORS[type] || '#eeeeee');
   return mat(kind, color);
 }
 // 頂樓菜園：一排排木頭菜箱，上面是土和菜
 function addPlanters(f, m) {
+  // 依 2 樓小田園照片：一格一格的小木框菜圃，種生菜，隔一格插竹竿支架
   const b = new Batch();
-  const wood = mat('planks', '#b98b5a'), soil = mat('wool', '#5b3f2a'), crop = mat('leaves');
-  const cols = Math.max(1, Math.floor((m.x2 - m.x1 - 1) / 2.2));
-  let seed = 7;
+  const wood = mat('planks', '#b98b5a'), soil = mat('wool', '#4a3322'), lettuce = mat('wool', '#6cc04a'), bamboo = mat('wool', '#c8b48a');
+  let seed = 7, n = 0;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < cols; i++) {
-    const x = m.x1 + 1.3 + i * 2.2;
-    for (let z = m.z1 + 1.2; z + 3.5 < m.z2 - 0.8; z += 4.6) {
-      b.box(wood, 1.1, 0.45, 3.6, x, f.y + 0.225, z + 1.8);
-      b.box(soil, 0.9, 0.05, 3.4, x, f.y + 0.47, z + 1.8);
-      for (let k = 0; k < 6; k++) {
-        const s = 0.25 + rnd() * 0.2;
-        b.box(crop, s, s, s, x - 0.2 + (k % 2) * 0.4, f.y + 0.5 + s / 2, z + 0.4 + Math.floor(k / 2) * 1.3);
+  for (let x = m.x1 + 1.0; x + 0.6 < m.x2 - 0.5; x += 1.9) {
+    for (let z = m.z1 + 1.0; z + 1.8 < m.z2 - 0.6; z += 2.5) {
+      const cz = z + 0.9;
+      b.box(wood, 1.2, 0.4, 1.8, x + 0.6, f.y + 0.2, cz);
+      b.box(soil, 1.0, 0.05, 1.6, x + 0.6, f.y + 0.42, cz);
+      for (let k = 0; k < 6; k++) {                       // 生菜
+        const sz = 0.24 + rnd() * 0.1;
+        b.box(lettuce, sz, sz * 0.8, sz, x + 0.35 + (k % 2) * 0.5, f.y + 0.45 + sz * 0.4, cz - 0.55 + Math.floor(k / 2) * 0.55);
+      }
+      if (n++ % 2 === 0) {                                // 竹竿支架
+        for (const [dx, dz] of [[0.15, -0.7], [1.05, -0.7], [0.15, 0.7], [1.05, 0.7]]) b.box(bamboo, 0.04, 1.6, 0.04, x + dx, f.y + 0.4 + 0.8, cz + dz);
+        b.box(bamboo, 0.04, 0.04, 1.5, x + 0.15, f.y + 2.0, cz); b.box(bamboo, 0.04, 0.04, 1.5, x + 1.05, f.y + 2.0, cz);
       }
     }
   }
@@ -485,7 +494,15 @@ function buildFloor(f) {
       if (horiz) batch.box(m, L, y1 - y0, WALL_T, cx + mid, f.y + (y0 + y1) / 2, cz);
       else batch.box(m, WALL_T, y1 - y0, L, cx, f.y + (y0 + y1) / 2, cz + mid);
     };
-    if (s.kind === 'rail') { piece(railMat, 0, s.h); continue; }
+    if (s.kind === 'rail') {
+      piece(railMat, 0, s.h);
+      if (BLOCKY && f.level >= 1 && f.level <= 3 && len > 1.6) {      // 欄杆上的花台與植物
+        const a = -len / 2 + 0.3, b = len / 2 - 0.3;
+        piece(mat('wool', '#8a8f86'), s.h, s.h + 0.12, a, b);
+        for (let t = a + 0.2; t < b - 0.2; t += 0.55) piece(mat('leaves'), s.h + 0.12, s.h + 0.42, t, t + 0.4);
+      }
+      continue;
+    }
     if (s.kind === 'hedge') { piece(mat('leaves'), 0, s.h); continue; }
     if (s.kind === 'poolwall') { piece(BLOCKY ? poolWallMat() : mat('wool', '#eeeeee'), 0, s.h); continue; }
     const wm = wallMat(s.bld);

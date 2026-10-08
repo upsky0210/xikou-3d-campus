@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=17';
+import { Batch, mat } from './blocks.js?v=19';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -145,15 +145,15 @@ function placer(batch, fr, y0) {
 
 /* ---------- 各種家具 ---------- */
 
-function deskAndChair(put, u, v) {
-  put(M.desk(), 0.45, 0.6, 0.04, u, v, 0.68);           // 桌面
-  put(M.metal(), 0.4, 0.56, 0.16, u, v, 0.52);          // 抽屜
-  put(M.metal(), 0.04, 0.04, 0.52, u, v - 0.26, 0);     // 桌腳
-  put(M.metal(), 0.04, 0.04, 0.52, u, v + 0.26, 0);
-  put(M.desk(), 0.38, 0.38, 0.04, u + 0.45, v, 0.4);    // 椅面
-  put(M.desk(), 0.04, 0.38, 0.32, u + 0.64, v, 0.46);   // 椅背
-  put(M.metal(), 0.3, 0.04, 0.4, u + 0.45, v - 0.16, 0);
-  put(M.metal(), 0.3, 0.04, 0.4, u + 0.45, v + 0.16, 0);
+function deskAndChair(put, u, v, top = M.desk(), frame = M.metal(), seat = M.desk()) {
+  put(top, 0.45, 0.6, 0.04, u, v, 0.68);                // 桌面
+  put(frame, 0.4, 0.56, 0.16, u, v, 0.52);              // 抽屜
+  put(frame, 0.04, 0.04, 0.52, u, v - 0.26, 0);         // 桌腳
+  put(frame, 0.04, 0.04, 0.52, u, v + 0.26, 0);
+  put(seat, 0.38, 0.38, 0.04, u + 0.45, v, 0.4);        // 椅面
+  put(seat, 0.04, 0.38, 0.32, u + 0.64, v, 0.46);       // 椅背
+  put(frame, 0.3, 0.04, 0.4, u + 0.45, v - 0.16, 0);
+  put(frame, 0.3, 0.04, 0.4, u + 0.45, v + 0.16, 0);
 }
 function chairAt(put, u, v, faceBack = true) {
   put(M.desk(), 0.38, 0.38, 0.04, u, v, 0.4);
@@ -194,17 +194,128 @@ function lockers(put, fr) {
 
 /* ---------- 各種教室 ---------- */
 
-function classroom(put, fr) {
+// 班級教室（依照片）：綠色桌面＋木頭課桌椅、黑板中間 86 吋電視、兩側布告欄
+//   1～2 年級：白牆、後面黃色置物櫃
+//   3～6 年級：淺藍色牆、後面木色格子櫃、窗邊書櫃與紅地毯閱讀角
+function classroom(put, fr, room) {
+  const grade = +(room?.code?.[0] || 3), low = grade <= 2;
+  const W = fr.W, L = fr.L, A = fr.away;
+  if (!low) paintBands(put, fr, mat('wool', '#bcd9ee'));
   frontWall(put, fr);
-  teacherDesk(put, 1.25, fr.away * (fr.W / 2 - 1.0));
-  const rows = Math.max(2, Math.floor((fr.L - 1.7 - 2.3) / 1.15) + 1);
-  const cols = fr.W > 6.5 ? 6 : 5;
-  const span = fr.W - 1.4;
+  const bw = Math.min(5.2, W * 0.75);
+  for (const s of [-1, 1]) put(corkMat(), 0.03, Math.min(1.0, (W - bw) / 2 - 0.2), 1.0, 0.03, s * (bw / 2 + 0.6), 1.0, true);
+  teacherDesk(put, 1.25, A * (W / 2 - 1.0));
+  const green = mat('wool', '#3f8f74'), wood = mat('planks', '#b98a5a');
+  const rows = Math.max(2, Math.floor((L - 1.7 - 2.3) / 1.15) + 1);
+  const cols = W > 6.5 ? 6 : 5;
+  const span = W - 1.4;
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-    deskAndChair(put, 2.3 + r * 1.15, -span / 2 + (span * c) / (cols - 1));
+    deskAndChair(put, 2.3 + r * 1.15, -span / 2 + (span * c) / (cols - 1), green, wood, wood);
   }
-  lockers(put, fr);
+  // 後面的櫃子
+  const cw = W - 0.4, u = L - 0.21;
+  if (low) {
+    put(M.white(), 0.4, cw, 1.15, u, 0, 0);
+    const n = Math.max(2, Math.floor(cw / 0.46)), cell = cw / n;
+    for (let r = 0; r < 2; r++) for (let i = 0; i < n; i++) {
+      put(mat('wool', (i + r) % 2 ? '#f2d35c' : '#f7e7a1'), 0.02, cell - 0.06, 0.48, u - 0.21, -cw / 2 + cell * (i + 0.5), 0.08 + r * 0.54);
+    }
+    put(corkMat(), 0.03, Math.min(4.5, W - 1), 0.95, L - 0.015, 0, 1.5, true);
+  } else {
+    put(mat('planks', '#d6b98a'), 0.42, cw, 1.7, u, 0, 0);
+    const n = Math.max(2, Math.floor(cw / 0.42)), cell = cw / n;
+    for (let r = 0; r < 3; r++) for (let i = 0; i < n; i++) {
+      put(mat('wool', (i + r) % 2 ? '#efe0c2' : '#e6d2ac'), 0.02, cell - 0.05, 0.48, u - 0.22, -cw / 2 + cell * (i + 0.5), 0.1 + r * 0.53);
+    }
+    put(corkMat(), 0.03, Math.min(3.0, W - 2), 0.7, L - 0.015, 0, 1.95, true);
+    // 窗邊書櫃＋紅地毯閱讀角
+    put(booksMat(), 1.6, 0.35, 1.2, L - 1.7, A * (W / 2 - 0.2), 0);
+    put(mat('wool', '#c0392b'), 1.0, 1.6, 0.012, L - 0.95, A * (W / 2 - 1.1), 0);
+  }
 }
+
+// 穿堂（依照片）：東端深色主題牆（山、月亮、星星、小門）＋兩側玻璃磚、背面是中庭彩繪牆
+//                兩側海報牆＋長木椅、彩色木條天花板、棕米色格子地磚、電子看板
+const darkThemeMat = () => once('darktheme', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 440, (c, w, h) => {
+  c.fillStyle = '#2b333b'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#20272e';
+  c.beginPath(); c.moveTo(0, 300); c.lineTo(90, 230); c.lineTo(170, 280); c.lineTo(260, 210); c.lineTo(360, 270); c.lineTo(440, 220); c.lineTo(w, 260); c.lineTo(w, h); c.lineTo(0, h); c.fill();
+  c.fillStyle = '#f2d36b'; c.beginPath(); c.arc(410, 70, 22, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#2b333b'; c.beginPath(); c.arc(420, 62, 20, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#f2d36b';
+  for (const [x, y] of [[80, 60], [150, 110], [300, 50], [350, 130], [470, 150]]) c.fillRect(x, y, 4, 4);
+  // 中間的小門（米白色門框＋小窗）
+  c.fillStyle = '#e9dfc6'; c.fillRect(220, 150, 80, 230);
+  c.fillStyle = '#c4a46a'; c.fillRect(232, 165, 56, 200);
+  c.fillStyle = '#9fc7e8'; c.fillRect(244, 178, 32, 32);
+  c.fillStyle = 'rgba(255,255,255,.75)'; c.font = '14px sans-serif'; c.fillText('Save the world, one book at a time', 310, 230);
+}) }));
+const glassBlockMat = () => once('glassblock', () => new THREE.MeshLambertMaterial({ emissive: '#9fd8d8', emissiveIntensity: 0.25, map: bigTex(160, 256, (c, w, h) => {
+  c.fillStyle = '#e8f2f2'; c.fillRect(0, 0, w, h);
+  for (let x = 0; x < w; x += 32) for (let y = 0; y < h; y += 32) {
+    const g = c.createLinearGradient(x, y, x + 30, y + 30);
+    g.addColorStop(0, '#bfe3e3'); g.addColorStop(1, '#8fc7c9');
+    c.fillStyle = g; c.fillRect(x + 2, y + 2, 28, 28);
+  }
+}) }));
+const muralMat = () => once('mural', () => new THREE.MeshLambertMaterial({ map: bigTex(800, 360, (c, w, h) => {
+  c.fillStyle = '#f7f5ef'; c.fillRect(0, 0, w, h);
+  // 彩色筆刷
+  const strokes = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60', '#2e86de', '#8e44ad'];
+  c.lineCap = 'round';
+  for (let i = 0; i < 6; i++) { c.strokeStyle = strokes[i]; c.lineWidth = 14; c.beginPath(); c.moveTo(220 + i * 60, 300); c.bezierCurveTo(260 + i * 50, 120, 420 + i * 20, 80, 560, 160 + i * 12); c.stroke(); }
+  // 跳舞的人
+  for (const [x, col] of [[300, '#e74c3c'], [400, '#27ae60'], [500, '#2e86de']]) {
+    c.fillStyle = col; c.beginPath(); c.arc(x, 110, 18, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = col; c.lineWidth = 12;
+    c.beginPath(); c.moveTo(x, 130); c.lineTo(x - 10, 230); c.lineTo(x - 40, 300); c.moveTo(x - 10, 230); c.lineTo(x + 30, 300); c.moveTo(x - 5, 160); c.lineTo(x - 55, 120); c.moveTo(x - 5, 160); c.lineTo(x + 50, 140); c.stroke();
+  }
+  c.fillStyle = '#d63031'; c.font = '900 52px "Noto Sans TC", sans-serif';
+  c.fillText('夢想圓滿', 30, 90);
+  c.fillText('大筆今生', w - 250, 90);
+}) }));
+const posterWallMat = () => once('posterwall', () => new THREE.MeshLambertMaterial({ map: bigTex(800, 200, (c, w, h) => {
+  c.fillStyle = '#b5895a'; c.fillRect(0, 0, w, h);
+  for (let x = 0; x < w; x += 10) { c.fillStyle = 'rgba(0,0,0,.06)'; c.fillRect(x, 0, 2, h); }
+  const cols = ['#ffe28a', '#ffb3b3', '#b3e0ff', '#c8f2b0', '#ffffff', '#f7c6ff'];
+  for (let i = 0; i < 18; i++) {
+    const x = 14 + (i % 9) * 88, y = i < 9 ? 14 : 106;
+    c.fillStyle = cols[i % cols.length]; c.fillRect(x, y, 74, 80);
+    c.fillStyle = ['#e74c3c', '#2e86de', '#27ae60', '#f39c12'][i % 4]; c.fillRect(x + 8, y + 8, 58, 12);
+    c.fillStyle = 'rgba(0,0,0,.25)'; for (let k = 0; k < 4; k++) c.fillRect(x + 8, y + 28 + k * 11, 50 - (k % 2) * 14, 5);
+  }
+}) }));
+const checkerMat = () => once('checker', () => {
+  const t = bigTex(128, 128, (c) => {
+    c.fillStyle = '#d7b58a'; c.fillRect(0, 0, 128, 128);
+    c.fillStyle = '#a8784e'; c.fillRect(0, 0, 64, 64); c.fillRect(64, 64, 64, 64);
+    c.fillStyle = 'rgba(255,255,255,.15)'; c.fillRect(0, 63, 128, 2); c.fillRect(63, 0, 2, 128);
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 7);
+  return new THREE.MeshLambertMaterial({ map: t });
+});
+function entranceHall(put, fr) {
+  const W = fr.W, L = fr.L;              // u：南北向、v：東西向（v 越大越靠中庭）
+  put(checkerMat(), L, W, 0.012, L / 2, 0, 0, true);
+  // 東端主題牆（牆本身在 app.js 加，這裡貼兩面的畫）
+  const wallLen = L - 2.16;
+  put(darkThemeMat(), 3.4, 0.03, 2.9, L / 2, W / 2, 0, true);
+  for (const s of [-1, 1]) put(glassBlockMat(), (wallLen - 3.4) / 2 - 0.05, 0.03, 2.5, L / 2 + s * ((wallLen - 3.4) / 4 + 1.7), W / 2, 0.25, true);
+  put(muralMat(), wallLen, 0.03, 2.9, L / 2, W / 2 + 0.335, 0, true);
+  for (const s of [-1, 1]) put.geo(mat('wool', '#c0392b'), new THREE.CylinderGeometry(0.3, 0.25, 0.4, 12), L / 2 + s * 2.2, W / 2 - 0.5, 0.2);   // 盆栽
+  for (const s of [-1, 1]) put.geo(mat('leaves'), new THREE.SphereGeometry(0.45, 8, 6), L / 2 + s * 2.2, W / 2 - 0.5, 0.75);
+  // 兩側海報牆＋長木椅
+  for (const u of [0.015, L - 0.015]) put(posterWallMat(), 0.03, 6.8, 1.7, u, 1.2, 0.85, true);
+  for (const u of [0.4, L - 0.4]) { put(M.wood(), 0.4, 3.6, 0.08, u, 1.2, 0.4); put(M.wood(), 0.3, 3.4, 0.4, u, 1.2, 0); }
+  // 彩色木條天花板
+  const slats = ['#c0392b', '#e67e22', '#f1c40f', '#e8d5b0', '#16a085', '#2980b9', '#8e44ad', '#e8d5b0'];
+  for (let i = 0; i * 0.62 < L - 0.3; i++) put(mat('planks', slats[i % slats.length]), 0.42, W - 0.6, 0.08, 0.4 + i * 0.62, 0, 2.86);
+  // 電子看板
+  put(M.dark(), 0.35, 0.8, 1.9, L - 0.6, W / 2 - 1.6, 0);
+  put(screenMat(), 0.02, 0.7, 1.2, L - 0.78, W / 2 - 1.6, 0.6);
+}
+
+
 
 function groupTables(put, fr, startU = 2.3) {
   const cols = fr.W > 6 ? 3 : 2, rows = Math.max(1, Math.floor((fr.L - startU - 1.2) / 2.3));
@@ -911,9 +1022,10 @@ function storage(put, fr) {
 /** 依名稱、種類挑布置 */
 function furnishRoom(room, fr, put) {
   const n = room.name || '', t = room.type;
+  if (n === '穿堂') return entranceHall(put, fr);                     // 依照片：主題牆、海報牆、彩色天花板
   if (room.hidden || room.open || t === 'garden') return;
   if (t === 'wc') return restroom(put, fr, room);                       // 廁所入口屏風、木紋磚、植生牆
-  if (t === 'class') return classroom(put, fr);
+  if (t === 'class') return classroom(put, fr, room);
   if (n.includes('圖書館')) return library(put, fr);
   if (n.includes('音樂')) return musicRoom(put, fr);
   if (n.includes('電腦教室二')) return computerRoomHex(put, fr);   // 依照片：彩色六角電腦島
