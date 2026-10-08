@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=19';
+import { Batch, mat } from './blocks.js?v=20';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -832,6 +832,80 @@ function restroom(put, fr, room) {
   put(mat('glass'), 0.02, 1.4, 0.8, 0.02, 0, 1.15);                                     // 鏡子
 }
 
+// 1F 電腦教室一（依照片）：兩座長條雙面電腦島（木桌面、深色桌腳、螢幕背對背、白色折疊椅），
+//   前面白板＋教師桌＋投影機、後面綠色布告欄貼滿電腦課海報、門側玻璃書櫃、書法掛軸、白色地磚
+const pcPosterMat = () => once('pcposter', () => new THREE.MeshLambertMaterial({ map: bigTex(900, 210, (c, w, h) => {
+  c.fillStyle = '#2f6b4f'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = '#d9d9d9'; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6);
+  const cols = ['#cfe8ff', '#d8f5c8', '#fff3b0', '#ffd6cc', '#e8dcff', '#ffffff'];
+  const titles = ['電腦主機構造', '電腦周邊設備', '網路安全', '電腦教室規則', '資訊倫理', '電腦配備'];
+  for (let i = 0; i < 9; i++) {
+    const x = 20 + i * 97, y = 22 + (i % 2) * 14;
+    c.fillStyle = cols[i % cols.length]; c.fillRect(x, y, 82, 150);
+    c.fillStyle = '#c0392b'; c.font = '700 13px "Noto Sans TC", sans-serif'; c.fillText(titles[i % titles.length], x + 4, y + 18);
+    c.fillStyle = ['#3498db', '#27ae60', '#e67e22'][i % 3]; c.fillRect(x + 8, y + 30, 66, 60);
+    c.fillStyle = 'rgba(0,0,0,.25)'; for (let k = 0; k < 4; k++) c.fillRect(x + 8, y + 100 + k * 11, 60 - (k % 2) * 16, 5);
+  }
+}) }));
+const scrollMat = (text) => once('scroll' + text, () => new THREE.MeshLambertMaterial({ map: bigTex(90, 300, (c, w, h) => {
+  c.fillStyle = '#e8dcc0'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#7a5a3a'; c.fillRect(0, 0, w, 10); c.fillRect(0, h - 10, w, 10);
+  c.fillStyle = '#2b2b2b'; c.font = '700 48px "Noto Sans TC", serif'; c.textAlign = 'center';
+  [...text].forEach((ch, i) => c.fillText(ch, w / 2, 70 + i * 62));
+}) }));
+function foldingChair(put, u, v, faceV) {
+  const white = mat('wool', '#ececea'), grey = mat('wool', '#b9bcc0');
+  put(white, 0.4, 0.4, 0.04, u, v, 0.45);
+  put(white, 0.38, 0.04, 0.32, u, v + faceV * 0.2, 0.55);
+  for (const du of [-0.17, 0.17]) put(grey, 0.03, 0.03, 0.45, u + du, v - faceV * 0.15, 0), put(grey, 0.03, 0.03, 0.85, u + du, v + faceV * 0.18, 0);
+}
+function computerRoom1(put, fr) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  put(mat('tile', '#f3f3f0'), L, W, 0.012, L / 2, 0, 0);                      // 白色地磚
+  // 前面：白板、捲起來的投影布幕、吊掛投影機
+  put(M.frame(), 0.05, 4.2, 1.3, 0.025, 0, 0.85);
+  put(whiteboardMat(), 0.06, 4.0, 1.15, 0.04, 0, 0.92, true);
+  put(M.white(), 0.1, 3.0, 0.12, 0.1, 0, 2.72);
+  put(M.white(), 0.35, 0.3, 0.15, 3.2, 0, 2.75);
+  // 教師桌（兩台螢幕）
+  const tv = D * (W / 2 - 1.5);
+  put(mat('wool', '#3a3d42'), 0.75, 2.0, 0.75, 1.1, tv, 0);
+  for (const o of [-0.45, 0.45]) { put(M.dark(), 0.04, 0.55, 0.34, 0.95, tv + o, 0.8); put(screenMat(), 0.01, 0.5, 0.3, 0.97, tv + o, 0.82); }
+  chairAt(put, 1.75, tv, true);
+  // 兩座長條雙面電腦島
+  const u1 = 2.2, u2 = L - 1.5, top = mat('wool', '#d9a86c'), base = mat('wool', '#4a4d52');
+  for (const s of [-1, 1]) {
+    const vc = s * 1.75;
+    put(base, u2 - u1 - 0.2, 1.2, 0.72, (u1 + u2) / 2, vc, 0);
+    put(top, u2 - u1, 1.5, 0.05, (u1 + u2) / 2, vc, 0.72);
+    for (let u = u1 + 0.45; u < u2 - 0.2; u += 0.78) {
+      for (const r of [-1, 1]) {                       // r：這一排面向哪一側
+        put(M.dark(), 0.5, 0.04, 0.33, u, vc + r * 0.2, 0.8);
+        put(screenMat(), 0.46, 0.01, 0.29, u, vc + r * 0.225, 0.82);
+        put(M.dark(), 0.12, 0.12, 0.06, u, vc + r * 0.15, 0.77);
+        put(M.dark(), 0.42, 0.14, 0.02, u, vc + r * 0.5, 0.77);    // 鍵盤
+        put(M.dark(), 0.06, 0.1, 0.03, u + 0.3, vc + r * 0.5, 0.77);   // 滑鼠
+        foldingChair(put, u, vc + r * 1.12, r);
+      }
+    }
+  }
+  // 後面：綠色布告欄貼滿電腦課海報，下面兩個紙箱
+  put(pcPosterMat(), 0.03, Math.min(6.4, W - 1.2), 1.5, L - 0.015, 0, 0.9, true);
+  for (const o of [-0.35, 0.35]) put(mat('wool', '#d8b77a'), 0.5, 0.6, 0.55, L - 0.4, o, 0);
+  // 門那一側：玻璃門書櫃（上面堆紙箱）＋書法掛軸
+  for (let i = 0; i < 4; i++) {
+    const u = 2.6 + i * 0.95, v = D * (W / 2 - 0.22);
+    put(mat('planks', '#b5773f'), 0.92, 0.42, 1.9, u, v, 0);
+    put(booksMat(), 0.86, 0.02, 1.5, u, v - D * 0.215, 0.2);
+    put(mat('glass'), 0.86, 0.02, 1.6, u, v - D * 0.23, 0.15);
+    put(mat('wool', '#d8b77a'), 0.6, 0.4, 0.35, u, v, 1.9);
+  }
+  put(scrollMat('主動參與'), 0.6, 0.02, 2.0, L - 1.0, D * (W / 2 - 0.03), 0.6, true);
+  put(scrollMat('享受學習'), 0.6, 0.02, 2.0, L - 1.0, A * (W / 2 - 0.03), 0.6, true);
+  // 窗邊冷氣
+  for (const u of [2.5, L - 2.5]) put(M.white(), 0.9, 0.25, 0.3, u, A * (W / 2 - 0.15), 2.4);
+}
+
 function library(put, fr) {
   const W = fr.W, L = fr.L;
   // 北面整排書櫃（門在南邊）
@@ -1028,6 +1102,7 @@ function furnishRoom(room, fr, put) {
   if (t === 'class') return classroom(put, fr, room);
   if (n.includes('圖書館')) return library(put, fr);
   if (n.includes('音樂')) return musicRoom(put, fr);
+  if (n.includes('電腦教室一')) return computerRoom1(put, fr);       // 依照片：長條雙面電腦島
   if (n.includes('電腦教室二')) return computerRoomHex(put, fr);   // 依照片：彩色六角電腦島
   if (n.includes('電腦')) return computerRoom(put, fr);
   if (n.includes('教師會')) return teachersLounge(put, fr);
