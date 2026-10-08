@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=16';
-import { furnishFloor } from './furniture.js?v=16';
-import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=16';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=16';
+import { PanoViewer } from './pano.js?v=17';
+import { furnishFloor } from './furniture.js?v=17';
+import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=17';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=17';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -328,7 +328,7 @@ function buildOutdoor() {
     st.position.set((m.x1 + m.x2) / 2, 0.6, (m.z1 + m.z2) / 2);
     st.castShadow = st.receiveShadow = true;
     g.add(st);
-    floors[1].labels.add(makeLabel('司令臺', est, (m.x1 + m.x2) / 2, 3, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
+    floors[1].labels.add(makeLabel('司令臺', '', (m.x1 + m.x2) / 2, 3, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
   }
   if (O.playground) {
     const m = rectM(O.playground);
