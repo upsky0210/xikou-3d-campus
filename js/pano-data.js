@@ -121,7 +121,7 @@
       { img: '09', floor: '1F', at: [1050, 364], links: [{ to: '08', pos: [1, 2, 12] }] },
     ] },
     { id: 'courtyard', zh: '中庭', en: 'Courtyard', text: T.courtyard, audio: '10', scenes: [
-      { img: '10-1', floor: '1F', at: [780, 820], links: [{ to: '02', pos: [7, 4, -10] }, { to: '10-2', pos: [12, 2, 3] }] },
+      { img: '10-1', floor: '1F', at: [820, 760], links: [{ to: '02', pos: [7, 4, -10] }, { to: '10-2', pos: [12, 2, 3] }] },
       { img: '10-2', floor: '1F', at: [1100, 820], links: [{ to: '10-1', pos: [-12, 2, -8] }, { to: '10-3', pos: [0, 2, 12] }] },
       { img: '10-3', floor: '1F', at: [1270, 820], links: [{ to: '10-2', pos: [12, 2, 5] }] },
     ] },

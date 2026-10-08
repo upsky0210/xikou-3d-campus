@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=20';
+import { Batch, mat } from './blocks.js?v=22';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -234,7 +234,7 @@ function classroom(put, fr, room) {
   }
 }
 
-// 穿堂（依照片）：東端深色主題牆（山、月亮、星星、小門）＋兩側玻璃磚、背面是中庭彩繪牆
+// 穿堂（依照片）：東端深色主題牆（山、月亮、星星、小門）＋兩側玻璃磚、背面是中庭「豐盈圓滿」壁畫（下面是生態池）
 //                兩側海報牆＋長木椅、彩色木條天花板、棕米色格子地磚、電子看板
 const darkThemeMat = () => once('darktheme', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 440, (c, w, h) => {
   c.fillStyle = '#2b333b'; c.fillRect(0, 0, w, h);
@@ -271,8 +271,7 @@ const muralMat = () => once('mural', () => new THREE.MeshLambertMaterial({ map: 
     c.beginPath(); c.moveTo(x, 130); c.lineTo(x - 10, 230); c.lineTo(x - 40, 300); c.moveTo(x - 10, 230); c.lineTo(x + 30, 300); c.moveTo(x - 5, 160); c.lineTo(x - 55, 120); c.moveTo(x - 5, 160); c.lineTo(x + 50, 140); c.stroke();
   }
   c.fillStyle = '#d63031'; c.font = '900 52px "Noto Sans TC", sans-serif';
-  c.fillText('夢想圓滿', 30, 90);
-  c.fillText('大筆今生', w - 250, 90);
+  c.textAlign = 'center'; c.fillText('豐盈圓滿', w / 2, 70);
 }) }));
 const posterWallMat = () => once('posterwall', () => new THREE.MeshLambertMaterial({ map: bigTex(800, 200, (c, w, h) => {
   c.fillStyle = '#b5895a'; c.fillRect(0, 0, w, h);
@@ -657,6 +656,32 @@ export function decorateCourtyard(m, y0) {
     const leaf = new THREE.BoxGeometry(2.2, 0.06, 0.6); leaf.translate(1.1, 0, 0); leaf.rotateZ(0.35); leaf.rotateY(i * Math.PI / 3);
     geo(mat('wool', '#5fae3a'), leaf, bx, 2.5, bz);
   }
+  // 生態池（依照片：穿堂背面「豐盈圓滿」壁畫正下方）：石頭池邊、水面、睡蓮葉、水生植物、石頭
+  const P = window.CAMPUS, pd = P.outdoor?.pond;
+  if (pd) {
+    const px = (v) => (v - P.ORIGIN[0]) / P.PX_PER_M, pz = (v) => (v - P.ORIGIN[1]) / P.PX_PER_M;
+    const x1 = px(pd[0]), x2 = px(pd[2]), z1 = pz(pd[1]), z2 = pz(pd[3]);
+    const cxp = (x1 + x2) / 2, czp = (z1 + z2) / 2, w = x2 - x1, d = z2 - z1, rim = 0.35;
+    const stone = mat('brick', '#c9c4b8');
+    box(stone, w, 0.45, rim, cxp, 0, z1 + rim / 2);
+    box(stone, w, 0.45, rim, cxp, 0, z2 - rim / 2);
+    box(stone, rim, 0.45, d - rim * 2, x1 + rim / 2, 0, czp);
+    box(stone, rim, 0.45, d - rim * 2, x2 - rim / 2, 0, czp);
+    box(mat('water', '#ffffff'), w - rim * 2, 0.3, d - rim * 2, cxp, 0, czp);           // 池水
+    let s2 = 11;
+    const rnd = () => (s2 = (s2 * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 9; i++) {                                                      // 睡蓮葉
+      const g = new THREE.CylinderGeometry(0.18 + rnd() * 0.12, 0.18, 0.02, 12);
+      geo(mat('wool', '#4f9e3f'), g, x1 + rim + 0.3 + rnd() * (w - rim * 2 - 0.6), 0.32, z1 + rim + 0.3 + rnd() * (d - rim * 2 - 0.6));
+    }
+    for (let i = 0; i < 3; i++) box(mat('wool', '#f2a7c3'), 0.12, 0.1, 0.12, x1 + rim + 0.5 + i * 0.7, 0.33, czp + (i - 1) * 0.9);   // 睡蓮花
+    for (const [fx, fz] of [[x1 + rim + 0.25, z1 + rim + 0.3], [x2 - rim - 0.3, z2 - rim - 0.35], [x1 + rim + 0.3, z2 - rim - 0.4]]) {   // 水生植物
+      for (let k = 0; k < 5; k++) box(mat('wool', '#3f8f3a'), 0.05, 0.7 + k * 0.08, 0.05, fx + (k % 3) * 0.08, 0.3, fz + Math.floor(k / 3) * 0.08);
+    }
+    for (const [rx, rz, rs] of [[x2 - rim - 0.4, z1 + rim + 0.4, 0.35], [x2 - rim - 0.7, z1 + rim + 0.55, 0.25]]) box(mat('wool', '#9a9a95'), rs, rs * 0.7, rs, rx, 0.3, rz);   // 石頭
+    // 池邊兩側的盆栽灌木
+    for (const z of [z1 - 0.6, z2 + 0.6]) box(mat('leaves'), 0.9, 0.8, 0.9, x1 + 0.6, 0, z);
+  }
   return b;
 }
 
@@ -833,7 +858,7 @@ function restroom(put, fr, room) {
 }
 
 // 1F 電腦教室一（依照片）：兩座長條雙面電腦島（木桌面、深色桌腳、螢幕背對背、白色折疊椅），
-//   前面白板＋教師桌＋投影機、後面綠色布告欄貼滿電腦課海報、門側玻璃書櫃、書法掛軸、白色地磚
+//   前面白板＋教師桌＋投影機、後面綠色布告欄貼滿電腦課海報、門側玻璃書櫃、白色地磚
 const pcPosterMat = () => once('pcposter', () => new THREE.MeshLambertMaterial({ map: bigTex(900, 210, (c, w, h) => {
   c.fillStyle = '#2f6b4f'; c.fillRect(0, 0, w, h);
   c.strokeStyle = '#d9d9d9'; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6);
@@ -846,12 +871,6 @@ const pcPosterMat = () => once('pcposter', () => new THREE.MeshLambertMaterial({
     c.fillStyle = ['#3498db', '#27ae60', '#e67e22'][i % 3]; c.fillRect(x + 8, y + 30, 66, 60);
     c.fillStyle = 'rgba(0,0,0,.25)'; for (let k = 0; k < 4; k++) c.fillRect(x + 8, y + 100 + k * 11, 60 - (k % 2) * 16, 5);
   }
-}) }));
-const scrollMat = (text) => once('scroll' + text, () => new THREE.MeshLambertMaterial({ map: bigTex(90, 300, (c, w, h) => {
-  c.fillStyle = '#e8dcc0'; c.fillRect(0, 0, w, h);
-  c.fillStyle = '#7a5a3a'; c.fillRect(0, 0, w, 10); c.fillRect(0, h - 10, w, 10);
-  c.fillStyle = '#2b2b2b'; c.font = '700 48px "Noto Sans TC", serif'; c.textAlign = 'center';
-  [...text].forEach((ch, i) => c.fillText(ch, w / 2, 70 + i * 62));
 }) }));
 function foldingChair(put, u, v, faceV) {
   const white = mat('wool', '#ececea'), grey = mat('wool', '#b9bcc0');
@@ -892,7 +911,7 @@ function computerRoom1(put, fr) {
   // 後面：綠色布告欄貼滿電腦課海報，下面兩個紙箱
   put(pcPosterMat(), 0.03, Math.min(6.4, W - 1.2), 1.5, L - 0.015, 0, 0.9, true);
   for (const o of [-0.35, 0.35]) put(mat('wool', '#d8b77a'), 0.5, 0.6, 0.55, L - 0.4, o, 0);
-  // 門那一側：玻璃門書櫃（上面堆紙箱）＋書法掛軸
+  // 門那一側：玻璃門書櫃（上面堆紙箱）
   for (let i = 0; i < 4; i++) {
     const u = 2.6 + i * 0.95, v = D * (W / 2 - 0.22);
     put(mat('planks', '#b5773f'), 0.92, 0.42, 1.9, u, v, 0);
@@ -900,8 +919,6 @@ function computerRoom1(put, fr) {
     put(mat('glass'), 0.86, 0.02, 1.6, u, v - D * 0.23, 0.15);
     put(mat('wool', '#d8b77a'), 0.6, 0.4, 0.35, u, v, 1.9);
   }
-  put(scrollMat('主動參與'), 0.6, 0.02, 2.0, L - 1.0, D * (W / 2 - 0.03), 0.6, true);
-  put(scrollMat('享受學習'), 0.6, 0.02, 2.0, L - 1.0, A * (W / 2 - 0.03), 0.6, true);
   // 窗邊冷氣
   for (const u of [2.5, L - 2.5]) put(M.white(), 0.9, 0.25, 0.3, u, A * (W / 2 - 0.15), 2.4);
 }

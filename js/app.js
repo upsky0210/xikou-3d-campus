@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=20';
-import { furnishFloor } from './furniture.js?v=20';
-import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=20';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=20';
+import { PanoViewer } from './pano.js?v=22';
+import { furnishFloor } from './furniture.js?v=22';
+import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=22';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=22';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -174,6 +174,13 @@ for (const f of floors) addRailings(f);
     const x = mx(O.gate.x), color = new THREE.Color('#3f8f3a');
     f1.segs.push({ ax: x, az: mz(540), bx: x, bz: mz(O.gate.y1) - 0.7, h: 1.5, color, kind: 'hedge' });
     f1.segs.push({ ax: x, az: mz(O.gate.y2) + 0.7, bx: x, bz: mz(1110), h: 1.5, color, kind: 'hedge' });
+  }
+  if (O.pond) {
+    // 生態池：池邊擋住（不畫牆，只算碰撞），導航會繞過去
+    const m = rectM(O.pond), color = new THREE.Color('#888888');
+    for (const [ax, az, bx, bz] of [[m.x1, m.z1, m.x2, m.z1], [m.x1, m.z2, m.x2, m.z2], [m.x1, m.z1, m.x1, m.z2], [m.x2, m.z1, m.x2, m.z2]]) {
+      f1.segs.push({ ax, az, bx, bz, h: 0.5, color, kind: 'wall', noRender: true });
+    }
   }
   if (O.pool) {
     // 游泳館：白色浪板外牆（依照片），北牆西段（藍色立面旁）留 2 公尺入口
