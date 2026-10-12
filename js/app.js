@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=30';
-import { furnishFloor } from './furniture.js?v=30';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=30';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock } from './field.js?v=30';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=30';
+import { PanoViewer } from './pano.js?v=32';
+import { furnishFloor } from './furniture.js?v=32';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=32';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock } from './field.js?v=32';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=32';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -92,6 +92,25 @@ function lighten(hex, amt) {
   return c.lerp(new THREE.Color('#ffffff'), amt);
 }
 
+// 教室、辦公室（每一層）：只有前後（門那面和對面）有窗，左右跟隔壁房間共用的牆是實牆（依使用者說明）
+function sideIsSolid(room, s) {
+  const doors = room.doors || '';
+  const ns = /[NS]/.test(doors), ew = /[EW]/.test(doors);
+  if (ns === ew) return false;                                 // 門的方向不明確就照舊
+  if (ns ? 'NS'.includes(s) : 'EW'.includes(s)) return false;  // 前後
+  const m = room.m, E = 0.3;
+  return rooms.some((r) => {
+    if (r === room || r.f !== room.f || r.open || r.hidden) return false;
+    const o = r.m;
+    if (s === 'W' || s === 'E') {
+      const x = s === 'W' ? m.x1 : m.x2;
+      return Math.abs((s === 'W' ? o.x2 : o.x1) - x) < E && Math.min(o.z2, m.z2) - Math.max(o.z1, m.z1) > 1;
+    }
+    const z = s === 'N' ? m.z1 : m.z2;
+    return Math.abs((s === 'N' ? o.z2 : o.z1) - z) < E && Math.min(o.x2, m.x2) - Math.max(o.x1, m.x1) > 1;
+  });
+}
+
 function addRoomWalls(room) {
   if (room.endWall === 'E') {
     // 穿堂東端（依照片）：中間一道主題牆，兩側各留約 1.2 公尺通道往中庭
@@ -116,7 +135,8 @@ function addRoomWalls(room) {
     // 挑高的空間（活動中心）：牆一路蓋到上一層的天花板
     const h = room.tall ? FLOOR_H + WALL_H : WALL_H;
     const above = room.tall ? floors[f.idx + 1] : null;
-    const seg = (a, b, extra) => ({ ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h, color, kind: 'wall', bld: room.building, ...extra });
+    const solid = sideIsSolid(room, s);
+    const seg = (a, b, extra) => ({ ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h, color, kind: 'wall', bld: room.building, solid, ...extra });
     const push = (a, b) => {
       if (b - a <= 0.05) return;
       f.segs.push(seg(a, b));
@@ -489,6 +509,7 @@ function buildFloor(f) {
     if (s.kind === 'poolstripe') { piece(BLOCKY ? poolStripeMat() : mat('wool', '#7cc3ec'), 0, s.h); continue; }
     const wm = wallMat(s.bld);
     if (s.overhead) { piece(wm, s.y0, s.h); continue; }   // 門楣
+    if (s.solid) { piece(wm, 0, s.h); continue; }        // 跟隔壁房間共用的實牆（沒有窗）
     if (len < 1.4) { piece(wm, 0, s.h); continue; }
     // 每一層樓高各有一排窗（挑高的牆會有兩排）；窗戶之間每隔約 2.5 公尺一根柱子
     const storeys = s.h > FLOOR_H ? 2 : 1;
