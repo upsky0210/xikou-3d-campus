@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=45';
+import { Batch, mat, SPOTS } from './blocks.js?v=45';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -225,12 +225,30 @@ export function buildPoolPlayground(group, m) {
     g.translate(sx + 1.2 + Math.sin(a) * 2.0, sh - t * (sh - 0.35), sz + 1.0 + (1 - Math.cos(a)) * 1.4);
     b.add(mat('wool', k % 2 ? '#3fbfb0' : '#f2d22e', { side: THREE.DoubleSide }), g);
   }
+  // 可以溜（整組轉了 180 度，座標要跟著轉）
+  const W = ([x, y, z]) => [2 * cx - x, y, 2 * cz - z];
+  const tube = (pts) => pts.map(W);
+  {
+    const pts = [[sx, sh + 0.05, sz]];
+    for (let k = 0; k <= 13; k++) { const t = k / 13, a = t * Math.PI * 1.4; pts.push([sx + 1.2 + Math.sin(a) * 2.0, sh - t * (sh - 0.35) - 0.3, sz + 1.0 + (1 - Math.cos(a)) * 1.4]); }
+    const [ax, , az] = pts.at(-2), [bx, , bz] = pts.at(-1), d = Math.hypot(bx - ax, bz - az);
+    pts.push([bx + (bx - ax) / d * 1.0, 0, bz + (bz - az) / d * 1.0]);
+    const [ex2, , ez2] = W(pts.at(-2));
+    SPOTS.push({ kind: 'slide', name: '螺旋溜滑梯', floorY: 0, x: ex2, z: ez2, r: 2.4, path: tube(pts) });
+  }
   // 第二條較短的直管滑梯（從右邊的塔）
   const [tx, tz, th] = towers[2];
   for (let k = 0; k < 6; k++) {
     const g = new THREE.CylinderGeometry(0.4, 0.4, 0.55, 14, 1, true);
     g.rotateZ(Math.PI / 2 + 0.45); g.translate(tx + 1.2 + k * 0.5, th - k * 0.28, tz);
     b.add(mat('wool', k % 2 ? '#f2d22e' : '#3fbfb0', { side: THREE.DoubleSide }), g);
+  }
+  {
+    const pts = [[tx, th + 0.05, tz]];
+    for (let k = 0; k <= 5; k++) pts.push([tx + 1.2 + k * 0.5, th - k * 0.28 - 0.3, tz]);
+    pts.push([tx + 1.2 + 6.5 * 0.5, Math.max(0, th - 6.5 * 0.28 - 0.3), tz], [tx + 1.2 + 8 * 0.5, 0, tz]);
+    const [ex2, , ez2] = W(pts.at(-2));
+    SPOTS.push({ kind: 'slide', name: '直管溜滑梯', floorY: 0, x: ex2, z: ez2, r: 2.0, path: tube(pts) });
   }
   // 塔頂白色彎曲的「樹枝」裝飾
   for (let i = 0; i < 4; i++) {

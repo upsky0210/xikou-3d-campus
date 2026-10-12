@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=45';
+import { Batch, mat, SPOTS } from './blocks.js?v=45';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -89,6 +89,7 @@ export function buildField(group, cx, cz, A, B) {
     b.box(steel, 1.0, 0.1, 0.1, xe + s * 0.45, 3.5, z);               // 支架
     b.box(white, 0.06, 1.05, 1.8, xe - s * 0.0, 3.55, z);             // 籃板
     b.box(rim, 0.45, 0.04, 0.45, xe - s * 0.3, 3.05, z);              // 籃框
+    SPOTS.push({ kind: 'hoop', x: xe - s * 0.3, y: 3.05, z, fx: -s, fz: 0, floorY: 0 });   // 可以投籃
     b.box(white, 0.3, 0.35, 0.3, xe - s * 0.3, 2.85, z);              // 籃網
   }
   // 兩端草地前的圍網（鐵柱＋網）

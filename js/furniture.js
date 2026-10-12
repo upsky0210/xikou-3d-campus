@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=45';
+import { Batch, mat, SPOTS } from './blocks.js?v=45';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -139,6 +139,11 @@ function placer(batch, fr, y0) {
     if (rotY) geo.rotateY(rotY);
     geo.translate(x, y0 + y, z);
     batch.add(material, geo);
+  };
+  // 登記互動設施：(u, v) 的世界座標；dv 是面向球場的方向（沿 v）
+  put.spot = (data, u, v, y, dv = 0) => {
+    const [x, z] = fr.toWorld(u, v), [x2, z2] = fr.toWorld(u, v + dv), d = Math.hypot(x2 - x, z2 - z) || 1;
+    SPOTS.push({ ...data, x, y: y0 + y, z, fx: (x2 - x) / d, fz: (z2 - z) / d, floorY: y0 });
   };
   return put;
 }
@@ -626,6 +631,8 @@ export function decorateCourtyard(m, y0) {
     geo(red, sl, ex - 1.9, 0.7, tz);
     for (const dz of [-0.55, 0, 0.55]) { const rail = new THREE.BoxGeometry(2.6, 0.22, 0.06); rail.rotateZ(0.42); geo(red, rail, ex - 1.9, 0.8, tz + dz); }
     box(red, 0.6, 0.12, 1.1, ex - 3.35, 0, tz);                                   // 滑梯出口
+    SPOTS.push({ kind: 'slide', name: '紅色溜滑梯', floorY: y0, x: ex - 1.9, z: tz, r: 2.6,     // 可以溜：從小塔平台滑到西邊出口
+      path: [[ex - 0.2, 1.32, tz], [ex - 0.71, 1.3, tz], [ex - 3.09, 0.22, tz], [ex - 3.9, 0, tz]].map(([x, y, z]) => [x, y0 + y, z]) });
   }
   // 藍色拱形攀爬架（北邊）
   for (let i = 0; i <= 10; i++) {
@@ -1059,6 +1066,7 @@ function gym(put, fr) {
     put(M.grey(), 0.12, 1.0, 0.12, L / 2, v + s * 0.5, 3.35);            // 支架
     put(M.white(), 1.8, 0.06, 1.05, L / 2, v, 2.9);                      // 籃板
     put(mat('wool', '#e65100'), 0.45, 0.45, 0.03, L / 2, v - s * 0.28, 3.05);  // 籃框（朝球場）
+    put.spot({ kind: 'hoop' }, L / 2, v - s * 0.28, 3.05, -s);                  // 可以投籃
   }
 }
 

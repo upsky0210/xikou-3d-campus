@@ -231,6 +231,9 @@ export class Batch {
 }
 Batch.collector = null;
 
+/** 可以互動的設施（籃框、溜滑梯）：蓋場景時登記，app.js 再做互動。座標都是世界座標（公尺） */
+export const SPOTS = [];
+
 /* ---------- 方塊人（學生角色，自己設計的造型） ---------- */
 
 const SKIN = '#f1c27d', HAIR = '#2f2116', HAIR2 = '#463222';

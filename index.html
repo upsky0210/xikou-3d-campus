@@ -115,6 +115,14 @@
   #panoPrompt { position: fixed; left: 50%; bottom: 190px; transform: translateX(-50%); background: #7b2cbf; color: #fff;
     border-radius: 14px; padding: 10px 14px; box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; font-size: 15px; z-index: 3; }
   #panoPrompt .go { background: rgba(255,255,255,.2); border-radius: 8px; padding: 3px 8px; margin-left: 6px; }
+  /* 設施互動（投籃、溜滑梯）：靠近時出現的按鈕＋投籃力道條 */
+  #actPrompt { position: fixed; left: 50%; bottom: 245px; transform: translateX(-50%); background: #e85d04; color: #fff; border: 0;
+    border-radius: 14px; padding: 10px 16px; box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; font-size: 16px; font-weight: 700; z-index: 3; }
+  #power { position: fixed; left: 50%; bottom: 300px; transform: translateX(-50%); width: 240px; height: 22px; background: rgba(0,0,0,.55);
+    border: 2px solid #fff; border-radius: 12px; overflow: hidden; z-index: 3; }
+  #power .sweet { position: absolute; top: 0; bottom: 0; background: rgba(80,220,120,.75); }
+  #power .bar { position: absolute; top: 2px; bottom: 2px; width: 6px; margin-left: -3px; background: #ffd400; border-radius: 3px; box-shadow: 0 0 6px #ffd400; }
+  #power .lbl { position: absolute; left: 0; right: 0; top: -26px; text-align: center; color: #fff; font-weight: 700; text-shadow: 0 1px 3px #000; font-size: 14px; }
 
   /* 實景導覽清單 */
   #gallery { position: fixed; inset: 0; background: rgba(10,20,30,.5); z-index: 6; display: grid; place-items: center; padding: 16px; }
@@ -167,6 +175,8 @@
     #pano .text { max-height: 3.3em; font-size: 13px; }
     #pano .hint { display: none; }
     #panoPrompt { bottom: 160px; font-size: 13px; }
+    #actPrompt { bottom: 205px; font-size: 14px; }
+    #power { bottom: 255px; }
   }
 
   /* 目前位置、小地圖 */
@@ -329,6 +339,8 @@
 <div id="stairPanel" hidden></div>
 <div id="joy"><div class="knob"></div></div>
 <div id="panoPrompt" hidden></div>
+<button id="actPrompt" hidden></button>
+<div id="power" hidden><div class="lbl">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
 
 <div id="gallery" hidden>
   <div class="card-wrap">
@@ -393,10 +405,13 @@
       <tr><td>滑鼠拖曳 / ← →</td><td>轉頭看</td></tr>
       <tr><td>Shift</td><td>跑步</td></tr>
       <tr><td>空白鍵</td><td>跳</td></tr>
-      <tr><td>E / Q</td><td>站在樓梯上時：上樓 / 下樓</td></tr>
+      <tr><td>走上樓梯</td><td>直接走進樓梯就能上下樓（左邊上樓、右邊下樓）</td></tr>
+      <tr><td>E / Q</td><td>站在樓梯口時：自動走上 / 走下一層</td></tr>
       <tr><td>M</td><td>切換鳥瞰 / 走路</td></tr>
       <tr><td>V</td><td>切換第一 / 第三人稱</td></tr>
       <tr><td>C</td><td>換角色（男學生 / 女學生）</td></tr>
+      <tr><td>滑鼠滾輪</td><td>第三人稱時把鏡頭拉近 / 拉遠</td></tr>
+      <tr><td>F</td><td>在籃框、溜滑梯旁邊：投籃 / 溜滑梯（投籃要在綠色區域再按一次）</td></tr>
       <tr><td>F 或 /</td><td>找教室</td></tr>
       <tr><td>P</td><td>360° 實景導覽</td></tr>
       <tr><td>Enter</td><td>站在紫色 📷 旁邊時：看 360° 實景</td></tr>
@@ -409,7 +424,7 @@
       <tr><td>點教室</td><td>看資訊、帶我去</td></tr>
     </table>
     <h3>找路</h3>
-    <p style="margin:0;font-size:14px">按「🔍 找教室」輸入班級（例如 <b>503</b> 或 <b>五年三班</b>）、教室號碼或名稱，再按「帶我去」，地上會出現<b style="background:#ffd400;padding:0 4px;border-radius:4px">黃色路線</b>。要換樓層時，先走到橘色的樓梯區，再按上樓 / 下樓。</p>
+    <p style="margin:0;font-size:14px">按「🔍 找教室」輸入班級（例如 <b>503</b> 或 <b>五年三班</b>）、教室號碼或名稱，再按「帶我去」，地上會出現<b style="background:#ffd400;padding:0 4px;border-radius:4px">黃色路線</b>。要換樓層時，跟著黃線走到樓梯口，直接走上樓梯，或按「▲ 走上」讓角色自己走。</p>
     <h3>顏色</h3>
     <div class="legend">
       <span><i style="background:#fff1bf"></i>班級教室</span><span><i style="background:#cdeccd"></i>專科教室</span>

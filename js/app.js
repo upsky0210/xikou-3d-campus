@@ -4,7 +4,8 @@ import { PanoViewer } from './pano.js?v=45';
 import { furnishFloor } from './furniture.js?v=45';
 import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=45';
 import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=45';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=45';
+import { buildCampusWall } from './wall.js?v=45';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=45';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -307,6 +308,19 @@ for (const s of stairs) {
 }
 for (const f of floors) addRailings(f);
 
+// 圍牆的四段（公尺）：西邊避開正門兩側的樹籬（540～1110 像素那段）
+function wallRuns() {
+  const W = D.outdoor.wall, G = D.outdoor.gate;
+  const [x1, z1, x2, z2] = [mx(W.x1), mz(W.y1), mx(W.x2), mz(W.y2)];
+  const runs = [
+    { ax: x1, az: z1, bx: x2, bz: z1, out: [0, -1] },          // 北
+    { ax: x2, az: z1, bx: x2, bz: z2, out: [1, 0] },           // 東
+    { ax: x1, az: z2, bx: x2, bz: z2, out: [0, 1] },           // 南
+  ];
+  if (G && Math.abs(G.x - W.x1) < 1) runs.push({ ax: x1, az: z1, bx: x1, bz: mz(540), out: [-1, 0] }, { ax: x1, az: mz(1110), bx: x1, bz: z2, out: [-1, 0] });
+  else runs.push({ ax: x1, az: z1, bx: x1, bz: z2, out: [-1, 0] });
+  return runs.map((r) => ({ ...r, street: true }));
+}
 // 戶外的牆：校門兩側的樹籬、操場南邊那棟建築（都會擋路，也會被導航避開）
 {
   const O = D.outdoor, f1 = floorById['1F'];
@@ -314,6 +328,13 @@ for (const f of floors) addRailings(f);
     const x = mx(O.gate.x), color = new THREE.Color('#3f8f3a');
     f1.segs.push({ ax: x, az: mz(540), bx: x, bz: mz(O.gate.y1) - 0.7, h: 1.5, color, kind: 'hedge' });
     f1.segs.push({ ax: x, az: mz(O.gate.y2) + 0.7, bx: x, bz: mz(1110), h: 1.5, color, kind: 'hedge' });
+  }
+  if (O.wall) {
+    // 校園圍牆：只算碰撞（外觀在 buildCampusWall 畫）；西邊正門那段（樹籬）不重複
+    const color = new THREE.Color('#b5b2ab');
+    for (const [ax, az, bx, bz] of wallRuns().map((r) => [r.ax, r.az, r.bx, r.bz])) {
+      f1.segs.push({ ax, az, bx, bz, h: 2.5, color, kind: 'wall', noRender: true });
+    }
   }
   if (O.pond) {
     // 生態池：池邊擋住（不畫牆，只算碰撞），導航會繞過去
@@ -450,6 +471,11 @@ function buildOutdoor() {
     buildPool(g, m, stripeRoofTexture(m.x2 - m.x1));
     floors[1].labels.add(makeLabel('水漾游泳館', '游泳池', (m.x1 + m.x2) / 2, 8.5, (m.z1 + m.z2) / 2, { bg: '#2f6fb5', h: 1.4 }));
   }
+  if (O.wall) {
+    // 校園圍牆＋牆外人行道（正門口、起點附近不種樹，免得擋路）
+    const G = O.gate, avoid = G ? [[mx(G.x), mz((G.y1 + G.y2) / 2), 9]] : [];
+    buildCampusWall(g, wallRuns(), { avoid });
+  }
   if (O.gate) {
     // 正門：兩根白柱子 + 彩虹拱門
     const gx = mx(O.gate.x), z1 = mz(O.gate.y1), z2 = mz(O.gate.y2), zc = (z1 + z2) / 2, half = (z2 - z1) / 2;
@@ -493,7 +519,13 @@ function buildOutdoor() {
   }
   if (O.playground) {
     const m = rectM(O.playground);
+    // 遊戲場整組繞中心轉了 180 度：記下的方塊範圍也要跟著轉，碰撞位置才對
+    const outer = Batch.collector, local = [];
+    Batch.collector = local;
     buildPoolPlayground(g, m);
+    Batch.collector = outer;
+    const cx2 = m.x1 + m.x2, cz2 = m.z1 + m.z2;
+    for (const b of local) outer?.push({ ...b, x1: cx2 - b.x2, x2: cx2 - b.x1, z1: cz2 - b.z2, z2: cz2 - b.z1 });
     floors[1].labels.add(makeLabel('遊戲場', '', (m.x1 + m.x2) / 2, 6.8, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
   }
 }
@@ -1310,7 +1342,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyV' && mode !== 'bird') setMode(mode === 'first' ? 'third' : 'first');
   if (e.code === 'KeyC') { const g = savedGender() === 'girl' ? 'boy' : 'girl'; setGender(g); toast(g === 'girl' ? '👧 換成女學生' : '👦 換成男學生'); }
   if (e.code === 'Space' && mode !== 'bird' && player.jump === 0) { player.vy = 4.2; e.preventDefault(); }
-  if (e.code === 'Slash' || e.code === 'KeyF') { if (e.code === 'Slash') e.preventDefault(); openSearch(); }
+  if (e.code === 'KeyF' && (act.spot || act.busy)) doAction();                 // 靠近籃框、溜滑梯時 F 是互動
+  else if (e.code === 'Slash' || e.code === 'KeyF') { if (e.code === 'Slash') e.preventDefault(); openSearch(); }
   if (e.code === 'KeyP') openGallery();
   if (e.code === 'Escape') { closeSearch(); hideInfo(); closeGallery(); }
 });
@@ -1335,6 +1368,23 @@ addEventListener('pointerup', (e) => {
   if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6) pick(e);
   drag = null;
 });
+
+// 平板、手機：兩指捏合拉近拉遠（第三人稱）
+const touches = new Map();
+let pinchD = 0;
+renderer.domElement.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') touches.set(e.pointerId, [e.clientX, e.clientY]); });
+addEventListener('pointermove', (e) => {
+  if (!touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (touches.size !== 2 || mode !== 'third') { pinchD = 0; return; }
+  const [[ax, ay], [bx, by]] = [...touches.values()], d = Math.hypot(ax - bx, ay - by);
+  if (pinchD) cam.zoom = Math.max(1.6, Math.min(10, cam.zoom * pinchD / d));
+  pinchD = d;
+  drag = null;                                                 // 兩指時不轉視角
+});
+const endTouch = (e) => { touches.delete(e.pointerId); pinchD = 0; };
+addEventListener('pointerup', endTouch);
+addEventListener('pointercancel', endTouch);
 
 // 第三人稱：滑鼠滾輪、觸控板拉近拉遠
 renderer.domElement.addEventListener('wheel', (e) => {
@@ -1435,6 +1485,10 @@ function minimapImage(f) {
     if (O.playground) rect(rectM(O.playground), '#5fae4a');
     if (O.stage) rect(rectM(O.stage), '#efdcbc');
     if (O.pond) rect(rectM(O.pond), '#4aa3c9');
+    if (O.wall) {                                              // 圍牆
+      c.strokeStyle = '#8a6a3c'; c.lineWidth = 3;
+      for (const r of wallRuns()) { c.beginPath(); c.moveTo(X(r.ax), Z(r.az)); c.lineTo(X(r.bx), Z(r.bz)); c.stroke(); }
+    }
   }
   for (const w of f.walk) {
     if (w.kind === 'outdoor') continue;
@@ -1912,6 +1966,158 @@ function updateNPCs(t, dt) {
   }
 }
 
+/* ---------------- 設施互動：投籃、溜滑梯 ---------------- */
+
+const act = { spot: null, busy: null, shots: 0, makes: 0 };
+const actBtn = document.getElementById('actPrompt'), powerBox = document.getElementById('power');
+const spotFloor = (sp) => floorByLevel[Math.round(sp.floorY / FLOOR_H)];
+function nearestSpot() {
+  if (mode === 'bird') return null;
+  let best = null, bd = Infinity;
+  for (const sp of SPOTS) {
+    if (spotFloor(sp) !== player.floor) continue;
+    const d = Math.hypot(player.x - sp.x, player.z - sp.z);
+    // 籃框：要站在球場那一側、1～8 公尺內；溜滑梯：靠近就可以
+    const ok = sp.kind === 'hoop' ? d > 1.0 && d < 8 && (player.x - sp.x) * sp.fx + (player.z - sp.z) * sp.fz > 0.3 : d < sp.r;
+    if (ok && d < bd) { bd = d; best = sp; }
+  }
+  return best;
+}
+let actLabel = '';
+function updateAct(dt) {
+  if (act.busy) act.busy.tick(dt);
+  act.spot = act.busy ? null : nearestSpot();
+  const label = act.busy ? (act.busy.press ? '🏀 出手！ <kbd>F</kbd>' : '')
+    : act.spot ? (act.spot.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>' : `🛝 溜${act.spot.name} <kbd>F</kbd>`) : '';
+  if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
+}
+function doAction() {
+  if (act.busy) { act.busy.press?.(); return; }
+  if (act.spot?.kind === 'hoop') startShot(act.spot);
+  else if (act.spot?.kind === 'slide') startSlide(act.spot);
+}
+actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+actBtn.addEventListener('click', doAction);
+const limbs = () => avatar.userData.limbs;
+function resetPose() { const L = limbs(); if (L) for (const k of ['armL', 'armR', 'legL', 'legR']) L[k].rotation.set(0, 0, 0); }
+
+// 籃球：橘色、黑色線
+const ball = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), new THREE.MeshLambertMaterial({ map: (() => {
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 64;
+  const c = cv.getContext('2d'); c.fillStyle = '#e8701f'; c.fillRect(0, 0, 128, 64);
+  c.strokeStyle = '#2a1508'; c.lineWidth = 3;
+  for (const x of [0, 32, 64, 96]) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 64); c.stroke(); }
+  c.beginPath(); c.moveTo(0, 32); c.lineTo(128, 32); c.stroke();
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
+})() }));
+ball.castShadow = true; ball.visible = false;
+scene.add(ball);
+
+function startShot(sp) {
+  stopAuto();
+  const dx = sp.x - player.x, dz = sp.z - player.z, dist = Math.hypot(dx, dz);
+  const face = Math.atan2(-dx, -dz);
+  avatar.rotation.y = face; player.yaw = face; player.pitch = 0.05;   // 面向籃框，鏡頭在背後
+  // 越遠越難：要的力道越大、綠色區域越窄
+  const ideal = Math.max(0.3, Math.min(0.82, 0.38 + dist * 0.055)), tol = Math.max(0.05, 0.12 - dist * 0.008);
+  powerBox.querySelector('.sweet').style.cssText = `left:${(ideal - tol) * 100}%;width:${tol * 200}%`;
+  const bar = powerBox.querySelector('.bar');
+  powerBox.hidden = false;
+  let t = 0, p = 0;
+  act.busy = {
+    tick(dt) {
+      t += dt; p = (1 - Math.cos(t * 3.4)) / 2; bar.style.left = `${p * 100}%`;
+      const L = limbs(); if (L) { L.armL.rotation.x = L.armR.rotation.x = -2.5 - p * 0.4; }   // 舉手準備
+    },
+    press() { powerBox.hidden = true; shoot(sp, p, ideal, tol); },
+  };
+}
+function shoot(sp, p, ideal, tol) {
+  const made = Math.abs(p - ideal) <= tol, err = p - ideal;
+  const f = player.floor, sx = player.x, sz = player.z, sy = f.y + (player.gy || 0) + 2.0 * AVATAR_SCALE;
+  const dx = sp.x - sx, dz = sp.z - sz, dist = Math.hypot(dx, dz), ux = dx / dist, uz = dz / dist;
+  // 沒進：太小力就短、太大力就長（打板），再加一點左右偏
+  const side = made ? 0 : (Math.random() - 0.5) * 0.5, over = made ? 0 : Math.max(-1.5, Math.min(0.55, err * 3));
+  const tx = sp.x + ux * over - uz * side, tz = sp.z + uz * over + ux * side, ty = sp.y + (made ? 0.12 : 0.05);
+  const T = 0.75 + dist * 0.05, G = 9.8, vy = (ty - sy + 0.5 * G * T * T) / T;
+  ball.position.set(sx, sy, sz); ball.visible = true;
+  act.shots++;
+  const L = limbs(); if (L) { L.armL.rotation.x = L.armR.rotation.x = -3.0; }
+  let t = 0, phys = null, life = 0;
+  act.busy = {
+    tick(dt) {
+      t += dt;
+      if (!phys) {
+        const k = Math.min(1, t / T);
+        ball.position.set(sx + (tx - sx) * k, sy + vy * t - 0.5 * G * t * t, sz + (tz - sz) * k);
+        ball.rotation.x -= dt * 8;
+        if (t > 0.35) resetPose();
+        if (t < T) return;
+        // 到籃框了：進球就從網子掉下去；沒進就彈開
+        if (made) { phys = { vx: 0, vy: -1.5, vz: 0 }; act.makes++; toast(`🏀 進球！（${act.makes} / ${act.shots}）`); }
+        else {
+          phys = { vx: -ux * (over > 0 ? 1.8 : 0.6) + (Math.random() - 0.5), vy: over > 0.25 ? 1.2 : 2.6, vz: -uz * (over > 0 ? 1.8 : 0.6) + (Math.random() - 0.5) };
+          toast(err < 0 ? `差一點！力道太小（${act.makes} / ${act.shots}）` : `差一點！力道太大（${act.makes} / ${act.shots}）`);
+        }
+        return;
+      }
+      // 掉到地上彈幾下
+      life += dt;
+      phys.vy -= G * dt;
+      ball.position.x += phys.vx * dt; ball.position.y += phys.vy * dt; ball.position.z += phys.vz * dt;
+      const floorY = f.y + 0.13;
+      if (ball.position.y < floorY) { ball.position.y = floorY; phys.vy = Math.abs(phys.vy) * 0.55; phys.vx *= 0.7; phys.vz *= 0.7; }
+      if (life > 1.6) { ball.visible = false; act.busy = null; }
+    },
+  };
+}
+
+// 溜滑梯：先爬到滑梯頂端，再沿著滑道滑下來
+function startSlide(sp) {
+  stopAuto();
+  const path = sp.path.map(([x, y, z]) => new THREE.Vector3(x, y, z));
+  const seg = []; let total = 0;
+  for (let i = 1; i < path.length; i++) { const l = path[i].distanceTo(path[i - 1]); seg.push(l); total += l; }
+  const f = player.floor, from = new THREE.Vector3(player.x, f.y + (player.gy || 0), player.z);
+  const CLIMB = 1.1;
+  let t = 0, s = 0, v = 2.5;
+  const setPos = (p, look) => {
+    player.x = p.x; player.z = p.z; player.ride = p.y;
+    if (look) {
+      const yaw = Math.atan2(-(look.x - p.x), -(look.z - p.z));
+      avatar.rotation.y = yaw;
+      player.yaw += ((((yaw - player.yaw) % (Math.PI * 2)) + Math.PI * 3) % (Math.PI * 2) - Math.PI) * 0.15;   // 鏡頭慢慢跟著轉
+    }
+  };
+  act.busy = {
+    tick(dt) {
+      t += dt;
+      const L = limbs();
+      if (t < CLIMB) {                                   // 爬上去
+        const k = t / CLIMB, top = path[0];
+        const p = new THREE.Vector3().lerpVectors(from, top, k);
+        p.y = from.y + (top.y - from.y) * Math.sin(k * Math.PI / 2);
+        setPos(p, top.distanceTo(p) > 0.2 ? top : null);
+        if (L) { L.armL.rotation.x = -2.6 + Math.sin(t * 14) * 0.5; L.armR.rotation.x = -2.6 - Math.sin(t * 14) * 0.5; L.legL.rotation.x = Math.sin(t * 14) * 0.6; L.legR.rotation.x = -L.legL.rotation.x; }
+        return;
+      }
+      v = Math.min(7, v + dt * 5); s += v * dt;          // 越滑越快
+      if (s >= total) {
+        const end = path.at(-1);
+        player.x = end.x; player.z = end.z; player.ride = null; player.gy = groundAt(f, end.x, end.z);
+        resetPose(); act.busy = null;
+        toast('🛝 咻～好好玩！');
+        return;
+      }
+      let i = 0, rem = s;
+      while (i < seg.length - 1 && rem > seg[i]) rem -= seg[i++];
+      const p = new THREE.Vector3().lerpVectors(path[i], path[i + 1], Math.min(1, rem / seg[i]));
+      setPos(p, path[i + 1]);
+      if (L) { L.legL.rotation.x = L.legR.rotation.x = -1.45; L.armL.rotation.x = L.armR.rotation.x = -0.9; }   // 坐著滑、手往前
+    },
+  };
+}
+
 /* ---------------- 主迴圈 ---------------- */
 
 const clock = new THREE.Clock();
@@ -1958,6 +2164,7 @@ function camBlocked(x, y, z) {
     const t = Math.max(0, Math.min(1, ((x - s.ax) * dx + (z - s.az) * dz) / L2));
     if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < r) return true;
   }
+  if (player.ride != null) return false;                   // 溜滑梯時鏡頭可以穿過遊樂器材，才看得到自己在滑
   for (const o of cell.cam) {
     if (x > o.x1 - 0.12 && x < o.x2 + 0.12 && z > o.z1 - 0.12 && z < o.z2 + 0.12 && y > o.y1 - 0.12 && y < o.y2 + 0.12) return true;
   }
@@ -1992,6 +2199,7 @@ function update(dt) {
     if (keys.ArrowLeft) player.yaw += 2.2 * dt * settings.sens;
     if (keys.ArrowRight) player.yaw -= 2.2 * dt * settings.sens;
     fx += joy.x; fz -= joy.y;
+    if (act.busy) fx = fz = 0;                                  // 投籃、溜滑梯時先不能走
     const mag = Math.hypot(fx, fz);
     let moved = 0;
     if (mag > 0.05) {
@@ -2011,8 +2219,9 @@ function update(dt) {
     if (avatar.userData.limbs) {
       walkPhase += moved * 3.2;
       walkAmt += ((moved > 0.001 ? 1 : 0) - walkAmt) * Math.min(1, dt * 10);
-      animatePerson(avatar, walkPhase, walkAmt);
+      if (!act.busy) animatePerson(avatar, walkPhase, walkAmt);
     }
+    updateAct(dt);
     // 跳
     if (player.vy !== 0 || player.jump > 0) {
       player.vy -= 12 * dt; player.jump += player.vy * dt;
@@ -2027,19 +2236,19 @@ function update(dt) {
     if (nav.target && (navTick += dt) > 0.3) {
       navTick = 0;
       updateNavBar();
-      if (player.floor === nav.target.f && Math.hypot(player.x - nav.target.cx, player.z - nav.target.cz) < 1.6) {
+      if (player.floor === nav.target.f && (inRect(nav.target.m, player.x, player.z, -0.4) || Math.hypot(player.x - nav.target.cx, player.z - nav.target.cz) < 1.6)) {   // 走進教室就算到（教室中間有桌椅，走不到正中央）
         toast(`🎉 到達 ${nav.target.display}！`);
         clearNav();
       }
     }
   }
   // 司令臺、入口階梯這類墊高的地面：慢慢升降，看起來像踩上去（樓梯上的高度在 followStairs 算好了）
-  if (!player.onStair) {
+  if (!player.onStair && player.ride == null) {
     const gy = groundAt(player.floor, player.x, player.z);
     player.gy = (player.gy ?? 0) + (gy - (player.gy ?? 0)) * Math.min(1, dt * 12);
   }
-  if (mode !== 'bird') unstick(dt);
-  const py = player.floor.y + player.gy + player.jump;
+  if (mode !== 'bird' && !act.busy) unstick(dt);
+  const py = player.ride ?? player.floor.y + player.gy + player.jump;   // ride：溜滑梯時的高度
   avatar.position.set(player.x, py, player.z);
 
   if (mode === 'first') {
@@ -2060,8 +2269,12 @@ function update(dt) {
     }
     cam.dist = want < cam.dist ? want : cam.dist + (want - cam.dist) * Math.min(1, dt * 3);
     camera.position.copy(head).addScaledVector(dir, cam.dist);
+    if (player.ride != null) {                               // 溜滑梯：從側邊拍，看得到整個滑下來的樣子
+      const r = avatar.rotation.y;
+      camera.position.set(head.x + Math.sin(r) * 2.2 + Math.cos(r) * 4.2, head.y + 1.6, head.z + Math.cos(r) * 2.2 - Math.sin(r) * 4.2);
+    }
     camera.lookAt(head);
-    avatar.visible = cam.dist > 1.3;                         // 鏡頭貼到身上時先把自己藏起來，免得整個畫面都是後腦勺
+    avatar.visible = cam.dist > 1.3 || player.ride != null;                         // 鏡頭貼到身上時先把自己藏起來，免得整個畫面都是後腦勺
   } else {
     orbit.update();
   }
@@ -2171,5 +2384,5 @@ document.getElementById('avatarBtn').onclick = () => openChooser();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked,
+window.__campus = { rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
