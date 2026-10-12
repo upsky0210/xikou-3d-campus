@@ -317,8 +317,12 @@ function wallRuns() {
     { ax: x2, az: z1, bx: x2, bz: z2, out: [1, 0] },           // 東
     { ax: x1, az: z2, bx: x2, bz: z2, out: [0, 1] },           // 南
   ];
-  if (G && Math.abs(G.x - W.x1) < 1) runs.push({ ax: x1, az: z1, bx: x1, bz: mz(540), out: [-1, 0] }, { ax: x1, az: mz(1110), bx: x1, bz: z2, out: [-1, 0] });
-  else runs.push({ ax: x1, az: z1, bx: x1, bz: z2, out: [-1, 0] });
+  // 西邊（正門那面）榕樹比較多：樹種得比較密；正門兩側樹籬那段沒有圍牆，但外面一樣有人行道和榕樹
+  const west = { out: [-1, 0], treeGap: 5 };
+  if (G && Math.abs(G.x - W.x1) < 1) {
+    runs.push({ ax: x1, az: z1, bx: x1, bz: mz(540), ...west }, { ax: x1, az: mz(540), bx: x1, bz: mz(1110), noWall: true, ...west },
+      { ax: x1, az: mz(1110), bx: x1, bz: z2, ...west });
+  } else runs.push({ ax: x1, az: z1, bx: x1, bz: z2, ...west });
   return runs.map((r) => ({ ...r, street: true }));
 }
 // 戶外的牆：校門兩側的樹籬、操場南邊那棟建築（都會擋路，也會被導航避開）
@@ -332,7 +336,7 @@ function wallRuns() {
   if (O.wall) {
     // 校園圍牆：只算碰撞（外觀在 buildCampusWall 畫）；西邊正門那段（樹籬）不重複
     const color = new THREE.Color('#b5b2ab');
-    for (const [ax, az, bx, bz] of wallRuns().map((r) => [r.ax, r.az, r.bx, r.bz])) {
+    for (const [ax, az, bx, bz] of wallRuns().filter((r) => !r.noWall).map((r) => [r.ax, r.az, r.bx, r.bz])) {
       f1.segs.push({ ax, az, bx, bz, h: 2.5, color, kind: 'wall', noRender: true });
     }
   }
@@ -473,7 +477,7 @@ function buildOutdoor() {
   }
   if (O.wall) {
     // 校園圍牆＋牆外人行道（正門口、起點附近不種樹，免得擋路）
-    const G = O.gate, avoid = G ? [[mx(G.x), mz((G.y1 + G.y2) / 2), 9]] : [];
+    const G = O.gate, avoid = G ? [[mx(G.x), mz((G.y1 + G.y2) / 2), 5.5]] : [];   // 正門口前面留通道
     buildCampusWall(g, wallRuns(), { avoid });
   }
   if (O.gate) {
@@ -1487,7 +1491,7 @@ function minimapImage(f) {
     if (O.pond) rect(rectM(O.pond), '#4aa3c9');
     if (O.wall) {                                              // 圍牆
       c.strokeStyle = '#8a6a3c'; c.lineWidth = 3;
-      for (const r of wallRuns()) { c.beginPath(); c.moveTo(X(r.ax), Z(r.az)); c.lineTo(X(r.bx), Z(r.bz)); c.stroke(); }
+      for (const r of wallRuns().filter((q) => !q.noWall)) { c.beginPath(); c.moveTo(X(r.ax), Z(r.az)); c.lineTo(X(r.bx), Z(r.bz)); c.stroke(); }
     }
   }
   for (const w of f.walk) {

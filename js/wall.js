@@ -67,6 +67,8 @@ export function buildCampusWall(group, runs, { avoid = [] } = {}) {
       const [x, z] = at(t);
       b.box(m, horiz ? len : thick, h, horiz ? thick : len, x, y, z);
     };
+    if (r.street) buildStreet(b, r, L, ux, uz, avoid);
+    if (r.noWall) continue;                                      // 正門兩側是樹籬，不蓋圍牆
     box(baseMat(), L, 0.75, 0.42, L / 2, 0.375);                 // 矮牆
     box(stone, L, 0.08, 0.5, L / 2, 0.79);                       // 矮牆頂
     const n = Math.max(1, Math.round(L / 3.2)), step = L / n;
@@ -82,7 +84,6 @@ export function buildCampusWall(group, runs, { avoid = [] } = {}) {
         box(rail, c - a, 0.05, 0.06, (a + c) / 2, 0.86);          // 下橫桿
       }
     }
-    if (r.street) buildStreet(b, r, L, ux, uz, avoid);
   }
   b.build(group);
 }
@@ -105,7 +106,7 @@ function buildStreet(b, r, L, ux, uz, avoid) {
   const trunk = mat('log', '#8a7a66'), root = mat('log', '#6d5f50'), leaves = mat('leaves');
   const bamboo = mat('wool', '#c8b07a'), seat = mat('planks', '#b07a45'), metal = mat('wool', '#2b2b2b');
   const near = (x, z) => avoid.some(([ax, az, rad]) => Math.hypot(x - ax, z - az) < rad);
-  const N = Math.max(1, Math.round(L / 7.5));
+  const N = Math.max(1, Math.round(L / (r.treeGap || 7.5)));
   for (let i = 0; i < N; i++) {
     const t = (i + 0.5) * (L / N), [x, z] = at(t, 1.7);
     if (near(x, z)) continue;
