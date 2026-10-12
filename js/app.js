@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=32';
-import { furnishFloor } from './furniture.js?v=32';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=32';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock } from './field.js?v=32';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=32';
+import { PanoViewer } from './pano.js?v=38';
+import { furnishFloor } from './furniture.js?v=38';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=38';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=38';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=38';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -99,8 +99,8 @@ function sideIsSolid(room, s) {
   if (ns === ew) return false;                                 // 門的方向不明確就照舊
   if (ns ? 'NS'.includes(s) : 'EW'.includes(s)) return false;  // 前後
   const m = room.m, E = 0.3;
-  return rooms.some((r) => {
-    if (r === room || r.f !== room.f || r.open || r.hidden) return false;
+  const others = [...rooms.filter((r) => r !== room && r.f === room.f && !r.open && !r.hidden), ...room.f.stairs];
+  return others.some((r) => {
     const o = r.m;
     if (s === 'W' || s === 'E') {
       const x = s === 'W' ? m.x1 : m.x2;
@@ -126,7 +126,7 @@ function addRoomWalls(room) {
     let gaps = [];
     if (doors.includes(s)) {
       const at = room.doorAt?.[s] || (len > 6.5 ? [0.18, 0.82] : [0.5]);
-      const w = Math.min(1.6, len * 0.45);
+      const w = room.doorW?.[s] ?? Math.min(1.6, len * 0.45);
       gaps = at.map((c) => [Math.max(0.15, c * len - w / 2), Math.min(len - 0.15, c * len + w / 2)]);
     }
     const ux = (bx - ax) / len, uz = (bz - az) / len;
@@ -186,6 +186,27 @@ function addRailings(f) {
 }
 
 for (const r of rooms) addRoomWalls(r);
+// 電梯：三面是牆，門那一面只留門口（都只算碰撞，外觀在 buildElevator 畫）
+for (const s of stairs) {
+  if (!s.elevator || !s.door) continue;
+  const m = s.m, color = new THREE.Color('#d9c9a8');
+  for (const fid of s.floors) {
+    const f = floorById[fid], add = (ax, az, bx, bz) => f.segs.push({ ax, az, bx, bz, h: WALL_H, color, kind: 'wall', noRender: true });
+    add(m.x1, m.z1, m.x2, m.z1); add(m.x1, m.z2, m.x2, m.z2); add(m.x1, m.z1, m.x1, m.z2);
+    const zc = (m.z1 + m.z2) / 2;
+    add(m.x2, m.z1, m.x2, zc - 0.6); add(m.x2, zc + 0.6, m.x2, m.z2);
+  }
+}
+// 1 樓的樓梯間：資料上標記 wall1F 的那一面是牆（例如丙梯西側，不能直接走到外面）
+for (const s of stairs) {
+  if (!s.wall1F || !s.floors.includes('1F')) continue;
+  const f = floorById['1F'], m = s.m;
+  const ends = { W: [m.x1, m.z1, m.x1, m.z2], E: [m.x2, m.z1, m.x2, m.z2], N: [m.x1, m.z1, m.x2, m.z1], S: [m.x1, m.z2, m.x2, m.z2] };
+  for (const side of s.wall1F) {
+    const [ax, az, bx, bz] = ends[side];
+    f.segs.push({ ax, az, bx, bz, h: WALL_H, color: lighten(D.buildings[s.building].color, 0.35), kind: 'wall', bld: s.building });
+  }
+}
 for (const f of floors) addRailings(f);
 
 // 戶外的牆：校門兩側的樹籬、操場南邊那棟建築（都會擋路，也會被導航避開）
@@ -305,11 +326,16 @@ function buildOutdoor() {
     buildField(g, cx, cz, O.track.size[0] / S / 2, O.track.size[1] / S / 2);
     floors[1].labels.add(makeLabel('操場', '', cx, 3, cz, { bg: '#2d6a4f', h: 1.6 }));
   }
+  {
+    // 中庭：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑（依照片）
+    const court = rooms.find((r) => r.name === '中庭');
+    if (court) raised.push(...buildCourtyard(g, court.m, FLOOR_H));
+  }
   if (O.facadeC) {
     // 勤學樓背面、思源樓面向操場那面（依照片）
     const F = O.facadeC, st = rectM(O.stage);
     buildFacadeC(g, mx(F.x[0]), mx(F.x[1]), mz(F.y) + WALL_T / 2, 4, FLOOR_H, [st.x1, st.x2]);
-    buildMuralBlock(g, mx(F.mural[0]), mx(F.mural[1]), mx(F.mural[2]), mz(F.y) + WALL_T / 2, 4 * FLOOR_H);
+    raised.push(...buildMuralBlock(g, mx(F.mural[0]), mx(F.mural[1]), mx(F.mural[2]), mz(F.y) + WALL_T / 2, 4 * FLOOR_H));
   }
   if (O.pool) {
     // 條紋屋頂建築（牆已經在資料階段加進碰撞），這裡蓋屋頂
@@ -355,7 +381,7 @@ function buildOutdoor() {
   }
   if (O.stage) {
     const m = rectM(O.stage);
-    buildStage(g, m);
+    raised.push(...buildStage(g, m));
     floors[1].labels.add(makeLabel('司令臺', '', (m.x1 + m.x2) / 2, 5.4, (m.z1 + m.z2) / 2 + 1, { bg: '#2d6a4f', h: 1.2 }));
   }
   if (O.playground) {
@@ -534,7 +560,7 @@ function buildFloor(f) {
   for (const s of f.stairs) {
     const nextIdx = s.floors.indexOf(f.id) + 1;
     if (s.elevator) {
-      batch.box(mat('glass'), s.m.x2 - s.m.x1, WALL_H, s.m.z2 - s.m.z1, s.cx, f.y + WALL_H / 2, s.cz);
+      buildElevator(f.group, s.m, f.y, WALL_H, f.level === 0);
     } else if (nextIdx < s.floors.length) {
       const along = (s.m.x2 - s.m.x1) > (s.m.z2 - s.m.z1) ? 'x' : 'z';
       const L = along === 'x' ? s.m.x2 - s.m.x1 : s.m.z2 - s.m.z1;
@@ -542,10 +568,23 @@ function buildFloor(f) {
       const N = 12, stepMat = mat('planks', BLOCKY ? '#e8d2b0' : '#b39b78');
       for (let i = 0; i < N; i++) {
         const h = ((i + 1) / N) * FLOOR_H * 0.5;
-        const pos = (along === 'x' ? s.m.x1 : s.m.z1) + (i + 0.5) * (L / N);
+        const k = s.reverse ? N - 1 - i : i;                 // reverse：從另一端往上爬
+        const pos = (along === 'x' ? s.m.x1 : s.m.z1) + (k + 0.5) * (L / N);
         if (along === 'x') batch.box(stepMat, L / N, h, Wd, pos, f.y + h / 2, s.m.z1 + Wd / 2 + 0.1);
         else batch.box(stepMat, Wd, h, L / N, s.m.x1 + Wd / 2 + 0.1, f.y + h / 2, pos);
       }
+    }
+    // 往下的樓梯（丙梯 1 樓往地下室，依照片在南半邊）：深色凹下去的樣子＋分隔欄杆
+    if (s.downFlight && f.id === '1F') {
+      const L = s.m.x2 - s.m.x1, Wd = (s.m.z2 - s.m.z1) * 0.45, z = s.m.z2 - Wd / 2 - 0.1, N = 8;
+      for (let i = 0; i < N; i++) {
+        const shade = Math.round(150 - i * 12).toString(16).padStart(2, '0');
+        batch.box(mat('wool', `#${shade}${shade}${shade}`), L / N, 0.02, Wd, s.m.x2 - (i + 0.5) * (L / N), f.y + 0.02, z);
+        batch.box(mat('wool', '#e0a030'), 0.04, 0.025, Wd, s.m.x2 - i * (L / N), f.y + 0.025, z);
+      }
+      const zr = s.m.z1 + (s.m.z2 - s.m.z1) * 0.5;
+      for (let x = s.m.x1 + 0.3; x < s.m.x2; x += 0.3) batch.box(mat('wool', '#d9c9a8'), 0.04, 1.0, 0.04, x, f.y + 0.5, zr);
+      batch.box(mat('wool', '#8a8f94'), L, 0.06, 0.08, (s.m.x1 + s.m.x2) / 2, f.y + 1.02, zr);
     }
     // 樓梯地面的發光標記
     const mark = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({
@@ -1023,7 +1062,7 @@ document.getElementById('stairPanel').addEventListener('click', (e) => {
 /* ---------------- 輸入 ---------------- */
 
 const keys = {};
-const settings = { speed: 1, sens: 1 };
+const settings = { speed: 1.5, sens: 1 };   // 預設移動速度 150%
 addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || viewer.isOpen) return;
   keys[e.code] = true;
@@ -1373,6 +1412,15 @@ const clock = new THREE.Clock();
 const camRay = new THREE.Raycaster();
 let navTick = 0, walkPhase = 0, walkAmt = 0;
 
+// 1 樓墊高的地方（司令臺、入口階梯）：{ x1, x2, z1, z2, h }
+const raised = [];
+function groundAt(f, x, z) {
+  if (f.level !== 0) return 0;
+  let h = 0;
+  for (const r of raised) if (x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) h = Math.max(h, r.h);
+  return h;
+}
+
 function update(dt) {
   const t = clock.elapsedTime;
   if (mode !== 'bird') {
@@ -1421,7 +1469,10 @@ function update(dt) {
       }
     }
   }
-  const py = player.floor.y + player.jump;
+  // 司令臺、入口階梯這類墊高的地面：慢慢升降，看起來像踩上去
+  const gy = groundAt(player.floor, player.x, player.z);
+  player.gy = (player.gy ?? 0) + (gy - (player.gy ?? 0)) * Math.min(1, dt * 12);
+  const py = player.floor.y + player.gy + player.jump;
   avatar.position.set(player.x, py, player.z);
 
   if (mode === 'first') {
@@ -1492,7 +1543,7 @@ buildPanoMarkers();
 // 起點：正門外面，面向校門（往東）
 const G = D.outdoor.gate;
 placeAt(floorById['1F'], mx(G.x - 50), mz((G.y1 + G.y2) / 2), -Math.PI / 2);
-setMode('bird');
+setMode('third');                // 預設第三人稱（依使用者要求）
 viewFloor = 'all';
 orbit.target.set(0, 4, 0);
 camera.position.set(40, 70, 85);

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=32';
+import { Batch, mat } from './blocks.js?v=38';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -250,6 +250,59 @@ export function buildPoolPlayground(group, m) {
     b.box(mat('leaves'), 3.0, 1.0, 3.0, x, 6.2, z);
   }
   b.build(inner);
+}
+
+/* ---------- 電梯（依照片）：藍底白玫瑰磁磚牆、不鏽鋼門框、一樓門上「交通安全五大運動」 ---------- */
+const roseTileMat = () => once('rose', () => new THREE.MeshLambertMaterial({ map: canvasTex(128, 128, (c, w, h) => {
+  c.fillStyle = '#5f88aa'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(235,240,245,.8)'; c.lineWidth = 3;
+  for (const [x, y] of [[32, 32], [96, 96]]) {
+    for (let r = 6; r <= 24; r += 6) { c.beginPath(); c.arc(x, y, r, r * 0.3, Math.PI * 2 - r * 0.1); c.stroke(); }
+  }
+  c.strokeStyle = 'rgba(255,255,255,.25)'; c.lineWidth = 1; c.strokeRect(0, 0, w, h);
+}, [1, 1]) }));
+const elevDoorMat = (art) => once('elevdoor' + art, () => new THREE.MeshLambertMaterial({ map: canvasTex(256, 480, (c, w, h) => {
+  if (!art) {
+    const g = c.createLinearGradient(0, 0, w, 0); g.addColorStop(0, '#b9bec3'); g.addColorStop(0.5, '#e6e9ec'); g.addColorStop(1, '#b9bec3');
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+  } else {
+    const cols = ['#cfe4f2', '#ffe08a', '#bfe6c4', '#ffc9a8', '#f6c6d6'];
+    for (let i = 0; i < 5; i++) { c.fillStyle = cols[i]; c.fillRect(0, 110 + i * 74, w, 74); }
+    c.fillStyle = '#f7f1e3'; c.fillRect(0, 0, w, 110);
+    c.textAlign = 'center'; c.font = '900 40px "Noto Sans TC", sans-serif';
+    c.lineWidth = 6; c.strokeStyle = '#ffffff';
+    c.fillStyle = '#7b4fc2'; c.strokeText('交通安全', w / 2, 48); c.fillText('交通安全', w / 2, 48);
+    c.fillStyle = '#e0572a'; c.strokeText('五大運動', w / 2, 96); c.fillText('五大運動', w / 2, 96);
+    c.font = '700 20px "Noto Sans TC", sans-serif'; c.fillStyle = '#333';
+    ['1. 車頭朝外停車', '2. 乘客責任', '3. 下車時說謝謝', '4. 對禮讓行人致謝', '5. 保護長者及婦孺'].forEach((t, i) => c.fillText(t, w / 2, 152 + i * 74));
+  }
+  c.fillStyle = 'rgba(60,60,60,.6)'; c.fillRect(w / 2 - 1, 0, 2, h);   // 兩扇門的中縫
+}) }));
+/** m：電梯範圍（門在東邊 x2），y：樓層高度，art：一樓門上有交通安全彩繪 */
+export function buildElevator(group, m, y, H, art) {
+  const b = new Batch();
+  const tile = mat('wool', '#e3d6bc'), steel = mat('wool', '#c3c8cd');
+  const W = m.x2 - m.x1, D = m.z2 - m.z1, zc = (m.z1 + m.z2) / 2, dw = 1.1;
+  b.box(tile, W, H, 0.2, (m.x1 + m.x2) / 2, y + H / 2, m.z1 + 0.1);           // 北、南、西三面井道牆
+  b.box(tile, W, H, 0.2, (m.x1 + m.x2) / 2, y + H / 2, m.z2 - 0.1);
+  b.box(tile, 0.2, H, D, m.x1 + 0.1, y + H / 2, zc);
+  // 門那一面：藍色玫瑰磁磚
+  const rose = roseTileMat();
+  for (const [a, c] of [[m.z1, zc - dw / 2 - 0.12], [zc + dw / 2 + 0.12, m.z2]]) b.box(rose, 0.2, H, c - a, m.x2 - 0.1, y + H / 2, (a + c) / 2);
+  b.box(rose, 0.2, H - 2.3, dw + 0.24, m.x2 - 0.1, y + 2.3 + (H - 2.3) / 2, zc);
+  for (const s of [-1, 1]) b.box(steel, 0.24, 2.3, 0.12, m.x2 - 0.1, y + 1.15, zc + s * (dw / 2 + 0.06));   // 不鏽鋼門框
+  b.box(steel, 0.24, 0.12, dw + 0.24, m.x2 - 0.1, y + 2.24, zc);
+  b.box(steel, 0.06, 0.6, 0.14, m.x2 + 0.03, y + 1.3, zc + dw / 2 + 0.45);   // 按鈕面板
+  b.box(mat('wool', '#e9ebed'), D - 0.4, 0.02, W - 0.4, (m.x1 + m.x2) / 2, y + 0.02, zc);   // 車廂地板
+  b.build(group);
+  // 門（關著的樣子；走過去就會進電梯）
+  const door = new THREE.Mesh(new THREE.BoxGeometry(0.04, 2.15, dw), [elevDoorMat(art), elevDoorMat(art), steel, steel, steel, steel]);
+  door.position.set(m.x2 - 0.06, y + 1.075, zc);
+  group.add(door);
+  // 門上方的無障礙電梯標誌
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.3, 0.3), mat('wool', '#1f3f8a'));
+  sign.position.set(m.x2 + 0.02, y + 2.55, zc);
+  group.add(sign);
 }
 
 /* ---------- 橘貓彩蛋 ---------- */

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=32';
+import { Batch, mat } from './blocks.js?v=38';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -160,7 +160,10 @@ export function buildStage(group, m) {
   const wy = ph, wh = 1.95;
   b.box(white, W * 0.82, wh, 0.12, xc, wy + wh / 2, z0 + 0.06);
   for (const s of [-1, 1]) b.box(white, 0.25, wh, 1.2, xc + s * W * 0.41, wy + wh / 2, z0 + 0.6);   // 兩側白色短牆
-  b.box(mat('wool', '#2b2f33'), 0.75, 1.75, 0.04, x1 + 2.2, wy + 0.875, z0 + 0.14);                // 門
+  // 後牆的門：白鐵門，打開著，直通學務處（位置對準學務處南牆的門）
+  const dx = x1 + 1.39;
+  b.box(mat('wool', '#3a3f45'), 0.9, 1.95, 0.04, dx, wy + 0.975, z0 + 0.15);                         // 門洞（暗）
+  b.box(mat('wool', '#c9cdd2'), 0.05, 1.95, 0.85, dx + 0.47, wy + 0.975, z0 + 0.6);                  // 打開的白鐵門片
   b.plain(mosaicMat(), 3.6, 1.5, 0.04, x1 + 4.45, wy + 0.75, z0 + 0.14);
   b.box(mat('wool', '#3a4048'), 0.7, 0.95, 0.04, x1 + 6.75, wy + 1.0, z0 + 0.14);                 // 鐵窗
   for (let i = 0; i < 4; i++) b.box(white, 0.03, 0.95, 0.05, x1 + 6.5 + i * 0.17, wy + 1.0, z0 + 0.16);
@@ -181,6 +184,8 @@ export function buildStage(group, m) {
     b.add(mat('wool', '#b8bcc0'), g);
   }
   b.build(group);
+  // 臺座可以走上去（從學務處的門、或從操場那邊跳上去）
+  return [{ x1, x2, z1: z0 - 0.05, z2: z0 + depth, h: ph + 0.06 }];
 }
 
 /* ---------- 勤學樓背面（面向操場） ---------- */
@@ -225,7 +230,8 @@ export function buildFacadeC(group, x1, x2, z, floors, FH, stage) {
   for (let k = 1; k <= floors; k++) b.box(ledge, x2 - x1, 0.22, out, (x1 + x2) / 2, k * FH - 0.11, z + out / 2);
   for (let i = 0; i < n; i++) {
     const bx0 = x1 + i * bw, bx = bx0 + bw / 2;
-    b.box(frame, 0.12, H, 0.12, bx0, H / 2, z + out);                  // 鋼架直柱
+    if (bx0 > sx1 - 0.6 && bx0 < sx2 + 0.6) b.box(frame, 0.12, H - 4.9, 0.12, bx0, (H + 4.9) / 2, z + out);   // 司令臺上方：從雨遮上面開始
+    else b.box(frame, 0.12, H, 0.12, bx0, H / 2, z + out);             // 鋼架直柱
     const mid = Math.abs(bx - scx) < 3.2;                               // 司令臺正上方那兩格：藍色擴張網＋布條
     for (let k = 0; k < floors; k++) {
       const y0 = k * FH;
@@ -300,22 +306,30 @@ const archMat = () => texMat('arches', 200, 832, (c, w, h) => {
     c.fillRect(x0, bot - 1.1 * P, ww, 4);
     for (let i = 0; i <= 14; i++) c.fillRect(x0 + (i * ww) / 14 - 1, bot - 1.1 * P, 2, 1.1 * P);
   }
-  // 一樓入口：深色玻璃門＋雨遮
-  c.fillStyle = '#2d3238'; c.fillRect(0.9 * P, Y(3.3), 1.9 * P, 2.4 * P);
-  c.fillStyle = '#9aa3ab'; c.fillRect(1.82 * P, Y(3.3), 3, 2.4 * P);
-  c.fillStyle = '#cdbf9c'; c.fillRect(0.6 * P, Y(3.6), 2.5 * P, 0.2 * P);
 });
 
 /** x1～x2：牆面範圍（xa 是壁畫和拱形陽臺的分界），z：外牆外側，H：牆高 */
 export function buildMuralBlock(group, x1, xa, x2, z, H) {
   const b = new Batch();
   b.plain(muralMat(), xa - x1, 16.2, 0.3, (x1 + xa) / 2, 8.1, z + 0.15);
-  b.plain(archMat(), x2 - xa, 16.2, 0.3, (xa + x2) / 2, 8.1, z + 0.15);
+  // 拱形陽臺那一欄：一樓是通道（沒有門），只蓋二樓以上，兩側留柱子
+  {
+    const y0 = 3.3, g = new THREE.BoxGeometry(x2 - xa, 16.2 - y0, 0.3), uv = g.attributes.uv;
+    for (let i = 16; i < 24; i++) uv.setY(i, (y0 + (16.2 - y0) * uv.getY(i)) / 16.2);
+    g.translate((xa + x2) / 2, (y0 + 16.2) / 2, z + 0.15);
+    b.add(archMat(), g);
+    b.box(mat('wool', '#e8d7ad'), 0.7, y0, 0.3, xa + 0.35, y0 / 2, z + 0.15);
+    b.box(mat('wool', '#e8d7ad'), 0.5, y0, 0.3, x2 - 0.25, y0 / 2, z + 0.15);
+  }
   const beige = mat('wool', '#ecdcb4'), stone = mat('wool', '#d6d2c8');
   b.box(beige, 2.4, 1.2, 0.5, x1 + 4.6, 16.8, z + 0.15);              // 頂上凸起的那一塊
-  // 入口階梯（5 階）＋兩旁花臺
-  const ex = (xa + x2) / 2, steps = 5;
-  for (let i = 0; i < steps; i++) b.box(stone, 2.4, 0.18 * (steps - i), 0.38, ex, 0.09 * (steps - i), z + 0.5 + i * 0.38);
+  // 通道口的階梯（3 階）＋兩旁花臺
+  const ex = (xa + 0.7 + x2 - 0.5) / 2, steps = 3, raised = [];
+  for (let i = 0; i < steps; i++) {
+    const h = 0.12 * (steps - i), z0 = z + 0.3 + i * 0.4;
+    b.box(stone, 2.4, h, 0.4, ex, h / 2, z0 + 0.2);
+    raised.push({ x1: ex - 1.2, x2: ex + 1.2, z1: z0, z2: z0 + 0.4, h });
+  }
   for (const s of [-1, 1]) {
     b.box(beige, 0.6, 0.9, 1.6, ex + s * 1.55, 0.45, z + 1.1);
     b.box(mat('leaves'), 0.5, 0.4, 1.4, ex + s * 1.55, 1.1, z + 1.1);
@@ -329,4 +343,158 @@ export function buildMuralBlock(group, x1, xa, x2, z, H) {
   }
   palm(b, x2 + 0.6, z + 1.3, 15);
   b.build(group);
+  return raised;
+}
+
+/* ---------- 中庭（依照片）：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑 ---------- */
+const waveMat = () => texMat('wavefascia', 256, 64, (c, w, h) => {
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = '#f4f1ea';
+  c.beginPath(); c.moveTo(0, 0); c.lineTo(w, 0); c.lineTo(w, h * 0.45);
+  for (let x = w; x >= 0; x -= 4) c.lineTo(x, h * 0.55 + Math.sin((x / w) * Math.PI * 3) * h * 0.3);
+  c.closePath(); c.fill();
+}, { transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
+const nameMat = (key, zh, en) => texMat(key, 512, 96, (c, w, h) => {
+  c.fillStyle = '#e4dccb'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#5b5a55'; c.textAlign = 'center';
+  c.font = '700 40px "Noto Sans TC", sans-serif';
+  [...zh].forEach((ch, i) => c.fillText(ch, w / 2 + (i - 1) * 140, 50));
+  c.font = '600 18px sans-serif'; en.split(' ').forEach((t, i) => c.fillText(t, w / 2 + (i - 0.5) * 140, 82));
+});
+const railMat = () => texMat('ironrail', 256, 64, (c, w, h) => {
+  c.clearRect(0, 0, w, h);
+  c.strokeStyle = '#2a2a2a'; c.lineWidth = 3;
+  c.strokeRect(2, 2, w - 4, h - 4);
+  for (let i = 0; i < 4; i++) {                                         // 捲草紋
+    const x = 32 + i * 64;
+    c.beginPath(); c.arc(x, h / 2, 14, 0, Math.PI * 1.6); c.stroke();
+    c.beginPath(); c.arc(x + 18, h / 2 + 6, 8, Math.PI, Math.PI * 2.6); c.stroke();
+    c.beginPath(); c.moveTo(x - 30, h - 4); c.quadraticCurveTo(x, 6, x + 30, h - 4); c.stroke();
+  }
+}, { transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
+
+/**
+ * 面向中庭的走廊立面：柱子、各層切角的樑、一樓波浪飾帶、柱子上的冷氣
+ * z：走廊外緣；dir：立面朝哪邊（+1 朝 +z、-1 朝 -z）
+ */
+function courtFacade(b, group, x1, x2, z, dir, floors, FH, opt = {}) {
+  const col = mat('wool', '#e6dcc8'), beam = mat('wool', '#ece4d4'), ac = mat('wool', '#eceeef');
+  const n = Math.round((x2 - x1) / 4.4), bw = (x2 - x1) / n, H = floors * FH;
+  for (let i = 0; i <= n; i++) b.box(col, 0.6, H, 0.6, x1 + i * bw, H / 2, z + dir * 0.3);
+  for (let k = 1; k <= floors; k++) {
+    const y = k * FH;
+    b.box(beam, x2 - x1, 0.5, 0.5, (x1 + x2) / 2, y - 0.25, z + dir * 0.25);
+    for (let i = 0; i < n; i++) for (const s of [-1, 1]) {               // 開口上方兩角切角
+      const g = new THREE.BoxGeometry(0.9, 0.3, 0.45); g.rotateZ(s * 0.6);
+      g.translate(x1 + i * bw + bw / 2 - s * (bw / 2 - 0.55), y - 0.6, z + dir * 0.25);
+      b.add(beam, g);
+    }
+    if (k < floors) for (let i = 0; i <= n; i += 1) if ((i + k) % 2 === 0) b.box(ac, 0.3, 0.55, 0.75, x1 + i * bw + 0.48, (k - 1) * FH + 2.3, z + dir * 0.45);
+  }
+  // 一樓波浪飾帶（opt.eaves：這一段改成咖啡色小屋簷）
+  for (let i = 0; i < n; i++) {
+    const cx = x1 + (i + 0.5) * bw;
+    if (opt.eaves && cx > opt.eaves[0] && cx < opt.eaves[1]) {
+      const g = new THREE.BoxGeometry(bw - 0.8, 0.08, 1.0); g.rotateX(dir * 0.45); g.translate(cx, 2.65, z + dir * 0.45);
+      b.add(mat('wool', '#6b4a3a'), g);
+      continue;
+    }
+    const wv = new THREE.Mesh(new THREE.PlaneGeometry(bw - 0.6, 0.7), waveMat());
+    wv.position.set(cx, FH - 0.85, z + dir * 0.52); if (dir < 0) wv.rotation.y = Math.PI;
+    group.add(wv);
+  }
+  // 樓名
+  if (opt.name) {
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.1), opt.name);
+    sign.position.set((x1 + x2) / 2, opt.nameY ?? H + 0.6, z + dir * 0.62); if (dir < 0) sign.rotation.y = Math.PI;
+    group.add(sign);
+  }
+}
+
+function bananaTree(b, x, z, h = 2.8) {
+  b.box(mat('log', '#b9c27a'), 0.32, h, 0.32, x, h / 2, z);
+  for (let i = 0; i < 7; i++) {
+    const leaf = new THREE.BoxGeometry(2.0, 0.06, 0.55); leaf.translate(1.0, 0, 0); leaf.rotateZ(0.4 + (i % 2) * 0.25); leaf.rotateY(i * Math.PI * 2 / 7);
+    leaf.translate(x, h - 0.1, z); b.add(mat('wool', i % 2 ? '#5fae3a' : '#4f9a32'), leaf);
+  }
+}
+
+/** m：中庭範圍（公尺）。回傳可以走上去的墊高區域 */
+export function buildCourtyard(group, m, FH) {
+  const b = new Batch(), raised = [];
+  // 敬業樓（北邊，立面朝南）：一到三樓走廊，四、五樓整排直條遮陽板
+  courtFacade(b, group, m.x1, m.x2, m.z1, 1, 3, FH);
+  const fin = mat('wool', '#e2d8c3');
+  b.box(fin, m.x2 - m.x1, 0.7, 0.7, (m.x1 + m.x2) / 2, 3 * FH + 0.35, m.z1 + 0.35);
+  for (let x = m.x1 + 0.4; x < m.x2; x += 0.95) b.box(fin, 0.24, 2 * FH - 0.7, 0.7, x, 3 * FH + 0.7 + (2 * FH - 0.7) / 2, m.z1 + 0.35);
+  const nA = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.1), nameMat('name-jy', '敬業樓', 'Jing Ye'));
+  nA.position.set((m.x1 + m.x2) / 2, 5 * FH + 0.6, m.z1 + 0.72); group.add(nA);
+  b.box(fin, m.x2 - m.x1, 1.3, 0.6, (m.x1 + m.x2) / 2, 5 * FH + 0.65, m.z1 + 0.3);
+  // 勤學樓（南邊，立面朝北）：四層走廊，一樓東段（幼兒園）是咖啡色小屋簷
+  courtFacade(b, group, m.x1, m.x2, m.z2, -1, 4, FH, { eaves: [4, m.x2], name: nameMat('name-qx', '勤學樓', 'Qin Xue') });
+  b.box(mat('wool', '#e4dccb'), m.x2 - m.x1, 1.3, 0.6, (m.x1 + m.x2) / 2, 4 * FH + 0.65, m.z2 - 0.3);
+  b.box(mat('wool', '#2f86d0'), 0.5, 3.0, 0.4, -4.2, 1.5, m.z2 - 0.5);                           // 藍色柱子
+
+  // 會議室前小花台：墊高平台、雕花鐵欄杆、弧形階梯、樹籬、香蕉樹、波浪石牆、百葉箱、石桌椅
+  const tx1 = -9.5, tx2 = -2.5, tz1 = m.z1 + 0.05, tz2 = m.z1 + 2.2, th = 0.9;
+  const granite = mat('wool', '#a8918a');
+  b.box(granite, tx2 - tx1, th, tz2 - tz1, (tx1 + tx2) / 2, th / 2, (tz1 + tz2) / 2);
+  b.box(mat('wool', '#cfc6b8'), tx2 - tx1, 0.04, tz2 - tz1, (tx1 + tx2) / 2, th + 0.02, (tz1 + tz2) / 2);
+  raised.push({ x1: tx1, x2: tx2, z1: tz1, z2: tz2, h: th + 0.04 });
+  const rail = new THREE.Mesh(new THREE.PlaneGeometry(tx2 - tx1 - 1.2, 0.9), railMat());
+  rail.position.set((tx1 + tx2) / 2 - 0.6, th + 0.45, tz2 - 0.05); group.add(rail);
+  const rail2 = new THREE.Mesh(new THREE.PlaneGeometry(tz2 - tz1, 0.9), railMat());
+  rail2.rotation.y = Math.PI / 2; rail2.position.set(tx1 + 0.05, th + 0.45, (tz1 + tz2) / 2); group.add(rail2);
+  b.box(mat('wool', '#2a2a2a'), tx2 - tx1 - 1.2, 0.05, 0.05, (tx1 + tx2) / 2 - 0.6, th + 0.92, tz2 - 0.05);
+  for (let i = 0; i < 5; i++) {                                         // 弧形階梯往東下
+    const h = th - (i + 1) * 0.18, x = tx2 + 0.2 + i * 0.4, wz = (tz2 - tz1) + i * 0.25;
+    if (h <= 0) break;
+    b.box(granite, 0.4, h, wz, x, h / 2, tz1 + wz / 2);
+    raised.push({ x1: x - 0.2, x2: x + 0.2, z1: tz1, z2: tz1 + wz, h });
+  }
+  const steel = mat('wool', '#c9cdd2');
+  { const g = new THREE.BoxGeometry(2.2, 0.05, 0.05); g.rotateZ(-0.42); g.translate(tx2 + 1.0, th + 0.55, tz2 + 0.55); b.add(steel, g); }
+  b.box(mat('leaves'), tx2 - tx1 + 2, 0.9, 0.9, (tx1 + tx2) / 2 - 1.2, 0.45, tz2 + 0.6);         // 樹籬
+  for (const [x, z] of [[-12.2, m.z1 + 1.4], [-10.6, m.z1 + 2.4], [-11.2, m.z1 + 0.9]]) bananaTree(b, x, z, 2.6 + (x % 2 ? 0.4 : 0));
+  for (let i = 0; i < 14; i++) {                                        // 波浪石牆
+    const x = -15.2 + i * 0.4, h = 0.55 + Math.sin(i * 0.7) * 0.25;
+    b.box(mat('wool', '#9c9690'), 0.42, h, 0.45, x, h / 2, m.z1 + 2.6);
+  }
+  // 百葉箱
+  const wbx = -0.6, wbz = m.z1 + 2.6, white = mat('wool', '#f2f2ef');
+  for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) b.box(white, 0.06, 1.1, 0.06, wbx + a * 0.25, 0.55, wbz + c * 0.2);
+  b.box(white, 0.7, 0.6, 0.55, wbx, 1.4, wbz);
+  for (let i = 0; i < 5; i++) b.box(mat('wool', '#d8d8d4'), 0.72, 0.03, 0.57, wbx, 1.15 + i * 0.12, wbz);
+  for (const s of [-1, 1]) { const g = new THREE.BoxGeometry(0.8, 0.05, 0.42); g.rotateX(s * 0.55); g.translate(wbx, 1.82, wbz + s * 0.15); b.add(white, g); }
+  // 石桌椅
+  const stone = mat('wool', '#7d7f80'), sx = 2.6, sz = m.z1 + 3.0;
+  { const g = new THREE.CylinderGeometry(0.85, 0.85, 0.12, 16); g.translate(sx, 0.7, sz); b.add(stone, g); }
+  { const g = new THREE.CylinderGeometry(0.3, 0.4, 0.64, 10); g.translate(sx, 0.32, sz); b.add(stone, g); }
+  for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, g = new THREE.CylinderGeometry(0.25, 0.28, 0.4, 10); g.translate(sx + Math.cos(a) * 1.35, 0.2, sz + Math.sin(a) * 1.35); b.add(stone, g); }
+
+  // 電腦教室前的沙坑：灰色遮陽篷（扇形邊）、藍色柱子、波浪磨石子邊框、彩色橡膠地墊
+  const kx = 12.6, kz = m.z1 + 2.9, kw = 5.6, kd = 3.0;
+  b.box(mat('wool', '#d8c9a6'), kw, 0.05, kd, kx, 0.03, kz);
+  const terr = mat('wool', '#b9b6ae');
+  for (let i = 0; i <= 14; i++) {
+    const x = kx - kw / 2 + (i / 14) * kw, h = 0.35 + Math.abs(Math.sin(i * 0.9)) * 0.35;
+    b.box(terr, kw / 14 + 0.02, h, 0.3, x, h / 2, kz + kd / 2 + 0.15);
+  }
+  for (let i = 0; i <= 7; i++) {
+    const z = kz - kd / 2 + (i / 7) * kd, h = 0.35 + Math.abs(Math.sin(i * 1.1)) * 0.3;
+    b.box(terr, 0.3, h, kd / 7 + 0.02, kx - kw / 2 - 0.15, h / 2, z);
+  }
+  const pole = mat('wool', '#2e6fc4');
+  for (const [a, c] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) b.box(pole, 0.12, 2.6, 0.12, kx + a * (kw / 2 - 0.3), 1.3, kz + c * (kd / 2 - 0.2));
+  const canvas = mat('wool', '#7c8085');
+  for (let i = 0; i < 10; i++) {
+    const t = (i + 0.5) / 10, z = kz - kd / 2 - 0.2 + t * (kd + 0.4);
+    b.box(canvas, kw + 0.4, 0.06, (kd + 0.4) / 10 + 0.02, kx, 2.6 + Math.sin(Math.PI * t) * 0.55, z);
+  }
+  for (let i = 0; i < 18; i++) for (const s of [-1, 1]) b.box(i % 2 ? canvas : mat('wool', '#eceae4'), (kw + 0.4) / 18, 0.12, 0.04, kx - (kw + 0.4) / 2 + ((kw + 0.4) / 18) * (i + 0.5), 2.55, kz + s * (kd / 2 + 0.2));
+  for (const [x, c] of [[kx + 0.4, '#2e6fc4'], [kx + 1.2, '#e8e8e4']]) { b.box(mat('wool', '#e8e8e4'), 0.7, 0.45, 0.5, x, 0.23, kz + kd / 2 - 0.5); b.box(mat('wool', c), 0.72, 0.08, 0.52, x, 0.49, kz + kd / 2 - 0.5); }
+  const tiles = ['#3f6b55', '#5a4d5e', '#6d6f73'];
+  for (let i = 0; i < 9; i++) for (let j = 0; j < 2; j++) b.box(mat('wool', tiles[(i + j) % 3]), 0.98, 0.03, 0.48, kx - 4.0 + i * 1.0, 0.015, kz + kd / 2 + 0.55 + j * 0.5);
+  b.build(group);
+  return raised;
 }
