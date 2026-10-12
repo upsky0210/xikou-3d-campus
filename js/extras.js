@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=22';
+import { Batch, mat } from './blocks.js?v=30';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
- *   - 水漾游泳館：外觀（白色浪板牆＋藍色波浪、西端藍色泡泡牆面與招牌）＋室內泳池
+ *   - 水漾游泳館：外觀（白色浪板牆＋藍色波浪、東西兩端都有藍色泡泡立面、入口在東端、西面藍白條紋）＋室內泳池
  *   - 游泳池旁的遊戲場：白色小木屋塔＋黃綠螺旋管狀滑梯
- *   - 橘貓彩蛋：躲在游泳池後面
+ *   - 橘貓彩蛋：坐在游泳館入口階梯上
  * ========================================================= */
 
 function canvasTex(w, h, draw, repeat) {
@@ -40,15 +40,33 @@ export const poolWallMat = () => once('poolwall', () => new THREE.MeshLambertMat
   }
 }, [1 / 8, 1 / 6]) }));
 
-// 西端藍色立面：泡泡圓點＋「水漾游泳館」招牌
-const poolFacadeMat = () => once('poolfacade', () => new THREE.MeshLambertMaterial({ map: canvasTex(300, 480, (c, w, h) => {
+/** 游泳館入口（北牆東端藍色立面中間偏西）：回傳門的 [x1, x2] */
+export const poolDoor = (m) => [m.x2 - 3.9, m.x2 - 2.8];
+
+// 游泳館西面（面向遊戲場）：藍白直條紋、上排大窗、下排鐵窗
+export const poolStripeMat = () => once('poolstripe', () => new THREE.MeshLambertMaterial({ map: canvasTex(512, 384, (c, w, h) => {
+  for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? '#e9eef2' : '#35a2e0'; c.fillRect(i * 64, 0, 64, h); }
+  for (let i = 0; i < 4; i++) {
+    c.fillStyle = '#cfdce6'; c.fillRect(16 + i * 128, 30, 100, 70);                 // 上排大窗
+    c.strokeStyle = '#ffffff'; c.lineWidth = 4; c.strokeRect(16 + i * 128, 30, 100, 70);
+    c.fillStyle = '#5d6b76'; c.fillRect(30 + i * 128, 190, 70, 50);                 // 下排鐵窗
+    c.strokeStyle = '#e8e8e8'; c.lineWidth = 2;
+    for (let k = 0; k < 6; k++) { c.beginPath(); c.moveTo(30 + i * 128 + k * 14, 190); c.lineTo(30 + i * 128 + k * 14, 240); c.stroke(); }
+  }
+  c.fillStyle = '#9aa0a6'; c.fillRect(0, h - 22, w, 22);
+}, [1 / 8, 1 / 6]) }));
+
+// 藍色立面：泡泡圓點（西端那面有「水漾游泳館」招牌）
+const poolFacadeMat = (sign = true) => once('poolfacade' + sign, () => new THREE.MeshLambertMaterial({ map: canvasTex(300, 480, (c, w, h) => {
   c.fillStyle = '#2f5aa8'; c.fillRect(0, 0, w, h);
   for (let x = 0; x < w; x += 12) { c.fillStyle = 'rgba(255,255,255,.07)'; c.fillRect(x, 0, 5, h); }
-  c.fillStyle = '#ffffff'; c.font = '900 40px "Noto Sans TC", sans-serif'; c.textAlign = 'center';
-  c.fillText('水漾游泳館', w / 2, 70);
-  c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(30, 84, w - 60, 18);
-  c.fillStyle = '#2f5aa8'; c.font = '700 13px sans-serif'; c.fillText('Swimming Pool', w / 2, 98);
-  let s = 3;
+  if (sign) {
+    c.fillStyle = '#ffffff'; c.font = '900 40px "Noto Sans TC", sans-serif'; c.textAlign = 'center';
+    c.fillText('水漾游泳館', w / 2, 70);
+    c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(30, 84, w - 60, 18);
+    c.fillStyle = '#2f5aa8'; c.font = '700 13px sans-serif'; c.fillText('Swimming Pool', w / 2, 98);
+  }
+  let s = sign ? 3 : 9;
   const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 34; i++) {
     const r = 6 + rnd() * 16;
@@ -74,7 +92,7 @@ const waterMat = (lanes) => once('water' + lanes, () => new THREE.MeshLambertMat
 
 /**
  * 游泳館：外牆（碰撞在 app.js 的資料階段處理）、西端藍色立面、屋頂冷氣主機、室內泳池
- * m：泳池建築的範圍（公尺），door：入口在北牆的位置 [x1, x2]
+ * m：泳池建築的範圍（公尺）；入口在北牆東端（poolDoor）
  */
 export function buildPool(group, m, roofTex) {
   const b = new Batch();
@@ -84,11 +102,40 @@ export function buildPool(group, m, roofTex) {
   roof.position.set(cx, 6.2, cz); roof.castShadow = roof.receiveShadow = true;
   group.add(roof);
   // 屋頂冷氣主機
-  for (let i = 0; i < 8; i++) b.box(mat('wool', '#3a3f45'), 1.1, 0.9, 0.8, m.x1 + 8 + i * ((W - 12) / 7), 6.85, m.z1 + 1.2);
-  // 西端藍色高立面（含招牌）
-  const fac = new THREE.Mesh(new THREE.BoxGeometry(4.6, 7.6, 1.0), [poolFacadeMat(), poolFacadeMat(), mat('wool', '#2f5aa8'), mat('wool', '#2f5aa8'), poolFacadeMat(), poolFacadeMat()]);
-  fac.position.set(m.x1 + 2.4, 3.8, m.z1 - 0.2); fac.castShadow = true;   // 貼在北牆外側
-  group.add(fac);
+  for (let i = 0; i < 8; i++) b.box(mat('wool', '#3a3f45'), 1.1, 0.9, 0.8, m.x1 + 4 + i * ((W - 12) / 7), 6.85, m.z1 + 1.2);
+  // 西端也有一面藍色泡泡立面（含招牌，沒有門）
+  const facW = new THREE.Mesh(new THREE.BoxGeometry(4.6, 7.6, 1.0), [mat('wool', '#2f5aa8'), mat('wool', '#2f5aa8'), mat('wool', '#2f5aa8'), mat('wool', '#2f5aa8'), poolFacadeMat(), poolFacadeMat()]);
+  facW.position.set(m.x1 + 2.4, 3.8, m.z1 - 0.2); facW.castShadow = true;
+  group.add(facW);
+  // 東端藍色高立面（依照片：入口在這裡，門在立面中間偏西、門前有階梯；貓咪常坐在階梯上）
+  const blue = mat('wool', '#2f5aa8'), fx0 = m.x2 - 4.7, fx1 = m.x2 - 0.1, [d0, d1] = poolDoor(m);
+  const facPiece = (a, c, y0, y1) => {
+    const g = new THREE.Mesh(new THREE.BoxGeometry(c - a, y1 - y0, 1.0), [blue, blue, blue, blue, blue, poolFacadeMat(false)]);
+    g.position.set((a + c) / 2, (y0 + y1) / 2, m.z1 - 0.2); g.castShadow = true;
+    // 貼圖對齊整面立面
+    const uv = g.geometry.attributes.uv;
+    for (let i = 20; i < 24; i++) uv.setXY(i, 1 - ((c - (c - a) * uv.getX(i)) - fx0) / (fx1 - fx0), (y0 + (y1 - y0) * uv.getY(i)) / 7.6);
+    group.add(g);
+  };
+  facPiece(fx0, d0, 0, 7.6); facPiece(d1, fx1, 0, 7.6); facPiece(d0, d1, 2.4, 7.6);
+  b.box(mat('wool', '#1d2228'), d1 - d0, 2.4, 0.05, (d0 + d1) / 2, 1.2, m.z1 + 0.32);   // 門內暗處
+  for (const x of [d0 + 0.08, d1 - 0.08]) b.box(blue, 0.17, 2.4, 1.05, x, 1.2, m.z1 - 0.2);           // 門框（蓋住牆的斷面）
+  // 門右邊（東側）的白色鐵格柵門
+  for (let i = 0; i <= 8; i++) b.box(mat('wool', '#e8e8e4'), 0.04, 2.0, 0.04, d1 + 0.4 + i * 0.22, 1.0, m.z1 - 0.72);
+  for (const y of [0.1, 1.0, 2.0]) b.box(mat('wool', '#e8e8e4'), 1.9, 0.05, 0.05, d1 + 0.4 + 0.88, y, m.z1 - 0.72);
+  // 門前三階灰色磁磚階梯＋不鏽鋼扶手
+  const sx = (d0 + d1) / 2;
+  for (let i = 0; i < 3; i++) b.box(mat('wool', '#8f99a3'), 1.8, 0.15 * (3 - i), 0.4, sx, 0.075 * (3 - i), m.z1 - 0.9 - i * 0.4);
+  const steel = mat('wool', '#c9cdd2');
+  for (const z of [m.z1 - 0.9, m.z1 - 1.7]) b.box(steel, 0.05, 1.0, 0.05, d0 - 0.15, 0.5 + (z === m.z1 - 0.9 ? 0.4 : 0), z);
+  { const g = new THREE.BoxGeometry(0.05, 0.05, 1.0); g.rotateX(-0.45); g.translate(d0 - 0.15, 1.2, m.z1 - 1.3); b.add(steel, g); }
+  // 東邊灰藍色磁磚矮牆（往北延伸）
+  b.box(mat('tile', '#8195aa'), 0.35, 1.2, 6.0, fx1 - 0.2, 0.6, m.z1 - 0.7 - 3.0);
+  // 白牆前：黑色橡膠地墊＋三支高低單槓
+  b.box(mat('wool', '#2a2d31'), 7.5, 0.04, 4.5, d0 - 4.6, 0.02, m.z1 - 2.4);
+  const posts = [d0 - 1.5, d0 - 3.4, d0 - 5.4, d0 - 7.6], bars = [2.3, 2.0, 1.6];
+  posts.forEach((x) => b.box(steel, 0.07, x === posts[0] ? 2.3 : 2.3, 0.07, x, 1.15, m.z1 - 2.4));
+  bars.forEach((h, i) => b.box(steel, posts[i] - posts[i + 1], 0.05, 0.05, (posts[i] + posts[i + 1]) / 2, h, m.z1 - 2.4));
 
   // ===== 室內 =====
   const deck = mat('tile', '#e9e4d8');
@@ -142,6 +189,10 @@ export function buildPool(group, m, roofTex) {
 export function buildPoolPlayground(group, m) {
   const b = new Batch();
   const cx = (m.x1 + m.x2) / 2, cz = (m.z1 + m.z2) / 2;
+  // 依照片：滑梯出口、樹穴都朝北（操場那邊）。下面照原本座標蓋，最後整組繞中心轉 180 度
+  const pivot = new THREE.Group(), inner = new THREE.Group();
+  pivot.position.set(cx, 0, cz); pivot.rotation.y = Math.PI; inner.position.set(-cx, 0, -cz);
+  pivot.add(inner); group.add(pivot);
   const white = mat('wool', '#f1efe8'), grey = mat('wool', '#d9d6cc');
   b.box(mat('grass', '#ffffff'), m.x2 - m.x1, 0.04, m.z2 - m.z1, cx, 0.02, cz);   // 人工草皮
   // 三座小木屋塔（平台高度不同）
@@ -189,12 +240,16 @@ export function buildPoolPlayground(group, m) {
     }
     b.box(mat('wool', '#8fd18a'), 0.25, 0.04, 0.15, sx - 0.5 + i * 0.35 + 1.0, sh + 3.3, sz - 0.2);
   }
-  // 圓形木頭座椅
-  for (const [x, z] of [[m.x1 + 1.2, m.z2 - 1.2], [m.x2 - 1.2, m.z2 - 1.4]]) {
-    const g = new THREE.CylinderGeometry(0.9, 0.9, 0.42, 24); g.translate(x, 0.21, z); b.add(mat('wool', '#9aa0a6'), g);
-    const t = new THREE.CylinderGeometry(0.85, 0.85, 0.06, 24); t.translate(x, 0.45, z); b.add(mat('planks', '#a0522d'), t);
+  // 前面（朝操場）三個圓形樹穴：水泥圓座＋木頭座板，種著大樹
+  for (const x of [m.x1 + 3.5, cx + 0.5, m.x2 - 3.0]) {
+    const z = m.z2 - 1.3;
+    const g = new THREE.CylinderGeometry(1.1, 1.1, 0.45, 24); g.translate(x, 0.225, z); b.add(mat('wool', '#a7a39a'), g);
+    const t = new THREE.CylinderGeometry(1.15, 1.15, 0.06, 24); t.translate(x, 0.48, z); b.add(mat('planks', '#a0522d'), t);
+    b.box(mat('log', '#6e5a44'), 0.32, 4.2, 0.32, x, 2.4, z);
+    b.box(mat('leaves'), 4.2, 1.6, 4.0, x, 5.0, z);
+    b.box(mat('leaves'), 3.0, 1.0, 3.0, x, 6.2, z);
   }
-  b.build(group);
+  b.build(inner);
 }
 
 /* ---------- 橘貓彩蛋 ---------- */

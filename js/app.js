@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=22';
-import { furnishFloor } from './furniture.js?v=22';
-import { poolWallMat, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=22';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=22';
+import { PanoViewer } from './pano.js?v=30';
+import { furnishFloor } from './furniture.js?v=30';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, makeCat } from './extras.js?v=30';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock } from './field.js?v=30';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=30';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -183,11 +184,14 @@ for (const f of floors) addRailings(f);
     }
   }
   if (O.pool) {
-    // 游泳館：白色浪板外牆（依照片），北牆西段（藍色立面旁）留 2 公尺入口
-    const m = rectM(O.pool), color = new THREE.Color('#eeeeee'), h = 6, d0 = m.x1 + 5.0, d1 = m.x1 + 7.0;
-    for (const [ax, az, bx, bz] of [[m.x1, m.z1, d0, m.z1], [d1, m.z1, m.x2, m.z1], [m.x1, m.z2, m.x2, m.z2], [m.x1, m.z1, m.x1, m.z2], [m.x2, m.z1, m.x2, m.z2]]) {
+    // 游泳館：白色浪板外牆（依照片），入口在北牆東端的藍色立面；西面是藍白條紋
+    const m = rectM(O.pool), color = new THREE.Color('#eeeeee'), h = 6, [d0, d1] = poolDoor(m);
+    for (const [ax, az, bx, bz] of [[m.x1, m.z1, d0, m.z1], [d1, m.z1, m.x2, m.z1], [m.x1, m.z2, m.x2, m.z2], [m.x2, m.z1, m.x2, m.z2]]) {
       f1.segs.push({ ax, az, bx, bz, h, color, kind: 'poolwall' });
     }
+    f1.segs.push({ ax: m.x1, az: m.z1, bx: m.x1, bz: m.z2, h, color, kind: 'poolstripe' });
+    // 入口東邊往北延伸的磁磚矮牆（畫在 extras.js）
+    f1.segs.push({ ax: m.x2 - 0.3, az: m.z1 - 0.7, bx: m.x2 - 0.3, bz: m.z1 - 6.7, h: 1.2, color, kind: 'wall', noRender: true });
   }
 }
 
@@ -276,21 +280,16 @@ function buildOutdoor() {
     return geo;
   };
   if (O.track) {
+    // 依照片：紅藍相間跑道、中間藍色籃球場、兩端草地圍網
     const cx = mx(O.track.center[0]), cz = mz(O.track.center[1]);
-    const a = O.track.size[0] / S / 2, b = O.track.size[1] / S / 2, lane = 6;
-    const outer = new THREE.Shape(); outer.absellipse(0, 0, a, b, 0, Math.PI * 2);
-    const hole = new THREE.Path(); hole.absellipse(0, 0, a - lane, b - lane, 0, Math.PI * 2, true);
-    outer.holes.push(hole);
-    flat(new THREE.ShapeGeometry(outer, 64), BLOCKY ? '#ffffff' : '#93414b', 0.02, 'track').position.set(cx, 0.02, cz);
-    const inner = new THREE.Shape(); inner.absellipse(0, 0, a - lane, b - lane, 0, Math.PI * 2);
-    flat(new THREE.ShapeGeometry(inner, 64), BLOCKY ? '#ffffff' : '#7cbf5a', 0.03, 'grass').position.set(cx, 0.03, cz);
-    // 中間的籃球場
-    const [kw, kh] = O.track.court || [0.55, 0.8];
-    const cw = (a - lane) * 2 * kw, ch = (b - lane) * 2 * kh;
-    const court = new THREE.Mesh(new THREE.PlaneGeometry(cw, ch), new THREE.MeshLambertMaterial({ map: courtTexture() }));
-    court.rotation.x = -Math.PI / 2; court.position.set(cx, 0.04, cz); court.receiveShadow = true;
-    g.add(court);
-    floors[1].labels.add(makeLabel('操場', est, cx, 3, cz, { bg: '#2d6a4f', h: 1.6 }));
+    buildField(g, cx, cz, O.track.size[0] / S / 2, O.track.size[1] / S / 2);
+    floors[1].labels.add(makeLabel('操場', '', cx, 3, cz, { bg: '#2d6a4f', h: 1.6 }));
+  }
+  if (O.facadeC) {
+    // 勤學樓背面、思源樓面向操場那面（依照片）
+    const F = O.facadeC, st = rectM(O.stage);
+    buildFacadeC(g, mx(F.x[0]), mx(F.x[1]), mz(F.y) + WALL_T / 2, 4, FLOOR_H, [st.x1, st.x2]);
+    buildMuralBlock(g, mx(F.mural[0]), mx(F.mural[1]), mx(F.mural[2]), mz(F.y) + WALL_T / 2, 4 * FLOOR_H);
   }
   if (O.pool) {
     // 條紋屋頂建築（牆已經在資料階段加進碰撞），這裡蓋屋頂
@@ -336,39 +335,14 @@ function buildOutdoor() {
   }
   if (O.stage) {
     const m = rectM(O.stage);
-    const st = new THREE.Mesh(blockBox(m.x2 - m.x1, 1.2, m.z2 - m.z1), mat('brick', '#f0dcc0'));
-    st.position.set((m.x1 + m.x2) / 2, 0.6, (m.z1 + m.z2) / 2);
-    st.castShadow = st.receiveShadow = true;
-    g.add(st);
-    floors[1].labels.add(makeLabel('司令臺', '', (m.x1 + m.x2) / 2, 3, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
+    buildStage(g, m);
+    floors[1].labels.add(makeLabel('司令臺', '', (m.x1 + m.x2) / 2, 5.4, (m.z1 + m.z2) / 2 + 1, { bg: '#2d6a4f', h: 1.2 }));
   }
   if (O.playground) {
     const m = rectM(O.playground);
     buildPoolPlayground(g, m);
     floors[1].labels.add(makeLabel('遊戲場', '', (m.x1 + m.x2) / 2, 6.8, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
   }
-}
-
-function courtTexture() {
-  const cv = document.createElement('canvas');
-  cv.width = 1024; cv.height = 560;
-  const c = cv.getContext('2d');
-  c.fillStyle = '#3f8f86'; c.fillRect(0, 0, 1024, 560);
-  c.fillStyle = 'rgba(255,255,255,.05)';
-  for (let i = 0; i < 500; i++) c.fillRect(Math.random() * 1024, Math.random() * 560, 4, 4);
-  c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 6;
-  c.strokeRect(30, 30, 964, 500);
-  c.beginPath(); c.moveTo(512, 30); c.lineTo(512, 530); c.stroke();
-  c.beginPath(); c.arc(512, 280, 70, 0, Math.PI * 2); c.stroke();
-  for (const side of [0, 1]) {
-    const x0 = side ? 994 : 30, dir = side ? -1 : 1;
-    c.strokeRect(side ? x0 - 200 : x0, 200, 200, 160);                 // 禁區
-    c.beginPath(); c.arc(x0 + dir * 200, 280, 70, 0, Math.PI * 2); c.stroke();
-    c.beginPath(); c.arc(x0 + dir * 50, 280, 230, side ? Math.PI / 2 : -Math.PI / 2, side ? Math.PI * 1.5 : Math.PI / 2, false); c.stroke();
-  }
-  const t = new THREE.CanvasTexture(cv);
-  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-  return t;
 }
 
 function stripeRoofTexture(widthM) {
@@ -512,6 +486,7 @@ function buildFloor(f) {
     }
     if (s.kind === 'hedge') { piece(mat('leaves'), 0, s.h); continue; }
     if (s.kind === 'poolwall') { piece(BLOCKY ? poolWallMat() : mat('wool', '#eeeeee'), 0, s.h); continue; }
+    if (s.kind === 'poolstripe') { piece(BLOCKY ? poolStripeMat() : mat('wool', '#7cc3ec'), 0, s.h); continue; }
     const wm = wallMat(s.bld);
     if (s.overhead) { piece(wm, s.y0, s.h); continue; }   // 門楣
     if (len < 1.4) { piece(wm, 0, s.h); continue; }
@@ -1352,19 +1327,23 @@ gallery.addEventListener('click', (e) => {
 });
 document.getElementById('openGallery').onclick = openGallery;
 
-/* ---------------- 橘貓彩蛋（依照片：游泳池後面的橘貓） ---------------- */
+/* ---------------- 橘貓彩蛋（坐在游泳館入口階梯上） ---------------- */
 
 const CAT_KEY = 'campus-cat-found';
 const cat = makeCat();
-cat.position.set(mx(1200), 0, mz(2183));    // 游泳館南側後面
-cat.rotation.y = Math.PI / 2;               // 面向西邊（從遊戲場那邊走過來會看到）
+{
+  // 依使用者說明：貓咪常坐在游泳館入口（東端）的灰色階梯上、不鏽鋼扶手旁
+  const pm = rectM(D.outdoor.pool), [d0, d1] = poolDoor(pm);
+  cat.position.set((d0 + d1) / 2 + 0.45, 0.3, pm.z1 - 1.3);   // 中間那一階
+  cat.rotation.y = 0;                                          // 面向北邊（操場）
+}
 floors[1].group.add(cat);
 cat.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.cat = true; pickables.push(o); } });
 let catNear = false;
 function meetCat() {
   let first = true;
   try { first = !localStorage.getItem(CAT_KEY); localStorage.setItem(CAT_KEY, '1'); } catch { /* 私密模式，忽略 */ }
-  toast(first ? '🐱 喵～你找到了躲在游泳池後面的橘貓！' : '🐱 喵～又見面了！');
+  toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
 }
 
 /* ---------------- 主迴圈 ---------------- */
