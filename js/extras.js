@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=45';
+import { Batch, mat, SPOTS } from './blocks.js?v=46';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -118,14 +118,22 @@ export function buildPool(group, m, roofTex) {
     group.add(g);
   };
   facPiece(fx0, d0, 0, 7.6); facPiece(d1, fx1, 0, 7.6); facPiece(d0, d1, 2.4, 7.6);
-  b.box(mat('wool', '#1d2228'), d1 - d0, 2.4, 0.05, (d0 + d1) / 2, 1.2, m.z1 + 0.32);   // 門內暗處
-  for (const x of [d0 + 0.08, d1 - 0.08]) b.box(blue, 0.17, 2.4, 1.05, x, 1.2, m.z1 - 0.2);           // 門框（蓋住牆的斷面）
+  // 門內暗處、門框：不算碰撞（暗處是畫面上的深色，算了會把門封住）
+  const keep = Batch.collector; Batch.collector = null;
+  b.box(mat('wool', '#1d2228'), d1 - d0, 2.4, 0.05, (d0 + d1) / 2, 1.2, m.z1 + 0.32);
+  for (const x of [d0 + 0.08, d1 - 0.08]) b.box(blue, 0.17, 2.4, 1.05, x, 1.2, m.z1 - 0.2);           // 門框（蓋住牆的斷面；門口寬度由牆的碰撞決定，門框不另外擋，免得卡在門框和牆的角落）
+  Batch.collector = keep;
   // 門右邊（東側）的白色鐵格柵門
   for (let i = 0; i <= 8; i++) b.box(mat('wool', '#e8e8e4'), 0.04, 2.0, 0.04, d1 + 0.4 + i * 0.22, 1.0, m.z1 - 0.72);
   for (const y of [0.1, 1.0, 2.0]) b.box(mat('wool', '#e8e8e4'), 1.9, 0.05, 0.05, d1 + 0.4 + 0.88, y, m.z1 - 0.72);
   // 門前三階灰色磁磚階梯＋不鏽鋼扶手
   const sx = (d0 + d1) / 2;
-  for (let i = 0; i < 3; i++) b.box(mat('wool', '#8f99a3'), 1.8, 0.15 * (3 - i), 0.4, sx, 0.075 * (3 - i), m.z1 - 0.9 - i * 0.4);
+  const steps = [];                                                    // 可以踩上去（回傳給 app.js 當墊高地面）
+  for (let i = 0; i < 3; i++) {
+    const h = 0.15 * (3 - i), z = m.z1 - 0.9 - i * 0.4;
+    b.box(mat('wool', '#8f99a3'), 1.8, h, 0.4, sx, h / 2, z);
+    steps.push({ x1: sx - 0.9, x2: sx + 0.9, z1: z - 0.2, z2: z + 0.2, h });
+  }
   const steel = mat('wool', '#c9cdd2');
   for (const z of [m.z1 - 0.9, m.z1 - 1.7]) b.box(steel, 0.05, 1.0, 0.05, d0 - 0.15, 0.5 + (z === m.z1 - 0.9 ? 0.4 : 0), z);
   { const g = new THREE.BoxGeometry(0.05, 0.05, 1.0); g.rotateX(-0.45); g.translate(d0 - 0.15, 1.2, m.z1 - 1.3); b.add(steel, g); }
@@ -183,6 +191,7 @@ export function buildPool(group, m, roofTex) {
   for (let i = 0; i < 10; i++) b.box(mat('wool', '#d63a3a'), 0.45, 0.45, 0.45, px - pw / 2 + 2 + i * 2.2, 0.22, m.z2 - 0.7);
 
   b.build(group);
+  return steps;
 }
 
 /* ---------- 游泳池旁的遊戲場：白色小木屋塔、黃綠螺旋管狀滑梯、紅樓梯綠扶手 ---------- */

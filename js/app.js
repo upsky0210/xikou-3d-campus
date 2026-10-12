@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=45';
-import { furnishFloor } from './furniture.js?v=45';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=45';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=45';
-import { buildCampusWall } from './wall.js?v=45';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=45';
+import { PanoViewer } from './pano.js?v=46';
+import { furnishFloor } from './furniture.js?v=46';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=46';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=46';
+import { buildCampusWall } from './wall.js?v=46';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=46';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -472,7 +472,7 @@ function buildOutdoor() {
   if (O.pool) {
     // 條紋屋頂建築（牆已經在資料階段加進碰撞），這裡蓋屋頂
     const m = rectM(O.pool);
-    buildPool(g, m, stripeRoofTexture(m.x2 - m.x1));
+    raised.push(...buildPool(g, m, stripeRoofTexture(m.x2 - m.x1)));   // 入口階梯可以踩上去
     floors[1].labels.add(makeLabel('水漾游泳館', '游泳池', (m.x1 + m.x2) / 2, 8.5, (m.z1 + m.z2) / 2, { bg: '#2f6fb5', h: 1.4 }));
   }
   if (O.wall) {
@@ -986,7 +986,39 @@ function tryMove(dx, dz) {
     let ok = false;
     for (const [ddx, ddz] of [[sx, sz], [sx, 0], [0, sz]]) {
       const [nx, nz] = collide(f, player.x + ddx, player.z + ddz);
-      if (isWalkable(f, nx, nz)) { player.x = nx; player.z = nz; ok = true; break; }
+      if (isWalkable(f, nx, nz)) {
+        // 正面頂到門框、柱子幾乎走不動：試試斜一點的方向，會順著滑進門口（不用對得很準）
+        const L = Math.hypot(sx, sz), fwd = ((nx - player.x) * sx + (nz - player.z) * sz) / L;
+        if (fwd < L * 0.25) {
+          // 附近有門、而且大概在前進方向上：直接往門口中間走（不用對得很準）
+          let door = null, dd = 1.8;
+          for (const d of f.doors || []) {
+            const ex = d.x - player.x, ez = d.z - player.z, dist = Math.hypot(ex, ez);
+            if (dist < dd && dist > 0.05 && (ex * sx + ez * sz) / (dist * L) > 0.3) { dd = dist; door = d; }
+          }
+          if (door) {
+            // 還沒對準門（偏到旁邊）：先走到門正前方 0.9 公尺；對準了就直直走進去
+            const side = Math.sign((player.x - door.x) * door.nx + (player.z - door.z) * door.nz) || 1;
+            const lat = Math.abs((player.x - door.x) * door.nz - (player.z - door.z) * door.nx);
+            const tgt = lat > 0.18 ? { x: door.x + door.nx * side * 0.9, z: door.z + door.nz * side * 0.9 } : { x: door.x - door.nx * side * 0.6, z: door.z - door.nz * side * 0.6 };
+            const ex = tgt.x - player.x, ez = tgt.z - player.z, dist = Math.hypot(ex, ez) || 1;
+            const [qx, qz] = collide(f, player.x + ex / dist * L, player.z + ez / dist * L);
+            if (isWalkable(f, qx, qz) && Math.hypot(tgt.x - qx, tgt.z - qz) < dist - L * 0.05) { player.x = qx; player.z = qz; ok = true; break; }
+          }
+          // 往兩側試著移一點，再看從那裡能不能往前走（看前面 0.5 公尺），挑往前最多的那一邊
+          let best = [nx, nz, fwd];
+          for (const a of [0.8, -0.8, 1.3, -1.3]) {
+            const c = Math.cos(a), sn = Math.sin(a), rx = (sx * c - sz * sn), rz = (sx * sn + sz * c);
+            const [qx, qz] = collide(f, player.x + rx, player.z + rz);
+            if (!isWalkable(f, qx, qz)) continue;
+            const [px, pz] = collide(f, qx + sx / L * 0.5, qz + sz / L * 0.5);
+            const g = ((px - player.x) * sx + (pz - player.z) * sz) / L;
+            if (g > best[2] + 0.02) best = [qx, qz, g];
+          }
+          [player.x, player.z] = best;
+        } else { player.x = nx; player.z = nz; }
+        ok = true; break;
+      }
     }
     if (!ok) return;
     followStairs();
@@ -2338,6 +2370,12 @@ function setupCollision() {
         h: T.floors * FLOOR_H, color: BEIGE, kind: 'wall', noRender: true });
     }
   }
+  // 門口位置（走路頂到門框時會被帶進門）：房間的門＋游泳館大門
+  for (const r of rooms) for (const d of r.doorPts || []) {
+    const ns = 'NS'.includes(d.side);
+    (r.f.doors ||= []).push({ x: d.x, z: d.z, nx: ns ? 0 : 1, nz: ns ? 1 : 0 });   // n：門的法線方向（穿過門的方向）
+  }
+  if (D.outdoor.pool) { const pm = rectM(D.outdoor.pool), [d0, d1] = poolDoor(pm); (f1.doors ||= []).push({ x: (d0 + d1) / 2, z: pm.z1, nx: 0, nz: 1 }); }
   for (const f of floors) {
     // 1 樓墊高的平台（司令臺、花台、階梯）本身不算擋路，是可以踩上去的地面
     const isGround = (b) => f.level === 0 && b.y2 - f.y <= groundAt(f, (b.x1 + b.x2) / 2, (b.z1 + b.z2) / 2) + 0.2;
