@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=44';
-import { furnishFloor } from './furniture.js?v=44';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=44';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=44';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=44';
+import { PanoViewer } from './pano.js?v=45';
+import { furnishFloor } from './furniture.js?v=45';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=45';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=45';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=45';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -40,7 +40,7 @@ const className = (code) => `${CN[+code[0]]}年${CN[+code.slice(1)] ?? +code.sli
 /* ---------------- 資料整理 ---------------- */
 
 const floors = D.floors.map((f, idx) => ({
-  ...f, idx, y: f.level * FLOOR_H, rooms: [], walk: [], segs: [], stairs: [],
+  ...f, idx, y: f.level * FLOOR_H, rooms: [], walk: [], segs: [], stairs: [], boxes: [],
   group: new THREE.Group(), labels: new THREE.Group(), navGroup: new THREE.Group(), grid: null,
 }));
 const floorById = Object.fromEntries(floors.map((f) => [f.id, f]));
@@ -83,6 +83,52 @@ for (const s of stairs) {
 function isWalkable(f, x, z, pad = 0.12) {
   for (const w of f.walk) if (inRect(w.m, x, z, pad)) return true;
   return false;
+}
+
+/* ---------------- 樓梯幾何（U 型折返樓梯，可以真的走上去） ----------------
+ * 從入口端（靠走廊那端）進去：A 道（左）往上爬半層到最裡面的平台，轉身從 B 道（右）爬回入口端上方，就到上一層。
+ * u = 從入口端往裡面的距離，v = 橫向距離（0 在 A 道那側）。入口有一段平地（s0），最裡面是平台（f1～L）。
+ */
+for (const s of stairs) {
+  if (s.elevator) continue;
+  const m = s.m, alongX = (m.x2 - m.x1) >= (m.z2 - m.z1);
+  // 入口端：哪一端外面接著走廊、房間比較多就是哪一端（資料上的 reverse 只在分不出來時用）
+  let lo = 0, hi = 0;
+  for (const fid of s.floors) {
+    const f = floorById[fid];
+    for (let k = 0.1; k < 0.95; k += 0.1) {
+      const t = alongX ? m.z1 + (m.z2 - m.z1) * k : m.x1 + (m.x2 - m.x1) * k;
+      const hit = (x, z) => f.walk.some((w) => w.kind !== 'outdoor' && w.stair !== s && inRect(w.m, x, z));
+      if (alongX ? hit(m.x1 - 0.5, t) : hit(t, m.z1 - 0.5)) lo++;
+      if (alongX ? hit(m.x2 + 0.5, t) : hit(t, m.z2 + 0.5)) hi++;
+    }
+  }
+  const dir = lo === hi ? (s.reverse ? -1 : 1) : (lo > hi ? 1 : -1);
+  const L = alongX ? m.x2 - m.x1 : m.z2 - m.z1, Wd = alongX ? m.z2 - m.z1 : m.x2 - m.x1;
+  const u0 = alongX ? (dir > 0 ? m.x1 : m.x2) : (dir > 0 ? m.z1 : m.z2), v0 = alongX ? m.z1 : m.x1;
+  const s0 = Math.min(1.2, L * 0.16), f1 = L - Math.min(1.6, L * 0.22);
+  s.g = {
+    alongX, L, Wd, s0, f1, dir,
+    toUV: (x, z) => (alongX ? [(x - u0) * dir, z - v0] : [(z - u0) * dir, x - v0]),
+    toXZ: (u, v) => (alongX ? [u0 + u * dir, v0 + v] : [v0 + v, u0 + u * dir]),
+  };
+  // 入口中間（導航走到這裡）
+  [s.ex, s.ez] = s.g.toXZ(s0 * 0.5, Wd / 2);
+}
+const stairNext = (s, f) => floorById[s.floors[s.floors.indexOf(f.id) + 1]];
+const stairPrev = (s, f) => floorById[s.floors[s.floors.indexOf(f.id) - 1]];
+// 樓梯上某一點的高度（相對這層地板）。同一個位置上下可能各有一段樓梯，取最接近目前高度的那段
+function stairHeight(s, f, x, z, cur) {
+  const g = s.g, [u, v] = g.toUV(x, z), H = FLOOR_H, up = !!stairNext(s, f), down = !!stairPrev(s, f);
+  if (u < g.s0) return 0;
+  const k = Math.min(1, (u - g.s0) / (g.f1 - g.s0));
+  if (u >= g.f1) return up ? H / 2 : -H / 2;                     // 平台
+  if (v < g.Wd / 2) return up ? (H / 2) * k : 0;                  // A 道：往上半層
+  const c = [];                                                   // B 道：往上（平台→上一層）或往下（這層→下面的平台）
+  if (up) c.push(H - (H / 2) * k);
+  if (down) c.push(-(H / 2) * k);
+  if (!c.length) return 0;
+  return c.reduce((a, b) => (Math.abs(b - cur) < Math.abs(a - cur) ? b : a));
 }
 
 /* ---------------- 牆與欄杆 ---------------- */
@@ -207,6 +253,58 @@ for (const s of stairs) {
     f.segs.push({ ax, az, bx, bz, h: WALL_H, color: lighten(D.buildings[s.building].color, 0.35), kind: 'wall', bld: s.building });
   }
 }
+// 樓梯間：中間隔牆（兩道樓梯中間，到平台才能轉身）、兩側和最裡面的牆；
+// 最底層擋住 B 道下面（那裡是往上那段樓梯的底下），最頂層擋住 A 道（沒有再往上了）
+for (const s of stairs) {
+  if (!s.g) continue;
+  const g = s.g, color = lighten(D.buildings[s.building]?.color || '#dddddd', 0.35);
+  for (const fid of s.floors) {
+    const f = floorById[fid];
+    const add = (u1, v1, u2, v2, extra) => {
+      const [ax, az] = g.toXZ(u1, v1), [bx, bz] = g.toXZ(u2, v2);
+      f.segs.push({ ax, az, bx, bz, h: WALL_H, color, kind: 'wall', bld: s.building, solid: true, stairWall: true, ...extra });
+    };
+    // 中間隔牆：一路蓋到上一層（每層接起來）；最頂層只剩欄杆
+    add(g.s0, g.Wd / 2, g.f1, g.Wd / 2, stairNext(s, f) ? { h: FLOOR_H } : { kind: 'rail', h: RAIL_H });
+    // 兩側、最裡面（入口那段平地兩側不擋，5F 菜園從側邊出去；隔壁房間的門開在側邊入口附近時也讓開）
+    const sideStart = (v) => {
+      let u1 = g.s0;
+      for (const r of f.rooms) for (const d of r.doorPts || []) {
+        const [du, dv] = g.toUV(d.x, d.z);
+        if (Math.abs(dv - v) > 0.35 || du < 0 || du > g.L) continue;
+        const len = 'NS'.includes(d.side) ? r.m.x2 - r.m.x1 : r.m.z2 - r.m.z1;
+        u1 = Math.max(u1, du + (r.doorW?.[d.side] ?? Math.min(1.6, len * 0.45)) / 2);
+      }
+      return u1;
+    };
+    add(sideStart(0), 0, g.L, 0, { noRender: true });
+    add(sideStart(g.Wd), g.Wd, g.L, g.Wd, { noRender: true });
+    add(g.L, 0, g.L, g.Wd, { noRender: true });
+    // 1 樓、地下室沒有自動加的欄杆／外牆：樓梯間外圍沒被房間、走廊、別的牆擋住的地方，補上看得到的牆
+    if (f.level <= 0) {
+      const covered = (x, z) => f.segs.some((q) => !q.noRender && !q.stairWall
+        && Math.abs((q.bx - q.ax) * (z - q.az) - (q.bz - q.az) * (x - q.ax)) / Math.hypot(q.bx - q.ax, q.bz - q.az) < 0.05
+        && x >= Math.min(q.ax, q.bx) - 0.05 && x <= Math.max(q.ax, q.bx) + 0.05 && z >= Math.min(q.az, q.bz) - 0.05 && z <= Math.max(q.az, q.bz) + 0.05);
+      const outside = (x, z) => f.walk.some((w) => w.kind !== 'outdoor' && w.stair !== s && inRect(w.m, x, z));
+      for (const [u1, v1, u2, v2, nu, nv] of [[g.s0, 0, g.L, 0, 0, -1], [g.s0, g.Wd, g.L, g.Wd, 0, 1], [g.L, 0, g.L, g.Wd, 1, 0]]) {
+        const len = Math.hypot(u2 - u1, v2 - v1), n = Math.max(1, Math.round(len / 0.25));
+        let start = -1;
+        for (let i = 0; i <= n; i++) {
+          const u = u1 + (u2 - u1) * (i / n), v = v1 + (v2 - v1) * (i / n);
+          const [x, z] = g.toXZ(u, v), [ox, oz] = g.toXZ(u + nu * 0.3, v + nv * 0.3);
+          const open = i < n && !covered(x, z) && !outside(ox, oz);
+          if (open && start < 0) start = i;
+          if (!open && start >= 0) {
+            add(u1 + (u2 - u1) * (start / n), v1 + (v2 - v1) * (start / n), u1 + (u2 - u1) * (i / n), v1 + (v2 - v1) * (i / n), { h: FLOOR_H, solid: false });
+            start = -1;
+          }
+        }
+      }
+    }
+    if (!stairPrev(s, f)) add(g.s0, g.Wd / 2, g.s0, g.Wd, { kind: 'rail', h: RAIL_H });
+    if (!stairNext(s, f)) add(g.s0, 0, g.s0, g.Wd / 2, { kind: 'rail', h: RAIL_H });
+  }
+}
 for (const f of floors) addRailings(f);
 
 // 戶外的牆：校門兩側的樹籬、操場南邊那棟建築（都會擋路，也會被導航避開）
@@ -273,8 +371,15 @@ Object.assign(sun.shadow.camera, { left: -75, right: 75, top: 90, bottom: -60, n
 scene.add(sun);
 
 // 地面（方塊風：草地方塊，一格一公尺）
-const groundGeo = new THREE.PlaneGeometry(600, 600);
-if (BLOCKY) { const uv = groundGeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 600, uv.getY(i) * 600); }
+// 往地下室的樓梯（B 道＋平台）那裡要挖洞，不然草地會蓋住樓梯
+const groundShape = new THREE.Shape([[-300, -300], [300, -300], [300, 300], [-300, 300]].map(([x, y]) => new THREE.Vector2(x, y)));
+for (const s of stairs) {
+  if (!s.g || !s.floors.includes('1F') || !stairPrev(s, floorById['1F'])) continue;
+  const g = s.g, poly = [[g.s0, g.Wd / 2], [g.f1, g.Wd / 2], [g.f1, 0], [g.L, 0], [g.L, g.Wd], [g.s0, g.Wd]];
+  groundShape.holes.push(new THREE.Path(poly.map(([u, v]) => { const [x, z] = g.toXZ(u, v); return new THREE.Vector2(x, -z); })));
+}
+const groundGeo = new THREE.ShapeGeometry(groundShape);
+if (!BLOCKY) { const uv = groundGeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 600 + 0.5, uv.getY(i) / 600 + 0.5); }
 const ground = new THREE.Mesh(groundGeo, mat('grass', BLOCKY ? '#ffffff' : '#a7cf8c'));
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.05;
@@ -287,7 +392,9 @@ const treeSpots = [
 ];
 if (BLOCKY) {
   const tb = new Batch();
+  Batch.collector = floors[1].boxes;
   for (const [x, y, s] of treeSpots) addBlockTree(tb, Math.round(mx(x)) + 0.5, Math.round(mz(y)) + 0.5, s);
+  Batch.collector = null;
   tb.build(floors[1].group);
 } else {
   for (const [x, y, s] of treeSpots) {
@@ -471,9 +578,51 @@ function wallMat(bld) {
 // 屋頂顏色（依空拍照：敬業樓藍色屋頂，其他是淺灰色浪板）
 const ROOF_COLOR = { A: '#6d9fe0', B: '#d8d8d2', C: '#e2e2dc', D: '#d8d8d2' };
 
+// 樓梯間：入口平地、A 道（往上半層）、平台、B 道（再往上半層）；樓梯往下的地方地板是空的
+function buildStairwell(f, s) {
+  const g = s.g, H = FLOOR_H, up = stairNext(s, f), down = stairPrev(s, f);
+  const b = new Batch(), thick = f.level === 0 ? 0.12 : 0.3;
+  const floorM = floorMat('stair', f), stepM = mat('planks', BLOCKY ? '#e8d2b0' : '#b39b78'), noseM = mat('wool', '#8d6e4c');
+  // (u, v) 範圍內的方塊，y0～y1 是相對這層地板的高度
+  const box = (m, u1, v1, u2, v2, y0, y1) => {
+    const [ax, az] = g.toXZ(u1, v1), [bx, bz] = g.toXZ(u2, v2);
+    b.box(m, Math.abs(bx - ax), y1 - y0, Math.abs(bz - az), (ax + bx) / 2, f.y + (y0 + y1) / 2, (az + bz) / 2);
+  };
+  const slab = (u1, v1, u2, v2) => box(floorM, u1, v1, u2, v2, -thick + 0.01, 0.01);
+  slab(0, 0, g.s0, g.Wd);                                   // 入口平地
+  slab(g.s0, 0, g.f1, g.Wd / 2);                             // A 道底下
+  if (!down) { slab(g.s0, g.Wd / 2, g.f1, g.Wd); slab(g.f1, 0, g.L, g.Wd); }   // 最底層：整個都有地板
+  if (up) {
+    const N = 12, d = (g.f1 - g.s0) / N, rise = H / 2 / N, w = WALL_T / 2;
+    for (let i = 0; i < N; i++) {
+      const ua = g.s0 + i * d;                               // A 道：入口往裡面爬，實心
+      box(stepM, ua, 0.05, ua + d, g.Wd / 2 - w, 0, (i + 1) * rise);
+      box(noseM, ua, 0.05, ua + 0.06, g.Wd / 2 - w, (i + 1) * rise - 0.04, (i + 1) * rise + 0.005);
+      const ub = g.f1 - (i + 1) * d, top = H / 2 + (i + 1) * rise;   // B 道：平台往入口爬，底下是斜的樓板（不是實心，下面還有一段樓梯）
+      box(stepM, ub, g.Wd / 2 + w, ub + d, g.Wd - 0.05, top - rise - 0.25, top);
+      box(noseM, ub + d - 0.06, g.Wd / 2 + w, ub + d, g.Wd - 0.05, top - 0.04, top + 0.005);
+    }
+    box(stepM, g.f1, 0.05, g.L - 0.05, g.Wd - 0.05, H / 2 - 0.25, H / 2);   // 平台
+  }
+  const meshes = b.build(f.group);
+  (f.slabs ||= []).push(...meshes);
+  // 入口上方的指示牌：左邊上樓、右邊下樓
+  const sign = (text, bg, v) => {
+    const sp = makeLabel(text, '', 0, 0, 0, { bg, h: 0.55 });
+    const [x, z] = g.toXZ(g.s0 * 0.55, v);
+    sp.position.set(x, f.y + 2.05, z);
+    sp.scale.multiplyScalar(0.55 / sp.scale.y);
+    (f.stairSigns ||= new THREE.Group()).add(sp);
+  };
+  if (up) sign(`▲ 上樓 ${up.id}`, '#2e7d32', g.Wd * 0.25);
+  if (down) sign(`▼ 下樓 ${down.id}`, '#1565c0', g.Wd * 0.75);
+  if (f.stairSigns && !f.stairSigns.parent) f.group.add(f.stairSigns);
+}
+
 function buildFloor(f) {
   for (const w of f.walk) {
     if (w.kind === 'outdoor') continue;
+    if (w.stair?.g) { buildStairwell(f, w.stair); continue; }
     const type = w.kind === 'room' ? w.room.type : w.kind;
     const { x1, z1, x2, z2 } = w.m;
     const thick = f.level === 0 ? 0.12 : 0.3;
@@ -492,11 +641,13 @@ function buildFloor(f) {
   const ceilBatch = new Batch();
   for (const w of f.walk) {
     if (w.kind === 'outdoor' || w.room?.type === 'garden' || w.noCeil || w.room?.noCeil || w.room?.tall) continue;
+    if (w.stair?.g && stairNext(w.stair, f)) continue;          // 樓梯間往上是挑空的
     const { x1, z1, x2, z2 } = w.m, cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
     const covered = above && above.walk.some((a) => a.kind !== 'outdoor' && inRect(a.m, cx, cz));
     const bld = w.room?.building;
     const m = covered ? mat('concrete', '#f4f2ec') : mat('roof', BLOCKY ? (ROOF_COLOR[bld] || '#d8d8d2') : '#c9c9c9');
     ceilBatch.box(m, x2 - x1, CEIL_T, z2 - z1, cx, f.y + WALL_H + CEIL_T / 2, cz);
+    (f.ceilRects ||= []).push(w.m);                         // 鏡頭用：這裡頭上有天花板
   }
   // 下一層的挑高空間（活動中心）：屋頂蓋在這一層的高度（放在這層的天花板群組，鳥瞰選這層時會拿掉，才看得到看台）
   for (const r of floors[f.idx - 1]?.rooms || []) {
@@ -504,6 +655,7 @@ function buildFloor(f) {
     const { x1, z1, x2, z2 } = r.m;
     ceilBatch.box(mat('roof', BLOCKY ? (ROOF_COLOR[r.building] || '#d8d8d2') : '#c9c9c9'),
       x2 - x1 + WALL_T, CEIL_T, z2 - z1 + WALL_T, (x1 + x2) / 2, f.y + WALL_H + CEIL_T / 2, (z1 + z2) / 2);
+    (f.ceilRects ||= []).push(r.m);
   }
   f.ceil = new THREE.Group();
   f.ceilMeshes = ceilBatch.build(f.ceil);
@@ -523,7 +675,7 @@ function buildFloor(f) {
     };
     if (s.kind === 'rail') {
       piece(railMat, 0, s.h);
-      if (BLOCKY && f.level >= 1 && f.level <= 3 && len > 1.6) {      // 欄杆上的花台與植物
+      if (BLOCKY && f.level >= 1 && f.level <= 3 && len > 1.6 && !s.stairWall) {      // 欄杆上的花台與植物
         const a = -len / 2 + 0.3, b = len / 2 - 0.3;
         piece(mat('wool', '#8a8f86'), s.h, s.h + 0.12, a, b);
         for (let t = a + 0.2; t < b - 0.2; t += 0.55) piece(mat('leaves'), s.h + 0.12, s.h + 0.42, t, t + 0.4);
@@ -556,50 +708,26 @@ function buildFloor(f) {
     }
     piece(wm, y, s.h);
   }
-  // 樓梯（裝飾用的階梯）
+  // 電梯；樓梯地面的發光標記（樓梯只標入口那段平地）
   for (const s of f.stairs) {
-    const nextIdx = s.floors.indexOf(f.id) + 1;
-    if (s.elevator) {
-      buildElevator(f.group, s.m, f.y, WALL_H, f.level === 0);
-    } else if (nextIdx < s.floors.length) {
-      const along = (s.m.x2 - s.m.x1) > (s.m.z2 - s.m.z1) ? 'x' : 'z';
-      const L = along === 'x' ? s.m.x2 - s.m.x1 : s.m.z2 - s.m.z1;
-      const Wd = (along === 'x' ? s.m.z2 - s.m.z1 : s.m.x2 - s.m.x1) * 0.45;
-      const N = 12, stepMat = mat('planks', BLOCKY ? '#e8d2b0' : '#b39b78');
-      for (let i = 0; i < N; i++) {
-        const h = ((i + 1) / N) * FLOOR_H * 0.5;
-        const k = s.reverse ? N - 1 - i : i;                 // reverse：從另一端往上爬
-        const pos = (along === 'x' ? s.m.x1 : s.m.z1) + (k + 0.5) * (L / N);
-        if (along === 'x') batch.box(stepMat, L / N, h, Wd, pos, f.y + h / 2, s.m.z1 + Wd / 2 + 0.1);
-        else batch.box(stepMat, Wd, h, L / N, s.m.x1 + Wd / 2 + 0.1, f.y + h / 2, pos);
-      }
-    }
-    // 往下的樓梯（丙梯 1 樓往地下室，依照片在南半邊）：深色凹下去的樣子＋分隔欄杆
-    if (s.downFlight && f.id === '1F') {
-      const L = s.m.x2 - s.m.x1, Wd = (s.m.z2 - s.m.z1) * 0.45, z = s.m.z2 - Wd / 2 - 0.1, N = 8;
-      for (let i = 0; i < N; i++) {
-        const shade = Math.round(150 - i * 12).toString(16).padStart(2, '0');
-        batch.box(mat('wool', `#${shade}${shade}${shade}`), L / N, 0.02, Wd, s.m.x2 - (i + 0.5) * (L / N), f.y + 0.02, z);
-        batch.box(mat('wool', '#e0a030'), 0.04, 0.025, Wd, s.m.x2 - i * (L / N), f.y + 0.025, z);
-      }
-      const zr = s.m.z1 + (s.m.z2 - s.m.z1) * 0.5;
-      for (let x = s.m.x1 + 0.3; x < s.m.x2; x += 0.3) batch.box(mat('wool', '#d9c9a8'), 0.04, 1.0, 0.04, x, f.y + 0.5, zr);
-      batch.box(mat('wool', '#8a8f94'), L, 0.06, 0.08, (s.m.x1 + s.m.x2) / 2, f.y + 1.02, zr);
-    }
-    // 樓梯地面的發光標記
+    if (s.elevator) buildElevator(f.group, s.m, f.y, WALL_H, f.level === 0);
     const mark = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({
       color: s.elevator ? '#5aa9ff' : '#ff9f1c', transparent: true, opacity: 0.45, depthWrite: false,
     }));
     mark.rotation.x = -Math.PI / 2;
-    mark.scale.set((s.m.x2 - s.m.x1) * 0.9, (s.m.z2 - s.m.z1) * 0.9, 1);
-    mark.position.set(s.cx, f.y + 0.03, s.cz);
+    let [mx0, mz0, sx, sz] = [s.cx, s.cz, s.m.x2 - s.m.x1, s.m.z2 - s.m.z1];
+    if (s.g) { [mx0, mz0] = [s.ex, s.ez]; [sx, sz] = s.g.alongX ? [s.g.s0, s.g.Wd] : [s.g.Wd, s.g.s0]; }
+    mark.scale.set(sx * 0.9, sz * 0.9, 1);
+    mark.position.set(mx0, f.y + 0.03, mz0);
     mark.userData.pulse = true;
     f.group.add(mark);
-    f.labels.add(makeLabel(s.id, s.elevator ? '可到 1F～4F' : `${s.floors[0]}～${s.floors.at(-1)}`, s.cx, f.y + 2.4, s.cz, { bg: s.elevator ? '#2f6fb5' : '#d9730d', h: 1.0 }));
+    f.labels.add(makeLabel(s.id, s.elevator ? '可到 1F～4F' : `${s.floors[0]}～${s.floors.at(-1)}`, mx0, f.y + 2.4, mz0, { bg: s.elevator ? '#2f6fb5' : '#d9730d', h: 1.0 }));
   }
   f.wallMeshes = batch.build(f.group).filter((m) => !m.material.transparent);
   // 教室裝潢 + 門牌
+  Batch.collector = f.boxes;                               // 家具：記下範圍，算碰撞用
   f.group.add(furnishFloor(f, WALL_T));
+  Batch.collector = null;
   // 房間名稱
   for (const r of f.rooms) {
     if (r.hidden || r.type === 'wc') continue;
@@ -743,6 +871,8 @@ document.getElementById('chooser').addEventListener('click', (e) => {
 function placeAt(f, x, z, yaw) {
   if (f !== player.floor || Math.hypot(x - player.x, z - player.z) > 1) stopAuto();
   player.floor = f; player.x = x; player.z = z;
+  player.gy = groundAt(f, x, z);
+  followStairs();
   if (yaw !== undefined) { player.yaw = yaw; avatar.rotation.y = yaw; }
   updateVisibility();
   updateFloorButtons();
@@ -750,9 +880,53 @@ function placeAt(f, x, z, yaw) {
 
 /* ---------------- 碰撞 ---------------- */
 
+// 空間索引：每 2 公尺一格，記下附近的牆和障礙物（家具、樹、遊樂器材），碰撞和鏡頭只查附近的
+const HCELL = 2, HPAD = 0.7;
+function buildIndex(f) {
+  const idx = new Map();
+  const put = (x1, z1, x2, z2, key, item) => {
+    for (let i = Math.floor((x1 - HPAD) / HCELL); i <= Math.floor((x2 + HPAD) / HCELL); i++) {
+      for (let j = Math.floor((z1 - HPAD) / HCELL); j <= Math.floor((z2 + HPAD) / HCELL); j++) {
+        const k = i * 100003 + j;
+        let c = idx.get(k);
+        if (!c) idx.set(k, (c = { segs: [], obs: [], cam: [] }));
+        c[key].push(item);
+      }
+    }
+  };
+  for (const s of f.segs) put(Math.min(s.ax, s.bx), Math.min(s.az, s.bz), Math.max(s.ax, s.bx), Math.max(s.az, s.bz), 'segs', s);
+  for (const o of f.obs || []) put(o.x1, o.z1, o.x2, o.z2, 'obs', o);
+  for (const o of f.camBoxes || []) put(o.x1, o.z1, o.x2, o.z2, 'cam', o);
+  f.index = idx;
+}
+const EMPTY_CELL = { segs: [], obs: [], cam: [] };
+const cellAt = (f, x, z) => f.index?.get(Math.floor(x / HCELL) * 100003 + Math.floor(z / HCELL)) || EMPTY_CELL;
+
+// 家具等方塊：腰部以下、夠大的才算擋路（桌椅、櫃子、樹幹、溜滑梯）；細桌腳、地毯、掛在牆上的東西不算
+function isObstacle(b, f) {
+  const y1 = b.y1 - f.y, y2 = b.y2 - f.y, w = b.x2 - b.x1, d = b.z2 - b.z1;
+  if (y1 > 0.75 || y2 < 0.3) return false;
+  if (Math.min(w, d) >= 0.25) return true;
+  return Math.max(w, d) >= 0.8 && Math.min(w, d) >= 0.03 && y1 < 0.3 && y2 - y1 >= 0.6;   // 細長的牆、圍網
+}
+
 function collide(f, x, z) {
-  for (let iter = 0; iter < 2; iter++) {
-    for (const s of f.segs) {
+  for (let iter = 0; iter < 3; iter++) {
+    const cell = cellAt(f, x, z);
+    // 障礙物（方塊）：站在上面（夠矮）或在頭上的不擋
+    for (const o of cell.obs) {
+      const y1 = o.y1 - f.y, y2 = o.y2 - f.y, py = player.gy || 0;
+      if (y2 < py + 0.25 || y1 > py + 1.4) continue;
+      const cx = Math.max(o.x1, Math.min(x, o.x2)), cz = Math.max(o.z1, Math.min(z, o.z2));
+      const ex = x - cx, ez = z - cz, d = Math.hypot(ex, ez), r = PLAYER_R;
+      if (d >= r) continue;
+      if (d > 1e-6) { x = cx + ex / d * r; z = cz + ez / d * r; continue; }
+      // 中心已經在方塊裡面：往最近的邊推出去
+      const out = [[o.x1 - r - x, 0], [o.x2 + r - x, 0], [0, o.z1 - r - z], [0, o.z2 + r - z]];
+      const [px, pz] = out.reduce((a, b) => (Math.abs(b[0] + b[1]) < Math.abs(a[0] + a[1]) ? b : a));
+      x += px; z += pz;
+    }
+    for (const s of cell.segs) {
       if (s.overhead) continue;                    // 門楣在頭上，不擋路
       const dx = s.bx - s.ax, dz = s.bz - s.az, L2 = dx * dx + dz * dz;
       let t = ((x - s.ax) * dx + (z - s.az) * dz) / L2;
@@ -768,12 +942,18 @@ function collide(f, x, z) {
   return [x, z];
 }
 
+// 一次走太遠（電腦比較慢、又按 Shift 跑步時一格畫面會超過半公尺）會直接穿過牆，所以切成小步一步一步算
 function tryMove(dx, dz) {
-  const f = player.floor;
-  const cand = [[dx, dz], [dx, 0], [0, dz]];
-  for (const [ddx, ddz] of cand) {
-    const [nx, nz] = collide(f, player.x + ddx, player.z + ddz);
-    if (isWalkable(f, nx, nz)) { player.x = nx; player.z = nz; return; }
+  const n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.1));
+  for (let k = 0; k < n; k++) {
+    const f = player.floor, sx = dx / n, sz = dz / n;
+    let ok = false;
+    for (const [ddx, ddz] of [[sx, sz], [sx, 0], [0, sz]]) {
+      const [nx, nz] = collide(f, player.x + ddx, player.z + ddz);
+      if (isWalkable(f, nx, nz)) { player.x = nx; player.z = nz; ok = true; break; }
+    }
+    if (!ok) return;
+    followStairs();
   }
 }
 
@@ -805,6 +985,13 @@ function getGrid(f) {
       const t = Math.max(0, Math.min(1, ((x - s.ax) * dx + (z - s.az) * dz) / L2));
       if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < CLEAR) free[j * W + i] = 0;
     }
+  }
+  // 家具、樹：格子中心在方塊（稍微放大）裡面就不能走；放大一點點就好，教室走道才不會被堵死
+  for (const o of f.obs || []) {
+    const P = 0;
+    const i0 = Math.max(0, Math.ceil((o.x1 - P - minx) / CELL - 0.5)), i1 = Math.min(W - 1, Math.floor((o.x2 + P - minx) / CELL - 0.5));
+    const j0 = Math.max(0, Math.ceil((o.z1 - P - minz) / CELL - 0.5)), j1 = Math.min(H - 1, Math.floor((o.z2 + P - minz) / CELL - 0.5));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) free[j * W + i] = 0;
   }
   return (f.grid = { minx, minz, W, H, free });
 }
@@ -929,8 +1116,9 @@ function navigateTo(room) {
   } else {
     for (const s of stairs) {
       if (!s.floors.includes(pf.id) || !s.floors.includes(tf.id)) continue;
-      const a = findPath(pf, player.x, player.z, s.cx, s.cz);
-      const b = findPath(tf, s.cx, s.cz, room.cx, room.cz);
+      const sx = s.ex ?? s.cx, sz = s.ez ?? s.cz;           // 樓梯：走到入口那段平地
+      const a = findPath(pf, player.x, player.z, sx, sz);
+      const b = findPath(tf, sx, sz, room.cx, room.cz);
       if (!a || !b) continue;
       const len = a.len + b.len + Math.abs(pf.level - tf.level) * (s.elevator ? 12 : 6);
       if (!best || len < best.len) best = { legs: [{ f: pf, p: a }, { f: tf, p: b }], len, stair: s };
@@ -940,7 +1128,7 @@ function navigateTo(room) {
   nav.target = room; nav.legs = best.legs; nav.stair = best.stair || null;
   for (const l of best.legs) drawLeg(l.f, l.p.pts);
   addBeacon(tf, room.cx, room.cz);
-  if (nav.stair) addBeacon(pf, nav.stair.cx, nav.stair.cz, '#ff9f1c');
+  if (nav.stair) addBeacon(pf, nav.stair.ex ?? nav.stair.cx, nav.stair.ez ?? nav.stair.cz, '#ff9f1c');
   updateNavBar();
   if (mode === 'bird') setMode('third');
 }
@@ -952,7 +1140,7 @@ function updateNavBar() {
   let msg;
   if (player.floor !== r.f) {
     const s = nav.stair;
-    msg = s ? `先沿黃線走到 <b>${s.id}</b>，再${s.elevator ? '搭' : '走'}到 <b>${r.f.id}</b>` : `目的地在 ${r.f.id}`;
+    msg = s ? `先沿黃線走到 <b>${s.id}</b>，再${s.elevator ? '搭電梯' : (r.f.level > player.floor.level ? '走上樓梯' : '走下樓梯')}到 <b>${r.f.id}</b>` : `目的地在 ${r.f.id}`;
   } else {
     const d = Math.hypot(player.x - r.cx, player.z - r.cz);
     msg = `沿黃線前往 <b>${r.display}</b>（約 ${Math.round(d)} 公尺）`;
@@ -973,7 +1161,7 @@ function setMode(m) {
   document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
   document.body.classList.toggle('walking', m !== 'bird');
   document.getElementById('stairPanel').hidden = true;
-  currentStair = undefined;
+  currentStair = undefined; stairPanelKey = '';
   if (m === 'bird') updatePanoPrompt();
   if (m === 'bird') {
     orbit.target.set(player.x, player.floor.y, player.z);
@@ -993,6 +1181,7 @@ function updateVisibility() {
     f.group.visible = sel === null || f.level <= sel;
     f.ceil.visible = f.level !== sel;
     f.labels.visible = labelLevel !== null && f.level === labelLevel;
+    if (f.stairSigns) f.stairSigns.visible = walking && f === player.floor;
   }
   // 鳥瞰選 B1 時把地面藏起來；走路時地面一直都在（在 B1 時就是天花板）
   ground.visible = walking || sel === null || sel >= 0;
@@ -1016,17 +1205,53 @@ function updateFloorButtons() {
 
 /* ---------------- 樓梯切換 ---------------- */
 
+// 走在樓梯上：算出腳下的高度；爬超過半層就算到了上一層（往下也一樣），中途不會閃畫面
+function stairUnder(f, x, z) {
+  for (const s of f.stairs) if (s.g && inRect(s.m, x, z)) return s;
+  return null;
+}
+function followStairs() {
+  const f = player.floor, s = stairUnder(f, player.x, player.z);
+  player.onStair = s;
+  if (!s) return;
+  let h = stairHeight(s, f, player.x, player.z, player.gy ?? 0);
+  const up = stairNext(s, f), down = stairPrev(s, f);
+  if (h > FLOOR_H * 0.6 && up) { h -= FLOOR_H; switchFloor(up); }
+  else if (h < -FLOOR_H * 0.45 && down) { h += FLOOR_H; switchFloor(down); }
+  player.gy = h;
+}
+function switchFloor(nf) {
+  const upward = nf.level > player.floor.level;
+  player.floor = nf;
+  updateVisibility();
+  updateFloorButtons();
+  updateNavBar();
+  toast(`${upward ? '⬆' : '⬇'} ${nf.name}`);
+}
+// 自動爬樓梯：沿著 A 道 → 平台 → B 道走 n 層（delta = 1 往上，-1 往下）
+function climbStairs(s, delta, n = 1) {
+  const g = s.g, pts = [];
+  const P = (u, v) => g.toXZ(u, v), mid = (g.f1 + g.L) / 2, a = g.Wd * 0.25, b = g.Wd * 0.75;
+  for (let k = 0; k < n; k++) {
+    if (delta > 0) pts.push(P(g.s0 * 0.5, a), P(g.s0 + 0.4, a), P(mid, a), P(mid, b), P(g.s0 + 0.2, b), P(g.s0 * 0.5, b));
+    else pts.push(P(g.s0 * 0.5, b), P(g.s0 + 0.4, b), P(mid, b), P(mid, a), P(g.s0 + 0.2, a), P(g.s0 * 0.5, a));
+  }
+  auto.pts = pts; auto.i = 0; auto.stuck = 0;
+  destMark.visible = false;
+}
+
 let currentStair = null;
 function stairAt() {
   for (const s of player.floor.stairs) if (inRect(s.m, player.x, player.z, 0.2)) return s;
   return null;
 }
-function changeFloor(delta) {
+function changeFloor(delta, n = 1) {
   const s = currentStair;
   if (!s) return;
-  const i = s.floors.indexOf(player.floor.id) + delta;
+  const i = s.floors.indexOf(player.floor.id) + delta * n;
   if (i < 0 || i >= s.floors.length) return;
-  gotoFloor(floorById[s.floors[i]]);
+  if (s.g) climbStairs(s, delta, n);                // 樓梯：真的走上去／走下去
+  else gotoFloor(floorById[s.floors[i]]);           // 電梯
 }
 function gotoFloor(f) {
   const fade = document.getElementById('fade');
@@ -1038,19 +1263,28 @@ function gotoFloor(f) {
     updateNavBar();
   }, 180);
 }
+let stairPanelKey = '';
 function updateStairPanel() {
   const s = stairAt();
-  if (s === currentStair) return;
-  currentStair = s;
   const panel = document.getElementById('stairPanel');
-  if (!s || mode === 'bird') { panel.hidden = true; return; }
+  const key = s && mode !== 'bird' ? `${s.id}|${player.floor.id}|${nav.target?.id || ''}` : '';
+  currentStair = s;
+  if (key === stairPanelKey) return;
+  stairPanelKey = key;
+  if (!key) { panel.hidden = true; return; }
   const idx = s.floors.indexOf(player.floor.id);
   let html = `<div class="t">${s.id}</div>`;
   if (s.elevator) {
     html += s.floors.map((fid) => `<button data-goto="${fid}" ${fid === player.floor.id ? 'disabled' : ''}>${fid}</button>`).join('');
   } else {
-    if (idx < s.floors.length - 1) html += `<button data-delta="1">▲ 上樓到 ${s.floors[idx + 1]} <kbd>E</kbd></button>`;
-    if (idx > 0) html += `<button data-delta="-1">▼ 下樓到 ${s.floors[idx - 1]} <kbd>Q</kbd></button>`;
+    // 導航中而且目的地在別層：一鍵走到那一層
+    const tf = nav.target?.f, ti = tf ? s.floors.indexOf(tf.id) : -1;
+    if (ti >= 0 && ti !== idx && Math.abs(ti - idx) > 1) {
+      html += `<button data-delta="${Math.sign(ti - idx)}" data-n="${Math.abs(ti - idx)}">🧭 走到 ${tf.id}</button>`;
+    }
+    if (idx < s.floors.length - 1) html += `<button data-delta="1">▲ 走上 ${s.floors[idx + 1]} <kbd>E</kbd></button>`;
+    if (idx > 0) html += `<button data-delta="-1">▼ 走下 ${s.floors[idx - 1]} <kbd>Q</kbd></button>`;
+    html += `<div class="hint">也可以直接走上樓梯</div>`;
   }
   panel.innerHTML = html;
   panel.hidden = false;
@@ -1058,7 +1292,7 @@ function updateStairPanel() {
 document.getElementById('stairPanel').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
-  if (b.dataset.delta) changeFloor(+b.dataset.delta);
+  if (b.dataset.delta) changeFloor(+b.dataset.delta, +(b.dataset.n || 1));
   if (b.dataset.goto) gotoFloor(floorById[b.dataset.goto]);
   currentStair = undefined;
 });
@@ -1102,6 +1336,13 @@ addEventListener('pointerup', (e) => {
   drag = null;
 });
 
+// 第三人稱：滑鼠滾輪、觸控板拉近拉遠
+renderer.domElement.addEventListener('wheel', (e) => {
+  if (mode !== 'third') return;
+  e.preventDefault();
+  cam.zoom = Math.max(1.6, Math.min(10, cam.zoom * (1 + Math.sign(e.deltaY) * 0.12)));
+}, { passive: false });
+
 const raycaster = new THREE.Raycaster();
 function pick(e) {
   const ndc = new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
@@ -1109,6 +1350,7 @@ function pick(e) {
   const vis = pickables.filter((o) => { let p = o; while (p) { if (!p.visible) return false; p = p.parent; } return true; });
   const hit = raycaster.intersectObjects(vis, false)[0];
   if (hit?.object.userData.cat) meetCat();
+  else if (hit?.object.userData.npc) meetNPC(hit.object.userData.npc);
   else if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
   else if (mode !== 'bird') {                                   // 走路模式：點地面就自動走過去
     const pt = groundPoint(e);
@@ -1572,10 +1814,107 @@ function meetCat() {
   toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
 }
 
+/* ---------------- 老師 NPC（依照片畫成方塊人） ---------------- */
+
+const NPCS = [
+  {
+    name: '呂老師', title: '體育老師',
+    hello: '🏃‍♀️ 呂老師：嗨！今天也要來操場動一動喔！',
+    // 操場北側直道、起跑線旁，面向球場
+    at: () => {
+      const T = D.outdoor.track;
+      return [mx(T.center[0]) - 6.5, mz(T.center[1]) - T.size[1] / S / 2 + 2.2, Math.PI];
+    },
+    look: {
+      // 依照片：黑色中分長直髮、笑開露牙、磚紅色長袖毛衣；體育老師配運動褲＋哨子
+      skin: '#f0c4a6', hair: '#231816', top: '#9a3f2c', pants: '#22252b', stripe: '#f2f2f2', shoe: '#f4f4f4',
+      longHair: true, longSleeve: true, whistle: true,
+      pal: { H: '#231816', h: '#3a2a26', S: '#f0c4a6', E: '#2a1a14', B: '#f19a8e', M: '#a8352e', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHSSHHHHHHHH',
+        'HHHHHSSSSSHHHHHH',
+        'HHHSSSSSSSSSHHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSEESSSSEESSHH',
+        'HHSESSESSESSESHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSBBSSSSSSBBSHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '陳老師', title: '體育老師',
+    hello: '🏊 陳老師：游泳前記得先暖身，下水要聽哨音喔！',
+    // 游泳館裡：泳池西端的池畔（比較寬），面向泳池
+    at: () => {
+      const pm = rectM(D.outdoor.pool), W = pm.x2 - pm.x1;
+      const pw = Math.min(25, W - 10), px = (pm.x1 + pm.x2) / 2 + 2;
+      return [px - pw / 2 - 1.6, (pm.z1 + pm.z2) / 2, -Math.PI / 2];
+    },
+    look: {
+      // 依照片：黑色刺刺短髮、一字眉、細長眼、淺淺微笑；黑外套＋白襯衫領（改成運動外套）
+      skin: '#e8b896', hair: '#16110f', top: '#1f2229', pants: '#1f2229', stripe: '#f2f2f2', shoe: '#f4f4f4',
+      shortHair: true, spiky: true, longSleeve: true, whistle: true, collar: '#ffffff', zip: '#cfd3d8',
+      pal: { H: '#16110f', h: '#2b2220', S: '#e8b896', E: '#1a1210', N: '#d4a07e', M: '#b5675a' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHhHHHHHHhHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HSHHSSHHHSSHHSHH',
+        'HSSSSSSSSSSSSSSH',
+        'SSSSSSSSSSSSSSSS',
+        'SSHHHSSSSSSHHHSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSEESSSSSSEESSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'NSSSSSSSSSSSSSSN',
+      ],
+    },
+  },
+];
+for (const n of NPCS) {
+  const g = makeBlockNPC(n.look);
+  const [x, z, yaw] = n.at();
+  g.position.set(x, 0, z); g.rotation.y = yaw;
+  n.yaw = yaw; n.g = g; n.near = false;
+  g.traverse((o) => { if (o.isMesh) { o.userData.npc = n; pickables.push(o); } });
+  floors[1].group.add(g);
+  floors[1].labels.add(makeLabel(n.name, n.title, x, 2.45, z, { bg: '#2d6a4f', h: 0.75 }));
+}
+function meetNPC(n) { toast(n.hello); }
+function updateNPCs(t, dt) {
+  for (const n of NPCS) {
+    const { armL, armR } = n.g.userData.limbs;
+    const dist = Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z);
+    const near = mode !== 'bird' && player.floor.level === 0 && dist < 2.2;
+    if (near && !n.near) meetNPC(n);
+    n.near = near;
+    // 靠近時轉身面向你、舉右手揮一揮；平常輕輕擺手
+    const want = near ? Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z) : n.yaw;
+    let d = want - n.g.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d));
+    n.g.rotation.y += d * Math.min(1, dt * 6);
+    armR.rotation.z += ((near ? 2.6 + Math.sin(t * 8) * 0.35 : 0) - armR.rotation.z) * Math.min(1, dt * 8);
+    armL.rotation.x = Math.sin(t * 1.6) * 0.08;
+    if (!near) armR.rotation.x = -armL.rotation.x;
+  }
+}
+
 /* ---------------- 主迴圈 ---------------- */
 
 const clock = new THREE.Clock();
-const camRay = new THREE.Raycaster();
 let navTick = 0, walkPhase = 0, walkAmt = 0;
 
 // 1 樓墊高的地方（司令臺、入口階梯）：{ x1, x2, z1, z2, h }
@@ -1585,6 +1924,61 @@ function groundAt(f, x, z) {
   let h = 0;
   for (const r of raised) if (x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) h = Math.max(h, r.h);
   return h;
+}
+
+// 第三人稱鏡頭：zoom 是想要的距離（滾輪可調），dist 是實際距離（被擋住時會拉近）
+const cam = { zoom: 5.5 * AVATAR_SCALE, dist: 5.5 * AVATAR_SCALE };
+const floorByLevel = Object.fromEntries(floors.map((f) => [f.level, f]));
+// 這一層在 (x, z) 有沒有地板（樓梯間往下的地方是空的；1 樓到處都是地面）
+function slabSolid(f, x, z) {
+  for (const w of f.walk) {
+    if (!inRect(w.m, x, z)) continue;
+    if (!w.stair?.g) { if (w.kind !== 'outdoor' || f.level === 0) return true; continue; }
+    const g = w.stair.g, [u, v] = g.toUV(x, z);
+    if (u < g.s0 || (v < g.Wd / 2 && u < g.f1) || !stairPrev(w.stair, f)) return true;
+    return false;
+  }
+  return f.level === 0;
+}
+function camBlocked(x, y, z) {
+  const f = floorByLevel[Math.floor((y + 0.02) / FLOOR_H)];
+  if (!f) return y < floors[0].y;                          // 最頂樓再上面是天空
+  const ly = y - f.y;
+  if (ly < 0.06) return slabSolid(f, x, z);                // 地面、樓板
+  if (ly > WALL_H - 0.05) {                                // 天花板、上一層的樓板
+    if (f.ceilRects?.some((m) => inRect(m, x, z))) return true;
+    const above = floors[f.idx + 1];
+    if (above && slabSolid(above, x, z)) return true;
+  }
+  const cell = cellAt(f, x, z), r = WALL_T / 2 + 0.15;
+  for (const s of cell.segs) {
+    const y0 = s.overhead ? s.y0 : 0;
+    if (ly < y0 || ly > s.h) continue;
+    const dx = s.bx - s.ax, dz = s.bz - s.az, L2 = dx * dx + dz * dz;
+    const t = Math.max(0, Math.min(1, ((x - s.ax) * dx + (z - s.az) * dz) / L2));
+    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < r) return true;
+  }
+  for (const o of cell.cam) {
+    if (x > o.x1 - 0.12 && x < o.x2 + 0.12 && z > o.z1 - 0.12 && z < o.z2 + 0.12 && y > o.y1 - 0.12 && y < o.y2 + 0.12) return true;
+  }
+  return false;
+}
+// 卡住了（在牆裡、家具裡、走不到的地方超過半秒）：移到附近可以走的位置
+let stuckT = 0;
+function unstick(dt) {
+  const f = player.floor;
+  let bad = !isWalkable(f, player.x, player.z, 0.05);
+  if (!bad) {
+    const [nx, nz] = collide(f, player.x, player.z);
+    bad = Math.hypot(nx - player.x, nz - player.z) > 0.2;     // 被兩邊夾住推不出去
+  }
+  stuckT = bad ? stuckT + dt : 0;
+  if (stuckT < 0.5) return;
+  stuckT = 0;
+  const g = getGrid(f), c = nearestFree(g, Math.floor((player.x - g.minx) / CELL), Math.floor((player.z - g.minz) / CELL));
+  if (!c) return;
+  player.x = g.minx + (c[0] + 0.5) * CELL; player.z = g.minz + (c[1] + 0.5) * CELL;
+  followStairs();
 }
 
 function update(dt) {
@@ -1639,9 +2033,12 @@ function update(dt) {
       }
     }
   }
-  // 司令臺、入口階梯這類墊高的地面：慢慢升降，看起來像踩上去
-  const gy = groundAt(player.floor, player.x, player.z);
-  player.gy = (player.gy ?? 0) + (gy - (player.gy ?? 0)) * Math.min(1, dt * 12);
+  // 司令臺、入口階梯這類墊高的地面：慢慢升降，看起來像踩上去（樓梯上的高度在 followStairs 算好了）
+  if (!player.onStair) {
+    const gy = groundAt(player.floor, player.x, player.z);
+    player.gy = (player.gy ?? 0) + (gy - (player.gy ?? 0)) * Math.min(1, dt * 12);
+  }
+  if (mode !== 'bird') unstick(dt);
   const py = player.floor.y + player.gy + player.jump;
   avatar.position.set(player.x, py, player.z);
 
@@ -1652,20 +2049,24 @@ function update(dt) {
     const head = new THREE.Vector3(player.x, py + 1.6 * AVATAR_SCALE, player.z);
     const pitch = Math.max(-0.9, Math.min(0.5, player.pitch - 0.35));
     const dir = new THREE.Vector3(Math.sin(player.yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(player.yaw) * Math.cos(pitch));
-    let dist = 5.5 * AVATAR_SCALE;
-    if (player.floor.wallMeshes) {
-      camRay.set(head, dir); camRay.far = dist;
-      const above = floors[player.floor.idx + 1];
-      const hit = camRay.intersectObjects([...player.floor.wallMeshes, ...player.floor.ceilMeshes, ...(above?.slabs || [])], false)[0];
-      if (hit) dist = Math.max(0.8, hit.distance - 0.25);
+    // 鏡頭往後拉的路上如果碰到牆、天花板、樹、建築，就停在它前面；拉近要馬上，退回去要慢慢的（才不會一直跳）
+    let want = cam.zoom, lv = Math.floor(head.y / FLOOR_H);
+    for (let d = 0.3; d <= cam.zoom; d += 0.12) {
+      const x = head.x + dir.x * d, y = head.y + dir.y * d, z = head.z + dir.z * d, l = Math.floor(y / FLOOR_H);
+      // 穿過一層樓板（樓板很薄，每一小段檢查可能會跳過）：在穿過的那一點檢查有沒有地板
+      const crossed = l !== lv && floorByLevel[Math.max(l, lv)] && slabSolid(floorByLevel[Math.max(l, lv)], x, z);
+      lv = l;
+      if (crossed || camBlocked(x, y, z)) { want = Math.max(0.45, d - 0.3); break; }
     }
-    camera.position.copy(head).addScaledVector(dir, dist);
+    cam.dist = want < cam.dist ? want : cam.dist + (want - cam.dist) * Math.min(1, dt * 3);
+    camera.position.copy(head).addScaledVector(dir, cam.dist);
     camera.lookAt(head);
+    avatar.visible = cam.dist > 1.3;                         // 鏡頭貼到身上時先把自己藏起來，免得整個畫面都是後腦勺
   } else {
     orbit.update();
   }
 
-  if (floors[1].group.visible) cat.userData.anim(t);
+  if (floors[1].group.visible) { cat.userData.anim(t); updateNPCs(t, dt); }
   // 雲慢慢飄
   if (clouds) {
     const sp = clouds.userData.spread;
@@ -1701,6 +2102,36 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
+/* ---------------- 碰撞資料整理（全部蓋好之後） ---------------- */
+
+function setupCollision() {
+  const f1 = floorById['1F'];
+  // 老師 NPC：站著的地方擋一下，不會穿過去
+  for (const n of NPCS) {
+    const p = n.g.position;
+    f1.boxes.push({ x1: p.x - 0.25, x2: p.x + 0.25, z1: p.z - 0.2, z2: p.z + 0.2, y1: 0, y2: 1.8 });
+  }
+  // 正門左邊的圓柱塔（乙梯）：半圓形的外牆
+  const T = D.outdoor.tower;
+  if (T) {
+    const r = T.r / S, cx = mx(T.cx), cz = mz(T.cy), N = 12;
+    for (let k = 0; k < N; k++) {
+      const a0 = Math.PI + (Math.PI * k) / N, a1 = Math.PI + (Math.PI * (k + 1)) / N;
+      f1.segs.push({ ax: cx + r * Math.sin(a0), az: cz + r * Math.cos(a0), bx: cx + r * Math.sin(a1), bz: cz + r * Math.cos(a1),
+        h: T.floors * FLOOR_H, color: BEIGE, kind: 'wall', noRender: true });
+    }
+  }
+  for (const f of floors) {
+    // 1 樓墊高的平台（司令臺、花台、階梯）本身不算擋路，是可以踩上去的地面
+    const isGround = (b) => f.level === 0 && b.y2 - f.y <= groundAt(f, (b.x1 + b.x2) / 2, (b.z1 + b.z2) / 2) + 0.2;
+    f.obs = f.boxes.filter((b) => isObstacle(b, f) && !isGround(b));
+    // 擋鏡頭的：夠大的方塊（樹冠、櫃子、遊樂器材、建築立面）
+    f.camBoxes = f.boxes.filter((b) => Math.min(b.x2 - b.x1, b.z2 - b.z1, b.y2 - b.y1) >= 0.3);
+    f.grid = null;
+    buildIndex(f);
+  }
+}
+
 /* ---------------- 啟動 ---------------- */
 
 await Promise.all([
@@ -1708,7 +2139,10 @@ await Promise.all([
   BLOCKY && document.fonts?.load('44px "Cubic 11"', '溪口國小'),
 ]).catch(() => {});
 for (const f of floors) buildFloor(f);
+Batch.collector = floors[1].boxes;
 buildOutdoor();
+Batch.collector = null;
+setupCollision();
 buildPanoMarkers();
 
 // 起點：正門外面，面向校門（往東）
@@ -1737,5 +2171,5 @@ document.getElementById('avatarBtn').onclick = () => openChooser();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys,
+window.__campus = { rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };

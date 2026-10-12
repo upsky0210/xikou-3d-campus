@@ -195,6 +195,12 @@ export class Batch {
   add(material, geometry) {
     if (!this.list.has(material)) this.list.set(material, []);
     this.list.get(material).push(geometry);
+    // 碰撞登記：app.js 在擺家具、蓋戶外設施時打開，記下每個方塊的範圍（之後算擋路、擋鏡頭）
+    if (Batch.collector && !material.transparent) {
+      geometry.computeBoundingBox();
+      const b = geometry.boundingBox;
+      Batch.collector.push({ x1: b.min.x, y1: b.min.y, z1: b.min.z, x2: b.max.x, y2: b.max.y, z2: b.max.z });
+    }
   }
   box(material, w, h, d, x, y, z) {
     if (w <= 0.001 || h <= 0.001 || d <= 0.001) return;
@@ -223,6 +229,7 @@ export class Batch {
     return meshes;
   }
 }
+Batch.collector = null;
 
 /* ---------- 方塊人（學生角色，自己設計的造型） ---------- */
 
@@ -377,6 +384,100 @@ export function animatePerson(g, phase, amount) {
   const s = Math.sin(phase) * 0.7 * amount;
   armL.rotation.x = s; armR.rotation.x = -s;
   legL.rotation.x = -s; legR.rotation.x = s;
+}
+
+/* ---------- 方塊人 NPC（老師等，依照片畫的像素臉） ---------- */
+
+/**
+ * look = {
+ *   face: 16 行 × 16 字的像素臉，pal: 字元 → 顏色（'H' 要是頭髮色）
+ *   skin, hair, top（上衣）, pants, stripe（褲子側條，可省略）, shoe
+ *   longHair: 長髮披到胸前, shortHair: 短髮露耳朵, spiky: 刺刺頭
+ *   longSleeve: 長袖, whistle: 胸前掛哨子, collar: 襯衫領顏色, zip: 外套拉鍊顏色
+ * }
+ */
+export function makeBlockNPC(look) {
+  const g = new THREE.Group();
+  const cloth = (color) => new THREE.MeshLambertMaterial({ map: BLOCKY ? tex('wool') : null, color });
+  const skin = new THREE.MeshLambertMaterial({ color: look.skin });
+  const top = cloth(look.top), pants = cloth(look.pants);
+  const shoe = new THREE.MeshLambertMaterial({ color: look.shoe });
+  const px = (draw) => canvasTex((c) => draw(c), 1, 16, { smooth: false });
+  const faceMat = new THREE.MeshLambertMaterial({ map: px((c) => {
+    look.face.forEach((row, y) => [...row].forEach((ch, x) => { c.fillStyle = look.pal[ch]; c.fillRect(x, y, 1, 1); }));
+  }) });
+  const hair = new THREE.MeshLambertMaterial({ map: px((c) => {
+    c.fillStyle = look.hair; c.fillRect(0, 0, 16, 16);
+    c.fillStyle = look.pal.h || look.hair; c.fillRect(2, 2, 4, 1); c.fillRect(9, 6, 4, 1); c.fillRect(4, 11, 3, 1);
+  }) });
+
+  const box = (parent, w, h, d, m, x, y, z) => {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    parent.add(mesh);
+    return mesh;
+  };
+  const pivot = (x, y) => { const p = new THREE.Group(); p.position.set(x, y, 0); g.add(p); return p; };
+
+  // 短髮：側面露出耳朵、後腦下方露出脖子
+  const side = !look.shortHair ? hair : new THREE.MeshLambertMaterial({ map: px((c) => {
+    c.fillStyle = look.skin; c.fillRect(0, 0, 16, 16);
+    c.fillStyle = look.hair; c.fillRect(0, 0, 16, 5); c.fillRect(0, 5, 5, 3);
+    c.fillStyle = look.pal.N || look.skin; c.fillRect(8, 7, 3, 4);           // 耳朵
+  }) });
+  const back = !look.shortHair ? hair : new THREE.MeshLambertMaterial({ map: px((c) => {
+    c.fillStyle = look.skin; c.fillRect(0, 0, 16, 16);
+    c.fillStyle = look.hair; c.fillRect(0, 0, 16, 12);
+  }) });
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.46, 0.46), [side, side, hair, skin, back, faceMat]);
+  head.position.set(0, 1.55, 0); head.castShadow = true; g.add(head);
+  if (look.spiky) {                                          // 刺刺的短髮
+    for (const [x, z, h] of [[-0.14, -0.12, 0.06], [0.02, -0.16, 0.08], [0.15, -0.08, 0.05], [-0.06, 0.05, 0.07], [0.1, 0.12, 0.05]]) box(g, 0.12, h, 0.12, hair, x, 1.78 + h / 2, z);
+  }
+  if (look.longHair) {
+    box(g, 0.5, 0.86, 0.1, hair, 0, 1.36, 0.25);            // 背後長髮
+    box(g, 0.08, 0.5, 0.42, hair, -0.255, 1.4, 0.02);       // 兩側
+    box(g, 0.08, 0.5, 0.42, hair, 0.255, 1.4, 0.02);
+    box(g, 0.1, 0.5, 0.06, hair, -0.19, 1.14, -0.16);       // 披到胸前的兩撮
+    box(g, 0.1, 0.42, 0.06, hair, 0.19, 1.18, -0.16);
+  }
+
+  box(g, 0.46, 0.6, 0.26, top, 0, 1.0, 0);                  // 上衣
+  box(g, 0.2, 0.05, 0.27, cloth(look.collar || look.top), 0, 1.3, 0);   // 領子
+  if (look.collar) box(g, 0.1, 0.12, 0.02, cloth(look.collar), 0, 1.24, -0.13);   // 領口露出的襯衫
+  if (look.zip) box(g, 0.02, 0.5, 0.01, cloth(look.zip), 0, 1.0, -0.135);          // 外套拉鍊
+  if (look.whistle) {
+    box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
+    box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), 0.06, 1.2, -0.135);
+    box(g, 0.08, 0.05, 0.05, new THREE.MeshLambertMaterial({ color: '#d8dde3', emissive: '#555' }), 0, 1.09, -0.15);   // 哨子
+  }
+
+  const arm = (side) => {
+    const p = pivot(side * 0.33, 1.3);
+    if (look.longSleeve) {
+      box(p, 0.19, 0.58, 0.21, top, 0, -0.29, 0);
+      box(p, 0.16, 0.1, 0.18, skin, 0, -0.63, 0);
+    } else {
+      box(p, 0.2, 0.22, 0.22, top, 0, -0.11, 0);
+      box(p, 0.16, 0.46, 0.18, skin, 0, -0.45, 0);
+    }
+    return p;
+  };
+  const armL = arm(-1), armR = arm(1);
+
+  box(g, 0.47, 0.12, 0.27, pants, 0, 0.72, 0);
+  const leg = (side) => {
+    const p = pivot(side * 0.12, 0.7);
+    box(p, 0.21, 0.58, 0.22, pants, 0, -0.29, 0);
+    if (look.stripe) box(p, 0.02, 0.58, 0.06, cloth(look.stripe), side * 0.11, -0.29, 0);   // 運動褲側條
+    box(p, 0.21, 0.09, 0.27, shoe, 0, -0.62, -0.03);
+    return p;
+  };
+  const legL = leg(-1), legR = leg(1);
+
+  g.userData.limbs = { armL, armR, legL, legR };
+  return g;
 }
 
 /* ---------- 方塊樹 ---------- */
