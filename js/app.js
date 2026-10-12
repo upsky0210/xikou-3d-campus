@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=46';
-import { furnishFloor } from './furniture.js?v=46';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=46';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=46';
-import { buildCampusWall } from './wall.js?v=46';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=46';
+import { PanoViewer } from './pano.js?v=47';
+import { furnishFloor } from './furniture.js?v=47';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=47';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=47';
+import { buildCampusWall } from './wall.js?v=47';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=47';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1974,6 +1974,41 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '阿喵老師', title: '電腦老師',
+    hello: [
+      '🐱 阿喵老師：要專心上課唷！',
+      '😾 阿喵老師兇巴巴恰北北！',
+      '🚀 阿喵老師：跟你們這些地球人溝通有問題，我要回火星！',
+    ],
+    // 1 樓電腦教室一（109）北邊走廊，站在教室前面、面向走廊
+    at: () => [mx(1425), mz(398 - 1.0 * S), 0],
+    look: {
+      // 三花貓（擬人化）：白底＋橘色、黑色色塊，黑框眼鏡、琥珀色眼睛；大頭；淺藍襯衫＋卡其褲
+      cat: true, headScale: 1.35, skin: '#fbf8f2', hair: '#fbf8f2', top: '#7fa7d6', collar: '#ffffff', pants: '#9b8a66', shoe: '#5a3d2b',
+      longSleeve: true, ears: ['#2a2420', '#e8892b'], whisker: '#6b6b6b',
+      patches: [['#e8892b', 0, 0, 7, 8], ['#e8892b', 10, 10, 6, 6], ['#2a2420', 9, 0, 7, 6], ['#2a2420', 0, 11, 5, 5]],
+      pal: { W: '#fbf8f2', O: '#e8892b', B: '#2a2420', h: '#2a2420', K: '#141414', L: '#cfe8f7', E: '#e0a800', p: '#111111', P: '#e8899c', M: '#3a3a3a' },
+      face: [
+        'OOOOOOWWWBBBBBBB',
+        'OOOOOWWWWWBBBBBB',
+        'OOOOWWWWWWWBBBBB',
+        'OOOWWWWWWWWWBBBB',
+        'OKKKKKWWWWKKKKKB',
+        'OKLEELKKKKLEELKB',
+        'WKLEpLKWWKLpELKW',
+        'WKKKKKWWWWKKKKKW',
+        'WWWWWWWWWWWWWWWW',
+        'WWWWWWWPPWWWWWWW',
+        'WWWWWWWMMWWWWWWW',
+        'WWWWWWMWWMWWWWWW',
+        'WWWWWWWWWWWWWWWW',
+        'WWWWWWWWWWWWWWWW',
+        'WWWWWWWWWWWWWWWW',
+        'WWWWWWWWWWWWWWWW',
+      ],
+    },
+  },
 ];
 for (const n of NPCS) {
   const g = makeBlockNPC(n.look);
@@ -1982,9 +2017,15 @@ for (const n of NPCS) {
   n.yaw = yaw; n.g = g; n.near = false;
   g.traverse((o) => { if (o.isMesh) { o.userData.npc = n; pickables.push(o); } });
   floors[1].group.add(g);
-  floors[1].labels.add(makeLabel(n.name, n.title, x, 2.45, z, { bg: '#2d6a4f', h: 0.75 }));
+  floors[1].labels.add(makeLabel(n.name, n.title, x, 2.45 + ((n.look.headScale || 1) - 1) * 0.9, z, { bg: '#2d6a4f', h: 0.75 }));
 }
-function meetNPC(n) { toast(n.hello); }
+// hello 可以是好幾句：每次隨機換一句（不會連續兩次一樣）
+function meetNPC(n) {
+  if (!Array.isArray(n.hello)) { toast(n.hello); return; }
+  let k; do k = Math.random() * n.hello.length | 0; while (n.hello.length > 1 && k === n.last);
+  n.last = k;
+  toast(n.hello[k]);
+}
 function updateNPCs(t, dt) {
   for (const n of NPCS) {
     const { armL, armR } = n.g.userData.limbs;
@@ -1998,6 +2039,7 @@ function updateNPCs(t, dt) {
     n.g.rotation.y += d * Math.min(1, dt * 6);
     armR.rotation.z += ((near ? 2.6 + Math.sin(t * 8) * 0.35 : 0) - armR.rotation.z) * Math.min(1, dt * 8);
     armL.rotation.x = Math.sin(t * 1.6) * 0.08;
+    if (n.g.userData.tail) n.g.userData.tail.rotation.z = Math.sin(t * 2.2) * 0.35;
     if (!near) armR.rotation.x = -armL.rotation.x;
   }
 }

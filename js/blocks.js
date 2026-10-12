@@ -397,6 +397,9 @@ export function animatePerson(g, phase, amount) {
  *   skin, hair, top（上衣）, pants, stripe（褲子側條，可省略）, shoe
  *   longHair: 長髮披到胸前, shortHair: 短髮露耳朵, spiky: 刺刺頭
  *   longSleeve: 長袖, whistle: 胸前掛哨子, collar: 襯衫領顏色, zip: 外套拉鍊顏色
+ *   cat: 貓頭（虎斑條紋、貓耳、鬍鬚、尾巴；pal.h 是條紋色）
+ *   patches: 毛色色塊 [[顏色, x, y, w, h], ...]（取代條紋）, ears: [左耳色, 右耳色], whisker: 鬍鬚色
+ *   headScale: 頭放大倍數
  * }
  */
 export function makeBlockNPC(look) {
@@ -411,7 +414,10 @@ export function makeBlockNPC(look) {
   }) });
   const hair = new THREE.MeshLambertMaterial({ map: px((c) => {
     c.fillStyle = look.hair; c.fillRect(0, 0, 16, 16);
-    c.fillStyle = look.pal.h || look.hair; c.fillRect(2, 2, 4, 1); c.fillRect(9, 6, 4, 1); c.fillRect(4, 11, 3, 1);
+    c.fillStyle = look.pal.h || look.hair;
+    if (look.patches) for (const [col, x, y, w, h] of look.patches) { c.fillStyle = col; c.fillRect(x, y, w, h); }   // 三花色塊
+    else if (look.cat) for (const y of [1, 5, 9, 13]) c.fillRect(0, y, 16, 2);   // 虎斑條紋
+    else { c.fillRect(2, 2, 4, 1); c.fillRect(9, 6, 4, 1); c.fillRect(4, 11, 3, 1); }
   }) });
 
   const box = (parent, w, h, d, m, x, y, z) => {
@@ -433,10 +439,24 @@ export function makeBlockNPC(look) {
     c.fillStyle = look.skin; c.fillRect(0, 0, 16, 16);
     c.fillStyle = look.hair; c.fillRect(0, 0, 16, 12);
   }) });
+  // 頭（含耳朵、鬍鬚、刺刺頭）放在脖子位置的群組裡，headScale 可以把頭放大
+  const NECK = 1.32, hg = new THREE.Group();
+  hg.position.set(0, NECK, 0); hg.scale.setScalar(look.headScale || 1); g.add(hg);
   const head = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.46, 0.46), [side, side, hair, skin, back, faceMat]);
-  head.position.set(0, 1.55, 0); head.castShadow = true; g.add(head);
+  head.position.set(0, 1.55 - NECK, 0); head.castShadow = true; hg.add(head);
+  if (look.cat) {                                            // 貓耳朵（內側粉紅）＋ 鬍鬚
+    [-1, 1].forEach((sx, i) => {
+      const ear = look.ears ? new THREE.MeshLambertMaterial({ color: look.ears[i] }) : hair;
+      box(hg, 0.13, 0.15, 0.08, ear, sx * 0.15, 1.85 - NECK, -0.06);
+      box(hg, 0.07, 0.09, 0.01, new THREE.MeshLambertMaterial({ color: '#f2a7b8' }), sx * 0.15, 1.84 - NECK, -0.105);
+      for (const [y, r] of [[1.44, 0.12], [1.41, -0.08]]) {
+        const w = box(hg, 0.2, 0.012, 0.012, new THREE.MeshLambertMaterial({ color: look.whisker || '#f5f5f5' }), sx * 0.27, y - NECK, -0.236);
+        w.rotation.z = sx * r; w.castShadow = false;
+      }
+    });
+  }
   if (look.spiky) {                                          // 刺刺的短髮
-    for (const [x, z, h] of [[-0.14, -0.12, 0.06], [0.02, -0.16, 0.08], [0.15, -0.08, 0.05], [-0.06, 0.05, 0.07], [0.1, 0.12, 0.05]]) box(g, 0.12, h, 0.12, hair, x, 1.78 + h / 2, z);
+    for (const [x, z, h] of [[-0.14, -0.12, 0.06], [0.02, -0.16, 0.08], [0.15, -0.08, 0.05], [-0.06, 0.05, 0.07], [0.1, 0.12, 0.05]]) box(hg, 0.12, h, 0.12, hair, x, 1.78 - NECK + h / 2, z);
   }
   if (look.longHair) {
     box(g, 0.5, 0.86, 0.1, hair, 0, 1.36, 0.25);            // 背後長髮
@@ -478,6 +498,14 @@ export function makeBlockNPC(look) {
     return p;
   };
   const legL = leg(-1), legR = leg(1);
+
+  if (look.cat) {                                            // 尾巴：從背後往上翹（會擺動）
+    const tail = new THREE.Group(); tail.position.set(0, 0.78, 0.13); g.add(tail);
+    box(tail, 0.08, 0.08, 0.36, hair, 0, 0.06, 0.16).rotation.x = -0.35;
+    box(tail, 0.08, 0.3, 0.08, hair, 0, 0.26, 0.33);
+    box(tail, 0.085, 0.08, 0.085, cloth(look.pal.h), 0, 0.42, 0.33);
+    g.userData.tail = tail;
+  }
 
   g.userData.limbs = { armL, armR, legL, legR };
   return g;
