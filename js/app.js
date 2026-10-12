@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=42';
-import { furnishFloor } from './furniture.js?v=42';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=42';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=42';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=42';
+import { PanoViewer } from './pano.js?v=43';
+import { furnishFloor } from './furniture.js?v=43';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=43';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=43';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=43';
 
 /* =========================================================
  * 溪口國小 3D 校園
