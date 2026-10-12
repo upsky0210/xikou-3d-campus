@@ -168,6 +168,23 @@
     #panoPrompt { bottom: 160px; font-size: 13px; }
   }
 
+  /* 目前位置、小地圖 */
+  #where { position: fixed; top: 74px; left: 12px; background: var(--panel); border-radius: 999px; padding: 6px 14px; box-shadow: var(--shadow);
+    font-weight: 700; font-size: 14px; display: none; gap: 6px; align-items: center; pointer-events: none; max-width: calc(100vw - 90px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #where i { font-style: normal; }
+  body.walking #where { display: flex; }
+  #minimap { position: fixed; left: 12px; bottom: 12px; width: 160px; height: 160px; border-radius: 14px; overflow: hidden; border: 3px solid #fff;
+    box-shadow: var(--shadow); display: none; background: #8cc56a; }
+  body.walking #minimap { display: block; }
+  #minimap canvas { width: 100%; height: 100%; display: block; cursor: pointer; }
+  #minimap b { position: absolute; font-size: 12px; pointer-events: none; }
+  #minimap .n { top: 4px; left: 6px; background: #e53935; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: grid; place-items: center; }
+  #minimap .fl { bottom: 4px; right: 6px; background: rgba(0,0,0,.6); color: #fff; border-radius: 6px; padding: 1px 6px; }
+  @media (pointer: coarse) { #minimap { left: auto; right: 12px; width: 120px; height: 120px; } }
+  #chooser .keys { margin: 4px 0 10px; font-size: 13px; color: #445; line-height: 1.8; }
+  #chooser .keys kbd { background: #eef1f4; border: 1px solid #c9d0d6; border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; font-family: inherit; font-size: 12px; }
+  #chooser .bird { background: none; border: 2px solid #c9d0d6; border-radius: 10px; padding: 6px 14px; font-weight: 700; cursor: pointer; margin-bottom: 6px; }
+
   /* 選角色 */
   #chooser { position: fixed; inset: 0; z-index: 15; background: rgba(10,20,30,.55); display: grid; place-items: center; padding: 16px; }
   #chooser .card-wrap { background: #fff; border-radius: 18px; padding: 22px; width: min(520px, 100%); text-align: center; box-shadow: var(--shadow); }
@@ -285,6 +302,8 @@
 </div>
 
 <div id="floors"></div>
+<div id="where"><i>📍</i><span>校園</span></div>
+<div id="minimap"><canvas width="300" height="300"></canvas><b class="n">北</b><b class="fl">1F</b></div>
 
 <div id="search" hidden>
   <header>
@@ -325,7 +344,12 @@
       <button data-gender="boy"><img alt="男學生"><b>男學生</b></button>
       <button data-gender="girl"><img alt="女學生"><b>女學生</b></button>
     </div>
-    <small>之後可以按上方「👕 角色」換角色</small>
+    <div class="keys">
+      點地面或小地圖：自動走過去　<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 走路（<kbd>Shift</kbd> 跑、<kbd>空白</kbd> 跳）<br>
+      拖曳畫面：轉頭　<kbd>M</kbd> 鳥瞰　<kbd>V</kbd> 第一／第三人稱　<kbd>C</kbd> 換角色　<kbd>F</kbd> 找教室
+    </div>
+    <button class="bird" data-act="bird">🛰️ 先看鳥瞰</button><br>
+    <small>之後可以按上方「👕 角色」或 C 鍵換角色</small>
   </div>
 </div>
 
@@ -363,6 +387,7 @@
     <h2>怎麼玩？</h2>
     <h3>電腦</h3>
     <table>
+      <tr><td>點地面 / 小地圖</td><td>自動走過去（按方向鍵就停）</td></tr>
       <tr><td>W A S D</td><td>前後左右走</td></tr>
       <tr><td>滑鼠拖曳 / ← →</td><td>轉頭看</td></tr>
       <tr><td>Shift</td><td>跑步</td></tr>
@@ -370,12 +395,14 @@
       <tr><td>E / Q</td><td>站在樓梯上時：上樓 / 下樓</td></tr>
       <tr><td>M</td><td>切換鳥瞰 / 走路</td></tr>
       <tr><td>V</td><td>切換第一 / 第三人稱</td></tr>
+      <tr><td>C</td><td>換角色（男學生 / 女學生）</td></tr>
       <tr><td>F 或 /</td><td>找教室</td></tr>
       <tr><td>P</td><td>360° 實景導覽</td></tr>
       <tr><td>Enter</td><td>站在紫色 📷 旁邊時：看 360° 實景</td></tr>
     </table>
     <h3>手機 / 平板</h3>
     <table>
+      <tr><td>點地面 / 小地圖</td><td>自動走過去</td></tr>
       <tr><td>左下搖桿</td><td>走路</td></tr>
       <tr><td>畫面拖曳</td><td>轉頭看</td></tr>
       <tr><td>點教室</td><td>看資訊、帶我去</td></tr>
@@ -413,8 +440,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=43"></script>
-<script src="js/pano-data.js?v=43"></script>
-<script type="module" src="js/app.js?v=43"></script>
+<script src="js/campus-data.js?v=44"></script>
+<script src="js/pano-data.js?v=44"></script>
+<script type="module" src="js/app.js?v=44"></script>
 </body>
 </html>

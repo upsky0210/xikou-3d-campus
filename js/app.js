@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=43';
-import { furnishFloor } from './furniture.js?v=43';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=43';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=43';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=43';
+import { PanoViewer } from './pano.js?v=44';
+import { furnishFloor } from './furniture.js?v=44';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=44';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=44';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=44';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -730,14 +730,18 @@ document.getElementById('chooser').addEventListener('click', (e) => {
     if (ch.dataset.first) {
       // 第一次選好角色：從校門口出發
       setMode('third');
-      toast(`${b.dataset.gender === 'girl' ? '👧' : '👦'} 歡迎來到溪口國小！<br><small>用 WASD 或左下搖桿走進校門</small>`);
+      toast(`${b.dataset.gender === 'girl' ? '👧' : '👦'} 歡迎來到溪口國小！<br><small>點地面就會自己走過去，也可以用 WASD 或搖桿</small>`);
     } else {
       toast('已換好角色！');
     }
+  } else if (e.target.closest('[data-act="bird"]')) {
+    ch.hidden = true;
+    setMode('bird');
   } else if (e.target === ch && !ch.dataset.first) ch.hidden = true;
 });
 
 function placeAt(f, x, z, yaw) {
+  if (f !== player.floor || Math.hypot(x - player.x, z - player.z) > 1) stopAuto();
   player.floor = f; player.x = x; player.z = z;
   if (yaw !== undefined) { player.yaw = yaw; avatar.rotation.y = yaw; }
   updateVisibility();
@@ -1070,6 +1074,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyQ') { changeFloor(-1); currentStair = undefined; }
   if (e.code === 'KeyM') setMode(mode === 'bird' ? 'third' : 'bird');
   if (e.code === 'KeyV' && mode !== 'bird') setMode(mode === 'first' ? 'third' : 'first');
+  if (e.code === 'KeyC') { const g = savedGender() === 'girl' ? 'boy' : 'girl'; setGender(g); toast(g === 'girl' ? '👧 換成女學生' : '👦 換成男學生'); }
   if (e.code === 'Space' && mode !== 'bird' && player.jump === 0) { player.vy = 4.2; e.preventDefault(); }
   if (e.code === 'Slash' || e.code === 'KeyF') { if (e.code === 'Slash') e.preventDefault(); openSearch(); }
   if (e.code === 'KeyP') openGallery();
@@ -1105,8 +1110,169 @@ function pick(e) {
   const hit = raycaster.intersectObjects(vis, false)[0];
   if (hit?.object.userData.cat) meetCat();
   else if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
+  else if (mode !== 'bird') {                                   // 走路模式：點地面就自動走過去
+    const pt = groundPoint(e);
+    if (pt) walkTo(pt.x, pt.z);
+  }
   else if (hit) showInfo(hit.object.userData.room);
   else hideInfo();
+}
+
+/* ---------------- 點地面自動走 ---------------- */
+
+const auto = { pts: null, i: 0, stuck: 0 };
+const destMark = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.6, 28), new THREE.MeshBasicMaterial({ color: '#ffd400', side: THREE.DoubleSide, transparent: true, opacity: 0.9, depthWrite: false }));
+destMark.rotation.x = -Math.PI / 2; destMark.visible = false; destMark.userData.pulse = true;
+scene.add(destMark);
+function walkTo(x, z) {
+  const f = player.floor;
+  const p = findPath(f, player.x, player.z, x, z);
+  if (!p || p.pts.length < 2) { toast('走不到那裡 😅'); return; }
+  auto.pts = p.pts; auto.i = 1; auto.stuck = 0;
+  const [ex, ez] = p.pts.at(-1);
+  destMark.position.set(ex, f.y + groundAt(f, ex, ez) + 0.06, ez);
+  destMark.visible = true;
+}
+function stopAuto() { auto.pts = null; destMark.visible = false; }
+// 滑鼠點到的地面位置（目前樓層的地板高度）
+function groundPoint(e) {
+  const ndc = new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(player.floor.y + (player.gy || 0)));
+  const pt = new THREE.Vector3();
+  if (!raycaster.ray.intersectPlane(plane, pt)) return null;
+  return Math.hypot(pt.x - player.x, pt.z - player.z) < 90 ? pt : null;
+}
+// 每一格畫面：沿著路線走（有按方向鍵或搖桿就交還給玩家）
+function stepAuto(dt) {
+  const [tx, tz] = auto.pts[auto.i];
+  const dx = tx - player.x, dz = tz - player.z, d = Math.hypot(dx, dz);
+  if (d < 0.25) { if (++auto.i >= auto.pts.length) stopAuto(); return 0; }
+  const step = Math.min(d, 4 * settings.speed * dt);
+  const ox = player.x, oz = player.z;
+  tryMove(dx / d * step, dz / d * step);
+  const moved = Math.hypot(player.x - ox, player.z - oz);
+  const want = Math.atan2(-dx, -dz);
+  avatar.rotation.y = want;
+  const diff = ((want - player.yaw) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI;
+  player.yaw += diff * Math.min(1, dt * 3);                     // 鏡頭慢慢轉到前進方向
+  auto.stuck = moved < step * 0.2 ? auto.stuck + dt : 0;
+  if (auto.stuck > 0.6) stopAuto();
+  return moved;
+}
+
+/* ---------------- 小地圖 ---------------- */
+
+const MM = (() => {
+  const w = D.outdoor.walk;
+  return { px: 4, minx: mx(w[0]) - 10, minz: mz(w[1]) - 10, maxx: mx(w[2]) + 10, maxz: mz(w[3]) + 10, maps: {}, view: 60 };
+})();
+const MM_ROOM = { class: '#fff1bf', special: '#cdeccd', office: '#cfe2ff', kinder: '#ffd6e8', wc: '#dcdcdc', hall: '#ece6da', garden: '#a7d58a', storage: '#d9d4cb' };
+function minimapImage(f) {
+  if (MM.maps[f.id]) return MM.maps[f.id];
+  const W = Math.ceil((MM.maxx - MM.minx) * MM.px), H = Math.ceil((MM.maxz - MM.minz) * MM.px);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d'), P = MM.px;
+  const X = (x) => (x - MM.minx) * P, Z = (z) => (z - MM.minz) * P;
+  const rect = (m, fill, stroke) => {
+    c.fillStyle = fill; c.fillRect(X(m.x1), Z(m.z1), (m.x2 - m.x1) * P, (m.z2 - m.z1) * P);
+    if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1.5; c.strokeRect(X(m.x1), Z(m.z1), (m.x2 - m.x1) * P, (m.z2 - m.z1) * P); }
+  };
+  c.fillStyle = f.level === 0 ? '#8cc56a' : '#3b4652'; c.fillRect(0, 0, W, H);
+  const O = D.outdoor;
+  if (f.level === 0) {
+    if (O.track) {                                              // 跑道：紅藍外圈、中間藍色球場、兩端草地
+      const cx = X(mx(O.track.center[0])), cz = Z(mz(O.track.center[1]));
+      const A = O.track.size[0] / S / 2, B = O.track.size[1] / S / 2, Ls = (A - B) * P;
+      const stadium = (r) => { c.beginPath(); c.arc(cx + Ls, cz, r * P, -Math.PI / 2, Math.PI / 2); c.arc(cx - Ls, cz, r * P, Math.PI / 2, Math.PI * 1.5); c.closePath(); };
+      stadium(B); c.fillStyle = '#c4604f'; c.fill();
+      stadium(B - 5); c.fillStyle = '#6aa84f'; c.fill();
+      c.fillStyle = '#2d64b3'; c.fillRect(cx - Ls, cz - (B - 5) * P, Ls * 2, (B - 5) * 2 * P);
+    }
+    if (O.pool) rect(rectM(O.pool), '#3a7cc4', '#20456e');
+    if (O.playground) rect(rectM(O.playground), '#5fae4a');
+    if (O.stage) rect(rectM(O.stage), '#efdcbc');
+    if (O.pond) rect(rectM(O.pond), '#4aa3c9');
+  }
+  for (const w of f.walk) {
+    if (w.kind === 'outdoor') continue;
+    if (w.kind === 'stair') rect(w.m, w.stair.elevator ? '#7fb3ff' : '#ffb347', '#9a5d16');
+    else if (w.room) { if (!w.room.hidden) rect(w.m, MM_ROOM[w.room.type] || '#e8e0d0', '#6d6255'); }
+    else rect(w.m, f.level === 0 ? '#ddd6c8' : '#ece6da');
+  }
+  MM.maps[f.id] = cv;
+  return cv;
+}
+const mmBox = document.getElementById('minimap'), mmCanvas = mmBox.querySelector('canvas'), mmc = mmCanvas.getContext('2d');
+let mmFloor = '';
+function drawMinimap() {
+  if (mode === 'bird') return;
+  const f = player.floor, img = minimapImage(f), N = mmCanvas.width, k = N / MM.view, P = MM.px;
+  mmc.fillStyle = f.level === 0 ? '#8cc56a' : '#3b4652'; mmc.fillRect(0, 0, N, N);
+  const sw = MM.view * P;
+  mmc.drawImage(img, (player.x - MM.minx) * P - sw / 2, (player.z - MM.minz) * P - sw / 2, sw, sw, 0, 0, N, N);
+  const toS = (x, z) => [N / 2 + (x - player.x) * k, N / 2 + (z - player.z) * k];
+  const line = (pts, color, w, dash) => {
+    mmc.beginPath(); pts.forEach(([x, z], i) => { const [a, b] = toS(x, z); i ? mmc.lineTo(a, b) : mmc.moveTo(a, b); });
+    mmc.strokeStyle = color; mmc.lineWidth = w; mmc.setLineDash(dash || []); mmc.stroke(); mmc.setLineDash([]);
+  };
+  for (const l of nav.legs) if (l.f === f) line(l.p.pts, '#ffd400', 5);
+  if (auto.pts) {
+    line([[player.x, player.z], ...auto.pts.slice(auto.i)], '#ffffff', 3, [6, 5]);
+    const [a, b] = toS(...auto.pts.at(-1));
+    mmc.fillStyle = '#ffd400'; mmc.beginPath(); mmc.arc(a, b, 6, 0, Math.PI * 2); mmc.fill();
+  }
+  // 自己：紅色箭頭（朝人物面向的方向）
+  mmc.save(); mmc.translate(N / 2, N / 2); mmc.rotate(-avatar.rotation.y);
+  mmc.fillStyle = '#e53935'; mmc.strokeStyle = '#fff'; mmc.lineWidth = 3;
+  mmc.beginPath(); mmc.moveTo(0, -14); mmc.lineTo(10, 10); mmc.lineTo(0, 4); mmc.lineTo(-10, 10); mmc.closePath(); mmc.stroke(); mmc.fill();
+  mmc.restore();
+  if (mmFloor !== f.id) { mmFloor = f.id; mmBox.querySelector('.fl').textContent = f.id; }
+}
+// 點小地圖：走到那裡
+mmCanvas.addEventListener('pointerdown', (e) => e.stopPropagation());
+mmCanvas.addEventListener('click', (e) => {
+  const r = mmCanvas.getBoundingClientRect(), k = r.width / MM.view;
+  walkTo(player.x + (e.clientX - r.left - r.width / 2) / k, player.z + (e.clientY - r.top - r.height / 2) / k);
+});
+
+/* ---------------- 目前位置 ---------------- */
+
+const whereChip = document.getElementById('where');
+let whereTick = 0, whereText = '';
+function whereAmI() {
+  const f = player.floor, x = player.x, z = player.z;
+  for (const s of f.stairs) if (inRect(s.m, x, z)) return `${s.id}・${f.id}`;
+  const r = rooms.find((r) => r.f === f && !r.hidden && inRect(r.m, x, z));
+  const bName = (rm) => (rm?.building ? D.buildings[rm.building].name : '');
+  if (r) return r.open && !r.building ? r.name : `${r.display}・${bName(r)} ${f.id}`;
+  const inside = f.walk.some((w) => w.kind !== 'outdoor' && inRect(w.m, x, z));
+  if (inside) {
+    let best = null, bd = Infinity;
+    for (const rm of rooms) {
+      if (rm.f !== f || !rm.building) continue;
+      const d = Math.hypot(rm.cx - x, rm.cz - z);
+      if (d < bd) { bd = d; best = rm; }
+    }
+    return `${bName(best)} ${f.id} 走廊`;
+  }
+  const O = D.outdoor, near = (rect, pad = 0) => rect && inRect(rectM(rect), x, z, pad);
+  if (near(O.pool)) return '水漾游泳館';
+  if (near(O.stage, 1)) return '司令臺';
+  if (near(O.playground, 1)) return '遊戲場';
+  if (near(O.pond, 1)) return '生態池';
+  if (O.track) {
+    const cx = mx(O.track.center[0]), cz = mz(O.track.center[1]);
+    if (Math.abs(x - cx) < O.track.size[0] / S / 2 && Math.abs(z - cz) < O.track.size[1] / S / 2) return '操場';
+  }
+  if (O.gate && x < mx(O.gate.x) + 2) return '正門口';
+  return '校園';
+}
+function updateWhere(dt) {
+  if ((whereTick += dt) < 0.25) return;
+  whereTick = 0;
+  const t = whereAmI();
+  if (t !== whereText) { whereText = t; whereChip.querySelector('span').textContent = t; }
 }
 
 // 手機搖桿
@@ -1443,6 +1609,9 @@ function update(dt) {
       tryMove(dx, dz);
       moved = Math.hypot(player.x - ox, player.z - oz);
       avatar.rotation.y = Math.atan2(-dx, -dz);
+      if (auto.pts) stopAuto();                                 // 自己動方向鍵就取消自動走
+    } else if (auto.pts) {
+      moved = stepAuto(dt);
     }
     // 方塊人走路擺手擺腳
     if (avatar.userData.limbs) {
@@ -1457,6 +1626,7 @@ function update(dt) {
     }
     updateStairPanel();
     updatePanoPrompt();
+    updateWhere(dt);
     const nearCat = player.floor.level === 0 && Math.hypot(player.x - cat.position.x, player.z - cat.position.z) < 1.8;
     if (nearCat && !catNear) meetCat();
     catNear = nearCat;
@@ -1521,6 +1691,7 @@ function loop() {
   if (viewer.isOpen) return;          // 看環景時 3D 校園暫停，省電
   const dt = Math.min(0.05, clock.getDelta());
   update(dt);
+  drawMinimap();
   renderer.render(scene, camera);
 }
 
