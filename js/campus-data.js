@@ -101,7 +101,7 @@
   R('1F', 'B', [1548, 910, 1680, 1060], { no: '125', name: '星星班', type: 'kinder', doors: 'W' });
   R('1F', 'D', [512, 585, 645, 745], { no: '114', name: '總務處', type: 'office', doors: 'E' });
   R('1F', 'D', [465, 745, 645, 905], { no: '115', name: '穿堂', type: 'hall', doors: 'WE', open: true, endWall: 'E' });
-  R('1F', 'D', [512, 905, 645, 1060], { no: '116', name: '教務處', type: 'office', doors: 'E', doorAt: { E: [0.18, 0.58] } });   // 東南角放會議桌
+  R('1F', 'D', [512, 905, 645, 1060], { no: '116', name: '教務處', type: 'office', doors: 'E', doorAt: { E: [0.18] } });   // 只有一扇門（東牆北段）
   R('1F', 'D', [330, 585, 410, 740], { no: '117', name: '警衛室', type: 'office', doors: 'E' });
   R('1F', 'C', [715, 1105, 800, 1245], { no: '119', name: '家長會', type: 'office', doors: 'N' });
   R('1F', 'C', [800, 1105, 880, 1245], { no: '119-1', name: '器材室', type: 'storage', doors: 'N' });
