@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=38';
+import { Batch, mat } from './blocks.js?v=39';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1287,8 +1287,11 @@ const binderCaseMat = () => once('bindercase', () => new THREE.MeshLambertMateri
   c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(8, 12, w - 16, 180);           // 玻璃門反光
   c.fillStyle = '#d6c9ae'; c.fillRect(0, 200, w, 56); c.fillStyle = '#b9a98a'; c.fillRect(w / 2 - 1, 200, 2, 56);
 }) }));
-function academicAffairs(put, fr, room) {
+function academicAffairs(put0, fr, room) {
   const W = fr.W, L = fr.L, A = fr.away, D = -A;              // A：西（窗外）、D：東（走廊、門）
+  // 依使用者更正：整間左右鏡射（u → L - u，茶水區在南、書櫃在北）
+  const put = (m, du, dv, h, u, v, y, plain) => put0(m, du, dv, h, L - u, v, y, plain);
+  put.geo = (m, g, u, v, y, r) => put0.geo(m, g, L - u, v, y, r);
   const cream = mat('wool', '#e8dcc4'), top = mat('wool', '#a2a7ac'), black = mat('wool', '#202226');
   put(plankFloorMat(), L, W, 0.012, L / 2, 0, 0, true);
   paintBands(put, fr, mat('wool', '#c6e7ea'));
