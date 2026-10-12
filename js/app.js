@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=41';
-import { furnishFloor } from './furniture.js?v=41';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=41';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=41';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=41';
+import { PanoViewer } from './pano.js?v=42';
+import { furnishFloor } from './furniture.js?v=42';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=42';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=42';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, makeBlockPerson, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=42';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1558,9 +1558,11 @@ if (qRoom) {
 if (params.get('pano') && viewer.byImg[params.get('pano')]) openPano(viewer.byImg[params.get('pano')]);
 document.getElementById('loading').remove();
 // 第一次來（而且不是從分享連結進來）：先選角色
-if (!savedGender() && !qRoom && !params.get('pano')) openChooser({ firstTime: true });
+// 每次進網站都先選男生／女生（第三人稱）；用 ?room= ?pano= 分享連結進來的就不打擾
+if (!qRoom && !params.get('pano')) openChooser({ firstTime: true });
 document.querySelectorAll('[data-gender]').forEach((b) => b.classList.toggle('on', b.dataset.gender === savedGender()));
 document.getElementById('changeAvatar').onclick = () => { document.getElementById('help').hidden = true; openChooser(); };
+document.getElementById('avatarBtn').onclick = () => openChooser();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
