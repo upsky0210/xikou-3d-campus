@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=50';
-import { furnishFloor } from './furniture.js?v=50';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=50';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=50';
-import { buildCampusWall } from './wall.js?v=50';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=50';
+import { PanoViewer } from './pano.js?v=51';
+import { furnishFloor } from './furniture.js?v=51';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=51';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=51';
+import { buildCampusWall } from './wall.js?v=51';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=51';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -158,6 +158,67 @@ function sideIsSolid(room, s) {
   });
 }
 
+// 1 樓溪口情廊（敬業樓中間那條走廊）兩側的牆（依照片）：圖書館、會議室是落地窗，其他教室沒有窗，
+//   是米白石紋牆＋白框布告欄（黃色牛皮紙、照片、藍色紙花）＋上方一排氣窗。gallery 的值是走廊在 z 的哪一側
+function galleryWall(room, s) {
+  if (room.floor !== '1F' || room.building !== 'A') return {};
+  const north = s === 'S' && Math.abs(room.m.z2 - mz(330)) < 0.3;        // 走廊北邊的教室（南牆面向走廊）
+  const south = s === 'N' && Math.abs(room.m.z1 - mz(398)) < 0.3;        // 走廊南邊的教室（北牆面向走廊）
+  if (!north && !south) return {};
+  if (room.name === '圖書館' || room.name === '會議室') return { fullGlass: true };
+  return { gallery: north ? 1 : -1 };
+}
+const galleryWallMat = (() => {
+  let m;
+  return () => m ||= new THREE.MeshLambertMaterial({ map: (() => {
+    const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64;
+    const c = cv.getContext('2d');
+    c.fillStyle = '#ece5d5'; c.fillRect(0, 0, 64, 64);
+    for (let r = 0; r < 16; r++) {                                       // 細長的石紋磚
+      const y = r * 4, off = (r % 2) * 9;
+      c.fillStyle = 'rgba(150,135,110,.35)'; c.fillRect(0, y, 64, 1);
+      for (let x = off; x < 64; x += 18) c.fillRect(x, y, 1, 4);
+      for (let k = 0; k < 6; k++) { c.fillStyle = `rgba(255,255,255,${Math.random() * 0.25})`; c.fillRect(Math.random() * 64, y + 1, 4 + Math.random() * 6, 2); }
+    }
+    const t = new THREE.CanvasTexture(cv);
+    t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return t;
+  })() });
+})();
+const galleryBoardMat = (() => {
+  const cache = {};
+  return (k) => cache[k] ||= new THREE.MeshLambertMaterial({ map: (() => {
+    const cv = document.createElement('canvas'); cv.width = 384; cv.height = 264;
+    const c = cv.getContext('2d'); let s = 11 + k * 7;
+    const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    c.fillStyle = '#e3c06a'; c.fillRect(0, 0, 384, 264);                   // 黃色牛皮紙
+    c.fillStyle = 'rgba(120,80,20,.08)'; for (let i = 0; i < 200; i++) c.fillRect(rnd() * 384, rnd() * 264, 3, 3);
+    const top = k === 0 ? 70 : 20;
+    if (k === 0) {                                                        // 標題（照片上看得到：溪口、游於藝）
+      c.fillStyle = '#c0392b'; c.font = '900 34px "Noto Sans TC", sans-serif'; c.fillText('溪口', 24, 48);
+      c.fillStyle = '#ffffff'; c.fillRect(250, 18, 110, 38);
+      c.fillStyle = '#2b2b2b'; c.font = '700 24px "Noto Sans TC", sans-serif'; c.fillText('游於藝', 262, 46);
+      c.fillStyle = '#2f5aa8'; for (let x = 0; x < 384; x += 16) c.fillRect(x, 252, 10, 6);
+    }
+    const cols = ['#b9573f', '#7a6a58', '#c98a5a', '#5d6f7d', '#a35a4a', '#8a7d6b'];
+    const rows = k === 0 ? 3 : 4, perRow = 4;
+    for (let r = 0; r < rows; r++) for (let i = 0; i < perRow; i++) {    // 貼著的活動照片
+      const w = 62, h = 44, x = 22 + i * 90 + (rnd() - 0.5) * 18, y = top + r * ((264 - top - 20) / rows) + (rnd() - 0.5) * 8;
+      c.fillStyle = '#f4f1ea'; c.fillRect(x - 3, y - 3, w + 6, h + 6);
+      c.fillStyle = cols[(r * 4 + i + k) % cols.length]; c.fillRect(x, y, w, h);
+      c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(x, y, w, h / 3);
+    }
+    for (let i = 0; i < 6; i++) {                                         // 藍色紙花
+      const x = 30 + rnd() * 324, y = 20 + rnd() * 224;
+      c.fillStyle = rnd() < 0.5 ? '#2f5fc4' : '#7b7fd6';
+      for (let p = 0; p < 5; p++) { const a = p * Math.PI * 2 / 5; c.beginPath(); c.arc(x + Math.cos(a) * 7, y + Math.sin(a) * 7, 6, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = '#ffffff'; c.beginPath(); c.arc(x, y, 3, 0, Math.PI * 2); c.fill();
+    }
+    const t = new THREE.CanvasTexture(cv);
+    t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    return t;
+  })() });
+})();
 function addRoomWalls(room) {
   if (room.endWall === 'E') {
     // 穿堂東端（依照片）：中間一道主題牆，兩側各留約 1.2 公尺通道往中庭
@@ -183,7 +244,8 @@ function addRoomWalls(room) {
     const h = room.tall ? FLOOR_H + WALL_H : WALL_H;
     const above = room.tall ? floors[f.idx + 1] : null;
     const solid = sideIsSolid(room, s);
-    const seg = (a, b, extra) => ({ ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h, color, kind: 'wall', bld: room.building, solid, ...extra });
+    const gal = galleryWall(room, s);
+    const seg = (a, b, extra) => ({ ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h, color, kind: 'wall', bld: room.building, solid, ...gal, ...extra });
     const push = (a, b) => {
       if (b - a <= 0.05) return;
       f.segs.push(seg(a, b));
@@ -804,6 +866,21 @@ function buildFloor(f) {
     const wm = wallMat(s.bld);
     if (s.overhead) { piece(wm, s.y0, s.h); continue; }   // 門楣
     if (s.solid) { piece(wm, 0, s.h); continue; }        // 跟隔壁房間共用的實牆（沒有窗）
+    if (s.fullGlass && horiz) {                           // 溪口情廊：圖書館、會議室是落地窗
+      piece(wm, 0, 0.12); piece(glass, 0.12, 2.75); piece(wm, 2.75, s.h);
+      for (let t = -len / 2 + 0.15; t <= len / 2; t += 1.2) piece(mat('wool', '#e9e6df'), 0.12, 2.75, t - 0.04, t + 0.04);
+      continue;
+    }
+    if (s.gallery && horiz) {                             // 溪口情廊：米白石紋牆、白框布告欄、上方一排氣窗
+      piece(galleryWallMat(), 0, 2.45); piece(glass, 2.45, 2.85); piece(mat('wool', '#f1ede4'), 2.85, s.h);
+      const nb = Math.floor((len - 0.5) / 2.4), off = s.gallery * (WALL_T / 2 + 0.035);
+      for (let i = 0; i < nb; i++) {
+        const t = -len / 2 + (len - nb * 2.4) / 2 + 1.2 + i * 2.4, x = cx + t, z = cz + off;
+        batch.box(mat('wool', '#f7f7f4'), 1.95, 1.4, 0.07, x, f.y + 1.6, z);
+        batch.plain(galleryBoardMat((i + Math.round(cx)) % 3), 1.75, 1.2, 0.02, x, f.y + 1.6, z + s.gallery * 0.045);
+      }
+      continue;
+    }
     if (len < 1.4) { piece(wm, 0, s.h); continue; }
     // 每一層樓高各有一排窗（挑高的牆會有兩排）；窗戶之間每隔約 2.5 公尺一根柱子
     const storeys = s.h > FLOOR_H ? 2 : 1;
@@ -2105,8 +2182,8 @@ const NPCS = [
       '😾 阿喵老師兇巴巴恰北北！',
       '🚀 阿喵老師：跟你們這些地球人溝通有問題，我要回火星！',
     ],
-    // 1 樓電腦教室一（109）北邊走廊，站在教室前面、面向走廊
-    at: () => [mx(1425), mz(398 - 1.0 * S), 0],
+    // 1 樓電腦教室一（109）裡面、靠中庭（南邊）那一側，面向教室
+    at: () => [mx(1425), mz(545) - 1.3, 0],
     look: {
       // 三花貓（擬人化）：白底＋橘色、黑色色塊，黑框眼鏡、琥珀色眼睛；大頭；淺藍襯衫＋卡其褲
       cat: true, headScale: 1.35, skin: '#fbf8f2', hair: '#fbf8f2', top: '#7fa7d6', collar: '#ffffff', pants: '#9b8a66', shoe: '#5a3d2b',
