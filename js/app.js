@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=52';
-import { furnishFloor } from './furniture.js?v=52';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=52';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=52';
-import { buildCampusWall } from './wall.js?v=52';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=52';
+import { PanoViewer } from './pano.js?v=53';
+import { furnishFloor } from './furniture.js?v=53';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=53';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=53';
+import { buildCampusWall } from './wall.js?v=53';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=53';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1092,7 +1092,13 @@ document.getElementById('chooser').addEventListener('click', (e) => {
     if (ch.dataset.first) {
       // 第一次選好角色：從校門口出發
       setMode('third');
-      toast(`${b.dataset.gender === 'girl' ? '👧' : '👦'} 歡迎來到溪口國小！<br><small>點地面就會自己走過去，也可以用 WASD 或搖桿</small>`);
+      const kid = b.dataset.gender === 'girl' ? '👧' : '👦';
+      if (coverGo) {                                            // 在封面點了某棟樓：直接到那裡
+        const [f, x, z, yaw] = coverGo.go();
+        placeAt(f, x, z, yaw);
+        toast(`${kid} 來到 ${coverGo.title}！<br><small>點地面就會自己走過去，也可以用 WASD 或搖桿</small>`);
+        coverGo = null;
+      } else toast(`${kid} 歡迎來到溪口國小！<br><small>點地面就會自己走過去，也可以用 WASD 或搖桿</small>`);
     } else {
       toast('已換好角色！');
     }
@@ -2669,10 +2675,112 @@ if (params.get('pano') && viewer.byImg[params.get('pano')]) openPano(viewer.byIm
 document.getElementById('loading').remove();
 // 第一次來（而且不是從分享連結進來）：先選角色
 // 每次進網站都先選男生／女生（第三人稱）；用 ?room= ?pano= 分享連結進來的就不打擾
-if (!qRoom && !params.get('pano')) openChooser({ firstTime: true });
 document.querySelectorAll('[data-gender]').forEach((b) => b.classList.toggle('on', b.dataset.gender === savedGender()));
 document.getElementById('changeAvatar').onclick = () => { document.getElementById('help').hidden = true; openChooser(); };
 document.getElementById('avatarBtn').onclick = () => openChooser();
+
+/* ---------------- 首頁封面（參考 DSLab）：用自己的 3D 模型拍一張等角全景，配上紙條標籤 ---------------- */
+
+const COVER_SPOTS = [
+  { title: '敬業樓', sub: 'A · JING YE', lift: 40, note: '圖書館、會議室、校長室、電腦教室，五樓活動中心', acc: '#c0392b',
+    at: () => [mx(1100), 5 * FLOOR_H + 1, mz(360)], go: () => [floorById['1F'], mx(1300), mz(364), Math.PI / 2] },
+  { title: '至善樓', sub: 'B · ZHI SHAN', note: '幼兒園教室、潛能教室，頂樓菜園', acc: '#2f6fb5',
+    at: () => [mx(1620), 4 * FLOOR_H + 1, mz(820)], go: () => [floorById['1F'], mx(1526), mz(700), 0] },
+  { title: '勤學樓', sub: 'C · QIN XUE', note: '學務處、健康中心、幼兒園，樓上是班級教室', acc: '#d9730d',
+    at: () => [mx(1110), 4 * FLOOR_H + 1, mz(1180)], go: () => [floorById['1F'], mx(1100), mz(1082), -Math.PI / 2] },
+  { title: '思源樓', sub: 'D · SI YUAN', lift: 84, dx: 10, note: '正門穿堂、教務處、總務處，樓上是班級教室', acc: '#2d8a57',
+    at: () => [mx(580), 4 * FLOOR_H + 1, mz(820)], go: () => [floorById['1F'], mx(560), mz(825), -Math.PI / 2] },
+  { title: '操場', sub: 'SPORTS FIELD', lift: 78, dx: -48, note: '跑道、籃球場、司令臺', acc: '#2d8a57',
+    at: () => [mx(D.outdoor.track.center[0]), 0, mz(D.outdoor.track.center[1])],
+    go: () => { const T = D.outdoor.track; return [floorById['1F'], mx(T.center[0]), mz(T.center[1]), 0]; } },
+  { title: '水漾游泳館', sub: 'SWIMMING POOL', lift: 26, dx: 30, note: '室內 25 公尺泳池', acc: '#2f6fb5',
+    at: () => { const m = rectM(D.outdoor.pool); return [(m.x1 + m.x2) / 2, 6.5, (m.z1 + m.z2) / 2]; },
+    go: () => { const m = rectM(D.outdoor.pool), [d0, d1] = poolDoor(m); return [floorById['1F'], (d0 + d1) / 2, m.z1 - 3, Math.PI]; } },
+  { title: '正門', sub: 'MAIN GATE', lift: 20, dx: -46, note: '從這裡走進校園', acc: '#c0392b',
+    at: () => [mx(D.outdoor.gate.x), 0, mz((D.outdoor.gate.y1 + D.outdoor.gate.y2) / 2)],
+    go: () => [floorById['1F'], mx(D.outdoor.gate.x - 50), mz((D.outdoor.gate.y1 + D.outdoor.gate.y2) / 2), -Math.PI / 2] },
+];
+let coverGo = null;
+
+// 用正交相機從東南方斜上往下拍整座浮空島（背景換成米白紙色），拍完把場景還原
+function renderCover() {
+  const W = renderer.domElement.width, H = renderer.domElement.height, aspect = W / H;
+  const c0 = new THREE.Vector3((ISL.x1 + ISL.x2) / 2, -8, (ISL.z1 + ISL.z2) / 2);
+  const wide = aspect > 1.15;
+  const halfH = wide ? 80 : Math.max(80, 92 / aspect);
+  const halfW = halfH * aspect, fx = wide ? 0.6 : 0.5;                 // 寬螢幕：島放在右邊一點，左邊留給文字
+  const cam = new THREE.OrthographicCamera(-2 * halfW * fx, 2 * halfW * (1 - fx), wide ? halfH : halfH * 1.02, wide ? -halfH : -halfH * 0.98, 1, 2000);
+  cam.position.copy(c0).add(new THREE.Vector3(0.62, 0.78, 1).normalize().multiplyScalar(600));
+  cam.lookAt(c0);
+  cam.updateProjectionMatrix();
+  // 暫時換掉的東西
+  const saved = { bg: scene.background, fog: scene.fog, avatar: avatar.visible, bl: buildingLabels.visible, clouds: clouds?.visible, dest: destMark.visible };
+  const hidden = [];
+  scene.background = new THREE.Color('#f3eee3'); scene.fog = null;
+  avatar.visible = false; buildingLabels.visible = false; destMark.visible = false;
+  if (clouds) clouds.visible = false;
+  for (const f of floors) {
+    hidden.push([f.group, f.group.visible], [f.labels, f.labels.visible], [f.ceil, f.ceil.visible], [f.navGroup, f.navGroup.visible]);
+    f.group.visible = true; f.labels.visible = false; f.ceil.visible = true; f.navGroup.visible = false;
+    f.group.traverse((o) => { if (o.userData.pano || o.userData.pulse) { hidden.push([o, o.visible]); o.visible = false; } });
+  }
+  setIsland(true);
+  renderer.render(scene, cam);
+  const url = renderer.domElement.toDataURL('image/jpeg', 0.9);
+  const pos = COVER_SPOTS.map((s) => { const v = new THREE.Vector3(...s.at()).project(cam); return [(v.x + 1) / 2 * 100, (1 - v.y) / 2 * 100]; });
+  // 還原
+  scene.background = saved.bg; scene.fog = saved.fog; avatar.visible = saved.avatar; buildingLabels.visible = saved.bl; destMark.visible = saved.dest;
+  if (clouds) clouds.visible = saved.clouds;
+  for (const [o, v] of hidden) o.visible = v;
+  updateVisibility();
+  return { url, pos };
+}
+
+function openCover() {
+  const cv = document.getElementById('cover');
+  cv.hidden = false;
+  if (!innerWidth || !innerHeight) { setTimeout(openCover, 300); return; }   // 視窗還沒有大小（背景分頁）：等一下再拍
+  if (renderer.domElement.width !== Math.floor(innerWidth * renderer.getPixelRatio())) renderer.setSize(innerWidth, innerHeight);
+  const { url, pos } = renderCover();
+  cv.querySelector('img').src = url;
+  const box = cv.querySelector('.tags');
+  box.innerHTML = COVER_SPOTS.map((s, i) => `<button class="ctag" data-i="${i}" style="left:${pos[i][0].toFixed(2)}%;top:${pos[i][1].toFixed(2)}%;--acc:${s.acc};--lift:${s.lift || 44}px;--dx:${s.dx || 0}px">
+      <b>${s.title}</b><small>${s.sub}</small></button>`).join('');
+  cv.querySelector('.list').innerHTML = COVER_SPOTS.map((s, i) => `<button data-i="${i}" style="--acc:${s.acc}">${s.title}</button>`).join('');
+  if (cv.dataset.sel) cv.querySelectorAll('[data-i]').forEach((b) => b.classList.toggle('on', b.dataset.i === cv.dataset.sel));
+}
+// 視窗大小改變（轉手機、拉視窗）時重拍封面，紙條位置才會對
+let coverTimer = 0;
+addEventListener('resize', () => {
+  if (document.getElementById('cover').hidden) return;
+  clearTimeout(coverTimer); coverTimer = setTimeout(openCover, 150);
+});
+document.getElementById('cover').addEventListener('click', (e) => {
+  const cv = e.currentTarget, t = e.target.closest('button');
+  if (!t) return;
+  if (t.dataset.i !== undefined) {
+    const s = COVER_SPOTS[+t.dataset.i];
+    // 先把說明卡換成這一區的介紹，再按一次就進去（跟 DSLab 一樣：點一下看介紹、再點就進去）
+    if (cv.dataset.sel !== t.dataset.i) {
+      cv.dataset.sel = t.dataset.i;
+      cv.querySelectorAll('[data-i]').forEach((b) => b.classList.toggle('on', b.dataset.i === t.dataset.i));
+      cv.querySelector('.guide h3').textContent = s.title;
+      cv.querySelector('.guide p').textContent = s.note;
+      cv.querySelector('.guide .go').hidden = false;
+      return;
+    }
+    coverGo = s;
+  } else if (t.classList.contains('go')) {
+    coverGo = COVER_SPOTS[+cv.dataset.sel];
+  } else if (t.dataset.act === 'bird') {
+    cv.hidden = true; setMode('bird'); return;
+  } else if (t.dataset.act !== 'walk') return;
+  cv.hidden = true;
+  openChooser({ firstTime: true });
+});
+
+// 每次進網站先看封面（用 ?room= ?pano= 分享連結進來的就不打擾）
+if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
