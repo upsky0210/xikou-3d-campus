@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=51';
+import { Batch, mat, SPOTS } from './blocks.js?v=52';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -498,4 +498,33 @@ export function buildCourtyard(group, m, FH) {
   for (let i = 0; i < 9; i++) for (let j = 0; j < 2; j++) b.box(mat('wool', tiles[(i + j) % 3]), 0.98, 0.03, 0.48, kx - 4.0 + i * 1.0, 0.015, kz + kd / 2 + 0.55 + j * 0.5);
   b.build(group);
   return raised;
+}
+
+/* ---------- 教師停車場（乙梯旁邊的空地，依使用者說明：約 8～9 台車） ---------- */
+// 方塊車：車身、車窗、車頂、輪子、車燈。dir：車頭朝 +x（1）或 -x（-1）
+function car(b, x, z, dir, color) {
+  const body = mat('wool', color), glass = mat('wool', '#2b3440'), tire = mat('wool', '#1b1b1d');
+  b.box(body, 4.3, 0.65, 1.8, x, 0.6, z);                                   // 車身
+  b.box(glass, 2.3, 0.55, 1.62, x - dir * 0.25, 1.2, z);                    // 車窗（車廂）
+  b.box(body, 2.1, 0.1, 1.55, x - dir * 0.25, 1.52, z);                     // 車頂
+  for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) b.box(tire, 0.62, 0.6, 0.3, x + a * 1.35, 0.3, z + c * 0.82);
+  for (const c of [-0.6, 0.6]) {
+    b.box(mat('wool', '#fff6c8'), 0.06, 0.16, 0.36, x + dir * 2.16, 0.72, z + c);   // 頭燈
+    b.box(mat('wool', '#c0392b'), 0.06, 0.14, 0.32, x - dir * 2.16, 0.74, z + c);   // 尾燈
+  }
+}
+/** x1～x2、z1～z2：停車場範圍（公尺）。西邊一排 5 台、東邊一排 4 台，車頭朝中間的車道 */
+export function buildParking(group, x1, x2, z1, z2) {
+  const b = new Batch();
+  b.box(mat('wool', '#55585c'), x2 - x1, 0.04, z2 - z1, (x1 + x2) / 2, 0.02, (z1 + z2) / 2);   // 柏油
+  const line = mat('wool', '#f2f2ee'), slot = 2.6;
+  const colors = ['#f4f4f2', '#b9bec4', '#1f2226', '#b8312f', '#2f5aa8', '#7d8288', '#f4f4f2', '#2d5e46', '#d8cfb8'];
+  let k = 0;
+  for (const [side, n] of [[-1, 5], [1, 4]]) {
+    const cx = side < 0 ? x1 + 2.7 : x2 - 2.7;
+    for (let i = 0; i <= n; i++) b.box(line, 5.0, 0.02, 0.1, cx, 0.045, z1 + 0.3 + i * slot);   // 停車格線
+    b.box(line, 0.1, 0.02, n * slot, side < 0 ? cx + 2.5 : cx - 2.5, 0.045, z1 + 0.3 + n * slot / 2);
+    for (let i = 0; i < n; i++) car(b, cx - side * 0.1, z1 + 0.3 + slot * (i + 0.5), -side, colors[k++]);
+  }
+  b.build(group);
 }

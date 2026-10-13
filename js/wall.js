@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=51';
+import { Batch, mat } from './blocks.js?v=52';
 
 /* =========================================================
  * 校園圍牆與外面的人行道（依 2026-10-12 使用者照片）
@@ -106,7 +106,7 @@ function buildStreet(b, r, L, ux, uz, avoid) {
   const trunk = mat('log', '#8a7a66'), root = mat('log', '#6d5f50'), leaves = mat('leaves');
   const bamboo = mat('wool', '#c8b07a'), seat = mat('planks', '#b07a45'), metal = mat('wool', '#2b2b2b');
   const near = (x, z) => avoid.some(([ax, az, rad]) => Math.hypot(x - ax, z - az) < rad);
-  const N = Math.max(1, Math.round(L / (r.treeGap || 7.5)));
+  const N = Math.max(1, Math.round(L / (r.treeGap || 13)));
   for (let i = 0; i < N; i++) {
     const t = (i + 0.5) * (L / N), [x, z] = at(t, 1.7);
     if (near(x, z)) continue;

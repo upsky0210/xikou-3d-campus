@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=51';
+import { Batch, mat, SPOTS } from './blocks.js?v=52';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -537,8 +537,9 @@ function officeChair(put, u, v, faceU, faceV, color, seatColor = '#202226') {
   if (faceU) put(mesh, 0.06, 0.46, 0.5, u - faceU * 0.24, v, 0.54);
   else put(mesh, 0.46, 0.06, 0.5, u, v - faceV * 0.24, 0.54);
 }
-function meetingRoom(put, fr) {
+function meetingRoom(put, fr, room) {
   const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]);
   put(mat('planks', '#a8988a'), L, W, 0.012, L / 2, 0, 0);                       // 木紋地板
   // 前牆：下櫃＋兩側玻璃櫃，中間黃色牆面，上方投影布幕
   put(mat('planks', '#e2d6c2'), 0.5, W - 0.4, 0.9, 0.27, 0, 0);
@@ -578,7 +579,7 @@ function meetingRoom(put, fr) {
   // 後牆：校史牆
   put(historyWallMat(), 0.03, W - 0.6, 1.7, L - 0.02, 0, 0.85, true);
   // 窗邊：抽屜櫃
-  for (let u = L * 0.45; u < L - 0.6; u += 0.9) put(mat('planks', '#b08a66'), 0.88, 0.45, 0.85, u, A * (W / 2 - 0.25), 0);
+  for (let u = L * 0.45; u < L - 0.6; u += 0.9) if (doorU.every((d) => Math.abs(d - u) > 1.3)) put(mat('planks', '#b08a66'), 0.88, 0.45, 0.85, u, A * (W / 2 - 0.25), 0);
   // 門那一側：獎盃櫃＋易拉展＋玻璃展示櫃
   put(mat('planks', '#e2d6c2'), 3.0, 0.5, 0.9, 4.0, D * (W / 2 - 0.27), 0);
   for (let i = 0; i < 7; i++) {
@@ -1462,7 +1463,7 @@ function furnishRoom(room, fr, put) {
   if (n === '學務處') return studentAffairs(put, fr, room);                  // 依照片
   if (n.includes('活動中心')) return gym(put, fr);
   if (n.includes('舞蹈') || n.includes('律動')) return danceRoom(put, fr);
-  if (n === '會議室' && room.no === '111') return meetingRoom(put, fr);   // 1F 會議室依照片
+  if (n === '會議室' && room.no === '111') return meetingRoom(put, fr, room);   // 1F 會議室依照片
   if (t === 'office') return office(put, fr, n, room);
   if (t === 'kinder') return kinder(put, fr);
   if (t === 'storage') return storage(put, fr);

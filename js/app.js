@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=51';
-import { furnishFloor } from './furniture.js?v=51';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=51';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=51';
-import { buildCampusWall } from './wall.js?v=51';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=51';
+import { PanoViewer } from './pano.js?v=52';
+import { furnishFloor } from './furniture.js?v=52';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=52';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=52';
+import { buildCampusWall } from './wall.js?v=52';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=52';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -162,6 +162,7 @@ function sideIsSolid(room, s) {
 //   是米白石紋牆＋白框布告欄（黃色牛皮紙、照片、藍色紙花）＋上方一排氣窗。gallery 的值是走廊在 z 的哪一側
 function galleryWall(room, s) {
   if (room.floor !== '1F' || room.building !== 'A') return {};
+  if (s === 'W' && Math.abs(room.m.x1 - mx(705)) < 0.3) return { solid: true };   // 國際性平牆那一面（西側走廊）：沒有窗
   const north = s === 'S' && Math.abs(room.m.z2 - mz(330)) < 0.3;        // 走廊北邊的教室（南牆面向走廊）
   const south = s === 'N' && Math.abs(room.m.z1 - mz(398)) < 0.3;        // 走廊南邊的教室（北牆面向走廊）
   if (!north && !south) return {};
@@ -380,7 +381,7 @@ function wallRuns() {
     { ax: x1, az: z2, bx: x2, bz: z2, out: [0, 1] },           // 南
   ];
   // 西邊（正門那面）榕樹比較多：樹種得比較密；正門兩側樹籬那段沒有圍牆，但外面一樣有人行道和榕樹
-  const west = { out: [-1, 0], treeGap: 5 };
+  const west = { out: [-1, 0], treeGap: 9 };
   if (G && Math.abs(G.x - W.x1) < 1) {
     runs.push({ ax: x1, az: z1, bx: x1, bz: mz(540), ...west }, { ax: x1, az: mz(540), bx: x1, bz: mz(1110), noWall: true, ...west },
       { ax: x1, az: mz(1110), bx: x1, bz: z2, ...west });
@@ -555,7 +556,7 @@ function setIsland(on) {
 
 // 樹（裝飾）
 const treeSpots = [
-  ...[[380, 300], [220, 980], [1850, 400], [1850, 900], [250, 1500], [1960, 1500], [220, 1900], [1980, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
+  ...[[220, 980], [1850, 400], [1850, 900], [250, 1500], [1960, 1500], [220, 1900], [1980, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
 ];
 if (BLOCKY) {
   const tb = new Batch();
@@ -604,6 +605,12 @@ function buildOutdoor() {
     // 中庭：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑（依照片）
     const court = rooms.find((r) => r.name === '中庭');
     if (court) raised.push(...buildCourtyard(g, court.m, FLOOR_H));
+  }
+  {
+    // 教師停車場：乙梯北邊、敬業樓廁所南邊、圍牆和西側走廊之間的空地
+    const px1 = mx(D.outdoor.wall?.x1 ?? 300) + 0.6, px2 = mx(645) - 0.7, pz1 = mz(230) + 0.3, pz2 = mz(475) - 0.4;
+    buildParking(g, px1, px2, pz1, pz2);
+    floors[1].labels.add(makeTag('教師停車場', 'PARKING', (px1 + px2) / 2, 0, (pz1 + pz2) / 2, { accent: '#2f6fb5', h: 2.6, stem: 3.5 }));
   }
   if (O.facadeC) {
     // 勤學樓背面、思源樓面向操場那面（依照片）
@@ -1452,7 +1459,7 @@ function updateVisibility() {
       const sp = tg.sprite;
       sp.userData.base ||= { sx: sp.scale.x, sy: sp.scale.y, y: sp.position.y };
       sp.scale.set(sp.userData.base.sx * k, sp.userData.base.sy * k, 1);
-      sp.position.y = mode === 'bird' ? sp.userData.base.y : 2.45 + f.y - s.position.y;
+      sp.position.y = sp.userData.base.y;
       for (const o of tg.stem) o.visible = mode === 'bird';
       continue;
     }
@@ -2182,8 +2189,8 @@ const NPCS = [
       '😾 阿喵老師兇巴巴恰北北！',
       '🚀 阿喵老師：跟你們這些地球人溝通有問題，我要回火星！',
     ],
-    // 1 樓電腦教室一（109）裡面、靠中庭（南邊）那一側，面向教室
-    at: () => [mx(1425), mz(545) - 1.3, 0],
+    // 1 樓電腦教室一（109）外面、靠中庭的走廊（敬業樓南側走廊），面向中庭
+    at: () => [mx(1425), mz(565), Math.PI],
     look: {
       // 三花貓（擬人化）：白底＋橘色、黑色色塊，黑框眼鏡、琥珀色眼睛；大頭；淺藍襯衫＋卡其褲
       cat: true, headScale: 1.35, skin: '#fbf8f2', hair: '#fbf8f2', top: '#7fa7d6', collar: '#ffffff', pants: '#9b8a66', shoe: '#5a3d2b',
