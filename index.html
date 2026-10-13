@@ -180,12 +180,16 @@
   }
 
   /* 目前位置、小地圖 */
-  #where { position: fixed; top: 74px; left: 12px; background: var(--panel); border-radius: 999px; padding: 6px 14px; box-shadow: var(--shadow);
-    font-weight: 700; font-size: 14px; display: none; gap: 6px; align-items: center; pointer-events: none; max-width: calc(100vw - 90px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 紙條風格（參考 DSLab）：米白紙、黑框、左邊色條、膠帶、錯位影子 */
+  #where { position: fixed; top: 78px; left: 12px; background: #fbf6ea; color: #2b2b2b; border: 3px solid #2b2b2b; border-left: 10px solid #c0392b;
+    border-radius: 0; padding: 5px 14px 5px 10px; box-shadow: 6px 6px 0 rgba(0,0,0,.25); transform: rotate(-1deg);
+    font-weight: 900; font-size: 14px; display: none; gap: 6px; align-items: center; pointer-events: none; max-width: calc(100vw - 90px); white-space: nowrap; }
+  #where::before { content: ''; position: absolute; top: -10px; left: 50%; width: 56px; height: 16px; margin-left: -28px; background: rgba(226,138,138,.85); transform: rotate(3deg); }
+  #where span { overflow: hidden; text-overflow: ellipsis; }
   #where i { font-style: normal; }
   body.walking #where { display: flex; }
-  #minimap { position: fixed; left: 12px; bottom: 12px; width: 160px; height: 160px; border-radius: 14px; overflow: hidden; border: 3px solid #fff;
-    box-shadow: var(--shadow); display: none; background: #8cc56a; }
+  #minimap { position: fixed; left: 12px; bottom: 12px; width: 160px; height: 160px; border-radius: 0; overflow: hidden; border: 3px solid #2b2b2b;
+    box-shadow: 6px 6px 0 rgba(0,0,0,.25); display: none; background: #8cc56a; }
   body.walking #minimap { display: block; }
   #minimap canvas { width: 100%; height: 100%; display: block; cursor: pointer; }
   #minimap b { position: absolute; font-size: 12px; pointer-events: none; }
@@ -198,7 +202,11 @@
 
   /* 選角色 */
   #chooser { position: fixed; inset: 0; z-index: 15; background: rgba(10,20,30,.55); display: grid; place-items: center; padding: 16px; }
-  #chooser .card-wrap { background: #fff; border-radius: 18px; padding: 22px; width: min(520px, 100%); text-align: center; box-shadow: var(--shadow); }
+  #chooser .card-wrap { position: relative; background: #fbf6ea; border: 3px solid #2b2b2b; border-radius: 0; padding: 0 22px 18px; width: min(540px, 100%); text-align: center;
+    box-shadow: 10px 10px 0 rgba(0,0,0,.28); }
+  #chooser .card-wrap::before { content: ''; position: absolute; top: -12px; left: 50%; width: 110px; height: 22px; margin-left: -55px; background: rgba(226,138,138,.85); transform: rotate(-2deg); }
+  #chooser .guide { margin: 0 -22px 14px; background: #c0392b; color: #fff; text-align: left; padding: 8px 16px; font-weight: 700; font-size: 13px; letter-spacing: 3px; }
+  #chooser .guide b { letter-spacing: 1px; font-size: 13px; opacity: .85; margin-left: 6px; }
   #chooser h2 { margin: 0 0 4px; font-size: 26px; }
   #chooser p { margin: 0 0 16px; color: #556; }
   #chooser small { color: #889; }
@@ -273,8 +281,8 @@
   body.mc kbd { border-radius: 0; }
   body.mc #info .x { background: none; box-shadow: none; border: 0; color: #555; text-shadow: none; }
   body.mc .style-pick button.on { outline: 3px solid #4f8a2b; }
-  body.mc #chooser .card-wrap { background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
-    box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25); }
+  body.mc #chooser .card-wrap { background: #fbf6ea; color: #2b2b2b; border: 3px solid #111; border-radius: 0;
+    box-shadow: 10px 10px 0 rgba(0,0,0,.28); }                 /* 紙條風格（同一般風格） */
   body.mc #chooser h2 { font-family: "Cubic 11", "Noto Sans TC", sans-serif; font-weight: 400; }
   body.mc #chooser .choices button { background: #8fc8ff; box-shadow: inset 3px 3px 0 #c8e4ff, inset -3px -3px 0 #4b7fae; padding: 10px 6px 14px; }
   body.mc #chooser .choices button.on { outline: 4px solid #d32f2f; }
@@ -351,6 +359,7 @@
 
 <div id="chooser" hidden>
   <div class="card-wrap">
+    <div class="guide">FIELD GUIDE · <b>溪口國小校園導覽</b></div>
     <h2>選擇你的角色</h2>
     <p>穿上溪口國小的制服，一起逛校園！</p>
     <div class="choices">
@@ -456,8 +465,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=47"></script>
-<script src="js/pano-data.js?v=47"></script>
-<script type="module" src="js/app.js?v=47"></script>
+<script src="js/campus-data.js?v=50"></script>
+<script src="js/pano-data.js?v=50"></script>
+<script type="module" src="js/app.js?v=50"></script>
 </body>
 </html>

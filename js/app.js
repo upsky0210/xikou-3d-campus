@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=47';
-import { furnishFloor } from './furniture.js?v=47';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=47';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=47';
-import { buildCampusWall } from './wall.js?v=47';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=47';
+import { PanoViewer } from './pano.js?v=50';
+import { furnishFloor } from './furniture.js?v=50';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=50';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard } from './field.js?v=50';
+import { buildCampusWall } from './wall.js?v=50';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=50';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -411,6 +411,86 @@ ground.position.y = -0.05;
 ground.receiveShadow = true;
 scene.add(ground);
 
+// 鳥瞰時：整個校園是一座浮空的方塊島（參考 DSLab 小島）；走路時外面照常是草地
+const ISL = (() => { const w = D.outdoor.wall || { x1: 150, y1: 40, x2: 1960, y2: 2200 }; return { x1: mx(w.x1) - 17, x2: mx(w.x2) + 17, z1: mz(w.y1) - 17, z2: mz(w.y2) + 17 }; })();
+{
+  // 草地本體改成只鋪到島的範圍（樓梯的洞照舊）
+  const top = new THREE.Shape([[ISL.x1, -ISL.z2], [ISL.x2, -ISL.z2], [ISL.x2, -ISL.z1], [ISL.x1, -ISL.z1]].map(([x, y]) => new THREE.Vector2(x, y)));
+  top.holes = groundShape.holes;
+  const geo = new THREE.ShapeGeometry(top);
+  if (!BLOCKY) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 600 + 0.5, uv.getY(i) / 600 + 0.5); }
+  ground.geometry.dispose(); ground.geometry = geo;
+}
+// 島外面的草地（走路時才顯示）
+const outerShape = new THREE.Shape([[-300, -300], [300, -300], [300, 300], [-300, 300]].map(([x, y]) => new THREE.Vector2(x, y)));
+outerShape.holes.push(new THREE.Path([[ISL.x1, -ISL.z2], [ISL.x1, -ISL.z1], [ISL.x2, -ISL.z1], [ISL.x2, -ISL.z2]].map(([x, y]) => new THREE.Vector2(x, y))));
+const outerGeo = new THREE.ShapeGeometry(outerShape);
+if (!BLOCKY) { const uv = outerGeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 600 + 0.5, uv.getY(i) / 600 + 0.5); }
+const outerGround = new THREE.Mesh(outerGeo, ground.material);
+outerGround.rotation.x = -Math.PI / 2; outerGround.position.y = -0.05; outerGround.receiveShadow = true;
+scene.add(outerGround);
+// 島的側面與底部
+const islandBody = (() => {
+  const g = new THREE.Group();
+  // 側面貼圖：一格一公尺。最上面一格是草皮邊、接著泥土、下面是石頭
+  const sideTex = (rows) => {
+    const cv = document.createElement('canvas'); cv.width = 16; cv.height = 16 * rows.length;
+    const c = cv.getContext('2d'); let s = 7;
+    const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    rows.forEach((kind, r) => {
+      const base = { grass: '#7a5230', dirt: '#86592f', stone: '#7f7f7f', deep: '#5f5f63' }[kind];
+      for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+        let col = base;
+        if (kind === 'grass' && y < 4 + (rnd() < 0.4 ? 1 : 0)) col = rnd() < 0.5 ? '#5fa33a' : '#6fb544';
+        const v = (rnd() - 0.5) * 0.22;
+        c.fillStyle = col; c.fillRect(x, r * 16 + y, 1, 1);
+        c.fillStyle = v > 0 ? `rgba(255,255,255,${v})` : `rgba(0,0,0,${-v})`; c.fillRect(x, r * 16 + y, 1, 1);
+      }
+    });
+    const t = new THREE.CanvasTexture(cv);
+    t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter;
+    t.wrapS = THREE.RepeatWrapping;
+    return t;
+  };
+  const layer = (rows, inset, y0) => {
+    const H = rows.length, W = ISL.x2 - ISL.x1 - inset * 2, Dp = ISL.z2 - ISL.z1 - inset * 2;
+    const geo = new THREE.BoxGeometry(W, H, Dp), uv = geo.attributes.uv;
+    const lens = [Dp, Dp, W, W, W, W];                     // +x -x +y -y +z -z 每一面的寬（公尺）
+    for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) { const i = f * 4 + k; uv.setX(i, uv.getX(i) * lens[f]); }
+    const side = new THREE.MeshLambertMaterial({ map: sideTex(rows) }), cap = new THREE.MeshLambertMaterial({ color: '#5f5f63' });
+    const m = new THREE.Mesh(geo, [side, side, cap, cap, side, side]);
+    m.position.set((ISL.x1 + ISL.x2) / 2, y0 - H / 2, (ISL.z1 + ISL.z2) / 2);
+    g.add(m);
+  };
+  layer(['grass', 'dirt', 'dirt', 'dirt', 'dirt', 'stone', 'stone', 'stone', 'stone', 'deep', 'deep'], 0, -0.06);
+  layer(['stone', 'stone', 'deep', 'deep', 'deep', 'deep'], 6, -11.06);
+  layer(['deep', 'deep', 'deep', 'deep', 'deep'], 15, -17.06);
+  layer(['deep', 'deep', 'deep', 'deep'], 28, -22.06);
+  // 底下垂下來的石塊（方塊）
+  let s = 21; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const rock = [new THREE.MeshLambertMaterial({ color: '#6c6c70' }), new THREE.MeshLambertMaterial({ color: '#7d5634' }), new THREE.MeshLambertMaterial({ color: '#57575b' })];
+  for (let i = 0; i < 70; i++) {
+    const inset = 8 + rnd() * 26, t = rnd(), side = (rnd() * 4) | 0, sz = 2 + rnd() * 5, h = 2 + rnd() * 7;
+    const W = ISL.x2 - ISL.x1 - inset * 2, Dp = ISL.z2 - ISL.z1 - inset * 2;
+    let x = ISL.x1 + inset + t * W, z = ISL.z1 + inset + t * Dp;
+    if (side === 0) z = ISL.z1 + inset; else if (side === 1) z = ISL.z2 - inset; else if (side === 2) x = ISL.x1 + inset; else x = ISL.x2 - inset;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(sz, h, sz), rock[i % 3]);
+    m.position.set(Math.round(x), -17 - h / 2 + rnd() * 2, Math.round(z));
+    g.add(m);
+  }
+  g.visible = false;
+  scene.add(g);
+  return g;
+})();
+// 島下面的一層雲
+const lowClouds = BLOCKY ? makeClouds(10, 200, -42) : null;
+if (lowClouds) { lowClouds.visible = false; scene.add(lowClouds); }
+function setIsland(on) {
+  outerGround.visible = !on;
+  islandBody.visible = on;
+  if (lowClouds) lowClouds.visible = on;
+}
+
 // 樹（裝飾）
 const treeSpots = [
   ...[[380, 300], [220, 980], [1850, 400], [1850, 900], [250, 1500], [1960, 1500], [220, 1900], [1980, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
@@ -456,7 +536,7 @@ function buildOutdoor() {
     // 依照片：紅藍相間跑道、中間藍色籃球場、兩端草地圍網
     const cx = mx(O.track.center[0]), cz = mz(O.track.center[1]);
     buildField(g, cx, cz, O.track.size[0] / S / 2, O.track.size[1] / S / 2);
-    floors[1].labels.add(makeLabel('操場', '', cx, 3, cz, { bg: '#2d6a4f', h: 1.6 }));
+    floors[1].labels.add(makeTag('操場', 'SPORTS FIELD', cx, 0, cz, { accent: '#2d8a57', h: 4.2, stem: 4 }));
   }
   {
     // 中庭：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑（依照片）
@@ -473,7 +553,7 @@ function buildOutdoor() {
     // 條紋屋頂建築（牆已經在資料階段加進碰撞），這裡蓋屋頂
     const m = rectM(O.pool);
     raised.push(...buildPool(g, m, stripeRoofTexture(m.x2 - m.x1)));   // 入口階梯可以踩上去
-    floors[1].labels.add(makeLabel('水漾游泳館', '游泳池', (m.x1 + m.x2) / 2, 8.5, (m.z1 + m.z2) / 2, { bg: '#2f6fb5', h: 1.4 }));
+    floors[1].labels.add(makeTag('水漾游泳館', 'SWIMMING POOL', (m.x1 + m.x2) / 2, 6.5, (m.z1 + m.z2) / 2, { accent: '#2f6fb5', h: 3.8, stem: 3 }));
   }
   if (O.wall) {
     // 校園圍牆＋牆外人行道（正門口、起點附近不種樹，免得擋路）
@@ -498,7 +578,7 @@ function buildOutdoor() {
       }
     });
     b.build(g);
-    floors[1].labels.add(makeLabel('正門', '溪口國小', gx - 1, 6.2, zc, { bg: '#c2410c', h: 1.2 }));
+    floors[1].labels.add(makeTag('正門', 'MAIN GATE', gx - 1, 0, zc, { accent: '#c0392b', h: 3.2, stem: 5.5 }));
   }
   if (O.tower) {
     // 正門左邊那座有圓窗的圓柱塔
@@ -519,7 +599,7 @@ function buildOutdoor() {
   if (O.stage) {
     const m = rectM(O.stage);
     raised.push(...buildStage(g, m));
-    floors[1].labels.add(makeLabel('司令臺', '', (m.x1 + m.x2) / 2, 5.4, (m.z1 + m.z2) / 2 + 1, { bg: '#2d6a4f', h: 1.2 }));
+    floors[1].labels.add(makeTag('司令臺', 'STAGE', (m.x1 + m.x2) / 2, 4.9, (m.z1 + m.z2) / 2 + 1, { accent: '#d9730d', h: 3.0, stem: 2.5 }));
   }
   if (O.playground) {
     const m = rectM(O.playground);
@@ -530,7 +610,7 @@ function buildOutdoor() {
     Batch.collector = outer;
     const cx2 = m.x1 + m.x2, cz2 = m.z1 + m.z2;
     for (const b of local) outer?.push({ ...b, x1: cx2 - b.x2, x2: cx2 - b.x1, z1: cz2 - b.z2, z2: cz2 - b.z1 });
-    floors[1].labels.add(makeLabel('遊戲場', '', (m.x1 + m.x2) / 2, 6.8, (m.z1 + m.z2) / 2, { bg: '#2d6a4f', h: 1.2 }));
+    floors[1].labels.add(makeTag('遊戲場', 'PLAYGROUND', (m.x1 + m.x2) / 2, 0, (m.z1 + m.z2) / 2, { accent: '#2d8a57', h: 3.0, stem: 6.5 }));
   }
 }
 
@@ -811,6 +891,39 @@ function makeLabel(title, sub, x, y, z, { bg = '#1e3a5f', h = 1.25 } = {}) {
   sp.renderOrder = 2;
   return sp;
 }
+// 紙條標籤（參考 DSLab）：米白紙、黑框、左邊色條、上面一段膠帶、下面一根細桿指到地點
+function makeTag(title, sub, x, y0, z, { accent = '#c0392b', h = 2.2, stem = 4 } = {}) {
+  const pad = 22, fs1 = 58, fs2 = 24, cv = document.createElement('canvas'), c = cv.getContext('2d');
+  const f1 = `900 ${fs1}px ${LABEL_FONT}`, f2 = `700 ${fs2}px ${LABEL_FONT}`;
+  c.font = f1; const w1 = c.measureText(title).width;
+  c.font = f2; const w2 = sub ? c.measureText(sub).width + sub.length * 3 : 0;
+  const W = Math.ceil(Math.max(w1, w2) + pad * 2 + 18), H = (sub ? fs1 + fs2 + 14 : fs1) + pad * 2, top = 16;
+  cv.width = W + 10; cv.height = H + top + 10;
+  c.fillStyle = 'rgba(0,0,0,.28)'; c.fillRect(10, top + 10, W, H);                 // 影子
+  c.fillStyle = '#fbf6ea'; c.fillRect(0, top, W, H);
+  c.strokeStyle = '#2b2b2b'; c.lineWidth = 4; c.strokeRect(2, top + 2, W - 4, H - 4);
+  c.fillStyle = accent; c.fillRect(4, top + 4, 12, H - 8);                         // 左邊色條
+  c.save(); c.translate(W / 2, top + 2); c.rotate(-0.05);                          // 膠帶
+  c.fillStyle = 'rgba(226,138,138,.82)'; c.fillRect(-50, -15, 100, 28);
+  c.fillStyle = 'rgba(255,255,255,.25)'; for (let i = -46; i < 50; i += 10) c.fillRect(i, -15, 3, 28);
+  c.restore();
+  c.textAlign = 'left'; c.textBaseline = 'top';
+  c.font = f1; c.fillStyle = '#2b2b2b'; c.fillText(title, pad + 18, top + pad);
+  if (sub) { c.font = f2; c.fillStyle = accent; if ('letterSpacing' in c) c.letterSpacing = '3px'; c.fillText(sub, pad + 18, top + pad + fs1 + 10); }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthWrite: false }));
+  sp.center.set(0.5, 0);
+  sp.scale.set(h * cv.width / cv.height, h, 1);
+  sp.position.y = stem; sp.renderOrder = 3;
+  const ink = new THREE.MeshBasicMaterial({ color: '#2b2b2b' });
+  const pole = new THREE.Mesh(new THREE.BoxGeometry(0.1, stem, 0.1), ink); pole.position.y = stem / 2;
+  const dot = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.14, 0.6), new THREE.MeshBasicMaterial({ color: accent })); dot.position.y = 0.07;
+  const grp = new THREE.Group(); grp.position.set(x, y0, z);
+  grp.add(pole, dot, sp);
+  grp.userData.tag = { sprite: sp, stem: [pole, dot] };
+  return grp;
+}
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
@@ -821,7 +934,8 @@ const buildingLabels = new THREE.Group();
 const BLD_POS = { A: [1100, 360], B: [1620, 820], C: [1110, 1180], D: [580, 820] };
 for (const [k, b] of Object.entries(D.buildings)) {
   const [px, py] = BLD_POS[k];
-  buildingLabels.add(makeLabel(`${k} ${b.name}`, '', mx(px), 4 * FLOOR_H + 5, mz(py), { bg: '#333', h: 3.2 }));
+  const en = { A: 'JING YE', B: 'ZHI SHAN', C: 'QIN XUE', D: 'SI YUAN' }[k] || '', acc = { A: '#c0392b', B: '#2f6fb5', C: '#d9730d', D: '#2d8a57' }[k];
+  buildingLabels.add(makeTag(b.name, `${k} 棟 · ${en}`, mx(px), (k === 'A' ? 5 : 4) * FLOOR_H + 0.8, mz(py), { accent: acc, h: 7, stem: 6 }));
 }
 scene.add(buildingLabels);
 
@@ -1256,11 +1370,21 @@ function updateVisibility() {
   // 走路時標籤縮小、放低，才不會擋住視線
   const k = mode === 'bird' ? 1 : 0.5;
   for (const f of floors) for (const s of f.labels.children) {
+    const tg = s.userData.tag;
+    if (tg) {                                                   // 紙條標籤：走路時縮小、拿掉細桿、放在頭上高度
+      const sp = tg.sprite;
+      sp.userData.base ||= { sx: sp.scale.x, sy: sp.scale.y, y: sp.position.y };
+      sp.scale.set(sp.userData.base.sx * k, sp.userData.base.sy * k, 1);
+      sp.position.y = mode === 'bird' ? sp.userData.base.y : 2.45 + f.y - s.position.y;
+      for (const o of tg.stem) o.visible = mode === 'bird';
+      continue;
+    }
     s.userData.base ||= { sx: s.scale.x, sy: s.scale.y, y: s.position.y - f.y };
     s.scale.set(s.userData.base.sx * k, s.userData.base.sy * k, 1);
     s.position.y = f.y + (mode === 'bird' ? s.userData.base.y : 2.45);
   }
   buildingLabels.visible = mode === 'bird' && viewFloor === 'all';
+  setIsland(mode === 'bird');
 }
 
 function updateFloorButtons() {
