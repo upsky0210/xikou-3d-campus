@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=60';
-import { furnishFloor } from './furniture.js?v=60';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=60';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=60';
-import { buildCampusWall } from './wall.js?v=60';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=60';
+import { PanoViewer } from './pano.js?v=61';
+import { furnishFloor } from './furniture.js?v=61';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=61';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=61';
+import { buildCampusWall } from './wall.js?v=61';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=61';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1761,6 +1761,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyV' && mode !== 'bird') setMode(mode === 'first' ? 'third' : 'first');
   if (e.code === 'KeyC') { const g = savedGender() === 'girl' ? 'boy' : 'girl'; setGender(g); toast(g === 'girl' ? '👧 換成女學生' : '👦 換成男學生'); }
   if (e.code === 'Space' && mode !== 'bird' && player.jump === 0) { player.vy = 4.2; e.preventDefault(); }
+  if (e.code === 'KeyF' && e.repeat) return;
   if (e.code === 'KeyF' && (act.spot || act.busy)) doAction();                 // 靠近籃框、溜滑梯時 F 是互動
   else if (e.code === 'Slash' || e.code === 'KeyF') { if (e.code === 'Slash') e.preventDefault(); openSearch(); }
   if (e.code === 'KeyP') openGallery();
@@ -2712,9 +2713,10 @@ function startToy(sp) {
   let t = 0;
   if (sp.toy === 'rope') {
     const rope = toyProps.rope; rope.position.set(0, 0.68, 0); avatar.add(rope);
-    let count = 0, last = 0;
+    let count = 0, wasUp = false;
     act.busy = {
-      label: '⏹ 停止跳繩 <kbd>F</kbd>',
+      toy: 'rope',
+      get label() { return `🪢 跳了 <b>${count}</b> 下　停止 <kbd>F</kbd>`; },
       tick(dt) {
         t += dt;
         const ph = t * Math.PI * 2 * 1.4;                                  // 一秒轉 1.4 圈
@@ -2722,16 +2724,20 @@ function startToy(sp) {
         const c = Math.cos(ph);                                             // 繩子在腳底時（c≈1）跳最高
         player.jump = Math.max(0, c) * 0.28; player.vy = 0;
         if (L) { L.armL.rotation.z = -0.45; L.armR.rotation.z = 0.45; L.armL.rotation.x = L.armR.rotation.x = -0.35 + Math.sin(ph) * 0.18; L.legL.rotation.x = L.legR.rotation.x = -Math.max(0, c) * 0.25; }
-        const k = Math.floor(ph / (Math.PI * 2));
-        if (k !== last) { last = k; count++; if (count % 10 === 0) toast(`🪢 跳了 ${count} 下！`); }
+        // 每次繩子過腳底（跳到最高點）算一下
+        const up = c > 0.9;
+        if (up && !wasUp) { count++; if (count % 10 === 0) toast(`🪢 跳了 ${count} 下！`); }
+        wasUp = up;
       },
-      press() { avatar.remove(rope); player.jump = 0; resetPose(); act.busy = null; toast(`🪢 一共跳了 ${count} 下！`); },
+      press() { this.stop(); },
+      stop() { avatar.remove(rope); player.jump = 0; resetPose(); act.busy = null; toast(`🪢 一共跳了 ${count} 下！`); },
     };
   } else if (sp.toy === 'yoyo') {
     const d = toyProps.yoyo, st = toyProps.sticks, str = toyProps.yoyoString;
     avatar.add(d, st, str);
     let toss = -1, tosses = 0;
     act.busy = {
+      toy: 'yoyo',
       label: '🪀 往上拋 <kbd>F</kbd>　（走開就停）',
       tick(dt) {
         t += dt;
@@ -2968,6 +2974,7 @@ function update(dt) {
     if (keys.ArrowLeft) player.yaw += 2.2 * dt * settings.sens;
     if (keys.ArrowRight) player.yaw -= 2.2 * dt * settings.sens;
     fx += joy.x; fz -= joy.y;
+    if (act.busy?.toy && Math.hypot(fx, fz) > 0.05) act.busy.stop();   // 跳繩、扯鈴：一走開就停
     if (act.busy) fx = fz = 0;                                  // 投籃、溜滑梯時先不能走
     const mag = Math.hypot(fx, fz);
     let moved = 0;
