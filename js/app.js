@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=71';
-import { furnishFloor } from './furniture.js?v=71';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=71';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=71';
-import { buildCampusWall } from './wall.js?v=71';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=71';
+import { PanoViewer } from './pano.js?v=72';
+import { furnishFloor } from './furniture.js?v=72';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=72';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=72';
+import { buildCampusWall } from './wall.js?v=72';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=72';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1776,7 +1776,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyF' && (act.spot || act.busy)) doAction();                 // 靠近籃框、溜滑梯時 F 是互動
   else if (e.code === 'Slash' || e.code === 'KeyF') { if (e.code === 'Slash') e.preventDefault(); openSearch(); }
   if (e.code === 'KeyP') openGallery();
-  if (e.code === 'Escape') { closeSearch(); hideInfo(); closeGallery(); act.busy?.badminton && act.busy.stop(); }
+  if (e.code === 'Escape') { closeSearch(); hideInfo(); closeGallery(); act.busy?.badminton && act.busy.stop(); duel?.quit(); }
 });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
 
@@ -2403,12 +2403,12 @@ const NPCS = [
     },
   },
   {
-    name: '鄧老師', title: '體育組長',
+    name: '鄧老師', title: '體育組長', game: 'shootout',
     hello: ['🏀 鄧老師：同學要多運動唷！', '🏀 鄧老師：一起來打球吧！'],
     // 隨機出現：操場北邊那座籃球場，或活動中心（4F）的球場
     places: [
-      { floor: '1F', where: '操場籃球場', at: () => { const T = D.outdoor.track; return [mx(T.center[0]) + 3, mz(T.center[1]) - 5.3, Math.PI]; } },
-      { floor: '4F', where: '活動中心', at: () => { const r = rooms.find((x) => x.name === '活動中心'); return [r.cx - 2, r.cz + 1.5, Math.PI / 2]; } },
+      { floor: '1F', where: '操場籃球場', game: true, at: () => { const T = D.outdoor.track; return [mx(T.center[0]) + 3, mz(T.center[1]) - 5.3, Math.PI]; } },
+      { floor: '4F', where: '活動中心', game: true, at: () => { const r = rooms.find((x) => x.name === '活動中心'); return [r.cx - 2, r.cz + 1.5, Math.PI / 2]; } },
     ],
     at() { return this.places[0].at(); },
     look: {
@@ -2749,6 +2749,7 @@ function updateAct(dt) {
     : sp.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>'
     : sp.kind === 'toy' ? `${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`
     : sp.kind === 'badminton' ? `🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`
+    : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
 }
@@ -2758,6 +2759,7 @@ function doAction() {
   else if (act.spot?.kind === 'slide') startSlide(act.spot);
   else if (act.spot?.kind === 'toy') startToy(act.spot);
   else if (act.spot?.kind === 'badminton') startBadminton(act.spot.npc);
+  else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
 }
 actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
@@ -2788,11 +2790,12 @@ const badmintonNet = (() => {
   return g;
 })();
 // 老師可不可以在這裡打：呂老師一直在操場；俞瑾老師只有在活動中心的時候可以（教室裡不行）
-const canPlayBadminton = (n) => n.game === 'badminton' && (!n.places || !!n.places[n.placeIdx]?.game);
+//（鄧老師的投籃比賽也用同一套：game＝'shootout'）
+const canPlayGame = (n) => !!n.game && !n.playing && (!n.places || !!n.places[n.placeIdx]?.game);
 function badmintonSpot() {
   if (mode === 'bird') return null;
   for (const n of NPCS) {
-    if (canPlayBadminton(n) && player.floor === n.f && Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z) < 2.6) return { kind: 'badminton', npc: n };
+    if (canPlayGame(n) && player.floor === n.f && Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z) < 2.6) return { kind: n.game, npc: n };
   }
   return null;
 }
@@ -2925,6 +2928,92 @@ function startBadminton(n) {
       resetPose(); act.busy = null;
     },
   };
+}
+
+/* ---------------- 投籃比賽：跟鄧老師輪流投 5 球（操場籃球場、活動中心） ----------------
+   站在罰球線附近；你用原本的力道條投籃，老師自動投（大約六成命中）；投完比分數。 */
+
+const SHOOTOUT_KEY = 'campus-shootout-wins', SHOOTOUT_N = 5;
+let duel = null;
+function startShootout(n) {
+  stopAuto();
+  const f = n.f, T0 = n.g.position.clone(), yaw0 = n.yaw;
+  // 找老師附近（同一層）最近的籃框
+  let sp = null, bd = Infinity;
+  for (const h of SPOTS) {
+    if (h.kind !== 'hoop' || spotFloor(h) !== f) continue;
+    const d = Math.hypot(h.x - T0.x, h.z - T0.z);
+    if (d < bd) { bd = d; sp = h; }
+  }
+  if (!sp) { toast('這裡沒有籃框耶！'); return; }
+  // 你站罰球線（籃框前 4.2 公尺），老師站在旁邊 1.4 公尺
+  const D = 4.2, rx = -sp.fz, rz = sp.fx;
+  const P = { x: sp.x + sp.fx * D, z: sp.z + sp.fz * D };
+  let side = 1.4;
+  if (!isWalkable(f, P.x + rx * side, P.z + rz * side, 0.3)) side = -1.4;
+  const Q = { x: P.x + rx * side, z: P.z + rz * side };
+  const faceHoop = (x, z) => Math.atan2(-(sp.x - x), -(sp.z - z));
+  placeAt(f, P.x, P.z, faceHoop(P.x, P.z)); avatar.rotation.y = player.yaw;
+  n.playing = true;
+  const nL = n.g.userData.limbs;
+  for (const key of ['armL', 'armR']) nL[key].rotation.set(0, 0, 0);   // 放下打招呼的手
+  const stand = () => { n.g.position.set(Q.x, f.y + groundAt(f, Q.x, Q.z), Q.z); n.g.rotation.y = faceHoop(Q.x, Q.z); };
+  stand();
+  let me = 0, them = 0, k = 0, wins = 0;
+  try { wins = +localStorage.getItem(SHOOTOUT_KEY) || 0; } catch { /* 私密模式 */ }
+  const score = () => `你 <b>${me}</b>：<b>${them}</b> ${n.name}`;
+  // 等一下再做下一步（用 act.busy 計時，畫面上顯示比分）
+  const wait = (sec, label, next) => { let t = 0; act.busy = { label, tick(dt) { if ((t += dt) > sec) next(); } }; };
+  const finish = () => {
+    duel = null;
+    n.playing = false; n.g.position.copy(T0); n.g.rotation.y = yaw0;
+    for (const key of ['armL', 'armR']) nL[key].rotation.set(0, 0, 0);
+    act.busy = null;
+  };
+  const myTurn = () => {
+    k++;
+    placeAt(f, P.x, P.z, faceHoop(P.x, P.z));
+    startShot(sp, {
+      quiet: true,
+      label: `🏀 第 ${k} / ${SHOOTOUT_N} 球，出手！ <kbd>F</kbd>　${score()}`,
+      onDone: (made) => {
+        if (made) me++;
+        toast(made ? `🏀 你投進了！（${me}：${them}）` : `😣 你沒進（${me}：${them}）`);
+        wait(1.0, `🏀 換${n.name}投　${score()}`, theirTurn);
+      },
+    });
+  };
+  const theirTurn = () => {
+    // 老師舉手瞄準一下再出手
+    let t = 0;
+    act.busy = {
+      label: `🏀 ${n.name}瞄準中…　${score()}`,
+      tick(dt) {
+        t += dt;
+        nL.armL.rotation.x = nL.armR.rotation.x = -2.5 - Math.min(1, t / 0.6) * 0.4;
+        if (t < 0.7) return;
+        const y = n.g.position.y + 2.05;
+        shoot(sp, 0, 0, 0, {
+          quiet: true, made: Math.random() < 0.6, limbs: nL, from: { x: Q.x, y, z: Q.z },
+          label: `🏀 ${n.name}出手！　${score()}`,
+          onDone: (made) => {
+            if (made) them++;
+            toast(made ? `🏀 ${n.name}投進了！（${me}：${them}）` : `${n.name}沒進！（${me}：${them}）`);
+            if (k < SHOOTOUT_N) wait(1.0, `🏀 換你投　${score()}`, myTurn);
+            else wait(1.2, `🏁 比賽結束　${score()}`, () => {
+              if (me > them) { wins++; try { localStorage.setItem(SHOOTOUT_KEY, String(wins)); } catch { /* 私密模式 */ } }
+              toast(me > them ? `🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）`
+                : me === them ? `🤝 平手！${me}：${them}，再比一次？` : `💪 ${n.name}贏了 ${them}：${me}，再接再厲！`);
+              finish();
+            });
+          },
+        });
+      },
+    };
+  };
+  duel = { quit() { powerBox.hidden = true; ball.visible = false; finish(); toast('🏀 比賽中止'); } };
+  toast(`🏀 投籃比賽！你跟${n.name}輪流投 ${SHOOTOUT_N} 球，進比較多球的贏。<br>綠色區域時按 F 出手！`);
+  wait(1.2, `🏀 準備…　${score()}`, myTurn);
 }
 
 /* ---------------- 草地上的童玩：跳繩、扯鈴、小飛機 ---------------- */
@@ -3077,7 +3166,7 @@ const ball = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), new THREE.Me
 ball.castShadow = true; ball.visible = false;
 scene.add(ball);
 
-function startShot(sp) {
+function startShot(sp, ctx = {}) {
   stopAuto();
   const dx = sp.x - player.x, dz = sp.z - player.z, dist = Math.hypot(dx, dz);
   const face = Math.atan2(-dx, -dz);
@@ -3086,6 +3175,7 @@ function startShot(sp) {
   const ideal = Math.max(0.3, Math.min(0.82, 0.38 + dist * 0.055)), tol = Math.max(0.05, 0.12 - dist * 0.008);
   powerBox.querySelector('.sweet').style.cssText = `left:${(ideal - tol) * 100}%;width:${tol * 200}%`;
   const bar = powerBox.querySelector('.bar');
+  bar.style.left = '0%';                                              // 從 0 開始（不要停在上一球的位置）
   powerBox.hidden = false;
   let t = 0, p = 0;
   act.busy = {
@@ -3093,35 +3183,40 @@ function startShot(sp) {
       t += dt; p = (1 - Math.cos(t * 3.4)) / 2; bar.style.left = `${p * 100}%`;
       const L = limbs(); if (L) { L.armL.rotation.x = L.armR.rotation.x = -2.5 - p * 0.4; }   // 舉手準備
     },
-    press() { powerBox.hidden = true; shoot(sp, p, ideal, tol); },
+    label: ctx.label,
+    press() { powerBox.hidden = true; shoot(sp, p, ideal, tol, ctx); },
   };
 }
-function shoot(sp, p, ideal, tol) {
-  const made = Math.abs(p - ideal) <= tol, err = p - ideal;
-  const f = player.floor, sx = player.x, sz = player.z, sy = f.y + (player.gy || 0) + 2.0 * AVATAR_SCALE;
+// ctx：from（老師投的位置與出手高度）、made（老師投進沒，事先決定）、limbs（誰的手）、quiet（不要一般的進球提示）、onDone（球落地後）
+function shoot(sp, p, ideal, tol, ctx = {}) {
+  const auto = ctx.made !== undefined;
+  const made = auto ? ctx.made : Math.abs(p - ideal) <= tol, err = auto ? (made ? 0 : (Math.random() < 0.5 ? -0.2 : 0.2)) : p - ideal;
+  const f = player.floor, sx = ctx.from?.x ?? player.x, sz = ctx.from?.z ?? player.z, sy = ctx.from ? ctx.from.y : f.y + (player.gy || 0) + 2.0 * AVATAR_SCALE;
   const dx = sp.x - sx, dz = sp.z - sz, dist = Math.hypot(dx, dz), ux = dx / dist, uz = dz / dist;
   // 沒進：太小力就短、太大力就長（打板），再加一點左右偏
   const side = made ? 0 : (Math.random() - 0.5) * 0.5, over = made ? 0 : Math.max(-1.5, Math.min(0.55, err * 3));
   const tx = sp.x + ux * over - uz * side, tz = sp.z + uz * over + ux * side, ty = sp.y + (made ? 0.12 : 0.05);
   const T = 0.75 + dist * 0.05, G = 9.8, vy = (ty - sy + 0.5 * G * T * T) / T;
   ball.position.set(sx, sy, sz); ball.visible = true;
-  act.shots++;
-  const L = limbs(); if (L) { L.armL.rotation.x = L.armR.rotation.x = -3.0; }
+  if (!ctx.quiet) act.shots++;
+  const L = ctx.limbs || limbs(); if (L) { L.armL.rotation.x = L.armR.rotation.x = -3.0; }
+  const relax = () => { if (ctx.limbs) for (const k of ['armL', 'armR']) ctx.limbs[k].rotation.set(0, 0, 0); else resetPose(); };
   let t = 0, phys = null, life = 0;
   act.busy = {
+    label: ctx.label,
     tick(dt) {
       t += dt;
       if (!phys) {
         const k = Math.min(1, t / T);
         ball.position.set(sx + (tx - sx) * k, sy + vy * t - 0.5 * G * t * t, sz + (tz - sz) * k);
         ball.rotation.x -= dt * 8;
-        if (t > 0.35) resetPose();
+        if (t > 0.35) relax();
         if (t < T) return;
         // 到籃框了：進球就從網子掉下去；沒進就彈開
-        if (made) { phys = { vx: 0, vy: -1.5, vz: 0 }; act.makes++; toast(`🏀 進球！（${act.makes} / ${act.shots}）`); }
+        if (made) { phys = { vx: 0, vy: -1.5, vz: 0 }; if (!ctx.quiet) { act.makes++; toast(`🏀 進球！（${act.makes} / ${act.shots}）`); } }
         else {
           phys = { vx: -ux * (over > 0 ? 1.8 : 0.6) + (Math.random() - 0.5), vy: over > 0.25 ? 1.2 : 2.6, vz: -uz * (over > 0 ? 1.8 : 0.6) + (Math.random() - 0.5) };
-          toast(err < 0 ? `差一點！力道太小（${act.makes} / ${act.shots}）` : `差一點！力道太大（${act.makes} / ${act.shots}）`);
+          if (!ctx.quiet) toast(err < 0 ? `差一點！力道太小（${act.makes} / ${act.shots}）` : `差一點！力道太大（${act.makes} / ${act.shots}）`);
         }
         return;
       }
@@ -3131,7 +3226,7 @@ function shoot(sp, p, ideal, tol) {
       ball.position.x += phys.vx * dt; ball.position.y += phys.vy * dt; ball.position.z += phys.vz * dt;
       const floorY = f.y + groundAt(f, ball.position.x, ball.position.z) + 0.13;
       if (ball.position.y < floorY) { ball.position.y = floorY; phys.vy = Math.abs(phys.vy) * 0.55; phys.vx *= 0.7; phys.vz *= 0.7; }
-      if (life > 1.6) { ball.visible = false; act.busy = null; }
+      if (life > 1.6) { ball.visible = false; act.busy = null; ctx.onDone?.(made); }
     },
   };
 }
