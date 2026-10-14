@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=74';
+import { Batch, mat, SPOTS } from './blocks.js?v=75';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -301,16 +301,16 @@ const checkerMat = () => once('checker', () => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 7);
   return new THREE.MeshLambertMaterial({ map: t });
 });
-function entranceHall(put, fr) {
+function entranceHall(put, fr, room) {
   const W = fr.W, L = fr.L;              // u：南北向、v：東西向（v 越大越靠中庭）
   put(checkerMat(), L, W, 0.012, L / 2, 0, 0, true);
-  // 東端主題牆（牆本身在 app.js 加，這裡貼兩面的畫）
-  const wallLen = L - 2.16;
-  put(darkThemeMat(), 3.4, 0.03, 2.9, L / 2, W / 2, 0, true);
-  for (const s of [-1, 1]) put(glassBlockMat(), (wallLen - 3.4) / 2 - 0.05, 0.03, 2.5, L / 2 + s * ((wallLen - 3.4) / 4 + 1.7), W / 2, 0.25, true);
-  put(muralMat(), wallLen, 0.03, 2.9, L / 2, W / 2 + 0.335, 0, true);
-  for (const s of [-1, 1]) put.geo(mat('wool', '#c0392b'), new THREE.CylinderGeometry(0.3, 0.25, 0.4, 12), L / 2 + s * 2.2, W / 2 - 0.5, 0.2);   // 盆栽
-  for (const s of [-1, 1]) put.geo(mat('leaves'), new THREE.SphereGeometry(0.45, 8, 6), L / 2 + s * 2.2, W / 2 - 0.5, 0.75);
+  // 東端主題牆（牆本身在 app.js 加，這裡貼兩面的畫）；牆往後退到走廊東邊時，畫和盆栽跟著退（ev 是牆的位置）
+  const wallLen = L - 2.16, ev = W / 2 + ((room?.endWallM ?? room?.m.x2 ?? 0) - (room?.m.x2 ?? 0));
+  put(darkThemeMat(), 3.4, 0.03, 2.9, L / 2, ev, 0, true);
+  for (const s of [-1, 1]) put(glassBlockMat(), (wallLen - 3.4) / 2 - 0.05, 0.03, 2.5, L / 2 + s * ((wallLen - 3.4) / 4 + 1.7), ev, 0.25, true);
+  put(muralMat(), wallLen, 0.03, 2.9, L / 2, ev + 0.335, 0, true);
+  for (const s of [-1, 1]) put.geo(mat('wool', '#c0392b'), new THREE.CylinderGeometry(0.3, 0.25, 0.4, 12), L / 2 + s * 2.2, ev - 0.5, 0.2);   // 盆栽
+  for (const s of [-1, 1]) put.geo(mat('leaves'), new THREE.SphereGeometry(0.45, 8, 6), L / 2 + s * 2.2, ev - 0.5, 0.75);
   // 兩側海報牆＋長木椅
   for (const u of [0.015, L - 0.015]) put(posterWallMat(), 0.03, 6.8, 1.7, u, 1.2, 0.85, true);
   for (const u of [0.4, L - 0.4]) { put(M.wood(), 0.4, 3.6, 0.08, u, 1.2, 0.4); put(M.wood(), 0.3, 3.4, 0.4, u, 1.2, 0); }
@@ -1516,7 +1516,7 @@ function guardRoom(put, fr, room) {
 /** 依名稱、種類挑布置 */
 function furnishRoom(room, fr, put) {
   const n = room.name || '', t = room.type;
-  if (n === '穿堂') return entranceHall(put, fr);                     // 依照片：主題牆、海報牆、彩色天花板
+  if (n === '穿堂') return entranceHall(put, fr, room);                     // 依照片：主題牆、海報牆、彩色天花板
   if (room.hidden || room.open || t === 'garden') return;
   if (t === 'wc') return restroom(put, fr, room);                       // 廁所入口屏風、木紋磚、植生牆
   if (t === 'class') return classroom(put, fr, room);

@@ -101,7 +101,7 @@
   R('1F', 'B', [1548, 755, 1680, 905], { no: '126', name: '太陽班', type: 'kinder', doors: 'W' });
   R('1F', 'B', [1548, 910, 1680, 1060], { no: '125', name: '星星班', type: 'kinder', doors: 'W' });
   R('1F', 'D', [512, 585, 645, 745], { no: '114', name: '總務處', type: 'office', doors: 'E' });
-  R('1F', 'D', [465, 745, 645, 905], { no: '115', name: '穿堂', type: 'hall', doors: 'WE', open: true, endWall: 'E' });
+  R('1F', 'D', [465, 745, 645, 905], { no: '115', name: '穿堂', type: 'hall', doors: 'WE', open: true, endWall: 'E', endWallX: 705 });   // 主題牆往後退到走廊東邊（靠著生態池）
   R('1F', 'D', [512, 905, 645, 1060], { no: '116', name: '教務處', type: 'office', doors: 'E', doorAt: { E: [0.18] } });   // 只有一扇門（東牆北段）
   R('1F', 'D', [306, 631, 362, 740], { no: '117', name: '警衛室', type: 'office', doors: 'E', ground: true });   // 在地面高度、緊貼西邊的綠籬；大小是原本的 70%
   R('1F', 'C', [715, 1105, 800, 1245], { no: '119', name: '家長會', type: 'office', doors: 'N' });

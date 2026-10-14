@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=74';
-import { furnishFloor } from './furniture.js?v=74';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=74';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=74';
-import { buildCampusWall } from './wall.js?v=74';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=74';
+import { PanoViewer } from './pano.js?v=75';
+import { furnishFloor } from './furniture.js?v=75';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=75';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=75';
+import { buildCampusWall } from './wall.js?v=75';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=75';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -309,9 +309,11 @@ const galleryBoardMat = (() => {
 })();
 function addRoomWalls(room) {
   if (room.endWall === 'E') {
-    // 穿堂東端（依照片）：中間一道主題牆，兩側各留約 1.2 公尺通道往中庭
-    const { x2, z1, z2 } = room.m, gap = 1.25;
-    room.f.segs.push({ ax: x2, az: z1 + gap, bx: x2, bz: z2 - gap, h: WALL_H, color: new THREE.Color('#dddddd'), kind: 'wall', bld: room.building });
+    // 穿堂東端（依照片）：中間一道主題牆，兩側各留約 1.2 公尺通道往中庭；endWallX：牆退到走廊東邊（背面貼齊走廊邊、靠著生態池）
+    const { z1, z2 } = room.m, gap = 1.25;
+    const x = room.endWallX ? mx(room.endWallX) - WALL_T / 2 - 0.01 : room.m.x2;
+    room.endWallM = x;                                                  // furniture.js 用來貼主題牆、壁畫
+    room.f.segs.push({ ax: x, az: z1 + gap, bx: x, bz: z2 - gap, h: WALL_H, color: new THREE.Color('#dddddd'), kind: 'wall', bld: room.building, endWall: true });
   }
   if (room.open) return;
   const f = room.f, { x1, z1, x2, z2 } = room.m;
@@ -466,6 +468,8 @@ function indoor1F(x, z) {
 }
 // 一樓走廊、穿堂外面直接通到戶外的邊（這裡會有往下的階梯）：{ ax, az, bx, bz, nx, nz }，n 是往外的方向
 let openEdges = null;
+// 走廊邊有牆擋著（穿堂主題牆）的地方不長階梯
+const onEndWall = (f, x, z) => f.segs.some((s) => s.endWall && Math.abs(s.ax - x) < WALL_T && z >= Math.min(s.az, s.bz) - 0.3 && z <= Math.max(s.az, s.bz) + 0.3);
 function computeOpenEdges() {
   const f = floorById['1F'], out = [], STEP = 0.25;
   for (const w of f.walk) {
@@ -477,7 +481,7 @@ function computeOpenEdges() {
       let start = -1;
       for (let i = 0; i <= n; i++) {
         const t = i / n, px = ax + (bx - ax) * t, pz = az + (bz - az) * t, ox = px + nx * 0.4, oz = pz + nz * 0.4;
-        const open = i < n && !indoor1F(ox, oz) && isWalkable(f, ox, oz, 0);
+        const open = i < n && !indoor1F(ox, oz) && isWalkable(f, ox, oz, 0) && !onEndWall(f, px, pz);
         if (open && start < 0) start = i;
         if (!open && start >= 0) {
           out.push({ ax: ax + (bx - ax) * start / n, az: az + (bz - az) * start / n, bx: ax + (bx - ax) * i / n, bz: az + (bz - az) * i / n, nx, nz });
