@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=75';
+import { Batch, mat, SPOTS } from './blocks.js?v=76';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -496,8 +496,10 @@ export function buildCourtyard(group, m, FH, base = 0) {
   return raised;
 }
 
-/* ---------- 教師停車場（乙梯旁邊的空地，依照片） ----------
- * 地面是灰粉色地磚（有深色分隔線），車頭朝西、兩排停；靠圍牆那邊再橫停兩台。東邊是上走廊的階梯（無障礙車位標誌在旁邊） */
+/* ---------- 教師停車場（乙梯旁邊的空地，依 2026-10-14 照片） ----------
+ * 地面是灰粉色地磚。車子圍成「ㄇ」字形、中間留車道才開得出去：
+ *   西邊沿圍牆一排（車頭朝東、朝車道）、北邊沿扶手一排（車頭朝南）、東邊靠乙梯一台（車頭朝西）；
+ *   南邊空著，接到警衛室旁邊往校門的車道。東邊是上走廊的階梯（無障礙車位標誌在旁邊） */
 // 方塊車：車身、車窗、車頂、輪子、車燈。ax：車子長邊沿 x（true）或沿 z（false）；dir：車頭朝 +（1）或 -（-1）
 function car(b, x, z, dir, color, ax = true) {
   const body = mat('wool', color), glass = mat('wool', '#2b3440'), tire = mat('wool', '#1b1b1d');
@@ -528,15 +530,17 @@ const paverMat = () => {
 export function buildParking(group, x1, x2, z1, z2) {
   const b = new Batch();
   b.box(paverMat(), x2 - x1, 0.04, z2 - z1, (x1 + x2) / 2, 0.02, (z1 + z2) / 2);                // 地磚
-  const dark = mat('wool', '#6f6a6c');
-  for (let x = x1 + 3; x < x2; x += 6) b.box(dark, 0.18, 0.02, z2 - z1, x, 0.045, (z1 + z2) / 2);   // 深色分隔線
-  const colors = ['#b9bec4', '#6f7378', '#2f5aa8', '#3a5f9e', '#f4f4f2', '#7d8288', '#f4f4f2', '#2d5e46'];
-  // 北邊兩排、車頭朝西（從走廊往外看，看到的是車尾）
-  const rows = [z1 + 2.1, z1 + 4.9], xs = [x2 - 2.8, x2 - 8.3, x2 - 13.8];
-  let k = 0;
-  for (const z of rows) for (const x of xs) car(b, x, z, -1, colors[k++]);
-  // 靠圍牆橫停兩台
-  for (const z of [z1 + 2.4, z1 + 7.2]) car(b, x1 + 1.3, z, 1, colors[k++], false);
+  const line = mat('wool', '#ece8e2');
+  // 北邊一排：車頭朝南（從車道看過去是車頭），每格 2.7 公尺，格線沿南北向
+  const north = ['#2f5a9e', '#2a4f9e', '#c9ccd0', '#6f7378'], nz = z1 + 2.35;
+  north.forEach((c, i) => car(b, x1 + 6.2 + i * 2.7, nz, 1, c, false));
+  for (let i = 0; i <= north.length; i++) b.box(line, 0.1, 0.02, 4.8, x1 + 4.85 + i * 2.7, 0.045, z1 + 2.4);
+  // 西邊沿圍牆一排：車頭朝東（朝中間車道），每格 2.7 公尺，格線沿東西向
+  const west = ['#25272b', '#f4f4f2', '#7d8790'], wx = x1 + 2.45;
+  west.forEach((c, i) => car(b, wx, z1 + 3.4 + i * 2.7, 1, c, true));
+  for (let i = 0; i <= west.length; i++) b.box(line, 4.8, 0.02, 0.1, x1 + 2.4, 0.045, z1 + 2.05 + i * 2.7);
+  // 東邊靠乙梯、走廊南端扶手前一台：車頭朝西
+  car(b, x2 - 2.7, z2 - 1.6, -1, '#5d6168', true);
   // 無障礙車位標誌（藍底白色輪椅）
   b.box(mat('wool', '#c9cdd2'), 0.08, 2.0, 0.08, x2 - 1.0, 1.0, z1 + 0.6);
   b.box(mat('wool', '#2f5aa8'), 0.04, 0.6, 0.45, x2 - 1.0, 1.75, z1 + 0.6);
