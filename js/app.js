@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=69';
-import { furnishFloor } from './furniture.js?v=69';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=69';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=69';
-import { buildCampusWall } from './wall.js?v=69';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=69';
+import { PanoViewer } from './pano.js?v=70';
+import { furnishFloor } from './furniture.js?v=70';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=70';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=70';
+import { buildCampusWall } from './wall.js?v=70';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=70';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2304,8 +2304,8 @@ function meetCat() {
 
 const GLIDERS = [
   {
-    look: 'cream',
-    hello: '🐿️ 這是五年四班養的蜜袋鼯！<br>正窩在藍色袋子裡，抱著點心啃啃啃～',
+    look: 'cream', name: '米果',
+    hello: '🐿️ 我是米果，五年四班養的蜜袋鼯！<br>正窩在藍色袋子裡，抱著點心啃啃啃～',
     // 老師桌在教室前面（南）、不靠門的那一側（東）
     at: () => { const r = rooms.find((x) => x.code === '504'); return [r.f, r.m.x2 - 1.3, r.m.z2 - 1.45, 0.78, 0.5]; },
   },
