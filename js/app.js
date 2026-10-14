@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=62';
-import { furnishFloor } from './furniture.js?v=62';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=62';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=62';
-import { buildCampusWall } from './wall.js?v=62';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=62';
+import { PanoViewer } from './pano.js?v=64';
+import { furnishFloor } from './furniture.js?v=64';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=64';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=64';
+import { buildCampusWall } from './wall.js?v=64';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=64';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -333,7 +333,7 @@ function addRoomWalls(room) {
     const above = room.tall ? floors[f.idx + 1] : null;
     const solid = sideIsSolid(room, s);
     const gal = galleryWall(room, s);
-    const seg = (a, b, extra) => ({ ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h, color, kind: 'wall', bld: room.building, solid, ...gal, ...extra });
+    const seg = (a, b, extra) => ({ ax: ax + ux * a, az: az + uz * a, bx: ax + ux * b, bz: az + uz * b, h, color, kind: 'wall', bld: room.building, solid, ground: room.ground, ...gal, ...extra });
     const push = (a, b) => {
       if (b - a <= 0.05) return;
       f.segs.push(seg(a, b));
@@ -461,7 +461,7 @@ for (const f of floors) addRailings(f);
 const raised = [];
 // 一樓「室內」（建築裡：走廊、教室、穿堂、樓梯間）；中庭花園不算
 function indoor1F(x, z) {
-  for (const w of floorById['1F'].walk) if (w.kind !== 'outdoor' && w.room?.type !== 'garden' && inRect(w.m, x, z)) return true;
+  for (const w of floorById['1F'].walk) if (w.kind !== 'outdoor' && w.room?.type !== 'garden' && !w.room?.ground && inRect(w.m, x, z)) return true;
   return false;
 }
 // 一樓走廊、穿堂外面直接通到戶外的邊（這裡會有往下的階梯）：{ ax, az, bx, bz, nx, nz }，n 是往外的方向
@@ -512,6 +512,7 @@ function buildPlinth() {
   for (const w of f.walk) {
     if (w.kind === 'outdoor' || w.room?.type === 'garden') continue;
     if (w.stair && w.stair.floors.includes('B1')) continue;     // 往地下室的樓梯：底下是空的
+    if (w.room?.ground) continue;                               // 警衛室在地面，沒有地基
     const { x1, z1, x2, z2 } = w.m;
     b.box(plinth, x2 - x1, BASE - 0.12, z2 - z1, (x1 + x2) / 2, (BASE - 0.12) / 2, (z1 + z2) / 2);
   }
@@ -810,7 +811,7 @@ function buildOutdoor() {
       gx, gz1: z1, gz2: z2, hall: { x1: hall.m.x1, z1: hall.m.z1, z2: hall.m.z2 }, guard: guard.m, base: BASE,
       fieldZ: mz(T.center[1] - T.size[1] / 2), carLot: { z2: mz(475) - 0.4 },
     }));
-    buildGuardHouse(g, guard.m, BASE);
+    buildGuardHouse(g, guard.m, 0);
     floors[1].labels.add(makeTag('機車停車場', 'SCOOTERS', gx + 4, 0, z2 + 9, { accent: '#2f5aa8', h: 2.4, stem: 3.4 }));
   }
   if (O.tower) {
@@ -976,7 +977,7 @@ function buildFloor(f) {
     const { x1, z1, x2, z2 } = w.m;
     const thick = f.level === 0 ? 0.12 : 0.3;
     const slab = new THREE.Mesh(blockBox(x2 - x1, thick, z2 - z1), floorMat(type, f, w.room));
-    const sy = f.level === 0 && type === 'garden' ? 0 : f.y;          // 一樓中庭在地面高度
+    const sy = f.level === 0 && (type === 'garden' || w.room?.ground) ? 0 : f.y;   // 一樓中庭、警衛室在地面高度
     slab.position.set((x1 + x2) / 2, sy - thick / 2 + 0.01, (z1 + z2) / 2);
     slab.receiveShadow = true;
     if (w.room) { slab.userData.room = w.room; pickables.push(slab); }
@@ -996,7 +997,7 @@ function buildFloor(f) {
     const covered = above && above.walk.some((a) => a.kind !== 'outdoor' && inRect(a.m, cx, cz));
     const bld = w.room?.building;
     const m = covered ? mat('concrete', '#f4f2ec') : mat('roof', BLOCKY ? (ROOF_COLOR[bld] || '#d8d8d2') : '#c9c9c9');
-    ceilBatch.box(m, x2 - x1, CEIL_T, z2 - z1, cx, f.y + WALL_H + CEIL_T / 2, cz);
+    ceilBatch.box(m, x2 - x1, CEIL_T, z2 - z1, cx, (w.room?.ground ? 0 : f.y) + WALL_H + CEIL_T / 2, cz);
     (f.ceilRects ||= []).push(w.m);                         // 鏡頭用：這裡頭上有天花板
   }
   // 下一層的挑高空間（活動中心）：屋頂蓋在這一層的高度（放在這層的天花板群組，鳥瞰選這層時會拿掉，才看得到看台）
@@ -1018,7 +1019,7 @@ function buildFloor(f) {
     const horiz = Math.abs(s.az - s.bz) < 1e-6;
     const len = Math.hypot(s.bx - s.ax, s.bz - s.az) + WALL_T;
     const cx = (s.ax + s.bx) / 2, cz = (s.az + s.bz) / 2;
-    const yb = f.level === 0 && (s.kind === 'poolwall' || s.kind === 'poolstripe' || s.kind === 'hedge') ? 0 : f.y;   // 戶外的牆在地面
+    const yb = f.level === 0 && (s.ground || s.kind === 'poolwall' || s.kind === 'poolstripe' || s.kind === 'hedge') ? 0 : f.y;   // 戶外的牆、警衛室在地面
     const piece = (m, y0, y1, a = -len / 2, b = len / 2) => {
       const mid = (a + b) / 2, L = b - a;
       if (horiz) batch.box(m, L, y1 - y0, WALL_T, cx + mid, yb + (y0 + y1) / 2, cz);
@@ -1108,7 +1109,7 @@ function buildFloor(f) {
   // 房間名稱
   for (const r of f.rooms) {
     if (r.hidden || r.type === 'wc') continue;
-    const lbl = makeLabel(r.display, r.sub, r.cx, f.y + 2.3, r.cz, { bg: r.type === 'class' ? '#c2410c' : '#1e3a5f' });
+    const lbl = makeLabel(r.display, r.sub, r.cx, (r.ground ? 0 : f.y) + 2.3, r.cz, { bg: r.type === 'class' ? '#c2410c' : '#1e3a5f' });
     lbl.userData.room = r;
     pickables.push(lbl);
     f.labels.add(lbl);

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=62';
+import { Batch, mat, SPOTS } from './blocks.js?v=64';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1579,12 +1579,13 @@ function addSign(room, f, group, wallT) {
   const sign = new THREE.Mesh(geo, mats);
   const out = { N: [0, -1], S: [0, 1], W: [-1, 0], E: [1, 0] }[door.side];
   const off = wallT / 2 + 0.5;
-  sign.position.set(door.x + out[0] * off, f.y + 2.5, door.z + out[1] * off);
+  const y0 = room.ground ? 0 : f.y;
+  sign.position.set(door.x + out[0] * off, y0 + 2.5, door.z + out[1] * off);
   sign.castShadow = true;
   group.add(sign);
   // 掛牌的鐵架
   const bar = new THREE.Mesh(new THREE.BoxGeometry(horizWall ? 0.03 : 0.95, 0.03, horizWall ? 0.95 : 0.03), new THREE.MeshLambertMaterial({ color: '#555' }));
-  bar.position.set(door.x + out[0] * off, f.y + 2.68, door.z + out[1] * off);
+  bar.position.set(door.x + out[0] * off, y0 + 2.68, door.z + out[1] * off);
   group.add(bar);
 }
 
@@ -1593,7 +1594,7 @@ export function furnishFloor(f, wallT) {
   const batch = new Batch();
   for (const room of f.rooms) {
     const fr = frameOf(room, wallT, flipped(room));
-    furnishRoom(room, fr, placer(batch, fr, f.y));
+    furnishRoom(room, fr, placer(batch, fr, room.ground ? 0 : f.y));   // 警衛室在地面高度
   }
   const g = new THREE.Group();
   batch.build(g);

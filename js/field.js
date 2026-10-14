@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=62';
+import { Batch, mat, SPOTS } from './blocks.js?v=64';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -594,14 +594,16 @@ const lockerMat = () => texMat('lockers', 128, 128, (c, w, h) => {
     c.fillStyle = '#7d8288'; c.fillRect(14 + k * 31, 16 + r * 25, 8, 3);
   }
 });
+// 機車：車身沿 x（並排停在 z 方向），dir：車頭朝 +x（1）或 -x（-1）
 function scooter(b, x, z, col, dir = 1) {
-  const body = mat('wool', col), dark = mat('wool', '#1d1f22'), seat = mat('wool', '#2b2b2b');
-  b.box(dark, 0.12, 0.42, 0.42, x, 0.21, z - dir * 0.62);                 // 前輪
-  b.box(dark, 0.12, 0.42, 0.42, x, 0.21, z + dir * 0.62);                 // 後輪
-  b.box(body, 0.5, 0.42, 1.25, x, 0.55, z + dir * 0.1);                   // 車身
-  b.box(seat, 0.42, 0.12, 0.7, x, 0.82, z + dir * 0.3);                   // 坐墊
-  b.box(body, 0.42, 0.65, 0.18, x, 0.85, z - dir * 0.55);                 // 前面
-  b.box(dark, 0.62, 0.05, 0.05, x, 1.2, z - dir * 0.55);                  // 把手
+  const body = mat('wool', col), dark = mat('wool', '#1d1f22'), seat = mat('wool', '#2b2b2b'), red = mat('wool', '#c0392b');
+  b.box(dark, 0.42, 0.42, 0.12, x + dir * 0.62, 0.21, z);                 // 前輪
+  b.box(dark, 0.42, 0.42, 0.12, x - dir * 0.62, 0.21, z);                 // 後輪
+  b.box(body, 1.25, 0.42, 0.42, x - dir * 0.1, 0.55, z);                  // 車身
+  b.box(seat, 0.7, 0.12, 0.36, x - dir * 0.3, 0.82, z);                   // 坐墊
+  b.box(body, 0.18, 0.65, 0.4, x + dir * 0.55, 0.85, z);                  // 前面
+  b.box(dark, 0.05, 0.05, 0.62, x + dir * 0.55, 1.2, z);                  // 把手
+  b.box(red, 0.04, 0.1, 0.24, x - dir * 0.74, 0.7, z);                    // 尾燈
 }
 /** 校門口：gx 是校門（圍牆）的 x；z1、z2 是校門口兩邊；hall：穿堂 { x1, z1, z2 }；base：建築墊高 */
 export function buildFrontYard(group, { gx, gz1, gz2, hall, guard, base, fieldZ, carLot }) {
@@ -638,7 +640,12 @@ export function buildFrontYard(group, { gx, gz1, gz2, hall, guard, base, fieldZ,
     // 國旗（照片上入口兩旁各有一支）
     const fz = s < 0 ? hz1 - 1.3 : hz2 + 1.3;
     { const pg = new THREE.CylinderGeometry(0.03, 0.03, 3.2, 6); pg.translate(hx - 2.2, 1.6, fz); b.add(steel, pg); }
-    b.plain(flagMat(), 0.02, 0.6, 0.9, hx - 2.2, 2.85, fz - s * 0.45);
+    {
+      const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), new THREE.MeshLambertMaterial({ map: flagMat().map, side: THREE.DoubleSide }));
+      fl.rotation.y = -Math.PI / 2; fl.position.set(hx - 2.2, 2.85, fz + s * 0.45);   // 面向校門；旗子往外側（遠離入口）飄
+      fl.scale.x = s < 0 ? -1 : 1;                                                        // 青天白日都在靠旗桿那一角
+      group.add(fl);
+    }
   }
   // 校門南邊：馬賽克壁畫牆（在圍牆內側）
   const wz1 = gz2 + 1.4, wz2 = fieldZ - 3.5;
@@ -660,7 +667,11 @@ export function buildFrontYard(group, { gx, gz1, gz2, hall, guard, base, fieldZ,
   b.box(mat('planks', '#c98c4a'), 0.08, 2.0, 1.9, sx1 + 1.05, 1.0, sz1 + 1.2);    // 木頭圍板
   const cols = ['#1f1f22', '#2b2f36', '#d8d8d4', '#7fb6d6', '#1f1f22', '#b8312f', '#f2efe2', '#2b2f36', '#9aa0a6', '#1f1f22'];
   let k = 0;
-  for (let z = sz1 + 2.8; z < sz2 - 0.5; z += 0.75) { scooter(b, sx1 + 1.4, z, cols[k++ % cols.length], 1); }
+  // 車頭朝牆、一台一台並排（像照片）：靠牆一排、外面一排
+  for (let z = sz1 + 2.7; z < sz2 - 0.4; z += 0.62) {
+    scooter(b, sx1 + 0.95, z, cols[k++ % cols.length], -1);
+    if ((k % 6) !== 2) scooter(b, sx2 - 1.0, z + 0.3, cols[(k * 3) % cols.length], 1);
+  }
   // 走到底：拱門通往操場
   const az = fieldZ - 2.4, ax1 = gx + 0.3, ax2 = sx2 + 4;
   b.box(mat('wool', '#d9cfbd'), (ax2 - ax1) / 2 - 1.3, 2.6, 0.4, ax1 + ((ax2 - ax1) / 2 - 1.3) / 2, 1.3, az);
