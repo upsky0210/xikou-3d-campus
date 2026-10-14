@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=68';
-import { furnishFloor } from './furniture.js?v=68';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=68';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=68';
-import { buildCampusWall } from './wall.js?v=68';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=68';
+import { PanoViewer } from './pano.js?v=69';
+import { furnishFloor } from './furniture.js?v=69';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=69';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=69';
+import { buildCampusWall } from './wall.js?v=69';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=69';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1830,7 +1830,7 @@ function pick(e) {
   const vis = pickables.filter((o) => { let p = o; while (p) { if (!p.visible) return false; p = p.parent; } return true; });
   const hit = raycaster.intersectObjects(vis, false)[0];
   if (hit?.object.userData.cat) meetCat();
-  else if (hit?.object.userData.glider) meetGlider();
+  else if (hit?.object.userData.glider) meetGlider(hit.object.userData.glider);
   else if (hit?.object.userData.npc) meetNPC(hit.object.userData.npc);
   else if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
   else if (mode !== 'bird') {                                   // 走路模式：點地面就自動走過去
@@ -2300,23 +2300,36 @@ function meetCat() {
   toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
 }
 
-/* ---------------- 五年四班的蜜袋鼯（窩在藍色保暖袋裡，放在老師桌上） ---------------- */
+/* ---------------- 蜜袋鼯：五年四班老師桌上 1 隻、1F 教務處粉紅椅那張桌上 2 隻（花花、泡泡） ---------------- */
 
-const glider = makeGlider();
-{
-  const r = rooms.find((x) => x.code === '504'), f = r.f;
-  // 老師桌在教室前面（南）、不靠門的那一側（東）：桌面高 0.78
-  const x = r.m.x2 - 1.3, z = r.m.z2 - 1.45;
-  glider.position.set(x, f.y + groundAt(f, x, z) + 0.78, z);
-  glider.rotation.y = 0.5;                                      // 斜斜面向教室（北）
-  glider.userData.f = f;
-  f.group.add(glider);
+const GLIDERS = [
+  {
+    look: 'cream',
+    hello: '🐿️ 這是五年四班養的蜜袋鼯！<br>正窩在藍色袋子裡，抱著點心啃啃啃～',
+    // 老師桌在教室前面（南）、不靠門的那一側（東）
+    at: () => { const r = rooms.find((x) => x.code === '504'); return [r.f, r.m.x2 - 1.3, r.m.z2 - 1.45, 0.78, 0.5]; },
+  },
+  {
+    look: 'grey', name: '花花',
+    hello: '🐿️ 我是花花！<br>灰色的毛、背上一條黑線，尾巴蓬蓬的～',
+    // 教務處：靠窗那排北邊、粉紅色椅子的那張 OA 桌（桌子中心約在西側 2.1 m、北牆往南 2 m）
+    at: () => { const r = rooms.find((x) => x.name === '教務處'); return [r.f, r.cx - 2.27, r.m.z1 + 1.5, 0.76, Math.PI / 2 + 0.25]; },
+  },
+  {
+    look: 'pale', name: '泡泡',
+    hello: '🐿️ 我是泡泡！<br>正抱著點心吃，不要跟我搶喔～',
+    at: () => { const r = rooms.find((x) => x.name === '教務處'); return [r.f, r.cx - 2.27, r.m.z1 + 2.5, 0.76, Math.PI / 2 - 0.25]; },
+  },
+];
+for (const gl of GLIDERS) {
+  const [f, x, z, top, yaw] = gl.at();
+  gl.g = makeGlider(gl.look); gl.f = f; gl.near = false;
+  gl.g.position.set(x, f.y + groundAt(f, x, z) + top, z);
+  gl.g.rotation.y = yaw;
+  f.group.add(gl.g);
+  gl.g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.glider = gl; pickables.push(o); } });
 }
-glider.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.glider = true; pickables.push(o); } });
-let gliderNear = false;
-function meetGlider() {
-  toast('🐿️ 這是五年四班養的蜜袋鼯！<br>正窩在藍色袋子裡，抱著點心啃啃啃～');
-}
+function meetGlider(gl) { toast(gl.hello); }
 
 /* ---------------- 老師 NPC（依照片畫成方塊人） ---------------- */
 
@@ -3104,9 +3117,11 @@ function update(dt) {
     const nearCat = player.floor.level === 0 && Math.hypot(player.x - cat.position.x, player.z - cat.position.z) < 1.8;
     if (nearCat && !catNear) meetCat();
     catNear = nearCat;
-    const nearGlider = mode !== 'bird' && player.floor === glider.userData.f && Math.hypot(player.x - glider.position.x, player.z - glider.position.z) < 1.6;
-    if (nearGlider && !gliderNear) meetGlider();
-    gliderNear = nearGlider;
+    for (const gl of GLIDERS) {
+      const near = mode !== 'bird' && player.floor === gl.f && Math.hypot(player.x - gl.g.position.x, player.z - gl.g.position.z) < 1.3;
+      if (near && !gl.near) meetGlider(gl);
+      gl.near = near;
+    }
     if (nav.target && (navTick += dt) > 0.3) {
       navTick = 0;
       updateNavBar();
