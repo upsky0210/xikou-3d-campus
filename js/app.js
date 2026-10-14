@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=58';
-import { furnishFloor } from './furniture.js?v=58';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=58';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=58';
-import { buildCampusWall } from './wall.js?v=58';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=58';
+import { PanoViewer } from './pano.js?v=60';
+import { furnishFloor } from './furniture.js?v=60';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=60';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=60';
+import { buildCampusWall } from './wall.js?v=60';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=60';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2361,11 +2361,12 @@ const NPCS = [
   {
     name: '鄧老師', title: '體育組長',
     hello: ['🏀 鄧老師：同學要多運動唷！', '🏀 鄧老師：一起來打球吧！'],
-    // 操場中間北邊那座籃球場，面向南
-    at: () => {
-      const T = D.outdoor.track;
-      return [mx(T.center[0]) + 3, mz(T.center[1]) - 5.3, Math.PI];
-    },
+    // 隨機出現：操場北邊那座籃球場，或活動中心（4F）的球場
+    places: [
+      { floor: '1F', where: '操場籃球場', at: () => { const T = D.outdoor.track; return [mx(T.center[0]) + 3, mz(T.center[1]) - 5.3, Math.PI]; } },
+      { floor: '4F', where: '活動中心', at: () => { const r = rooms.find((x) => x.name === '活動中心'); return [r.cx - 2, r.cz + 1.5, Math.PI / 2]; } },
+    ],
+    at() { return this.places[0].at(); },
     look: {
       // 依照片：深咖啡色短髮（旁分）、淺膚色、細長眼、淺淺微笑；灰綠色 T 恤、白色短褲、紅色哨子（黑色掛繩）
       skin: '#ecbf9c', hair: '#3a2a20', top: '#557d7a', pants: '#f1efe8', stripe: '#9fcfb5', shoe: '#f4f4f4',
@@ -2427,15 +2428,28 @@ const NPCS = [
     },
   },
 ];
+// 把老師放到某一層的某個位置（名牌跟著走）
+function placeNPC(n, f, x, z, yaw) {
+  const gy = f.y + groundAt(f, x, z);                                  // 室內在樓板上、戶外在地面
+  n.g.position.set(x, gy, z); n.g.rotation.y = yaw; n.yaw = yaw; n.f = f;
+  if (n.g.parent !== f.group) f.group.add(n.g);
+  n.label ||= makeLabel(n.name, n.title, 0, 0, 0, { bg: '#2d6a4f', h: 0.75 });
+  if (n.label.parent !== f.labels) f.labels.add(n.label);
+  n.label.position.set(x, gy + 2.45 + ((n.look.headScale || 1) - 1) * 0.9, z);
+  n.label.userData.base = null;                                       // 讓 updateVisibility 重新算名牌大小與高度
+}
+// 有好幾個地方可以出現的老師：隨機挑一個（跟上次不一樣）
+function movePlacesNPC(n) {
+  let k; do k = Math.random() * n.places.length | 0; while (n.places.length > 1 && k === n.placeIdx);
+  n.placeIdx = k;
+  const p = n.places[k], [x, z, yaw] = p.at();
+  placeNPC(n, floorById[p.floor], x, z, yaw);
+}
 for (const n of NPCS) {
-  const g = makeBlockNPC(n.look);
-  const [x, z, yaw] = n.at();
-  const gy = floors[1].y + groundAt(floors[1], x, z);                // 室內在樓板上、戶外在地面
-  g.position.set(x, gy, z); g.rotation.y = yaw;
-  n.yaw = yaw; n.g = g; n.near = false;
-  g.traverse((o) => { if (o.isMesh) { o.userData.npc = n; pickables.push(o); } });
-  floors[1].group.add(g);
-  floors[1].labels.add(makeLabel(n.name, n.title, x, gy + 2.45 + ((n.look.headScale || 1) - 1) * 0.9, z, { bg: '#2d6a4f', h: 0.75 }));
+  n.g = makeBlockNPC(n.look); n.near = false;
+  n.g.traverse((o) => { if (o.isMesh) { o.userData.npc = n; pickables.push(o); } });
+  if (n.places) movePlacesNPC(n);
+  else { const [x, z, yaw] = n.at(); placeNPC(n, floors[1], x, z, yaw); }
 }
 // hello 可以是好幾句：每次隨機換一句（不會連續兩次一樣）
 function meetNPC(n) {
@@ -2451,7 +2465,12 @@ function updateNPCs(t, dt) {
   for (const n of NPCS) {
     const { armL, armR } = n.g.userData.limbs;
     const dist = Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z);
-    const near = mode !== 'bird' && player.floor.level === 0 && dist < 2.2;
+    const near = mode !== 'bird' && player.floor === n.f && dist < 2.2;
+    // 會換地方的老師：每 75 秒換一次（你不在旁邊、也不在同一層的時候才換，不會在眼前突然消失）
+    if (n.places) {
+      n.moveT = (n.moveT || 0) + dt;
+      if (n.moveT > 75 && player.floor !== n.f && !nav.target) { n.moveT = 0; movePlacesNPC(n); updateVisibility(); }
+    }
     if (near && !n.near) meetNPC(n);
     n.near = near;
     // 靠近時轉身面向你、舉右手揮一揮；平常輕輕擺手
@@ -2462,6 +2481,131 @@ function updateNPCs(t, dt) {
     armL.rotation.x = Math.sin(t * 1.6) * 0.08;
     if (n.g.userData.tail) n.g.userData.tail.rotation.z = Math.sin(t * 2.2) * 0.35;
     if (!near) armR.rotation.x = -armL.rotation.x;
+  }
+}
+
+/* ---------------- 小鳥：中庭和操場草地上走路、啄地，人靠近就飛走；天上偶爾有一群飛過 ---------------- */
+
+const BIRD_LOOK = {
+  // 麻雀、白頭翁、八哥、斑鳩（臺灣校園常見）
+  sparrow: { body: '#9a7350', head: '#7a4a2e', belly: '#e6dcc8', wing: '#6b4a32', beak: '#2b2b2b', size: 0.8 },
+  bulbul: { body: '#7f8a5a', head: '#1f1f1f', belly: '#e8e6dc', wing: '#6f7a48', beak: '#1f1f1f', cap: '#ffffff', size: 0.9 },
+  myna: { body: '#2b2b2e', head: '#1b1b1d', belly: '#3a3a3e', wing: '#2b2b2e', beak: '#f2c230', patch: '#ffffff', size: 1.05 },
+  dove: { body: '#b8a79a', head: '#a8968a', belly: '#d8c8bc', wing: '#9a8678', beak: '#3a3030', collar: '#2b2b2b', size: 1.25 },
+};
+function makeBird(kind) {
+  const L = BIRD_LOOK[kind], g = new THREE.Group(), s = L.size;
+  const m = (c) => new THREE.MeshLambertMaterial({ color: c });
+  const box = (p, w, h, d, c, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w * s, h * s, d * s), m(c)); o.position.set(x * s, y * s, z * s); o.castShadow = true; p.add(o); return o; };
+  const body = new THREE.Group(); g.add(body);
+  box(body, 0.12, 0.1, 0.18, L.body, 0, 0.1, 0);
+  box(body, 0.1, 0.04, 0.14, L.belly, 0, 0.06, -0.01);
+  box(body, 0.06, 0.02, 0.12, L.wing, 0, 0.13, 0.13);                    // 尾巴
+  const head = new THREE.Group(); head.position.set(0, 0.17 * s, -0.08 * s); body.add(head);
+  box(head, 0.09, 0.08, 0.09, L.head, 0, 0, 0);
+  box(head, 0.03, 0.025, 0.05, L.beak, 0, -0.01, -0.06);
+  for (const x of [-0.046, 0.046]) box(head, 0.006, 0.015, 0.015, '#111111', x, 0.012, -0.02);
+  if (L.cap) box(head, 0.092, 0.03, 0.04, L.cap, 0, 0.02, 0.03);         // 白頭翁的白色後腦
+  if (L.patch) box(body, 0.13, 0.03, 0.04, L.patch, 0, 0.11, 0.02);       // 八哥翅膀上的白斑
+  if (L.collar) box(head, 0.095, 0.02, 0.04, L.collar, 0, -0.04, 0.03);   // 斑鳩脖子的黑點
+  const wings = [];
+  for (const side of [-1, 1]) {
+    const p = new THREE.Group(); p.position.set(side * 0.06 * s, 0.13 * s, 0); body.add(p);
+    box(p, 0.16, 0.012, 0.11, L.wing, side * 0.08, 0, 0);
+    p.visible = false; wings.push(p);
+  }
+  for (const x of [-0.025, 0.025]) box(g, 0.01, 0.06, 0.01, '#d9a46a', x, 0.03, 0);
+  g.userData = { body, head, wings, kind };
+  return g;
+}
+
+const birds = [];
+function placeBirds() {
+  const f = floors[1], areas = [];
+  const court = rooms.find((r) => r.name === '中庭');
+  if (court) areas.push({ x1: court.m.x1 + 3, x2: court.m.x2 - 14, z1: court.m.z1 + 4, z2: court.m.z2 - 3 });
+  const T = D.outdoor.track;
+  if (T) {
+    const cx = mx(T.center[0]), cz = mz(T.center[1]), A = T.size[0] / S / 2, B = T.size[1] / S / 2, Ls = A - B, r = B - 6;
+    areas.push({ x1: cx - Ls - r + 2, x2: cx - Ls - 2, z1: cz - r * 0.6, z2: cz + r * 0.6 }, { x1: cx + Ls + 2, x2: cx + Ls + r - 2, z1: cz - r * 0.6, z2: cz + r * 0.6 });
+  }
+  const kinds = ['sparrow', 'sparrow', 'sparrow', 'bulbul', 'bulbul', 'myna', 'dove'];
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  areas.forEach((a, ai) => {
+    for (let i = 0; i < 6; i++) {
+      const g = makeBird(kinds[(ai * 3 + i) % kinds.length]);
+      const x = rnd(a.x1, a.x2), z = rnd(a.z1, a.z2);
+      g.position.set(x, f.y + groundAt(f, x, z), z); g.rotation.y = Math.random() * 6.28;
+      f.group.add(g);
+      birds.push({ g, area: a, state: 'peck', t: Math.random() * 3, tx: x, tz: z, fly: null });
+    }
+  });
+  // 天上飛過的一群（白頭翁／麻雀），繞著校園飛
+  const flock = new THREE.Group(); f.group.add(flock);
+  for (let i = 0; i < 7; i++) {
+    const g = makeBird(i % 2 ? 'sparrow' : 'bulbul');
+    g.userData.wings.forEach((w) => (w.visible = true));
+    g.position.set((i % 3) * 1.2 - 1.2, (i % 2) * 0.6, Math.floor(i / 3) * 1.1);
+    flock.add(g);
+  }
+  birds.flock = { g: flock, t: Math.random() * 60 };
+}
+function updateBirds(t, dt) {
+  const f = floors[1];
+  const pf = player.floor === f, px = player.x, pz = player.z;
+  for (const b of birds) {
+    const g = b.g, u = g.userData;
+    if (b.state === 'fly') {                                              // 飛到另一片草地
+      b.fly.k += dt / b.fly.T;
+      const k = Math.min(1, b.fly.k), { sx, sz, ex, ez, sy, ey } = b.fly;
+      g.position.set(sx + (ex - sx) * k, sy + (ey - sy) * k + Math.sin(Math.PI * k) * 6, sz + (ez - sz) * k);
+      g.rotation.y = Math.atan2(-(ex - sx), -(ez - sz));
+      u.wings.forEach((w, i) => { w.visible = true; w.rotation.z = (i ? 1 : -1) * Math.sin(t * 28) * 0.9; });
+      if (k >= 1) { b.state = 'peck'; b.t = 1 + Math.random() * 2; u.wings.forEach((w) => (w.visible = false)); }
+      continue;
+    }
+    // 人走太近（2.8 公尺內）：飛走
+    if (pf && Math.hypot(px - g.position.x, pz - g.position.z) < 2.8) {
+      const others = birds.map((o) => o.area).filter((a) => a !== b.area), a = Math.random() < 0.6 && others.length ? others[Math.random() * others.length | 0] : b.area;
+      const ex = a.x1 + Math.random() * (a.x2 - a.x1), ez = a.z1 + Math.random() * (a.z2 - a.z1);
+      b.area = a;
+      b.fly = { k: 0, T: Math.hypot(ex - g.position.x, ez - g.position.z) / 9 + 0.8, sx: g.position.x, sz: g.position.z, sy: g.position.y, ex, ez, ey: f.y + groundAt(f, ex, ez) };
+      b.state = 'fly';
+      continue;
+    }
+    b.t -= dt;
+    if (b.state === 'peck') {                                             // 低頭啄一啄、轉頭看
+      u.head.rotation.x = Math.max(0, Math.sin(t * 9 + g.id)) * 0.9;
+      u.body.rotation.x = Math.max(0, Math.sin(t * 9 + g.id)) * 0.25;
+      if (b.t <= 0) {
+        b.state = 'hop';
+        const a = b.area, r = 1.5 + Math.random() * 2.5, ang = Math.random() * 6.28;
+        b.tx = Math.min(a.x2, Math.max(a.x1, g.position.x + Math.cos(ang) * r));
+        b.tz = Math.min(a.z2, Math.max(a.z1, g.position.z + Math.sin(ang) * r));
+      }
+    } else {                                                              // 一跳一跳往前走
+      const dx = b.tx - g.position.x, dz = b.tz - g.position.z, d = Math.hypot(dx, dz);
+      u.head.rotation.x = 0; u.body.rotation.x = 0;
+      if (d < 0.1) { b.state = 'peck'; b.t = 1 + Math.random() * 3; continue; }
+      const step = Math.min(d, dt * 1.4);
+      g.position.x += dx / d * step; g.position.z += dz / d * step;
+      g.position.y = f.y + groundAt(f, g.position.x, g.position.z) + Math.abs(Math.sin(t * 14 + g.id)) * 0.06;
+      g.rotation.y = Math.atan2(-dx, -dz);
+    }
+  }
+  // 天上那群：每 40 秒飛過校園一次
+  const fl = birds.flock;
+  if (fl) {
+    fl.t += dt;
+    const k = (fl.t % 40) / 14;
+    fl.g.visible = k <= 1;
+    if (k <= 1) {
+      const a = (fl.t / 40 | 0) * 1.7;
+      const sx = Math.cos(a) * 110, sz = Math.sin(a) * 110;
+      fl.g.position.set(sx * (1 - 2 * k), 16 + Math.sin(k * Math.PI) * 4, sz * (1 - 2 * k) + Math.sin(k * 9) * 3);
+      fl.g.rotation.y = Math.atan2(sx, sz);
+      fl.g.children.forEach((g, i) => g.userData.wings.forEach((w, j) => (w.rotation.z = (j ? 1 : -1) * Math.sin(t * 24 + i) * 0.9)));
+    }
   }
 }
 
@@ -2486,19 +2630,153 @@ let actLabel = '';
 function updateAct(dt) {
   if (act.busy) act.busy.tick(dt);
   act.spot = act.busy ? null : nearestSpot();
-  const label = act.busy ? (act.busy.press ? '🏀 出手！ <kbd>F</kbd>' : '')
-    : act.spot ? (act.spot.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>' : `🛝 溜${act.spot.name} <kbd>F</kbd>`) : '';
+  const label = act.busy ? (act.busy.label ?? (act.busy.press ? '🏀 出手！ <kbd>F</kbd>' : ''))
+    : act.spot ? (act.spot.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>' : act.spot.kind === 'toy' ? `${TOYS[act.spot.toy].icon} 玩${act.spot.name} <kbd>F</kbd>` : `🛝 溜${act.spot.name} <kbd>F</kbd>`) : '';
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
 }
 function doAction() {
   if (act.busy) { act.busy.press?.(); return; }
   if (act.spot?.kind === 'hoop') startShot(act.spot);
   else if (act.spot?.kind === 'slide') startSlide(act.spot);
+  else if (act.spot?.kind === 'toy') startToy(act.spot);
 }
 actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
 const limbs = () => avatar.userData.limbs;
 function resetPose() { const L = limbs(); if (L) for (const k of ['armL', 'armR', 'legL', 'legR']) L[k].rotation.set(0, 0, 0); }
+
+/* ---------------- 草地上的童玩：跳繩、扯鈴、小飛機 ---------------- */
+
+const TOYS = {
+  rope: { icon: '🪢', name: '跳繩' },
+  yoyo: { icon: '🪀', name: '扯鈴' },
+  plane: { icon: '✈️', name: '丟小飛機' },
+};
+// 童玩擺放處（中庭草地、操場兩端草地）：地上放一個小籃子，靠近就可以玩
+function placeToys() {
+  const b = new Batch(), f = floors[1], spots = [];
+  const court = rooms.find((r) => r.name === '中庭');
+  if (court) {
+    const m = court.m, cx = (m.x1 + m.x2) / 2, cz = (m.z1 + m.z2) / 2;
+    spots.push(['rope', cx - 6, cz - 2.5], ['yoyo', cx - 2, cz + 2.5], ['plane', cx - 10, cz + 1.5]);
+  }
+  const T = D.outdoor.track;
+  if (T) {
+    const cx = mx(T.center[0]), cz = mz(T.center[1]), A = T.size[0] / S / 2, B = T.size[1] / S / 2, Ls = A - B;
+    spots.push(['plane', cx - Ls - 6, cz - 3], ['rope', cx + Ls + 6, cz - 3], ['yoyo', cx + Ls + 6, cz + 3]);
+  }
+  const basket = { rope: '#e85d75', yoyo: '#3b82f6', plane: '#f2c230' };
+  for (const [toy, x, z] of spots) {
+    const gy = f.y + groundAt(f, x, z);
+    b.box(mat('wool', basket[toy]), 0.5, 0.28, 0.36, x, gy + 0.14, z);          // 小籃子
+    b.box(mat('wool', '#ffffff'), 0.42, 0.04, 0.28, x, gy + 0.3, z);
+    if (toy === 'rope') b.box(mat('wool', '#f2c230'), 0.08, 0.14, 0.08, x - 0.12, gy + 0.36, z);   // 跳繩握把
+    if (toy === 'yoyo') { b.box(mat('wool', '#e53935'), 0.14, 0.14, 0.14, x, gy + 0.38, z); b.box(mat('wool', '#8b5a2b'), 0.5, 0.03, 0.03, x, gy + 0.33, z + 0.08); }
+    if (toy === 'plane') { b.box(mat('wool', '#f4f4f2'), 0.08, 0.04, 0.4, x, gy + 0.34, z); b.box(mat('wool', '#f4f4f2'), 0.5, 0.02, 0.12, x, gy + 0.36, z); }
+    SPOTS.push({ kind: 'toy', toy, name: TOYS[toy].name, x, z, r: 1.8, floorY: 0 });
+  }
+  b.build(f.group);
+}
+
+// 繩子：從左手繞過腳底到右手（以手的高度為軸旋轉）
+function makeRope() {
+  const pts = [];
+  for (let i = 0; i <= 16; i++) { const a = Math.PI * i / 16; pts.push(new THREE.Vector3(-Math.cos(a) * 0.36, -Math.sin(a) * 0.95, 0)); }
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, 0.02, 5), new THREE.MeshLambertMaterial({ color: '#e85d75' })));
+  return g;
+}
+function makeDiabolo() {
+  const g = new THREE.Group(), red = new THREE.MeshLambertMaterial({ color: '#e53935' });
+  for (const s of [-1, 1]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.03, 0.12, 12), red); c.rotation.z = s * Math.PI / 2; c.position.x = s * 0.06; g.add(c); }
+  return g;
+}
+function makePlane() {
+  const g = new THREE.Group(), w = new THREE.MeshLambertMaterial({ color: '#f4f4f2' }), r = new THREE.MeshLambertMaterial({ color: '#e53935' });
+  const add = (m, x, y, z, sx, sy, sz) => { const o = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), m); o.position.set(x, y, z); g.add(o); };
+  add(w, 0, 0, 0, 0.06, 0.05, 0.5); add(w, 0, 0.02, -0.04, 0.55, 0.015, 0.14); add(w, 0, 0.02, 0.22, 0.2, 0.015, 0.06); add(r, 0, 0.06, 0.22, 0.015, 0.1, 0.06); add(r, 0, 0, -0.26, 0.07, 0.06, 0.05);
+  g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  return g;
+}
+const toyProps = { rope: makeRope(), yoyo: makeDiabolo(), sticks: new THREE.Group(), plane: makePlane() };
+{
+  const stick = new THREE.MeshLambertMaterial({ color: '#8b5a2b' });
+  for (const s of [-1, 1]) { const o = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.45), stick); o.position.set(s * 0.3, 0.62, -0.25); toyProps.sticks.add(o); }
+}
+toyProps.yoyoString = new THREE.Mesh(new THREE.BoxGeometry(1, 0.01, 0.01), new THREE.MeshBasicMaterial({ color: '#f4f4f2' }));
+toyProps.plane.scale.setScalar(1.8); toyProps.plane.visible = false; scene.add(toyProps.plane);
+
+function startToy(sp) {
+  stopAuto();
+  const L = limbs();
+  let t = 0;
+  if (sp.toy === 'rope') {
+    const rope = toyProps.rope; rope.position.set(0, 0.68, 0); avatar.add(rope);
+    let count = 0, last = 0;
+    act.busy = {
+      label: '⏹ 停止跳繩 <kbd>F</kbd>',
+      tick(dt) {
+        t += dt;
+        const ph = t * Math.PI * 2 * 1.4;                                  // 一秒轉 1.4 圈
+        rope.rotation.x = ph;
+        const c = Math.cos(ph);                                             // 繩子在腳底時（c≈1）跳最高
+        player.jump = Math.max(0, c) * 0.28; player.vy = 0;
+        if (L) { L.armL.rotation.z = -0.45; L.armR.rotation.z = 0.45; L.armL.rotation.x = L.armR.rotation.x = -0.35 + Math.sin(ph) * 0.18; L.legL.rotation.x = L.legR.rotation.x = -Math.max(0, c) * 0.25; }
+        const k = Math.floor(ph / (Math.PI * 2));
+        if (k !== last) { last = k; count++; if (count % 10 === 0) toast(`🪢 跳了 ${count} 下！`); }
+      },
+      press() { avatar.remove(rope); player.jump = 0; resetPose(); act.busy = null; toast(`🪢 一共跳了 ${count} 下！`); },
+    };
+  } else if (sp.toy === 'yoyo') {
+    const d = toyProps.yoyo, st = toyProps.sticks, str = toyProps.yoyoString;
+    avatar.add(d, st, str);
+    let toss = -1, tosses = 0;
+    act.busy = {
+      label: '🪀 往上拋 <kbd>F</kbd>　（走開就停）',
+      tick(dt) {
+        t += dt;
+        d.rotation.x += dt * 30;                                            // 扯鈴一直轉
+        const sw = Math.sin(t * 6);
+        let y = 0.42 + sw * 0.05;
+        if (toss >= 0) {                                                    // 拋起來再接住
+          toss += dt;
+          const T = 1.3, k = toss / T;
+          y = 0.42 + Math.sin(Math.PI * Math.min(1, k)) * 2.6;
+          if (k >= 1) { toss = -1; tosses++; toast(`🪀 接住了！（${tosses}）`); }
+        }
+        d.position.set(0, y, -0.45);
+        str.visible = toss < 0;
+        str.position.set(0, 0.5 + sw * 0.03, -0.45); str.scale.x = 0.6;
+        if (L) { L.armL.rotation.x = -0.9 + sw * 0.35; L.armR.rotation.x = -0.9 - sw * 0.35; L.armL.rotation.z = -0.2; L.armR.rotation.z = 0.2; }
+        st.children[0].position.y = 0.62 + sw * 0.12; st.children[1].position.y = 0.62 - sw * 0.12;
+        if (Math.hypot(player.x - sp.x, player.z - sp.z) > 3) this.stop();
+      },
+      press() { if (toss < 0) toss = 0; },
+      stop() { avatar.remove(d, st, str); resetPose(); act.busy = null; },
+    };
+  } else {
+    // 小飛機：右手往後拉、往前丟，沿著面向的方向滑翔出去
+    const pl = toyProps.plane, f = player.floor, yaw = avatar.rotation.y;
+    const dir = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+    const start = new THREE.Vector3(player.x, f.y + (player.gy || 0) + 1.5, player.z).addScaledVector(dir, 0.4);
+    const dist = 9 + Math.random() * 6, T = 2.6;
+    pl.visible = false;
+    act.busy = {
+      label: '',
+      tick(dt) {
+        t += dt;
+        if (L) L.armR.rotation.x = t < 0.35 ? -2.6 * (t / 0.35) - 0.3 : Math.min(0, -2.9 + (t - 0.35) * 8);
+        if (t < 0.35) return;
+        const k = Math.min(1, (t - 0.35) / T), gy = f.y + groundAt(f, start.x + dir.x * dist * k, start.z + dir.z * dist * k);
+        pl.visible = true;
+        pl.position.copy(start).addScaledVector(dir, dist * k);
+        pl.position.y = Math.max(gy + 0.05, start.y + Math.sin(Math.PI * k) * 1.6 - k * (start.y - gy));
+        pl.rotation.set(0, yaw, 0); pl.rotateX(-Math.cos(Math.PI * k) * 0.35); pl.rotateZ(Math.sin(t * 3) * 0.2);
+        if (t > 0.35 + T + 1.2) { pl.visible = false; resetPose(); act.busy = null; toast('✈️ 飛好遠！再丟一次？'); }
+      },
+    };
+  }
+}
 
 // 籃球：橘色、黑色線
 const ball = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), new THREE.MeshLambertMaterial({ map: (() => {
@@ -2714,7 +2992,7 @@ function update(dt) {
     }
     updateAct(dt);
     // 跳
-    if (player.vy !== 0 || player.jump > 0) {
+    if (!act.busy?.label?.includes('跳繩') && (player.vy !== 0 || player.jump > 0)) {
       player.vy -= 12 * dt; player.jump += player.vy * dt;
       if (player.jump <= 0) { player.jump = 0; player.vy = 0; }
     }
@@ -2770,7 +3048,8 @@ function update(dt) {
     orbit.update();
   }
 
-  if (floors[1].group.visible) { cat.userData.anim(t); updateNPCs(t, dt); }
+  if (floors[1].group.visible) { cat.userData.anim(t); updateBirds(t, dt); }
+  updateNPCs(t, dt);
   // 雲慢慢飄
   if (clouds) {
     const sp = clouds.userData.spread;
@@ -2812,6 +3091,7 @@ function setupCollision() {
   const f1 = floorById['1F'];
   // 老師 NPC：站著的地方擋一下，不會穿過去
   for (const n of NPCS) {
+    if (n.places) continue;
     const p = n.g.position;
     f1.boxes.push({ x1: p.x - 0.25, x2: p.x + 0.25, z1: p.z - 0.2, z2: p.z + 0.2, y1: 0, y2: 1.8 });
   }
@@ -2852,6 +3132,8 @@ for (const f of floors) buildFloor(f);
 buildPlinth();
 Batch.collector = floors[1].boxes;
 buildOutdoor();
+placeToys();
+placeBirds();
 Batch.collector = null;
 setupCollision();
 buildPanoMarkers();
