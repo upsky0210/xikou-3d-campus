@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=77';
+import { Batch, mat, SPOTS } from './blocks.js?v=78';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -526,22 +526,52 @@ const paverMat = () => {
   t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter;
   return (paverMat.m = new THREE.MeshLambertMaterial({ map: t }));
 };
-/** x1～x2、z1～z2：停車場範圍（公尺） */
-export function buildParking(group, x1, x2, z1, z2) {
+// 鐵皮浪板（資源回收場）：淺灰綠色、直條紋
+const tinMat = () => {
+  if (tinMat.m) return tinMat.m;
+  const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64;
+  const c = cv.getContext('2d');
+  c.fillStyle = '#c9d0c8'; c.fillRect(0, 0, 64, 64);
+  for (let x = 0; x < 64; x += 8) { c.fillStyle = 'rgba(0,0,0,.14)'; c.fillRect(x, 0, 2, 64); c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(x + 4, 0, 2, 64); }
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return (tinMat.m = new THREE.MeshLambertMaterial({ map: t }));
+};
+/** x1～x2、z1～z2：停車場範圍（公尺）；guardZ：警衛室北牆（西邊那列車從這裡往北排）；shedX2：資源回收場東邊到哪裡 */
+export function buildParking(group, x1, x2, z1, z2, { guardZ = z2 + 9, shedX2 = x1 + 8 } = {}) {
   const b = new Batch();
   b.box(paverMat(), x2 - x1, 0.04, z2 - z1, (x1 + x2) / 2, 0.02, (z1 + z2) / 2);                // 地磚
   const line = mat('wool', '#ece8e2');
-  // 西邊沿圍牆：3 台前後排成一列、車頭朝南（往出口）
-  ['#25272b', '#f4f4f2', '#7d8790'].forEach((c, i) => car(b, x1 + 1.25, z1 + 2.25 + i * 4.4, 1, c, false));
-  for (let i = 0; i <= 3; i++) b.box(line, 2.3, 0.02, 0.1, x1 + 1.25, 0.045, z1 + 0.05 + i * 4.4);
-  // 北邊沿扶手：2 台並排、車頭朝南
-  const nx = [x1 + 5.4, x1 + 8.1];
+  // 西邊沿圍牆：3 台前後首尾相接、車頭朝南；最南邊那台緊靠警衛室北牆，往北排上去
+  ['#7d8790', '#f4f4f2', '#25272b'].forEach((c, i) => car(b, x1 + 1.25, guardZ - 2.4 - i * 4.4, 1, c, false));
+  // 北邊沿扶手：2 台並排、車頭朝南（靠東邊一點，後面是資源回收場）
+  const nx = [x1 + 6.8, x1 + 9.5];
   nx.forEach((x, i) => car(b, x, z1 + 2.35, 1, ['#2f5a9e', '#2a4f9e'][i], false));
   for (let i = 0; i <= nx.length; i++) b.box(line, 0.1, 0.02, 4.8, x1 + 4.05 + i * 2.7, 0.045, z1 + 2.4);
   // 東邊靠乙梯（走廊那側）：4 台並排、車頭朝西（朝中間車道）
   const ez = [0, 1, 2, 3].map((i) => z2 - 1.6 - i * 2.7);
   ez.forEach((z, i) => car(b, x2 - 2.6, z, -1, ['#5d6168', '#6f7378', '#c9ccd0', '#3a5f9e'][i], true));
   for (let i = 0; i <= ez.length; i++) b.box(line, 4.8, 0.02, 0.1, x2 - 2.55, 0.045, z2 - 0.25 - i * 2.7);
+  // 北邊後面：資源回收場（鐵皮屋，大約一層半樓高，斜屋頂；正面朝停車場，有拉門和招牌）
+  {
+    const sx1 = x1 + 0.1, sx2 = shedX2, sz1 = z1 - 5.2, sz2 = z1 - 0.15, sh = 4.6, cx = (sx1 + sx2) / 2, cz = (sz1 + sz2) / 2;
+    const tin = tinMat(), frame = mat('wool', '#8e9590'), roof = mat('wool', '#b7bdb8'), dark = mat('wool', '#3f4542');
+    b.box(tin, sx2 - sx1, sh, sz2 - sz1, cx, sh / 2, cz);                                   // 鐵皮牆
+    const rg = new THREE.BoxGeometry(sx2 - sx1 + 0.5, 0.12, sz2 - sz1 + 0.9); rg.rotateX(-0.12); rg.translate(cx, sh + 0.3, cz);   // 往前（南）斜的屋頂
+    b.add(roof, rg);
+    for (const x of [sx1 + 0.08, sx2 - 0.08]) b.box(frame, 0.16, sh, 0.16, x, sh / 2, sz2);   // 角柱
+    const dw = Math.min(4.2, sx2 - sx1 - 1.6), dx = cx - 0.6;
+    b.box(dark, dw + 0.2, 2.7, 0.06, dx, 1.35, sz2 + 0.02);                                // 拉門門框（暗）
+    for (let k = 0; k < 2; k++) b.box(tin, dw / 2 - 0.06, 2.55, 0.05, dx - dw / 4 + k * dw / 2, 1.3, sz2 + 0.06);   // 兩片鐵皮拉門
+    // 招牌：白底綠字「資源回收場」；旁邊藍色無障礙標誌
+    const sign = new THREE.CanvasTexture((() => { const cv = document.createElement('canvas'); cv.width = 320; cv.height = 72;
+      const c = cv.getContext('2d'); c.fillStyle = '#f7f7f2'; c.fillRect(0, 0, 320, 72); c.strokeStyle = '#2e7d4f'; c.lineWidth = 6; c.strokeRect(3, 3, 314, 66);
+      c.fillStyle = '#2e7d4f'; c.font = '900 44px "Noto Sans TC", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('資源回收場', 160, 38); return cv; })());
+    sign.colorSpace = THREE.SRGBColorSpace;
+    b.plain(new THREE.MeshLambertMaterial({ map: sign }), 2.4, 0.54, 0.04, dx, 3.05, sz2 + 0.07);
+    b.box(mat('wool', '#2f5aa8'), 0.5, 0.55, 0.04, dx + dw / 2 + 0.6, 2.4, sz2 + 0.07);
+    b.box(mat('wool', '#ffffff'), 0.22, 0.26, 0.05, dx + dw / 2 + 0.6, 2.42, sz2 + 0.07);
+  }
   // 無障礙車位標誌（藍底白色輪椅）
   b.box(mat('wool', '#c9cdd2'), 0.08, 2.0, 0.08, x2 - 1.0, 1.0, z1 + 0.6);
   b.box(mat('wool', '#2f5aa8'), 0.04, 0.6, 0.45, x2 - 1.0, 1.75, z1 + 0.6);
@@ -619,13 +649,7 @@ export function buildFrontYard(group, { gx, gz1, gz2, hall, guard, base, fieldZ,
   b.box(paver, hall.x1 - guard.x2 - 0.2, 0.03, gz1 - carLot.z2 + 0.2, (guard.x2 + hall.x1) / 2, 0.015, (gz1 + carLot.z2) / 2);   // 警衛室旁的車道
   b.box(paver, hall.x1 - gx, 0.03, guard.z1 - carLot.z2, (gx + hall.x1) / 2, 0.015, (carLot.z2 + guard.z1) / 2);   // 停車場和警衛室中間
   b.box(paver, hall.x1 - gx, 0.03, fieldZ - gz2, (gx + hall.x1) / 2, 0.015, (gz2 + fieldZ) / 2);
-  // 往北的車道旁停兩台車（車頭朝南，沿著圍牆）
-  for (const [z, col] of [[carLot.z2 + 2.6, '#5d6b7a'], [carLot.z2 + 7.2, '#f4f4f2']]) {
-    const body = mat('wool', col), glass = mat('wool', '#2b3440'), tire = mat('wool', '#1b1b1d'), x = gx + 1.6;
-    if (z + 2.3 > guard.z1) continue;
-    b.box(body, 1.8, 0.65, 4.3, x, 0.6, z); b.box(glass, 1.62, 0.55, 2.3, x, 1.2, z + 0.25); b.box(body, 1.55, 0.1, 2.1, x, 1.52, z + 0.25);
-    for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) b.box(tire, 0.3, 0.6, 0.62, x + a * 0.82, 0.3, z + c * 1.35);
-  }
+  // 沿著圍牆、往北接到停車場的那列車在 buildParking（從警衛室北牆往北排）
   // 穿堂入口：雨遮（底下彩色條紋、正面金色鏤空招牌）、兩旁花台、扶手、國旗
   const hz1 = hall.z1, hz2 = hall.z2, hzc = (hz1 + hz2) / 2, hx = hall.x1, top = base + 3.4;
   b.plain(stripeCeilMat(), 3.2, 0.12, hz2 - hz1 + 2, hx - 1.4, top, hzc);

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=77';
-import { furnishFloor } from './furniture.js?v=77';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=77';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=77';
-import { buildCampusWall } from './wall.js?v=77';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=77';
+import { PanoViewer } from './pano.js?v=78';
+import { furnishFloor } from './furniture.js?v=78';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=78';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=78';
+import { buildCampusWall } from './wall.js?v=78';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=78';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -769,7 +769,8 @@ function buildOutdoor() {
   {
     // 教師停車場：乙梯北邊、敬業樓廁所南邊、圍牆和西側走廊之間的空地
     const px1 = mx(D.outdoor.wall?.x1 ?? 300) + 0.6, px2 = mx(645) - 0.7, pz1 = mz(230) + 0.3, pz2 = mz(475) - 0.4;
-    buildParking(g, px1, px2, pz1, pz2);
+    const guardRoom = rooms.find((r) => r.name === '警衛室'), wc = rooms.find((r) => r.f.id === '1F' && r.name === '廁所' && r.building === 'A');
+    buildParking(g, px1, px2, pz1, pz2, { guardZ: guardRoom ? guardRoom.m.z1 : undefined, shedX2: wc ? wc.m.x1 - 0.3 : undefined });   // 資源回收場到敬業樓廁所旁
     floors[1].labels.add(makeTag('教師停車場', 'PARKING', (px1 + px2) / 2, 0, (pz1 + pz2) / 2, { accent: '#2f6fb5', h: 2.6, stem: 3.5 }));
   }
   if (O.facadeC) {
