@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=72';
-import { furnishFloor } from './furniture.js?v=72';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=72';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=72';
-import { buildCampusWall } from './wall.js?v=72';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=72';
+import { PanoViewer } from './pano.js?v=73';
+import { furnishFloor } from './furniture.js?v=73';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=73';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=73';
+import { buildCampusWall } from './wall.js?v=73';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=73';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2301,7 +2301,7 @@ function meetCat() {
   toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
 }
 
-/* ---------------- 蜜袋鼯：五年四班老師桌上 1 隻、1F 教務處粉紅椅那張桌上 2 隻（花花、泡泡） ---------------- */
+/* ---------------- 小寵物：蜜袋鼯（五年四班 1 隻、1F 教務處 2 隻）、倉鼠羞羞（3F 輔導室） ---------------- */
 
 const GLIDERS = [
   {
@@ -2321,10 +2321,20 @@ const GLIDERS = [
     hello: '🐿️ 我是泡泡！<br>正抱著點心吃，不要跟我搶喔～',
     at: () => { const r = rooms.find((x) => x.name === '教務處'); return [r.f, r.cx - 2.27, r.m.z1 + 2.5, 0.76, Math.PI / 2 - 0.25]; },
   },
+  {
+    make: makeHamster, name: '羞羞',
+    hello: '🐹 我是倉鼠羞羞，住在輔導室！<br>有點害羞，所以都躲在粉紅色小熊屋裡偷看你～',
+    // 3F 輔導室：靠門那一排、最西邊那張辦公桌的西側桌角（螢幕、鍵盤旁邊），面向門口（西）
+    at: () => {
+      const r = rooms.find((x) => x.name === '輔導室'), inset = WALL_T / 2 + 0.02;
+      const W = r.m.x2 - r.m.x1 - inset * 2, v = -(W - 1.2) / 2 + (W - 1.2) * 0.5 / 3;   // 跟 furniture.js officeDesks 同一個位置
+      return [r.f, r.cx + v - 0.42, r.m.z1 + inset + 1.25, 0.75, Math.PI / 2];
+    },
+  },
 ];
 for (const gl of GLIDERS) {
   const [f, x, z, top, yaw] = gl.at();
-  gl.g = makeGlider(gl.look); gl.f = f; gl.near = false;
+  gl.g = (gl.make || makeGlider)(gl.look); gl.f = f; gl.near = false;
   gl.g.position.set(x, f.y + groundAt(f, x, z) + top, z);
   gl.g.rotation.y = yaw;
   f.group.add(gl.g);
@@ -2536,6 +2546,38 @@ const NPCS = [
         'HHSSSSSSSSSSSSHH',
         'HHHSSSSSSSSSSHHH',
         'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: 'Ashley 老師', title: '輔導組長',
+    hello: ['💬 Ashley 老師：有心事都可以來輔導室找我聊聊喔！', '😊 Ashley 老師：今天過得開心嗎？', '🐹 Ashley 老師：要看倉鼠羞羞嗎？牠在輔導室裡，很害羞喔！'],
+    // 3 樓輔導室（327）外面的走廊、兩扇門中間，面向走廊（西）
+    places: [
+      { floor: '3F', where: '輔導室外', at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 - 0.65, r.cz, Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深咖啡色頭髮往後綁（低髮髻、臉旁兩撮，帶一點紅棕色）、笑開露牙、淺膚色；淺藍綠色無袖上衣、紫色識別證掛繩
+      skin: '#f4d6c2', hair: '#3b2418', top: '#7fd3dc', pants: '#2f3440', shoe: '#e9e4dc',
+      bun: true, sleeveless: true, lanyard: '#6a3fc0',
+      pal: { H: '#3b2418', h: '#7a4a32', S: '#f4d6c2', B: '#3b2418', E: '#1e120c', N: '#e3b8a0', R: '#f2aaa2', M: '#c0605a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHHHHHH',
+        'HHHHHHHHHHHHhHHH',
+        'HHHHSSSHHHHHHHHH',
+        'HHHSSSSSSSHHHHHH',
+        'HHSSSSSSSSSSSHHH',
+        'HSSSSSSSSSSSSSSH',
+        'HSSBBBSSSSBBBSSH',
+        'SSSEESSSSSSEESSS',
+        'SSSEESSSSSSEESSS',
+        'SSSSSSSNNSSSSSSS',
+        'SRRSSSSSSSSSSRRS',
+        'SSSSMMMMMMMMSSSS',
+        'SSSSMTTTTTTMSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
       ],
     },
   },

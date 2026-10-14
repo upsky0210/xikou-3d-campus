@@ -400,6 +400,7 @@ export function animatePerson(g, phase, amount) {
  *   cat: 貓頭（虎斑條紋、貓耳、鬍鬚、尾巴；pal.h 是條紋色）
  *   patches: 毛色色塊 [[顏色, x, y, w, h], ...]（取代條紋）, ears: [左耳色, 右耳色], whisker: 鬍鬚色
  *   headScale: 頭放大倍數
+ *   bun: 頭髮往後綁成低髮髻（臉旁留兩撮）, lanyard: 識別證掛繩顏色, sleeveless: 無袖
  * }
  */
 export function makeBlockNPC(look) {
@@ -473,6 +474,12 @@ export function makeBlockNPC(look) {
     box(g, 0.1, 0.5, 0.06, hair, -0.19, 1.14, -0.16);       // 披到胸前的兩撮
     box(g, 0.1, 0.42, 0.06, hair, 0.19, 1.18, -0.16);
   }
+  if (look.bun) {                                           // 往後綁的低髮髻＋臉旁兩撮
+    box(g, 0.22, 0.2, 0.14, hair, 0, 1.42, 0.29);
+    box(g, 0.14, 0.12, 0.06, hair, 0, 1.43, 0.38);
+    box(g, 0.04, 0.24, 0.04, hair, -0.215, 1.42, -0.19);
+    box(g, 0.04, 0.2, 0.04, hair, 0.215, 1.44, -0.19);
+  }
 
   box(g, 0.46, 0.6, 0.26, top, 0, 1.0, 0);                  // 上衣
   box(g, 0.2, 0.05, 0.27, cloth(look.collar || look.top), 0, 1.3, 0);   // 領子
@@ -489,6 +496,11 @@ export function makeBlockNPC(look) {
     box(g, 0.3, 0.13, 0.015, cloth('#a8161f'), 0, 0.8, -0.137);
   }
   if (look.zip) box(g, 0.02, 0.5, 0.01, cloth(look.zip), 0, 1.0, -0.135);          // 外套拉鍊
+  if (look.lanyard) {                                       // 識別證：掛繩斜斜到胸前、白色卡片
+    for (const sd of [-1, 1]) { const b = box(g, 0.03, 0.3, 0.012, cloth(look.lanyard), sd * 0.075, 1.15, -0.136); b.rotation.z = sd * 0.25; }
+    box(g, 0.14, 0.17, 0.014, new THREE.MeshLambertMaterial({ color: '#ffffff' }), 0, 0.93, -0.14);
+    box(g, 0.14, 0.04, 0.016, cloth(look.lanyard), 0, 0.995, -0.14);
+  }
   if (look.whistle) {
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), 0.06, 1.2, -0.135);
@@ -501,8 +513,11 @@ export function makeBlockNPC(look) {
       box(p, 0.19, 0.58, 0.21, top, 0, -0.29, 0);
       box(p, 0.16, 0.1, 0.18, skin, 0, -0.63, 0);
     } else {
-      box(p, 0.2, 0.22, 0.22, top, 0, -0.11, 0);
-      box(p, 0.16, 0.46, 0.18, skin, 0, -0.45, 0);
+      if (look.sleeveless) box(p, 0.17, 0.68, 0.18, skin, 0, -0.34, 0);   // 無袖：整條手臂
+      else {
+        box(p, 0.2, 0.22, 0.22, top, 0, -0.11, 0);
+        box(p, 0.16, 0.46, 0.18, skin, 0, -0.45, 0);
+      }
     }
     return p;
   };

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=72';
+import { Batch, mat, SPOTS } from './blocks.js?v=73';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -375,6 +375,42 @@ export function makeCat() {
    cream：奶油色、窩在藍色保暖袋裡抱著點心（五年四班，依照片）
    grey ：灰毛、白肚子、臉上黑色條紋從鼻子到背、黑眼圈、蓬蓬灰尾巴（花花，依照片：趴在毯子上、尾巴捲在旁邊）
    pale ：比較白的灰毛、黑條紋、手上抱著點心、尾巴拖在後面（泡泡，依照片） */
+
+/**
+ * 倉鼠（依照片：灰褐色背、深色背線、白臉頰白肚子、黑亮眼睛、粉紅鼻子）從粉紅色熊頭陶瓷小屋的圓洞探出頭；前面是 -z
+ */
+export function makeHamster() {
+  const g = new THREE.Group();
+  const M = (color, e) => new THREE.MeshLambertMaterial(e ? { color, emissive: e } : { color });
+  const pink = M('#f3b6c6'), pinkD = M('#e79cb0'), hole = M('#3a2430'), nose = M('#e08a96'), eye = M('#0d0a0a', '#080505');
+  const fur = M('#8d8a86'), furD = M('#5e5a57'), white = M('#f2efe9'), paw = M('#f6dcd8');
+  const add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
+  const box = (m, w, h, d, x, y, z) => add(new THREE.BoxGeometry(w, h, d), m, x, y, z);
+  // 小屋：圓圓的蛋形（下面平）＋兩個圓耳朵
+  const shell = add(new THREE.SphereGeometry(0.11, 20, 14, 0, Math.PI * 2, 0, Math.PI * 0.62), pink, 0, 0.1, 0);
+  shell.scale.set(1, 1.25, 0.95);
+  add(new THREE.CylinderGeometry(0.105, 0.1, 0.1, 20), pink, 0, 0.05, 0);
+  for (const sx of [-1, 1]) {
+    const ear = add(new THREE.CylinderGeometry(0.035, 0.035, 0.03, 16), pink, sx * 0.075, 0.225, 0);
+    ear.rotation.x = Math.PI / 2;
+    const inner = add(new THREE.CylinderGeometry(0.02, 0.02, 0.031, 12), pinkD, sx * 0.075, 0.225, -0.002);
+    inner.rotation.x = Math.PI / 2;
+  }
+  const door = add(new THREE.CircleGeometry(0.06, 20), hole, 0, 0.1, -0.1);   // 前面的圓洞（裡面暗暗的）
+  door.rotation.y = Math.PI;
+  box(M('#f5e3c9'), 0.035, 0.035, 0.004, 0, 0.03, -0.103);   // 下面的小倉鼠貼紙
+  // 倉鼠：頭從洞口探出來，兩隻小手扶在洞口
+  box(fur, 0.085, 0.075, 0.07, 0, 0.105, -0.095);             // 頭頂、背
+  box(furD, 0.02, 0.06, 0.071, 0, 0.115, -0.095);             // 深色背線
+  box(white, 0.09, 0.04, 0.06, 0, 0.075, -0.1);               // 白臉頰、下巴
+  box(nose, 0.016, 0.014, 0.01, 0, 0.098, -0.132);            // 粉紅鼻子
+  for (const sx of [-1, 1]) {
+    box(eye, 0.016, 0.018, 0.006, sx * 0.022, 0.118, -0.131); // 黑亮眼睛
+    box(fur, 0.022, 0.022, 0.012, sx * 0.03, 0.15, -0.09);    // 小耳朵
+    box(paw, 0.018, 0.012, 0.02, sx * 0.022, 0.05, -0.122);   // 扶在洞口的小手
+  }
+  return g;
+}
 
 export function makeGlider(look = 'cream') {
   const g = new THREE.Group();
