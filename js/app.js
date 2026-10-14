@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=73';
-import { furnishFloor } from './furniture.js?v=73';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=73';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=73';
-import { buildCampusWall } from './wall.js?v=73';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=73';
+import { PanoViewer } from './pano.js?v=74';
+import { furnishFloor } from './furniture.js?v=74';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=74';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=74';
+import { buildCampusWall } from './wall.js?v=74';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=74';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2550,11 +2550,13 @@ const NPCS = [
     },
   },
   {
-    name: 'Ashley 老師', title: '輔導組長',
-    hello: ['💬 Ashley 老師：有心事都可以來輔導室找我聊聊喔！', '😊 Ashley 老師：今天過得開心嗎？', '🐹 Ashley 老師：要看倉鼠羞羞嗎？牠在輔導室裡，很害羞喔！'],
-    // 3 樓輔導室（327）外面的走廊、兩扇門中間，面向走廊（西）
+    name: 'Ashley 老師', title: '輔導組長', game: 'words',
+    hello: ['📝 Ashley 老師：要不要和 Ashley 老師練習背單字？', '📝 Ashley 老師：要不要和 Ashley 老師練習背單字？<br>💬 有心事也可以來輔導室找我聊聊喔！',
+      '📝 Ashley 老師：要不要和 Ashley 老師練習背單字？<br>🐹 練完可以去輔導室看倉鼠羞羞喔！'],
+    // 隨機出現：3 樓輔導室（327）外面的走廊（兩扇門中間，面向走廊），或 2 樓英語教室一（210）前面講台旁（面向學生）；兩個地方都可以練單字
     places: [
-      { floor: '3F', where: '輔導室外', at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 - 0.65, r.cz, Math.PI / 2]; } },
+      { floor: '3F', where: '輔導室外', game: true, at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 - 0.65, r.cz, Math.PI / 2]; } },
+      { floor: '2F', where: '英語教室一', game: true, at: () => { const r = rooms.find((x) => x.name === '英語教室一'); return [r.m.x1 + 1.3, r.cz + 1.2, -Math.PI / 2]; } },
     ],
     look: {
       // 依照片：深咖啡色頭髮往後綁（低髮髻、臉旁兩撮，帶一點紅棕色）、笑開露牙、淺膚色；淺藍綠色無袖上衣、紫色識別證掛繩
@@ -2792,6 +2794,7 @@ function updateAct(dt) {
     : sp.kind === 'toy' ? `${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`
     : sp.kind === 'badminton' ? `🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
+    : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
 }
@@ -2802,6 +2805,7 @@ function doAction() {
   else if (act.spot?.kind === 'toy') startToy(act.spot);
   else if (act.spot?.kind === 'badminton') startBadminton(act.spot.npc);
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
+  else if (act.spot?.kind === 'words') startWords(act.spot.npc);
 }
 actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
@@ -3056,6 +3060,101 @@ function startShootout(n) {
   duel = { quit() { powerBox.hidden = true; ball.visible = false; finish(); toast('🏀 比賽中止'); } };
   toast(`🏀 投籃比賽！你跟${n.name}輪流投 ${SHOOTOUT_N} 球，進比較多球的贏。<br>綠色區域時按 F 出手！`);
   wait(1.2, `🏀 準備…　${score()}`, myTurn);
+}
+
+/* ---------------- 英文單字小測驗：遇到 Ashley 老師（輔導室外走廊、2F 英語教室一）可以練背單字 ----------------
+   看中文和圖示，用鍵盤打出英文單字，按 Enter 送出；每次隨機考 3～5 個（顏色、動物、文具）。
+   答錯可以再試一次（提示會多給一個字母），第二次還錯就公布答案。答完會唸出發音。 */
+
+const WORDS_KEY = 'campus-words-best';
+const WORD_BANK = {
+  顏色: [['red', '紅色', '🔴'], ['blue', '藍色', '🔵'], ['green', '綠色', '🟢'], ['yellow', '黃色', '🟡'], ['orange', '橘色', '🟠'],
+    ['purple', '紫色', '🟣'], ['pink', '粉紅色', '🌸'], ['black', '黑色', '⚫'], ['white', '白色', '⚪'], ['brown', '咖啡色', '🟤']],
+  動物: [['cat', '貓', '🐱'], ['dog', '狗', '🐶'], ['bird', '鳥', '🐦'], ['fish', '魚', '🐟'], ['rabbit', '兔子', '🐰'], ['tiger', '老虎', '🐯'],
+    ['monkey', '猴子', '🐵'], ['elephant', '大象', '🐘'], ['pig', '豬', '🐷'], ['duck', '鴨子', '🦆'], ['lion', '獅子', '🦁'], ['bear', '熊', '🐻'], ['hamster', '倉鼠', '🐹']],
+  文具: [['pen', '原子筆', '🖊️'], ['pencil', '鉛筆', '✏️'], ['eraser', '橡皮擦', '🧽'], ['ruler', '尺', '📏'], ['book', '書', '📕'],
+    ['glue', '膠水', '🧴'], ['scissors', '剪刀', '✂️'], ['crayon', '蠟筆', '🖍️'], ['notebook', '筆記本', '📓'], ['bag', '書包', '🎒']],
+};
+const quizBox = document.getElementById('quiz'), quizInput = quizBox.querySelector('input');
+// 唸英文發音（瀏覽器支援才唸）
+function sayEnglish(word) {
+  try {
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = 0.85;
+    speechSynthesis.speak(u);
+  } catch { /* 不支援就算了 */ }
+}
+function startWords(n) {
+  stopAuto();
+  // 隨機抽 3～5 個不重複的單字（各類混在一起）
+  const all = Object.entries(WORD_BANK).flatMap(([cat, list]) => list.map(([en, zh, emo]) => ({ en, zh, emo, cat })));
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [all[i], all[j]] = [all[j], all[i]]; }
+  const qs = all.slice(0, 3 + (Math.random() * 3 | 0));
+  let k = 0, tries = 0, right = 0, locked = false;
+  n.playing = true;
+  const face = Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z);
+  n.g.rotation.y = face;                                                // 老師面向你
+  const $ = (sel) => quizBox.querySelector(sel);
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const hint = () => {
+    const w = qs[k].en, show = Math.min(w.length - 1, 1 + tries);    // 先給第一個字母，答錯再多給一個
+    $('.hint').textContent = w.split('').map((c, i) => (i < show ? c : '_')).join(' ');
+  };
+  const ask = () => {
+    const q = qs[k];
+    tries = 0; locked = false;
+    $('.cat').textContent = q.cat; $('.prog').textContent = `第 ${k + 1} / ${qs.length} 題`;
+    $('.emo').textContent = q.emo; $('.q').textContent = q.zh;
+    hint(); msg('');
+    quizInput.value = ''; quizInput.disabled = false;
+    setTimeout(() => { quizInput.value = ''; quizInput.focus(); }, 60);   // 等按 F 的那一下結束再對準輸入框，F 才不會被打進去
+  };
+  const next = () => {
+    k++;
+    if (k < qs.length) { ask(); return; }
+    let best = 0;
+    try { best = +localStorage.getItem(WORDS_KEY) || 0; if (right > best) localStorage.setItem(WORDS_KEY, String(right)); } catch { /* 私密模式 */ }
+    const perfect = right === qs.length;
+    finish();
+    toast(perfect ? `🌟 全對！${right} / ${qs.length}<br>${n.name}：Great job！你好棒！`
+      : `📝 答對 ${right} / ${qs.length} 題<br>${n.name}：Good try！下次再來練習喔！`);
+  };
+  const reveal = (ok) => {
+    const q = qs[k];
+    locked = true; quizInput.disabled = true;
+    $('.hint').textContent = q.en.split('').join(' ');
+    msg(ok ? `✅ 答對了！<b>${q.en}</b> = ${q.zh}` : `答案是 <b>${q.en}</b>（${q.zh}），記起來囉！`, ok ? 'ok' : 'no');
+    sayEnglish(q.en);
+    setTimeout(next, ok ? 1300 : 2200);
+  };
+  const submit = () => {
+    if (locked) return;
+    const a = quizInput.value.trim().toLowerCase();
+    if (!a) { msg('先打英文單字再送出喔！', 'no'); quizInput.focus(); return; }
+    if (a === qs[k].en) { right++; reveal(true); return; }
+    tries++;
+    if (tries < 2) { hint(); msg('❌ 不太對，看提示再試一次！', 'no'); quizInput.select(); return; }
+    reveal(false);
+  };
+  const finish = () => {
+    quizBox.hidden = true; quizInput.blur();
+    n.playing = false; act.busy = null; duel = null;
+    quizInput.onkeydown = null;
+  };
+  $('.go').onclick = submit;
+  $('.skip').onclick = () => { if (!locked) reveal(false); };
+  $('.quit').onclick = () => duel?.quit();
+  quizInput.onkeydown = (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') submit();
+    if (e.key === 'Escape') duel?.quit();
+  };
+  duel = { quit() { finish(); toast(`📝 下次再來找${n.name}練單字喔！`); } };
+  act.busy = { label: '📝 單字測驗中…', tick() {} };                 // 測驗時不能走動
+  quizBox.hidden = false;
+  $('.tip').textContent = `${n.name}：Let's practice！看中文打出英文單字 🔊 答完會唸出發音`;
+  ask();
 }
 
 /* ---------------- 草地上的童玩：跳繩、扯鈴、小飛機 ---------------- */
@@ -3696,5 +3795,5 @@ if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
+window.__campus = { NPCS, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };

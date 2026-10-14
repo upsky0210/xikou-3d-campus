@@ -246,7 +246,22 @@
     background: #d9a31a; color: #fff; box-shadow: inset 2px 2px 0 #ffd65c, inset -2px -2px 0 #8a6408; }
   body.mc #openGallery, body.mc #results li.pano button { background: #7b2cbf !important; box-shadow: inset 2px 2px 0 #b07ae0, inset -2px -2px 0 #4a1677 !important; }
   /* 面板：淺灰色物品欄風格 */
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel {
+  /* 英文單字小測驗（Ashley 老師） */
+  #quiz { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(400px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 16px; box-shadow: var(--shadow); padding: 16px 18px; text-align: center; }
+  #quiz .top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #666; }
+  #quiz .cat { background: #6a3fc0; color: #fff; border-radius: 999px; padding: 2px 10px; font-weight: 700; }
+  #quiz .q { font-size: 30px; font-weight: 900; margin: 14px 0 4px; }
+  #quiz .emo { font-size: 42px; line-height: 1.1; }
+  #quiz .hint { font-family: ui-monospace, Consolas, monospace; font-size: 22px; letter-spacing: 4px; color: #6a3fc0; margin: 6px 0 10px; }
+  #quiz input { width: 100%; font-size: 22px; padding: 8px 10px; border: 2px solid #6a3fc0; border-radius: 10px; text-align: center; box-sizing: border-box; }
+  #quiz .msg { min-height: 1.6em; margin: 8px 0; font-weight: 700; }
+  #quiz .msg.ok { color: #1b8a3a; } #quiz .msg.no { color: #c0392b; }
+  #quiz .btns { display: flex; gap: 8px; justify-content: center; }
+  #quiz .btns button { padding: 8px 14px; font-weight: 700; border-radius: 10px; background: #6a3fc0; color: #fff; }
+  #quiz .btns button.sub { background: #e5e1ee; color: #333; }
+  #quiz .tip { font-size: 12px; color: #888; margin-top: 8px; }
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -397,6 +412,14 @@
 <div id="joy"><div class="knob"></div></div>
 <div id="panoPrompt" hidden></div>
 <button id="actPrompt" hidden></button>
+<div id="quiz" hidden>
+  <div class="top"><span class="cat"></span><span class="prog"></span></div>
+  <div class="emo"></div><div class="q"></div><div class="hint"></div>
+  <input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="用鍵盤打英文單字">
+  <div class="msg"></div>
+  <div class="btns"><button class="go">送出 Enter</button><button class="sub skip">我不會</button><button class="sub quit">結束 Esc</button></div>
+  <div class="tip">🔊 答完會唸出單字的發音</div>
+</div>
 <div id="power" hidden><div class="lbl">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
 
 <div id="gallery" hidden>
@@ -541,8 +564,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=73"></script>
-<script src="js/pano-data.js?v=73"></script>
-<script type="module" src="js/app.js?v=73"></script>
+<script src="js/campus-data.js?v=74"></script>
+<script src="js/pano-data.js?v=74"></script>
+<script type="module" src="js/app.js?v=74"></script>
 </body>
 </html>
