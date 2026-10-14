@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=66';
+import { Batch, mat, SPOTS } from './blocks.js?v=67';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -368,5 +368,40 @@ export function makeCat() {
     head.rotation.y = Math.sin(t * 0.5) * 0.45;
     head.rotation.x = Math.max(0, Math.sin(t * 0.31)) * 0.15;
   };
+  return g;
+}
+
+/* ---------- 蜜袋鼯（依照片：奶油色、粉紅鼻子和耳朵內側、黑亮大眼睛、蓬蓬尾巴，窩在藍色保暖袋裡） ---------- */
+
+export function makeGlider() {
+  const g = new THREE.Group();
+  const fur = new THREE.MeshLambertMaterial({ color: '#f3e2b8' });
+  const furD = new THREE.MeshLambertMaterial({ color: '#e8d09c' });
+  const pink = new THREE.MeshLambertMaterial({ color: '#f0a8a8' });
+  const eye = new THREE.MeshLambertMaterial({ color: '#2a0f0f', emissive: '#1a0505' });
+  const blue = new THREE.MeshLambertMaterial({ color: '#2346b8' });
+  const blueD = new THREE.MeshLambertMaterial({ color: '#15287a' });
+  const box = (m, w, h, d, x, y, z) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); g.add(b); return b; };
+  // 藍色保暖袋（開口朝上，裡面比較暗）
+  box(blue, 0.3, 0.14, 0.26, 0, 0.07, 0);
+  box(blueD, 0.24, 0.01, 0.2, 0, 0.145, 0);
+  box(blue, 0.32, 0.04, 0.03, 0, 0.16, -0.13);                 // 袋口前緣捲邊
+  // 身體：從袋子裡探出來
+  box(fur, 0.15, 0.12, 0.16, 0, 0.2, 0.01);
+  // 頭（前面是 -z）
+  box(fur, 0.12, 0.1, 0.11, 0, 0.29, -0.06);
+  box(pink, 0.04, 0.03, 0.03, 0, 0.27, -0.125);                // 粉紅鼻子
+  for (const s of [-1, 1]) {
+    box(eye, 0.03, 0.03, 0.01, s * 0.035, 0.305, -0.116);      // 黑亮大眼睛
+    box(fur, 0.045, 0.05, 0.015, s * 0.06, 0.355, -0.04);      // 耳朵
+    box(pink, 0.028, 0.034, 0.005, s * 0.06, 0.352, -0.049);   // 耳朵內側
+  }
+  // 兩隻粉紅小手抱著點心
+  box(pink, 0.025, 0.025, 0.025, -0.03, 0.235, -0.13);
+  box(pink, 0.025, 0.025, 0.025, 0.03, 0.235, -0.13);
+  box(new THREE.MeshLambertMaterial({ color: '#d9a05a' }), 0.03, 0.03, 0.03, 0, 0.245, -0.14);
+  // 蓬蓬的大尾巴：從袋口垂到袋子外面
+  box(furD, 0.07, 0.06, 0.08, 0.1, 0.17, 0.12);
+  box(fur, 0.08, 0.16, 0.08, 0.16, 0.09, 0.15);
   return g;
 }

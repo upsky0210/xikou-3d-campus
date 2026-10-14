@@ -483,6 +483,11 @@ export function makeBlockNPC(look) {
   }
   if (look.buttons) for (const y of [0.92, 0.78]) box(g, 0.04, 0.04, 0.015, new THREE.MeshLambertMaterial({ color: look.buttons, emissive: '#5a4300' }), 0.09, y, -0.137);
   if (look.badge) look.badge.forEach((c, i) => box(g, 0.1, 0.018, 0.012, cloth(c), 0.13, 1.16 - i * 0.018, -0.136));   // 胸章
+  if (look.hoodie) {                                        // 連帽 T：背後的帽子、白色抽繩、前面大口袋
+    box(g, 0.4, 0.2, 0.1, top, 0, 1.25, 0.17);
+    for (const x of [-0.06, 0.06]) box(g, 0.02, 0.16, 0.012, cloth(look.hoodie), x, 1.18, -0.136);
+    box(g, 0.3, 0.13, 0.015, cloth('#a8161f'), 0, 0.8, -0.137);
+  }
   if (look.zip) box(g, 0.02, 0.5, 0.01, cloth(look.zip), 0, 1.0, -0.135);          // 外套拉鍊
   if (look.whistle) {
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
@@ -502,14 +507,39 @@ export function makeBlockNPC(look) {
     return p;
   };
   const armL = arm(-1), armR = arm(1);
-  if (look.recorder) {                                      // 左手拿著白色直笛（斜斜往上）
-    const rg = new THREE.Group(); rg.position.set(0, -0.6, -0.16); rg.rotation.set(0.25, 0, -0.7); armL.add(rg);
-    const wm = new THREE.MeshLambertMaterial({ color: '#f6f1e8' }), hm = new THREE.MeshLambertMaterial({ color: '#2b2b2b' });
-    box(rg, 0.05, 0.56, 0.05, wm, 0, 0.12, 0);
-    box(rg, 0.065, 0.05, 0.065, wm, 0, 0.36, 0);               // 吹嘴那一節
-    box(rg, 0.065, 0.04, 0.065, wm, 0, -0.14, 0);              // 尾端
-    for (let k = 0; k < 5; k++) box(rg, 0.022, 0.022, 0.01, hm, 0, 0.26 - k * 0.07, -0.027).castShadow = false;
-  }
+  // 手上拿的東西（holdL 左手、holdR 右手）：直笛、羽球拍、羽毛球
+  const holdItem = (armP, kind) => {
+    const rg = new THREE.Group(); armP.add(rg);
+    const M = (color) => new THREE.MeshLambertMaterial({ color });
+    if (kind === 'recorder') {                              // 白色直笛（斜斜往上）
+      rg.position.set(0, -0.6, -0.16); rg.rotation.set(0.25, 0, -0.7);
+      const wm = M('#f6f1e8'), hm = M('#2b2b2b');
+      box(rg, 0.05, 0.56, 0.05, wm, 0, 0.12, 0);
+      box(rg, 0.065, 0.05, 0.065, wm, 0, 0.36, 0);             // 吹嘴那一節
+      box(rg, 0.065, 0.04, 0.065, wm, 0, -0.14, 0);            // 尾端
+      for (let k = 0; k < 5; k++) box(rg, 0.022, 0.022, 0.01, hm, 0, 0.26 - k * 0.07, -0.027).castShadow = false;
+    } else if (kind === 'racket') {                         // 黑色羽球拍（直直立起來）
+      rg.position.set(0, -0.64, -0.12); rg.rotation.set(-0.5, 0, 0);
+      const bk = M('#1f1f22');
+      box(rg, 0.045, 0.2, 0.045, bk, 0, 0, 0);                 // 握把
+      box(rg, 0.018, 0.26, 0.018, bk, 0, 0.23, 0);             // 拍桿
+      const cy = 0.5, rw = 0.2, rh = 0.26;                      // 拍框（方塊拼成的橢圓）
+      box(rg, 0.02, rh - 0.08, 0.02, bk, -rw / 2, cy, 0); box(rg, 0.02, rh - 0.08, 0.02, bk, rw / 2, cy, 0);
+      box(rg, rw - 0.06, 0.02, 0.02, bk, 0, cy + rh / 2, 0); box(rg, rw - 0.06, 0.02, 0.02, bk, 0, cy - rh / 2, 0);
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) box(rg, 0.04, 0.04, 0.02, bk, sx * (rw / 2 - 0.02), cy + sy * (rh / 2 - 0.02), 0);
+      const net = new THREE.Mesh(new THREE.PlaneGeometry(rw - 0.01, rh - 0.01), new THREE.MeshLambertMaterial({ color: '#e8e8e8', transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
+      net.position.set(0, cy, 0); rg.add(net);
+    } else if (kind === 'shuttle') {                        // 羽毛球（球頭朝上）
+      rg.position.set(0, -0.7, -0.08);
+      box(rg, 0.05, 0.04, 0.05, M('#f4f2ec'), 0, 0.02, 0);     // 球頭
+      box(rg, 0.052, 0.012, 0.052, M('#222222'), 0, 0.045, 0); // 黑色膠帶
+      const fe = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.06, 0.09, 8, 1, true), new THREE.MeshLambertMaterial({ color: '#fbfaf5', side: THREE.DoubleSide }));
+      fe.position.set(0, 0.095, 0); rg.add(fe);
+    }
+  };
+  if (look.holdL) holdItem(armL, look.holdL);
+  if (look.holdR) holdItem(armR, look.holdR);
+
 
   box(g, 0.47, 0.12, 0.27, pants, 0, 0.72, 0);
   const leg = (side) => {

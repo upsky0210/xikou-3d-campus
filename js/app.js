@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=66';
-import { furnishFloor } from './furniture.js?v=66';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=66';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=66';
-import { buildCampusWall } from './wall.js?v=66';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=66';
+import { PanoViewer } from './pano.js?v=67';
+import { furnishFloor } from './furniture.js?v=67';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=67';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=67';
+import { buildCampusWall } from './wall.js?v=67';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=67';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1830,6 +1830,7 @@ function pick(e) {
   const vis = pickables.filter((o) => { let p = o; while (p) { if (!p.visible) return false; p = p.parent; } return true; });
   const hit = raycaster.intersectObjects(vis, false)[0];
   if (hit?.object.userData.cat) meetCat();
+  else if (hit?.object.userData.glider) meetGlider();
   else if (hit?.object.userData.npc) meetNPC(hit.object.userData.npc);
   else if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
   else if (mode !== 'bird') {                                   // 走路模式：點地面就自動走過去
@@ -2299,6 +2300,24 @@ function meetCat() {
   toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
 }
 
+/* ---------------- 五年四班的蜜袋鼯（窩在藍色保暖袋裡，放在老師桌上） ---------------- */
+
+const glider = makeGlider();
+{
+  const r = rooms.find((x) => x.code === '504'), f = r.f;
+  // 老師桌在教室前面（南）、不靠門的那一側（東）：桌面高 0.78
+  const x = r.m.x2 - 1.3, z = r.m.z2 - 1.45;
+  glider.position.set(x, f.y + groundAt(f, x, z) + 0.78, z);
+  glider.rotation.y = 0.5;                                      // 斜斜面向教室（北）
+  glider.userData.f = f;
+  f.group.add(glider);
+}
+glider.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.glider = true; pickables.push(o); } });
+let gliderNear = false;
+function meetGlider() {
+  toast('🐿️ 這是五年四班養的蜜袋鼯！<br>正窩在藍色袋子裡，抱著點心啃啃啃～');
+}
+
 /* ---------------- 老師 NPC（依照片畫成方塊人） ---------------- */
 
 const NPCS = [
@@ -2441,16 +2460,16 @@ const NPCS = [
   {
     name: '小瑜老師', title: '音樂老師',
     hello: ['🎵 小瑜老師：今天一起來吹直笛吧！', '🎶 小瑜老師：上課前先把直笛擦乾淨唷！', '👍 小瑜老師：唱得很好聽，讚！'],
-    // 3 樓音樂教室一（303）前面、鋼琴旁邊，面向學生（東）
+    // 3 樓音樂教室二（304）前面、鋼琴旁邊，面向學生（東）
     places: [
-      { floor: '3F', where: '音樂教室一', at: () => { const r = rooms.find((x) => x.name === '音樂教室一'); return [r.m.x1 + 1.9, r.cz + 0.9, -Math.PI / 2]; } },
+      { floor: '3F', where: '音樂教室二', at: () => { const r = rooms.find((x) => x.name === '音樂教室二'); return [r.m.x1 + 1.9, r.cz + 0.9, -Math.PI / 2]; } },
     ],
     look: {
       // 依圖：棕色貝雷帽（白色 H）、橘棕色長直髮（旁分瀏海）、大大的棕色眼睛、腮紅、開口笑；
       // 棕色西裝外套＋白襯衫＋紅領帶、金色鈕扣、綠白黃胸章；手拿白色直笛
       skin: '#f8dcc4', hair: '#b8662a', top: '#6e5233', pants: '#4f3c26', shoe: '#3a2a20',
       longHair: true, longSleeve: true, collar: '#ffffff', tie: '#d6334a', buttons: '#e8c22a',
-      badge: ['#2e8b57', '#ffffff', '#e8c22a'], beret: { color: '#6e5233', letter: '#f4efe4' }, recorder: true,
+      badge: ['#2e8b57', '#ffffff', '#e8c22a'], beret: { color: '#6e5233', letter: '#f4efe4' }, holdL: 'recorder',
       pal: { H: '#b8662a', h: '#d98b45', S: '#f8dcc4', E: '#4a2412', e: '#9b5a2e', W: '#ffffff', B: '#f4a5a0', M: '#8e2a2a', T: '#e86a6a' },
       face: [
         'HHHHHHHHHHHHHHHH',
@@ -2469,6 +2488,38 @@ const NPCS = [
         'HHSSSSSMMSSSSSHH',
         'HHSSSSSSSSSSSSHH',
         'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '俞瑾老師', title: '五年四班導師',
+    hello: ['🏸 俞瑾老師：下課一起來打羽球吧！', '🏸 俞瑾老師：五年四班的同學，作業交了沒？', '🐿️ 俞瑾老師：小聲一點，蜜袋鼯在睡覺喔！'],
+    // 4 樓五年四班（418 室）教室前面（至善樓教室前後對調，黑板在南），面向學生（北）
+    places: [
+      { floor: '4F', where: '五年四班', at: () => { const r = rooms.find((x) => x.code === '504'); return [r.cx - 0.6, r.m.z2 - 1.6, 0]; } },
+    ],
+    look: {
+      // 依圖：黑色及肩直髮、齊瀏海、棕色大眼睛、淺淺微笑；紅色連帽 T（白色抽繩、大口袋）；左手羽球拍、右手羽毛球
+      skin: '#f6d2b8', hair: '#151212', top: '#c8202a', pants: '#2b2b30', shoe: '#f4f4f4',
+      longHair: true, longSleeve: true, hoodie: '#ffffff', holdL: 'racket', holdR: 'shuttle',
+      pal: { H: '#151212', h: '#2c2626', S: '#f6d2b8', E: '#2a1610', e: '#7a4426', W: '#ffffff', B: '#f2b0a0', N: '#e2a98c', M: '#c0645a' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHhHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHhHHHHHHHHHHhHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSEeeSSSSEeeSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
       ],
     },
   },
@@ -3053,6 +3104,9 @@ function update(dt) {
     const nearCat = player.floor.level === 0 && Math.hypot(player.x - cat.position.x, player.z - cat.position.z) < 1.8;
     if (nearCat && !catNear) meetCat();
     catNear = nearCat;
+    const nearGlider = mode !== 'bird' && player.floor === glider.userData.f && Math.hypot(player.x - glider.position.x, player.z - glider.position.z) < 1.6;
+    if (nearGlider && !gliderNear) meetGlider();
+    gliderNear = nearGlider;
     if (nav.target && (navTick += dt) > 0.3) {
       navTick = 0;
       updateNavBar();
