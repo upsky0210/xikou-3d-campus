@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=53';
-import { furnishFloor } from './furniture.js?v=53';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=53';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=53';
-import { buildCampusWall } from './wall.js?v=53';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=53';
+import { PanoViewer } from './pano.js?v=56';
+import { furnishFloor } from './furniture.js?v=56';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=56';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=56';
+import { buildCampusWall } from './wall.js?v=56';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=56';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -160,9 +160,94 @@ function sideIsSolid(room, s) {
 
 // 1 樓溪口情廊（敬業樓中間那條走廊）兩側的牆（依照片）：圖書館、會議室是落地窗，其他教室沒有窗，
 //   是米白石紋牆＋白框布告欄（黃色牛皮紙、照片、藍色紙花）＋上方一排氣窗。gallery 的值是走廊在 z 的哪一側
+// 敬業樓一樓壁畫（依照片）：
+//   forestA／forestB：國際性平牆（西側走廊）的森林壁畫；sdg：幸運方塘外牆（世界地圖＋SDGs）；world：油印室外牆（世界地標＋泡泡展示板）
+const muralMat = (() => {
+  const cache = {};
+  const draw = {
+    forest(c, w, h, variant) {
+      c.fillStyle = '#fbfbf8'; c.fillRect(0, 0, w, h);
+      let s = variant === 'A' ? 3 : 9; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < 7; i++) {                                         // 淺灰色素描樹
+        const x = 60 + rnd() * (w - 120);
+        c.strokeStyle = '#b8b8b2'; c.lineWidth = 14; c.beginPath(); c.moveTo(x, h); c.lineTo(x + 6, 20); c.stroke();
+        c.lineWidth = 4; for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(x + 4, 60 + k * 30); c.lineTo(x + (k % 2 ? 50 : -50), 30 + k * 30); c.stroke(); }
+      }
+      for (let i = 0; i < 6; i++) {                                         // 深咖啡色樹幹（有分枝）
+        const x = 40 + i * (w - 80) / 5 + (rnd() - 0.5) * 30;
+        c.fillStyle = i % 2 ? '#4a3a32' : '#5b4436'; c.fillRect(x - 16, 0, 32, h);
+        c.strokeStyle = c.fillStyle; c.lineWidth = 12;
+        c.beginPath(); c.moveTo(x, 90); c.lineTo(x + (i % 2 ? 70 : -70), 20); c.stroke();
+      }
+      c.fillStyle = '#7f9a3a'; for (let i = 0; i < 60; i++) { c.beginPath(); c.ellipse(rnd() * w, rnd() * h * 0.6, 6, 3, rnd() * 3, 0, Math.PI * 2); c.fill(); }   // 葉子
+      // 動物：粉紅灰豬、綠色馬／大象、熊
+      const pig = (x, y) => { c.fillStyle = '#b9b9bd'; c.beginPath(); c.ellipse(x, y, 34, 30, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#f2a7b4'; c.beginPath(); c.ellipse(x + 14, y + 6, 14, 10, 0, 0, Math.PI * 2); c.fill(); c.fillRect(x - 24, y - 50, 10, 26); };
+      const green = (x, y) => { c.fillStyle = '#7c9a3a'; c.fillRect(x - 40, y - 20, 80, 40); c.fillRect(x + 30, y - 50, 22, 40); c.fillRect(x - 36, y + 20, 10, 28); c.fillRect(x + 22, y + 20, 10, 28); };
+      const bear = (x, y, coat) => { c.fillStyle = coat; c.fillRect(x - 32, y - 10, 64, 80); c.fillStyle = '#5a5a5e'; c.beginPath(); c.arc(x, y - 30, 30, 0, Math.PI * 2); c.fill(); c.fillStyle = '#f4f1ea'; c.fillRect(x - 22, y + 10, 30, 22); };
+      if (variant === 'A') { pig(w * 0.42, h * 0.55); green(w * 0.6, h * 0.62); bear(w * 0.86, h * 0.5, '#f2b6c4'); }
+      else { bear(w * 0.2, h * 0.55, '#a9c8e6'); pig(w * 0.52, h * 0.6); green(w * 0.74, h * 0.66); }
+      c.fillStyle = '#2b2b2b'; c.font = '700 34px sans-serif'; c.textAlign = 'center';
+      if (variant === 'A') c.fillText('LIVE YOUR DREAM', w * 0.6, h * 0.36);
+      else { c.textAlign = 'left'; c.fillText('BE GOOD.', w * 0.58, h * 0.3); c.fillText('BE HAPPY.', w * 0.58, h * 0.42); c.fillText('BE YOURSELF.', w * 0.58, h * 0.54); }
+      c.fillStyle = '#3f3f42';                                             // 下方深灰色小山（立體切板）
+      for (const [x, r] of [[w * 0.3, 150], [w * 0.62, 120], [w * 0.9, 110], [w * 0.05, 90]]) { c.beginPath(); c.arc(x, h + 30, r, Math.PI, 0); c.fill(); }
+      if (variant === 'A') {                                               // 深色柱子＋牌匾（字太小看不清，只畫金色字行）
+        c.fillStyle = '#3c3a3a'; c.fillRect(w * 0.16, 0, 110, h);
+        c.fillStyle = '#151515'; c.fillRect(w * 0.16 + 14, h * 0.32, 82, 76);
+        c.fillStyle = '#c9a54a'; for (let i = 0; i < 9; i++) c.fillRect(w * 0.16 + 20 + i * 8, h * 0.32 + 6, 3, 64);
+      }
+    },
+    sdg(c, w, h) {
+      c.fillStyle = '#f2f4f6'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#bfe0f2'; c.beginPath(); c.arc(w * 0.5, h * 1.25, w * 0.42, Math.PI, 0); c.fill();   // 地球弧線
+      c.fillStyle = '#d6ebf5'; for (let i = 0; i < 9; i++) { c.beginPath(); c.ellipse(w * (0.25 + i * 0.06), h * (0.35 + (i % 3) * 0.08), 30, 14, 0.4, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(w * 0.32, h * 0.12, 50, 16, 0, 0, Math.PI * 2); c.fill();   // 雲
+      for (let i = 0; i < 3; i++) {                                        // 白框窗戶
+        const x = w * 0.34 + i * w * 0.15, y = 8, ww = w * 0.14, hh = h * 0.55;
+        c.fillStyle = '#ffffff'; c.fillRect(x, y, ww, hh);
+        c.fillStyle = '#c9d6df'; c.fillRect(x + 6, y + 6, ww / 2 - 9, hh * 0.62); c.fillRect(x + ww / 2 + 3, y + 6, ww / 2 - 9, hh * 0.62);
+        c.fillRect(x + 6, y + hh * 0.7, ww / 2 - 9, hh * 0.26); c.fillRect(x + ww / 2 + 3, y + hh * 0.7, ww / 2 - 9, hh * 0.26);
+      }
+      c.fillStyle = '#7fc6e6'; c.fillRect(0, h * 0.62, w, h * 0.38);        // 下方淺藍色波浪帶
+      const cols = ['#e5243b', '#dda63a', '#4c9f38', '#c5192d', '#ff3a21', '#26bde2', '#fcc30b', '#a21942', '#fd6925', '#dd1367', '#fd9d24', '#bf8b2e', '#3f7e44', '#0a97d9', '#56c02b', '#00689d', '#19486a'];
+      cols.forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(w * 0.08 + (i % 9) * w * 0.058, h * (0.72 + Math.floor(i / 9) * 0.15), 15, 0, Math.PI * 2); c.fill(); });
+      c.fillStyle = '#1f6fb0'; c.font = '700 22px sans-serif'; c.textAlign = 'left'; c.fillText('SUSTAINABLE DEVELOPMENT GOALS', w * 0.06, h * 0.68);
+      c.fillStyle = '#e8923a';                                             // 右邊各國地標剪影
+      for (const [x, ww, hh] of [[0.78, 20, 120], [0.84, 60, 50], [0.9, 30, 90], [0.95, 40, 60]]) c.fillRect(w * x, h * 0.62 - hh, ww, hh);
+    },
+    world(c, w, h) {
+      c.fillStyle = '#cfe8e2'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#f2df8a'; c.beginPath(); c.moveTo(w * 0.62, 0); c.quadraticCurveTo(w * 0.75, h * 0.25, w, h * 0.2); c.lineTo(w, 0); c.fill();   // 右上黃色天空
+      c.fillStyle = '#eef0f2'; c.fillRect(w * 0.82, h * 0.08, 60, 14); c.fillRect(w * 0.84, h * 0.04, 10, 24);   // 飛機
+      c.fillStyle = '#ffffff';                                             // 白色泡泡展示板（一圈圈圓洞）
+      c.beginPath(); c.ellipse(w * 0.3, h * 0.5, w * 0.2, h * 0.42, 0, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(w * 0.52, h * 0.42, w * 0.11, h * 0.3, 0, 0, Math.PI * 2); c.fill();
+      for (let i = 0; i < 14; i++) {
+        const x = w * 0.16 + (i % 5) * w * 0.07, y = h * 0.2 + Math.floor(i / 5) * h * 0.27;
+        c.fillStyle = '#bfe0d8'; c.beginPath(); c.arc(x, y, 22, 0, Math.PI * 2); c.fill();
+        if (i % 2 === 0) { c.fillStyle = '#ffffff'; c.fillRect(x - 14, y - 10, 28, 20); c.fillStyle = '#e8a33a'; c.fillRect(x - 12, y - 8, 24, 5); }
+      }
+      c.fillStyle = '#6fa8a0';                                             // 地標：台北 101、中正紀念堂、泰姬瑪哈陵
+      c.fillRect(w * 0.66, h * 0.15, 26, h * 0.5); c.fillRect(w * 0.6, h * 0.4, 70, 40);
+      c.fillStyle = '#e6d9b8'; c.fillRect(w * 0.08, h * 0.03, 70, 30); c.beginPath(); c.arc(w * 0.08 + 35, h * 0.03, 18, Math.PI, 0); c.fill();
+      c.fillStyle = '#c0392b'; c.fillRect(w * 0.55, h * 0.82, 60, 24); c.fillStyle = '#2f5aa8'; c.fillRect(w * 0.63, h * 0.82, 56, 24);   // 小火車
+      c.fillStyle = '#e5b25a'; c.fillRect(0, h * 0.94, w, h * 0.06);
+    },
+  };
+  return (kind) => cache[kind] ||= new THREE.MeshLambertMaterial({ map: (() => {
+    const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 320;
+    const c = cv.getContext('2d');
+    if (kind === 'forestA') draw.forest(c, 1024, 320, 'A'); else if (kind === 'forestB') draw.forest(c, 1024, 320, 'B'); else draw[kind](c, 1024, 320);
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    return t;
+  })() });
+})();
 function galleryWall(room, s) {
   if (room.floor !== '1F' || room.building !== 'A') return {};
-  if (s === 'W' && Math.abs(room.m.x1 - mx(705)) < 0.3) return { solid: true };   // 國際性平牆那一面（西側走廊）：沒有窗
+  // 國際性平牆（西側走廊）：森林壁畫，北邊幸運方塘「BE GOOD」、南邊油印室「LIVE YOUR DREAM」
+  if (s === 'W' && Math.abs(room.m.x1 - mx(705)) < 0.3) return { mural: room.name.includes('幸運方塘') ? 'forestB' : 'forestA', face: -1 };
+  if (room.name.includes('幸運方塘') && s === 'S') return { mural: 'sdg', face: 1 };     // 世界地圖＋SDGs、前面白色矮櫃
+  if (room.name === '油印室' && s === 'N') return { mural: 'world', face: -1 };           // 世界地標＋泡泡展示板
   const north = s === 'S' && Math.abs(room.m.z2 - mz(330)) < 0.3;        // 走廊北邊的教室（南牆面向走廊）
   const south = s === 'N' && Math.abs(room.m.z1 - mz(398)) < 0.3;        // 走廊南邊的教室（北牆面向走廊）
   if (!north && !south) return {};
@@ -873,6 +958,17 @@ function buildFloor(f) {
     const wm = wallMat(s.bld);
     if (s.overhead) { piece(wm, s.y0, s.h); continue; }   // 門楣
     if (s.solid) { piece(wm, 0, s.h); continue; }        // 跟隔壁房間共用的實牆（沒有窗）
+    if (s.mural) {                                        // 壁畫牆（敬業樓一樓，依照片）
+      piece(wm, 0, s.h);
+      const off = s.face * (WALL_T / 2 + 0.02), H = s.h, mm = muralMat(s.mural);
+      if (horiz) batch.plain(mm, len - 0.1, H, 0.02, cx, f.y + H / 2, cz + off);
+      else batch.plain(mm, 0.02, H, len - 0.1, cx + off, f.y + H / 2, cz);
+      if (s.mural === 'sdg' && horiz && len > 2) {         // 白色矮櫃（鞋櫃）
+        const bl = Math.min(len - 1.2, 4), bz = cz + s.face * (WALL_T / 2 + 0.25);
+        batch.box(mat('wool', '#f4f2ec'), bl, 0.45, 0.42, cx + (len - bl) / 2 - 0.2, f.y + 0.225, bz);
+      }
+      continue;
+    }
     if (s.fullGlass && horiz) {                           // 溪口情廊：圖書館、會議室是落地窗
       piece(wm, 0, 0.12); piece(glass, 0.12, 2.75); piece(wm, 2.75, s.h);
       for (let t = -len / 2 + 0.15; t <= len / 2; t += 1.2) piece(mat('wool', '#e9e6df'), 0.12, 2.75, t - 0.04, t + 0.04);

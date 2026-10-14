@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=53';
+import { Batch, mat, SPOTS } from './blocks.js?v=56';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -500,31 +500,56 @@ export function buildCourtyard(group, m, FH) {
   return raised;
 }
 
-/* ---------- 教師停車場（乙梯旁邊的空地，依使用者說明：約 8～9 台車） ---------- */
-// 方塊車：車身、車窗、車頂、輪子、車燈。dir：車頭朝 +x（1）或 -x（-1）
-function car(b, x, z, dir, color) {
+/* ---------- 教師停車場（乙梯旁邊的空地，依照片） ----------
+ * 地面是灰粉色地磚（有深色分隔線），車頭朝西、兩排停；靠圍牆那邊再橫停兩台。東邊是上走廊的階梯（無障礙車位標誌在旁邊） */
+// 方塊車：車身、車窗、車頂、輪子、車燈。ax：車子長邊沿 x（true）或沿 z（false）；dir：車頭朝 +（1）或 -（-1）
+function car(b, x, z, dir, color, ax = true) {
   const body = mat('wool', color), glass = mat('wool', '#2b3440'), tire = mat('wool', '#1b1b1d');
-  b.box(body, 4.3, 0.65, 1.8, x, 0.6, z);                                   // 車身
-  b.box(glass, 2.3, 0.55, 1.62, x - dir * 0.25, 1.2, z);                    // 車窗（車廂）
-  b.box(body, 2.1, 0.1, 1.55, x - dir * 0.25, 1.52, z);                     // 車頂
-  for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) b.box(tire, 0.62, 0.6, 0.3, x + a * 1.35, 0.3, z + c * 0.82);
+  const B = (m, l, h, w, dl, y, dw) => (ax ? b.box(m, l, h, w, x + dl, y, z + dw) : b.box(m, w, h, l, x + dw, y, z + dl));
+  B(body, 4.3, 0.65, 1.8, 0, 0.6, 0);                                     // 車身
+  B(glass, 2.3, 0.55, 1.62, -dir * 0.25, 1.2, 0);                         // 車窗（車廂）
+  B(body, 2.1, 0.1, 1.55, -dir * 0.25, 1.52, 0);                          // 車頂
+  for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) B(tire, 0.62, 0.6, 0.3, a * 1.35, 0.3, c * 0.82);
   for (const c of [-0.6, 0.6]) {
-    b.box(mat('wool', '#fff6c8'), 0.06, 0.16, 0.36, x + dir * 2.16, 0.72, z + c);   // 頭燈
-    b.box(mat('wool', '#c0392b'), 0.06, 0.14, 0.32, x - dir * 2.16, 0.74, z + c);   // 尾燈
+    B(mat('wool', '#fff6c8'), 0.06, 0.16, 0.36, dir * 2.16, 0.72, c);    // 頭燈
+    B(mat('wool', '#c0392b'), 0.06, 0.14, 0.32, -dir * 2.16, 0.74, c);   // 尾燈
   }
 }
-/** x1～x2、z1～z2：停車場範圍（公尺）。西邊一排 5 台、東邊一排 4 台，車頭朝中間的車道 */
+const paverMat = () => {
+  if (paverMat.m) return paverMat.m;
+  const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64;
+  const c = cv.getContext('2d');
+  const cols = ['#a9a3a2', '#b9a7a6', '#9d9a9b', '#c2b2ae', '#aaa0a4'];
+  for (let r = 0; r < 8; r++) for (let k = 0; k < 4; k++) {
+    c.fillStyle = cols[(r * 3 + k * 7) % cols.length]; c.fillRect(k * 16 + (r % 2) * 8 - 8, r * 8, 15, 7);
+    c.fillRect(k * 16 + (r % 2) * 8 + 8, r * 8, 15, 7);
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter;
+  return (paverMat.m = new THREE.MeshLambertMaterial({ map: t }));
+};
+/** x1～x2、z1～z2：停車場範圍（公尺） */
 export function buildParking(group, x1, x2, z1, z2) {
   const b = new Batch();
-  b.box(mat('wool', '#55585c'), x2 - x1, 0.04, z2 - z1, (x1 + x2) / 2, 0.02, (z1 + z2) / 2);   // 柏油
-  const line = mat('wool', '#f2f2ee'), slot = 2.6;
-  const colors = ['#f4f4f2', '#b9bec4', '#1f2226', '#b8312f', '#2f5aa8', '#7d8288', '#f4f4f2', '#2d5e46', '#d8cfb8'];
+  b.box(paverMat(), x2 - x1, 0.04, z2 - z1, (x1 + x2) / 2, 0.02, (z1 + z2) / 2);                // 地磚
+  const dark = mat('wool', '#6f6a6c');
+  for (let x = x1 + 3; x < x2; x += 6) b.box(dark, 0.18, 0.02, z2 - z1, x, 0.045, (z1 + z2) / 2);   // 深色分隔線
+  const colors = ['#b9bec4', '#6f7378', '#2f5aa8', '#3a5f9e', '#f4f4f2', '#7d8288', '#f4f4f2', '#2d5e46'];
+  // 北邊兩排、車頭朝西（從走廊往外看，看到的是車尾）
+  const rows = [z1 + 2.1, z1 + 4.9], xs = [x2 - 2.8, x2 - 8.3, x2 - 13.8];
   let k = 0;
-  for (const [side, n] of [[-1, 5], [1, 4]]) {
-    const cx = side < 0 ? x1 + 2.7 : x2 - 2.7;
-    for (let i = 0; i <= n; i++) b.box(line, 5.0, 0.02, 0.1, cx, 0.045, z1 + 0.3 + i * slot);   // 停車格線
-    b.box(line, 0.1, 0.02, n * slot, side < 0 ? cx + 2.5 : cx - 2.5, 0.045, z1 + 0.3 + n * slot / 2);
-    for (let i = 0; i < n; i++) car(b, cx - side * 0.1, z1 + 0.3 + slot * (i + 0.5), -side, colors[k++]);
+  for (const z of rows) for (const x of xs) car(b, x, z, -1, colors[k++]);
+  // 靠圍牆橫停兩台
+  for (const z of [z1 + 2.4, z1 + 7.2]) car(b, x1 + 1.3, z, 1, colors[k++], false);
+  // 無障礙車位標誌（藍底白色輪椅）
+  b.box(mat('wool', '#c9cdd2'), 0.08, 2.0, 0.08, x2 - 1.0, 1.0, z1 + 0.6);
+  b.box(mat('wool', '#2f5aa8'), 0.04, 0.6, 0.45, x2 - 1.0, 1.75, z1 + 0.6);
+  b.box(mat('wool', '#ffffff'), 0.05, 0.25, 0.2, x2 - 1.0, 1.8, z1 + 0.6);
+  // 東邊靠走廊的不鏽鋼扶手（往走廊的階梯旁）
+  const steel = mat('wool', '#c9cdd2');
+  for (const [a, c] of [[z1 + 0.3, z1 + 2.8], [z2 - 2.8, z2 - 0.3]]) {        // 只有兩端有扶手，中間是走進走廊的入口
+    for (let z = a; z <= c + 0.01; z += (c - a) / 2) b.box(steel, 0.05, 1.0, 0.05, x2 - 0.25, 0.5, z);
+    b.box(steel, 0.06, 0.06, c - a, x2 - 0.25, 1.0, (a + c) / 2);
   }
   b.build(group);
 }

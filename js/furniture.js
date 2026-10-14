@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=53';
+import { Batch, mat, SPOTS } from './blocks.js?v=56';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1442,6 +1442,51 @@ function seniorBack(put, fr) {
   put(booksMat(), 1.0, 0.35, 1.6, L - 1.5, D * (W / 2 - 0.2), 0, true);
 }
 
+// 3F 思科教室（依照片）：淺藍牆；前牆白板＋大電視、旁邊洞洞板；兩側牆是木框凹槽（白色玻璃板＋電視）下面灰色矮櫃；
+//   後牆米色櫃子、中間白板、彩色收納格、冰箱；中間 6 張白色桌腳灰色亮面實驗桌＋木頭方凳
+function ciscoRoom(put, fr, room) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  paintBands(put, fr, mat('wool', '#cfe6f2'));
+  const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]);
+  const free = (u, half) => doorU.every((d) => Math.abs(d - u) > half + 0.7);
+  const cream = mat('wool', '#e9dcc4'), grey = mat('wool', '#7f8489'), wood = mat('planks', '#d8b98a'), white = mat('wool', '#f4f4f2');
+  // 前牆：滑動白板＋中間大電視、下面木頭置物板、兩邊洞洞板
+  put(whiteboardMat(), 0.05, Math.min(4.6, W - 2), 1.45, 0.05, 0, 0.9, true);
+  put(M.dark(), 0.07, 1.96, 1.13, 0.09, 0, 1.05); put(tvMat(), 0.08, 1.9, 1.07, 0.1, 0, 1.08, true);
+  put(wood, 0.25, Math.min(4.6, W - 2), 0.08, 0.14, 0, 0.82);
+  for (const s of [-1, 1]) put(mat('wool', '#f3f3f0'), 0.04, 0.9, 1.1, 0.04, s * (Math.min(4.6, W - 2) / 2 + 0.6), 1.0);
+  // 老師桌（前面右邊）
+  put(white, 0.6, 1.2, 0.85, 1.2, D * (W / 2 - 1.5), 0); put(M.dark(), 0.05, 0.5, 0.35, 1.2, D * (W / 2 - 1.5), 0.87);
+  // 兩側牆：灰色矮櫃＋木框凹槽（白色玻璃板＋電視），避開門
+  for (const s of [-1, 1]) {
+    for (let u = 2.2; u < L - 1.0; u += 1.0) {
+      if (!free(u, 0.5)) continue;
+      put(grey, 1.0, 0.5, 0.85, u, s * (W / 2 - 0.27), 0);
+      put(wood, 1.0, 0.25, 0.08, u, s * (W / 2 - 0.15), 2.6);
+      put(mat('wool', '#eef3f5'), 0.98, 0.04, 1.5, u, s * (W / 2 - 0.05), 1.0);
+    }
+    const tu = L / 2;
+    if (free(tu, 1.0)) { put(M.dark(), 1.5, 0.06, 0.88, tu, s * (W / 2 - 0.08), 1.35); put(tvMat(), 1.42, 0.07, 0.8, tu, s * (W / 2 - 0.09), 1.39, true); }
+  }
+  // 後牆：米色櫃子、中間白板、右邊彩色收納格、冰箱
+  for (const dv of [-2.6, -1.7, 1.7]) { put(cream, 0.5, 0.86, 2.4, L - 0.27, dv, 0); put(mat('wool', '#cbbd9f'), 0.02, 0.02, 2.3, L - 0.53, dv, 0.05); put(mat('wool', '#cbbd9f'), 0.02, 0.86, 0.02, L - 0.53, dv, 1.5); }
+  put(whiteboardMat(), 0.04, 1.6, 1.2, L - 0.04, -0.2, 1.0, true);
+  put(booksMat(), 0.45, 1.2, 1.4, L - 0.27, 0.9, 0.9, true);
+  put(mat('wool', '#c9ccd1'), 0.65, 0.7, 1.7, L - 0.6, A * (W / 2 - 0.5), 0);
+  put(mat('wool', '#3cb371'), 0.04, 2.0, 0.5, L - 0.03, 0, 2.55);                // 綠幕（捲起來）
+  // 實驗桌 2 × 3＋木凳
+  const top = mat('wool', '#8c9399'), leg = mat('wool', '#f2f2ef'), stool = mat('planks', '#d9b27a');
+  for (const u of [L * 0.36, L * 0.66]) for (const v of [-2.1, 0, 2.1]) {
+    put(top, 1.9, 0.85, 0.04, u, v, 0.78);
+    put(leg, 1.8, 0.75, 0.04, u, v, 0.4);                                      // 下層置物板
+    for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(leg, 0.05, 0.05, 0.78, u + a * 0.88, v + b * 0.38, 0);
+    for (const du of [-0.5, 0.5]) for (const s of [-1, 1]) {
+      put(stool, 0.32, 0.32, 0.04, u + du, v + s * 0.68, 0.44);
+      for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(stool, 0.04, 0.04, 0.44, u + du + a * 0.13, v + s * 0.68 + b * 0.13, 0);
+    }
+  }
+}
+
 /** 依名稱、種類挑布置 */
 function furnishRoom(room, fr, put) {
   const n = room.name || '', t = room.type;
@@ -1458,6 +1503,7 @@ function furnishRoom(room, fr, put) {
   if (n.includes('健康中心')) return healthCenter2(put, fr);           // 依照片
   if (n === '教務處') return academicAffairs(put, fr, room);           // 依照片
   if (n === '潛能教室一' || n === '潛能教室二') return resourceRoom(put, fr);   // 資源班，依照片
+  if (n === '思科教室') return ciscoRoom(put, fr, room);                // 依照片
   if (n.includes('油印室')) return mimeographRoom(put, fr);            // 依照片
   if (n === '器材室') return sportsRoom(put, fr);                      // 1F 體育器材室，依照片
   if (n === '學務處') return studentAffairs(put, fr, room);                  // 依照片

@@ -106,12 +106,12 @@
       { img: '07-2', floor: '1F', at: [675, 470] },
     ] },
     { id: 'lrc', zh: '學習資源中心', en: 'Learning Resources Center', text: T.lrc, audio: '4', scenes: [
-      { img: '07-3', floor: '1F', at: [760, 262] },
+      { img: '07-3', floor: '1F', at: [830, 262] },
       { img: '04', floor: '1F', at: [930, 262], text: T.library, audio: '5-6' },
       { img: '05', floor: '1F', at: [1100, 262], text: T.library, audio: '5-6' },
     ] },
     { id: 'maker', zh: '幸運方塘（自造基地）', en: 'Makers’ Base', text: T.maker, audio: '7_1', scenes: [
-      { img: '06', floor: '1F', at: [1222, 262] },          // 1F 圖書館旁的小教室（105）
+      { img: '06', floor: '1F', at: [742, 262] },           // 1F 幸運方塘（105）：溪口情廊西端、圖書館西邊
     ] },
     { id: 'culture', zh: '多元文化走廊', en: 'Multi-culture Hallway', text: T.culture, audio: '7_2', scenes: [
       { img: '07-1', floor: '1F', at: [1480, 364], est: true },
