@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=80';
+import { Batch, mat, SPOTS } from './blocks.js?v=81';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1285,6 +1285,85 @@ function woodChairU(put, u, v, face, wood = mat('wool', '#6b3a22')) {
   for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(wood, 0.05, 0.05, 0.44, u + a * 0.19, v + b * 0.19, 0);
 }
 
+// 3F 輔導室（依兩張照片）：淺萊姆綠牆（東牆淺灰）、淺色木紋地板；中間一區 OA 屏風辦公桌（灰色下板＋木紋腰帶＋霧面玻璃、
+//   白色桌面、一張粉紅桌墊）；南牆白板行事曆、時鐘、抽屜櫃＋地球儀、西南角白框木心展示櫃；
+//   東邊高木皮櫃台、灰色門、冰箱；西邊（走廊、中庭那側）窗戶貼紙雪人、窗下木矮櫃
+// u：從北牆往南；v：A 東（校外）、D 西（走廊、門）
+const snowmanMat = (scarf) => once(`snowman${scarf}`, () => new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, map: bigTex(64, 128, (c) => {
+  c.fillStyle = '#ffffff';
+  c.beginPath(); c.arc(32, 94, 26, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(32, 50, 19, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#2b2b2b'; c.fillRect(24, 44, 4, 4); c.fillRect(36, 44, 4, 4);
+  c.fillStyle = '#e8892b'; c.fillRect(31, 51, 9, 3);                    // 紅蘿蔔鼻子
+  c.fillStyle = scarf; c.fillRect(14, 64, 36, 7); c.fillRect(38, 64, 7, 18);   // 圍巾
+  if (scarf === '#d63a3a') { c.fillRect(19, 20, 26, 14); c.fillRect(14, 32, 36, 5); }   // 紅帽子
+}) }));
+const calendarBoardMat = () => once('calboard', () => new THREE.MeshLambertMaterial({ map: bigTex(256, 160, (c, w, h) => {
+  c.fillStyle = '#b9bec4'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#f8f8f5'; c.fillRect(5, 5, w - 10, h - 10);
+  c.strokeStyle = '#8f99a4'; c.lineWidth = 1;
+  for (let x = 34; x < w - 40; x += 18) { c.beginPath(); c.moveTo(x + 0.5, 14); c.lineTo(x + 0.5, h - 12); c.stroke(); }
+  for (let y = 14; y < h - 10; y += 14) { c.beginPath(); c.moveTo(14, y + 0.5); c.lineTo(w - 46, y + 0.5); c.stroke(); }
+  c.fillStyle = '#4a4f55'; c.font = '700 11px sans-serif';
+  ['月', '日', '行', '事', '曆'].forEach((t, i) => c.fillText(t, 16, 40 + i * 16));
+  c.fillStyle = '#f2a7c0'; c.fillRect(128, 72, 22, 26);                 // 粉紅便條
+  c.fillStyle = '#f7c6d8'; c.fillRect(w - 40, 60, 30, 40);
+  c.fillStyle = '#e8506a'; c.beginPath(); c.arc(54, 104, 6, 0, Math.PI * 2); c.arc(64, 104, 6, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.moveTo(48, 106); c.lineTo(59, 120); c.lineTo(70, 106); c.fill();   // 愛心
+}) }));
+function counselingRoom(put, fr, room) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  const green = mat('wool', '#e3eba6'), greyWall = mat('wool', '#d3d6d8'), white = mat('wool', '#f3f3f0');
+  const grey = mat('wool', '#a7acb1'), woodBand = mat('wool', '#caa577'), frost = mat('glass'), alu = mat('wool', '#c9cdd1');
+  const black = mat('wool', '#1d1f22'), lightWood = mat('planks', '#c9ae8a');
+  put(mat('planks', '#cdbfa8'), L, W, 0.012, L / 2, 0, 0);                    // 淺色木紋地板
+  // 牆面：北牆、南牆淺萊姆綠；東牆（窗下、窗上）淺灰
+  put(green, 0.02, W - 0.1, 2.96, 0.012, 0, 0); put(green, 0.02, W - 0.1, 2.96, L - 0.012, 0, 0);
+  for (const [y0, h] of [[0, 1.0], [2.2, 0.78]]) put(greyWall, L - 0.1, 0.02, h, L / 2, A * (W / 2 - 0.012), y0);
+  // 南牆：白板行事曆、時鐘、抽屜櫃＋地球儀（東邊）、白框木心展示櫃（西南角）
+  put(calendarBoardMat(), 0.03, 1.7, 1.1, L - 0.03, D * 0.4, 1.25, true);
+  put.geo(white, new THREE.CylinderGeometry(0.17, 0.17, 0.04, 20).rotateX(Math.PI / 2), L - 0.04, A * 0.75, 2.4, 0);
+  put(black, 0.01, 0.02, 0.12, L - 0.07, A * 0.75, 2.38); put(black, 0.01, 0.1, 0.02, L - 0.07, A * 0.75 + 0.04, 2.4);
+  put(mat('wool', '#ede2cc'), 0.45, 1.0, 0.8, L - 0.25, A * 1.65, 0);
+  put(mat('wool', '#9aa0a6'), 0.35, 0.9, 0.38, L - 0.22, A * 1.65, 0.8);
+  for (let r = 0; r < 4; r++) put(white, 0.01, 0.84, 0.02, L - 0.4, A * 1.65, 0.86 + r * 0.09);
+  put(M.metal(), 0.04, 0.04, 0.22, L - 0.25, A * 1.8, 1.18);
+  put.geo(mat('wool', '#3d7cc9'), new THREE.SphereGeometry(0.17, 12, 10), L - 0.25, A * 1.8, 1.55);   // 地球儀
+  const sv = D * (W / 2 - 0.62);
+  put(white, 0.5, 0.95, 2.35, L - 0.27, sv, 0);
+  put(mat('planks', '#9b6a3c'), 0.02, 0.62, 1.75, L - 0.53, sv, 0.45);
+  for (const y of [0.95, 1.45, 1.95]) put(white, 0.3, 0.62, 0.03, L - 0.68, sv, y);
+  // 中間 OA 屏風辦公桌：2 排 × 3 組，背對背，中間一道屏風
+  const uc = 3.0, cols = [-1.7, -0.3, 1.1], cw = 1.4;
+  const panel = (u, v, du, dv) => {
+    put(grey, du, dv, 0.72, u, v, 0); put(woodBand, du, dv, 0.26, u, v, 0.72); put(frost, du, dv, 0.27, u, v, 0.98);
+    put(alu, du + 0.02, dv + 0.02, 0.03, u, v, 1.25);
+  };
+  panel(uc, -0.3, 0.05, cw * 3);
+  for (const b of [-2.4, -1.0, 0.4, 1.8]) panel(uc, b, 1.56, 0.05);
+  for (const s of [-1, 1]) cols.forEach((v, i) => {
+    put(white, 0.72, cw - 0.08, 0.04, uc + s * 0.39, v, 0.71);                       // 白色桌面（高 0.75）
+    put(white, 0.55, 0.42, 0.66, uc + s * 0.42, v + 0.38, 0);                        // 活動抽屜櫃
+    put(black, 0.05, 0.6, 0.38, uc + s * 0.15, v, 0.77); put(screenMat(), 0.02, 0.55, 0.33, uc + s * 0.18, v, 0.79);
+    put(black, 0.16, 0.45, 0.02, uc + s * 0.5, v, 0.75);                             // 鍵盤
+    if (s === 1 && i === 0) put(mat('wool', '#e9b9c4'), 0.42, 0.75, 0.01, uc + s * 0.45, v + 0.15, 0.75);   // 粉紅桌墊（依照片）
+    officeChair(put, uc + s * 1.2, v, -s, 0, '#2b2d31');
+  });
+  // 東邊：冰箱（東北角）、灰色門、高木皮櫃台（上面有金色、紅色裝飾）、後面小木桌
+  put(mat('wool', '#c4c8cc'), 0.65, 0.65, 1.75, 0.45, A * (W / 2 - 0.4), 0);
+  put(mat('wool', '#b9bec3'), 0.95, 0.03, 2.05, 1.65, A * (W / 2 - 0.03), 0);
+  put(M.metal(), 0.06, 0.04, 0.06, 1.3, A * (W / 2 - 0.06), 1.0);
+  const kv = A * (W / 2 - 1.6);
+  put(mat('planks', '#b89a78'), 0.5, 3.0, 1.45, 5.6, kv, 0); put(white, 0.55, 3.05, 0.03, 5.6, kv, 1.45);
+  put(mat('wool', '#d4af37'), 0.1, 1.2, 0.08, 5.6, kv - A * 0.3, 1.48); put(mat('wool', '#c0392b'), 0.16, 0.3, 0.16, 5.6, kv - A * 0.5, 1.48);
+  put(M.wood(), 0.6, 0.9, 0.72, 6.5, A * (W / 2 - 0.6), 0);
+  // 西邊：窗下木矮櫃（兩扇門中間）、窗戶上的雪人貼紙
+  const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
+  const c0 = (doorU[0] ?? 1.5) + 1.05, c1 = (doorU[1] ?? L - 1.5) - 1.05;
+  if (c1 - c0 > 1) { put(lightWood, c1 - c0, 0.42, 0.85, (c0 + c1) / 2, D * (W / 2 - 0.23), 0); put(white, c1 - c0 + 0.05, 0.45, 0.03, (c0 + c1) / 2, D * (W / 2 - 0.23), 0.85); }
+  ['#4fb3c8', '#d63a3a', '#4fb3c8', '#d63a3a'].forEach((col, i) => put(snowmanMat(col), 0.32, 0.01, 0.62, c0 + 0.3 + i * (c1 - c0 - 0.6) / 3, D * (W / 2 - 0.05), 1.35, true));
+}
+
 // 1F 教務處（依三張照片＋使用者指示）：棕米相間木紋地板、淺藍牆、南牆茶水區（米色上下櫃、湖水綠壁面、冰箱、咖啡機）、
 //   東南角六人會議桌（蕾絲桌巾、東西向）、中間一長排米色櫃台、4 張霧面玻璃屏風 OA 桌（靠窗北邊那張粉紅椅）＋靠茶水櫃的雙螢幕主任桌（都面向門口）、北牆玻璃門書櫃
 const plankFloorMat = () => once('plankfloor', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 512, (c, w, h) => {
@@ -1528,6 +1607,7 @@ function furnishRoom(room, fr, put) {
   if (n.includes('教師會')) return teachersLounge(put, fr);
   if (n.includes('健康中心')) return healthCenter2(put, fr);           // 依照片
   if (n === '教務處') return academicAffairs(put, fr, room);           // 依照片
+  if (n === '輔導室') return counselingRoom(put, fr, room);            // 依照片
   if (n === '潛能教室一' || n === '潛能教室二') return resourceRoom(put, fr);   // 資源班，依照片
   if (n === '思科教室') return ciscoRoom(put, fr, room);                // 依照片
   if (n.includes('油印室')) return mimeographRoom(put, fr);            // 依照片
