@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=61';
+import { Batch, mat, SPOTS } from './blocks.js?v=62';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1487,6 +1487,30 @@ function ciscoRoom(put, fr, room) {
   }
 }
 
+
+// 1F 警衛室（依照片）：窗前一長條深色桌（電話、監視器螢幕、對講機）、上面吊兩台監視器電視、黑色辦公椅、電風扇
+const cctvMat = () => once('cctv', () => new THREE.MeshLambertMaterial({ emissive: '#1a2a3a', emissiveIntensity: 0.4, map: bigTex(256, 144, (c, w, h) => {
+  c.fillStyle = '#111'; c.fillRect(0, 0, w, h);
+  const cols = ['#6f7b84', '#8a9298', '#5f6b72', '#9aa59b', '#7d8a7a', '#a8a29a'];
+  for (let r = 0; r < 4; r++) for (let k = 0; k < 6; k++) { c.fillStyle = cols[(r + k) % cols.length]; c.fillRect(2 + k * 42, 2 + r * 35, 40, 33); c.fillStyle = '#f2c230'; c.fillRect(4 + k * 42, 4 + r * 35, 14, 3); }
+}) }));
+function guardRoom(put, fr, room) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]);
+  // 南牆（窗口那面）：深色長桌沿著窗戶
+  const desk = mat('wool', '#3a3d42'), black = mat('wool', '#1d1f22');
+  put(desk, 0.65, W - 0.8, 0.05, L - 0.35, 0, 0.75);
+  put(mat('wool', '#e8e4da'), 0.55, 0.6, 0.72, L - 0.35, A * (W / 2 - 0.6), 0);     // 抽屜櫃
+  put(black, 0.05, 0.55, 0.36, L - 0.55, D * 0.6, 0.8); put(screenMat(), 0.02, 0.5, 0.32, L - 0.53, D * 0.6, 0.82);
+  put(black, 0.05, 0.7, 0.45, L - 0.55, A * 0.4, 0.8); put(cctvMat(), 0.02, 0.66, 0.4, L - 0.53, A * 0.4, 0.82, true);
+  put(mat('wool', '#e9e6df'), 0.25, 0.2, 0.08, L - 0.4, 0, 0.8);                    // 電話
+  // 上面吊兩台監視器電視
+  for (const s of [-1, 1]) { put(black, 0.08, 1.3, 0.78, L - 0.5, s * W / 4, 2.05); put(cctvMat(), 0.02, 1.24, 0.72, L - 0.55, s * W / 4, 2.08, true); put(M.grey(), 0.05, 0.05, 0.45, L - 0.5, s * W / 4, 2.55); }
+  officeChair(put, L - 1.2, 0, 1, 0, '#1d1f22');
+  put(M.white(), 0.4, 0.4, 0.5, 0.6, A * (W / 2 - 0.5), 0);                         // 電風扇
+  put(mat('wool', '#d23a2f'), 0.02, 0.35, 0.9, 0.02, D * (W / 2 - 0.6), 1.1);        // 紅色春聯
+}
+
 /** 依名稱、種類挑布置 */
 function furnishRoom(room, fr, put) {
   const n = room.name || '', t = room.type;
@@ -1506,6 +1530,7 @@ function furnishRoom(room, fr, put) {
   if (n === '思科教室') return ciscoRoom(put, fr, room);                // 依照片
   if (n.includes('油印室')) return mimeographRoom(put, fr);            // 依照片
   if (n === '器材室') return sportsRoom(put, fr);                      // 1F 體育器材室，依照片
+  if (n === '警衛室') return guardRoom(put, fr, room);                 // 依照片
   if (n === '學務處') return studentAffairs(put, fr, room);                  // 依照片
   if (n.includes('活動中心')) return gym(put, fr);
   if (n.includes('舞蹈') || n.includes('律動')) return danceRoom(put, fr);

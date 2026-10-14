@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=61';
+import { Batch, mat, SPOTS } from './blocks.js?v=62';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -547,5 +547,151 @@ export function buildParking(group, x1, x2, z1, z2) {
     for (let z = a; z <= c + 0.01; z += (c - a) / 2) b.box(steel, 0.05, 1.0, 0.05, x2 - 0.25, 0.5, z);
     b.box(steel, 0.06, 0.06, c - a, x2 - 0.25, 1.0, (a + c) / 2);
   }
+  b.build(group);
+}
+
+/* ---------- 校門口一帶（依 2026-10-14 照片）
+ *   左（北）：汽車停車場，沿著警衛室旁邊的車道往北接到圖書館那頭
+ *   右（南）：機車停車棚（綠色屋頂、木頭天花板、紅白藍條紋柱子、不鏽鋼信箱櫃），旁邊是馬賽克壁畫牆，走到底的拱門通操場
+ *   穿堂入口：寬花崗石階梯、兩旁花台與扶手、彩色條紋雨遮、金色鏤空招牌 */
+const mosaicKidsMat = () => texMat('mosaickids', 1024, 160, (c, w, h) => {
+  const P = 8;                                                          // 一格馬賽克 8px
+  for (let y = 0; y < h; y += P) for (let x = 0; x < w; x += P) {
+    let col = y < 26 ? '#7aa6dc' : y > h - 52 ? (y > h - 26 ? '#4f8a3a' : '#7fb04a') : '#eef0f2';
+    if (y >= 24 && y < 34 && Math.sin(x / 26) > 0.2) col = '#7aa6dc';     // 藍色雲邊
+    c.fillStyle = col; c.fillRect(x, y, P - 1, P - 1);
+  }
+  const kid = (x0, skin, shirt, pants, pose) => {                       // 像素小孩在玩（踢球、跳繩、跑步）
+    const px = (gx, gy, col) => { c.fillStyle = col; c.fillRect(x0 + gx * P, 40 + gy * P, P - 1, P - 1); };
+    for (const [gx, gy] of [[1, 0], [2, 0], [1, 1], [2, 1]]) px(gx, gy, '#2b2b2b');
+    for (const [gx, gy] of [[1, 2], [2, 2]]) px(gx, gy, skin);
+    for (let gy = 3; gy < 6; gy++) for (let gx = 1; gx < 3; gx++) px(gx, gy, shirt);
+    px(0, 3 + pose % 2, skin); px(3, 4 - pose % 2, skin);
+    for (let gy = 6; gy < 9; gy++) { px(1 - (pose % 2) * (gy - 6) / 2 | 0, gy, pants); px(2 + (gy - 6) / 2 | 0, gy, pants); }
+  };
+  const cols = [['#f2c9a0', '#e85d3a', '#2f5aa8'], ['#f6d1b0', '#f2c230', '#3a3a3a'], ['#f2c9a0', '#4f9a3a', '#2f5aa8'], ['#f6d1b0', '#e8892b', '#6b4a32'], ['#f2c9a0', '#3b82f6', '#2b2b2b']];
+  for (let i = 0; i < 12; i++) kid(30 + i * 82, ...cols[i % cols.length], i);
+  c.fillStyle = '#e53935'; for (let i = 0; i < 4; i++) c.fillRect(110 + i * 230, 110, 14, 14);   // 球
+}, {});
+const stripeCeilMat = () => texMat('stripeceil', 512, 128, (c, w, h) => {
+  const cols = ['#a64d6b', '#e8a07a', '#f2c9b8', '#e8b04a', '#f4d6c8', '#d8653a', '#b05a7a', '#f0b98a'];
+  const n = cols.length;
+  for (let i = 0; i < n; i++) { c.fillStyle = cols[i]; c.beginPath(); c.moveTo(i * w / n, 0); c.lineTo((i + 1) * w / n, 0); c.lineTo((i + 1.6) * w / n, h); c.lineTo((i + 0.6) * w / n, h); c.fill(); }
+});
+const goldBandMat = () => texMat('goldband', 1024, 128, (c, w, h) => {
+  c.fillStyle = '#b8955a'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#d9bd84'; for (let y = 6; y < h; y += 12) for (let x = (y / 12 % 2) * 6; x < w; x += 12) { c.beginPath(); c.arc(x, y, 4, 0, Math.PI * 2); c.fill(); }
+  c.fillStyle = '#e8e4da'; c.fillRect(0, 0, w, 62);
+  c.fillStyle = '#5a5a55'; c.font = '700 38px "Noto Sans TC", sans-serif'; c.textAlign = 'center';
+  c.fillText('臺 北 市 文 山 區 溪 口 國 民 小 學', w / 2, 46);
+  c.fillStyle = '#5a4520'; c.font = '700 26px serif';
+  c.fillText('Taipei Municipal Wenshan District Xikou Elementary School', w / 2, 102);
+});
+const lockerMat = () => texMat('lockers', 128, 128, (c, w, h) => {
+  c.fillStyle = '#c9cdd2'; c.fillRect(0, 0, w, h);
+  for (let r = 0; r < 5; r++) for (let k = 0; k < 4; k++) {
+    c.fillStyle = '#b3b8be'; c.fillRect(4 + k * 31, 4 + r * 25, 28, 22);
+    c.fillStyle = '#7d8288'; c.fillRect(14 + k * 31, 16 + r * 25, 8, 3);
+  }
+});
+function scooter(b, x, z, col, dir = 1) {
+  const body = mat('wool', col), dark = mat('wool', '#1d1f22'), seat = mat('wool', '#2b2b2b');
+  b.box(dark, 0.12, 0.42, 0.42, x, 0.21, z - dir * 0.62);                 // 前輪
+  b.box(dark, 0.12, 0.42, 0.42, x, 0.21, z + dir * 0.62);                 // 後輪
+  b.box(body, 0.5, 0.42, 1.25, x, 0.55, z + dir * 0.1);                   // 車身
+  b.box(seat, 0.42, 0.12, 0.7, x, 0.82, z + dir * 0.3);                   // 坐墊
+  b.box(body, 0.42, 0.65, 0.18, x, 0.85, z - dir * 0.55);                 // 前面
+  b.box(dark, 0.62, 0.05, 0.05, x, 1.2, z - dir * 0.55);                  // 把手
+}
+/** 校門口：gx 是校門（圍牆）的 x；z1、z2 是校門口兩邊；hall：穿堂 { x1, z1, z2 }；base：建築墊高 */
+export function buildFrontYard(group, { gx, gz1, gz2, hall, guard, base, fieldZ, carLot }) {
+  const b = new Batch(), raised = [];
+  const paver = mat('tile', '#b9b2ac'), granite = mat('wool', '#b8b4ae'), steel = mat('wool', '#c9cdd2');
+  // 地面：校門到穿堂、往北到停車場、往南到操場，都是灰粉色地磚
+  b.box(paver, hall.x1 - gx, 0.03, gz2 - gz1 + 6, (gx + hall.x1) / 2, 0.015, (gz1 + gz2) / 2);
+  b.box(paver, hall.x1 - guard.x2 - 0.2, 0.03, gz1 - carLot.z2 + 0.2, (guard.x2 + hall.x1) / 2, 0.015, (gz1 + carLot.z2) / 2);   // 警衛室旁的車道
+  b.box(paver, hall.x1 - gx, 0.03, guard.z1 - carLot.z2, (gx + hall.x1) / 2, 0.015, (carLot.z2 + guard.z1) / 2);   // 停車場和警衛室中間
+  b.box(paver, hall.x1 - gx, 0.03, fieldZ - gz2, (gx + hall.x1) / 2, 0.015, (gz2 + fieldZ) / 2);
+  // 往北的車道旁停兩台車（車頭朝南，沿著圍牆）
+  for (const [z, col] of [[carLot.z2 + 2.6, '#5d6b7a'], [carLot.z2 + 7.2, '#f4f4f2']]) {
+    const body = mat('wool', col), glass = mat('wool', '#2b3440'), tire = mat('wool', '#1b1b1d'), x = gx + 1.6;
+    if (z + 2.3 > guard.z1) continue;
+    b.box(body, 1.8, 0.65, 4.3, x, 0.6, z); b.box(glass, 1.62, 0.55, 2.3, x, 1.2, z + 0.25); b.box(body, 1.55, 0.1, 2.1, x, 1.52, z + 0.25);
+    for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) b.box(tire, 0.3, 0.6, 0.62, x + a * 0.82, 0.3, z + c * 1.35);
+  }
+  // 穿堂入口：雨遮（底下彩色條紋、正面金色鏤空招牌）、兩旁花台、扶手、國旗
+  const hz1 = hall.z1, hz2 = hall.z2, hzc = (hz1 + hz2) / 2, hx = hall.x1, top = base + 3.4;
+  b.plain(stripeCeilMat(), 3.2, 0.12, hz2 - hz1 + 2, hx - 1.4, top, hzc);
+  b.plain(goldBandMat(), 0.25, 1.3, hz2 - hz1 + 2.2, hx - 3.05, top + 0.55, hzc);
+  b.box(mat('wool', '#e9e6df'), 3.4, 0.35, hz2 - hz1 + 2.2, hx - 1.3, top + 1.35, hzc);
+  for (const s of [-1, 1]) {
+    const z = s < 0 ? hz1 - 0.6 : hz2 + 0.6;
+    b.box(mat('wool', '#d8d4cc'), 0.5, top, 0.5, hx - 0.25, top / 2, z);          // 雨遮柱
+    b.box(granite, 1.6, base + 0.2, 1.4, hx - 1.0, (base + 0.2) / 2, z);           // 花台（跟穿堂一樣高）
+    const g = new THREE.CylinderGeometry(0.42, 0.3, 0.32, 14); g.translate(hx - 1.0, base + 0.36, z); b.add(mat('wool', '#c4704a'), g);   // 陶盆
+    b.box(mat('leaves'), 0.7, 0.6, 0.7, hx - 1.0, base + 0.8, z);
+    raised.push({ x1: hx - 1.8, x2: hx - 0.2, z1: z - 0.7, z2: z + 0.7, h: base + 0.2 });
+    // 不鏽鋼扶手（沿著階梯往下）
+    const rz = s < 0 ? hz1 + 1.0 : hz2 - 1.0, g2 = new THREE.BoxGeometry(1.6, 0.05, 0.05);
+    g2.rotateZ(0.75); g2.translate(hx - 0.65, base * 0.5 + 0.95, rz); b.add(steel, g2);
+    for (const dx of [-1.25, -0.1]) b.box(steel, 0.05, 0.95, 0.05, hx + dx, (base * (dx > -1 ? 1 : 0.1)) + 0.47, rz);
+    // 國旗（照片上入口兩旁各有一支）
+    const fz = s < 0 ? hz1 - 1.3 : hz2 + 1.3;
+    { const pg = new THREE.CylinderGeometry(0.03, 0.03, 3.2, 6); pg.translate(hx - 2.2, 1.6, fz); b.add(steel, pg); }
+    b.plain(flagMat(), 0.02, 0.6, 0.9, hx - 2.2, 2.85, fz - s * 0.45);
+  }
+  // 校門南邊：馬賽克壁畫牆（在圍牆內側）
+  const wz1 = gz2 + 1.4, wz2 = fieldZ - 3.5;
+  b.box(mat('wool', '#d9d4ca'), 0.4, 2.4, wz2 - wz1, gx + 0.2, 1.2, (wz1 + wz2) / 2);
+  b.plain(mosaicKidsMat(), 0.02, 2.2, wz2 - wz1 - 0.2, gx + 0.42, 1.15, (wz1 + wz2) / 2);
+  b.box(mat('wool', '#4a5a6a'), 0.5, 0.15, wz2 - wz1, gx + 0.22, 2.45, (wz1 + wz2) / 2);
+  // 機車停車棚：綠色屋頂、木頭天花板、紅白藍條紋柱子、不鏽鋼信箱櫃
+  const sx1 = gx + 2.0, sx2 = sx1 + 4.2, sz1 = wz1 + 2.0, sz2 = wz2 - 1.0, H = 2.7;
+  b.box(mat('wool', '#3f6b52'), sx2 - sx1 + 0.8, 0.35, sz2 - sz1 + 0.8, (sx1 + sx2) / 2, H + 0.18, (sz1 + sz2) / 2);
+  b.box(mat('wool', '#2f3437'), sx2 - sx1 + 0.85, 0.12, sz2 - sz1 + 0.85, (sx1 + sx2) / 2, H + 0.42, (sz1 + sz2) / 2);
+  b.box(mat('planks', '#b5773f'), sx2 - sx1 + 0.6, 0.04, sz2 - sz1 + 0.6, (sx1 + sx2) / 2, H - 0.02, (sz1 + sz2) / 2);
+  const pil = (x, z) => {
+    b.box(mat('wool', '#2f5aa8'), 0.5, 0.9, 0.5, x, 0.45, z);
+    for (let i = 0; i < 4; i++) b.box(mat('wool', i % 2 ? '#e8826a' : '#f4f1ea'), 0.5, 0.45, 0.5, x, 0.9 + 0.225 + i * 0.45, z);
+  };
+  for (let z = sz1; z <= sz2 + 0.01; z += (sz2 - sz1) / 3) pil(sx2, z);
+  for (const z of [sz1, sz2]) pil(sx1, z);
+  b.plain(lockerMat(), 0.6, 1.6, 1.8, sx1 + 0.7, 0.8, sz1 + 1.2);                 // 信箱櫃
+  b.box(mat('planks', '#c98c4a'), 0.08, 2.0, 1.9, sx1 + 1.05, 1.0, sz1 + 1.2);    // 木頭圍板
+  const cols = ['#1f1f22', '#2b2f36', '#d8d8d4', '#7fb6d6', '#1f1f22', '#b8312f', '#f2efe2', '#2b2f36', '#9aa0a6', '#1f1f22'];
+  let k = 0;
+  for (let z = sz1 + 2.8; z < sz2 - 0.5; z += 0.75) { scooter(b, sx1 + 1.4, z, cols[k++ % cols.length], 1); }
+  // 走到底：拱門通往操場
+  const az = fieldZ - 2.4, ax1 = gx + 0.3, ax2 = sx2 + 4;
+  b.box(mat('wool', '#d9cfbd'), (ax2 - ax1) / 2 - 1.3, 2.6, 0.4, ax1 + ((ax2 - ax1) / 2 - 1.3) / 2, 1.3, az);
+  b.box(mat('wool', '#d9cfbd'), (ax2 - ax1) / 2 - 1.3, 2.6, 0.4, ax2 - ((ax2 - ax1) / 2 - 1.3) / 2, 1.3, az);
+  const ac = (ax1 + ax2) / 2;
+  for (let i = 0; i <= 10; i++) { const a = Math.PI * i / 10; b.box(mat('wool', '#d9cfbd'), 0.3, 0.3, 0.4, ac - Math.cos(a) * 1.3, 2.1 + Math.sin(a) * 0.6, az); }
+  b.box(mat('wool', '#d9cfbd'), 2.6, 0.3, 0.4, ac, 2.75, az);
+  b.build(group);
+  return raised;
+}
+const flagMat = () => texMat('rocflag', 96, 64, (c, w, h) => {
+  c.fillStyle = '#d7262b'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#1b3f95'; c.fillRect(0, 0, w / 2, h / 2);
+  c.fillStyle = '#ffffff'; c.beginPath(); c.arc(w / 4, h / 4, 7, 0, Math.PI * 2); c.fill();
+  for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; c.beginPath(); c.moveTo(w / 4 + Math.cos(a) * 11, h / 4 + Math.sin(a) * 11); c.lineTo(w / 4 + Math.cos(a + 0.2) * 7, h / 4 + Math.sin(a + 0.2) * 7); c.lineTo(w / 4 + Math.cos(a - 0.2) * 7, h / 4 + Math.sin(a - 0.2) * 7); c.fill(); }
+  c.fillStyle = '#1b3f95'; c.beginPath(); c.arc(w / 4, h / 4, 5.5, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#ffffff'; c.beginPath(); c.arc(w / 4, h / 4, 4.5, 0, Math.PI * 2); c.fill();
+});
+
+/* ---------- 警衛室（依照片）：外牆木紋磚、窗口有大理石檯面、上面鐵皮雨遮、轉角「警衛室」牌子 ---------- */
+export function buildGuardHouse(group, m, base) {
+  const b = new Batch();
+  // 窗口朝南（校門口那邊）：檯面＋雨遮（在地面高度看出去）
+  const z = m.z2 + 0.15, xc = (m.x1 + m.x2) / 2;
+  b.box(mat('wool', '#efe9dc'), 1.9, 0.06, 0.45, xc, base + 0.9, z + 0.2);
+  b.box(mat('wool', '#6f7478'), m.x2 - m.x1 + 0.6, 0.06, 1.3, xc, base + 3.0, z + 0.55);
+  for (const dx of [-1, 1]) { const g = new THREE.BoxGeometry(0.06, 0.06, 1.2); g.rotateX(-0.6); g.translate(xc + dx * (m.x2 - m.x1) * 0.35, base + 2.7, z + 0.4); b.add(mat('wool', '#3a3f45'), g); }
+  b.plain(texMat('guardsign', 128, 64, (c, w, h) => {
+    c.fillStyle = '#f6f2ea'; c.fillRect(0, 0, w, h); c.fillStyle = '#c98c4a'; c.fillRect(w - 30, 0, 30, h);
+    c.fillStyle = '#2b2b2b'; c.font = '700 26px "Noto Sans TC", sans-serif'; c.fillText('警衛室', 6, 30);
+    c.font = '600 12px sans-serif'; c.fillText('Security Room', 6, 52);
+  }), 0.6, 0.3, 0.02, m.x2 - 0.4, base + 2.4, z + 0.02);
   b.build(group);
 }

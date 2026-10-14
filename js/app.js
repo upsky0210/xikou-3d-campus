@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=61';
-import { furnishFloor } from './furniture.js?v=61';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=61';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=61';
-import { buildCampusWall } from './wall.js?v=61';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=61';
+import { PanoViewer } from './pano.js?v=62';
+import { furnishFloor } from './furniture.js?v=62';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=62';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=62';
+import { buildCampusWall } from './wall.js?v=62';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=62';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -549,7 +549,7 @@ function wallRuns() {
   if (O.gate) {
     const x = mx(O.gate.x), color = new THREE.Color('#3f8f3a');
     f1.segs.push({ ax: x, az: mz(540), bx: x, bz: mz(O.gate.y1) - 0.7, h: 1.5, color, kind: 'hedge' });
-    f1.segs.push({ ax: x, az: mz(O.gate.y2) + 0.7, bx: x, bz: mz(1110), h: 1.5, color, kind: 'hedge' });
+    f1.segs.push({ ax: x, az: mz(O.gate.y2) + 0.7, bx: x, bz: mz(1110), h: 1.5, color, kind: 'hedge', noRender: true });   // 校門南邊：馬賽克壁畫牆（畫在 buildFrontYard）
   }
   if (O.wall) {
     // 校園圍牆：只算碰撞（外觀在 buildCampusWall 畫）；西邊正門那段（樹籬）不重複
@@ -803,6 +803,15 @@ function buildOutdoor() {
     });
     b.build(g);
     floors[1].labels.add(makeTag('正門', 'MAIN GATE', gx - 1, 0, zc, { accent: '#c0392b', h: 3.2, stem: 5.5 }));
+    // 校門口一帶（依照片）：左邊汽車停車場車道、右邊機車停車棚與馬賽克壁畫牆、穿堂入口雨遮與招牌
+    const hall = rooms.find((r) => r.name === '穿堂'), guard = rooms.find((r) => r.name === '警衛室');
+    const T = D.outdoor.track;
+    raised.push(...buildFrontYard(g, {
+      gx, gz1: z1, gz2: z2, hall: { x1: hall.m.x1, z1: hall.m.z1, z2: hall.m.z2 }, guard: guard.m, base: BASE,
+      fieldZ: mz(T.center[1] - T.size[1] / 2), carLot: { z2: mz(475) - 0.4 },
+    }));
+    buildGuardHouse(g, guard.m, BASE);
+    floors[1].labels.add(makeTag('機車停車場', 'SCOOTERS', gx + 4, 0, z2 + 9, { accent: '#2f5aa8', h: 2.4, stem: 3.4 }));
   }
   if (O.tower) {
     // 正門左邊那座有圓窗的圓柱塔
