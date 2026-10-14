@@ -410,9 +410,10 @@ export function makeBlockNPC(look) {
   const top = cloth(look.top), pants = cloth(look.pants);
   const shoe = new THREE.MeshLambertMaterial({ color: look.shoe });
   const px = (draw) => canvasTex((c) => draw(c), 1, 16, { smooth: false });
-  const faceMat = new THREE.MeshLambertMaterial({ map: px((c) => {
-    look.face.forEach((row, y) => [...row].forEach((ch, x) => { c.fillStyle = look.pal[ch]; c.fillRect(x, y, 1, 1); }));
-  }) });
+  // 表情（參考學生美勞作品「方塊人像」）：從原本的臉自動找出眼睛、嘴巴再改畫，各表情的貼圖用到才做
+  const drawFace = faceDrawer(look), faces = {};
+  const faceTex = (ex) => (faces[ex] ||= px((c) => drawFace(c, ex)));
+  const faceMat = new THREE.MeshLambertMaterial({ map: faceTex('normal') });
   const hair = new THREE.MeshLambertMaterial({ map: px((c) => {
     c.fillStyle = look.hair; c.fillRect(0, 0, 16, 16);
     c.fillStyle = look.pal.h || look.hair;
@@ -562,7 +563,66 @@ export function makeBlockNPC(look) {
   }
 
   g.userData.limbs = { armL, armR, legL, legR };
+  g.userData.setFace = (ex) => { const m = faceTex(NPC_FACES.includes(ex) ? ex : 'normal'); if (faceMat.map !== m) faceMat.map = m; };
   return g;
+}
+
+// NPC 的表情：平常、眨眼、開心笑、眨眼吐舌、驚訝、難過、想睡、吐舌頭
+export const NPC_FACES = ['normal', 'blink', 'happy', 'wink', 'surprised', 'sad', 'sleepy', 'tongue'];
+function faceDrawer(look) {
+  const rows = look.face, pal = look.pal;
+  const skin = look.cat ? 'W' : 'S', eyeCh = look.cat ? 'Ep' : 'EWep', eyeBg = look.cat ? 'L' : skin;
+  // 找出符合條件的像素範圍（左眼、右眼、嘴巴）
+  const box = (test) => {
+    let b = null;
+    rows.forEach((r, y) => [...r].forEach((ch, x) => {
+      if (!test(ch, x, y)) return;
+      b ||= { x0: x, x1: x, y0: y, y1: y };
+      b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, y); b.y1 = Math.max(b.y1, y);
+    }));
+    return b;
+  };
+  const eyes = [box((ch, x) => x < 8 && eyeCh.includes(ch)), box((ch, x) => x >= 8 && eyeCh.includes(ch))];
+  const mouth = box((ch, x, y) => y >= 9 && 'MT'.includes(ch));
+  const dark = pal.E || '#222222', mc = pal.M || dark, tongue = '#e8607a', inside = '#5a1e22';
+  return (c, ex) => {
+    rows.forEach((row, y) => [...row].forEach((ch, x) => { c.fillStyle = pal[ch]; c.fillRect(x, y, 1, 1); }));
+    const dot = (col, x, y, w = 1, h = 1) => { if (w > 0 && h > 0) { c.fillStyle = col; c.fillRect(x, y, w, h); } };
+    const W = (b) => b.x1 - b.x0 + 1, H = (b) => b.y1 - b.y0 + 1;
+    const clear = (b, bg) => dot(pal[bg], b.x0, b.y0, W(b), H(b));
+    // 眼睛
+    const closed = (b, low) => { if (!b) return; clear(b, eyeBg); dot(dark, b.x0, low ? b.y1 : b.y0 + (H(b) >> 1), W(b), 1); };   // 閉眼：一條線
+    const arch = (b) => {                                                  // 笑瞇瞇：∩
+      if (!b) return;
+      clear(b, eyeBg);
+      const y = b.y0 + (H(b) >= 3 ? 1 : 0);
+      dot(dark, b.x0, y, W(b), 1); dot(dark, b.x0 - 1, y + 1); dot(dark, b.x1 + 1, y + 1);
+    };
+    // 嘴巴
+    const m = mouth;
+    const mw = m ? W(m) : 0, cx = m ? m.x0 + ((mw - 2) >> 1) : 0;
+    const grin = () => {                                                   // 張嘴大笑
+      clear(m, skin);
+      dot(mc, m.x0, m.y0, mw, 1);
+      dot(mc, m.x0, m.y0 + 1, mw, 1); dot(inside, m.x0 + 1, m.y0 + 1, mw - 2, 1); dot(tongue, cx, m.y0 + 1, 2, 1);
+      dot(mc, m.x0 + 1, m.y0 + 2, mw - 2, 1);
+    };
+    const oh = () => {                                                     // 驚訝：O
+      clear(m, skin);
+      const sz = mw >= 4 ? 3 : 2, ox = m.x0 + ((mw - sz) >> 1);
+      dot(mc, ox, m.y0, sz, sz); if (sz === 3) dot(inside, ox + 1, m.y0 + 1);
+    };
+    const frown = () => { clear(m, skin); dot(mc, m.x0 + 1, m.y0, mw - 2, 1); dot(mc, m.x0, m.y0 + 1); dot(mc, m.x1, m.y0 + 1); };
+    const flat = () => { clear(m, skin); dot(mc, m.x0 + 1, m.y0 + (H(m) >> 1), Math.max(1, mw - 2), 1); };
+    const tongueOut = () => { clear(m, skin); dot(mc, m.x0, m.y0, mw, 1); dot(tongue, cx, m.y0 + 1, 2, 2); };
+    if (ex === 'blink') { closed(eyes[0]); closed(eyes[1]); }
+    else if (ex === 'happy') { arch(eyes[0]); arch(eyes[1]); if (m) grin(); }
+    else if (ex === 'wink') { closed(eyes[1]); if (m) tongueOut(); }
+    else if (ex === 'surprised') { if (m) oh(); }
+    else if (ex === 'sad') { if (m) frown(); }
+    else if (ex === 'sleepy') { closed(eyes[0], true); closed(eyes[1], true); if (m) flat(); }
+    else if (ex === 'tongue') { if (m) tongueOut(); }
+  };
 }
 
 /* ---------- 羽球拍（握把在原點、拍面往 +y）、羽毛球（球頭在下、羽毛往 +y） ---------- */

@@ -118,6 +118,8 @@
   /* 設施互動（投籃、溜滑梯）：靠近時出現的按鈕＋投籃力道條 */
   #actPrompt { position: fixed; left: 50%; bottom: 245px; transform: translateX(-50%); background: #e85d04; color: #fff; border: 0;
     border-radius: 14px; padding: 10px 16px; box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; font-size: 16px; font-weight: 700; z-index: 3; }
+  #quitGame { position: fixed; z-index: 3; background: #fbf6ea; color: #2b2b2b; border: 2px solid #2b2b2b; border-radius: 10px; padding: 7px 12px;
+    font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: var(--shadow); }
   #power { position: fixed; left: 50%; bottom: 300px; transform: translateX(-50%); width: 240px; height: 22px; background: rgba(0,0,0,.55);
     border: 2px solid #fff; border-radius: 12px; overflow: hidden; z-index: 3; }
   #power .sweet { position: absolute; top: 0; bottom: 0; background: rgba(80,220,120,.75); }
@@ -412,6 +414,7 @@
 <div id="joy"><div class="knob"></div></div>
 <div id="panoPrompt" hidden></div>
 <button id="actPrompt" hidden></button>
+<button id="quitGame" hidden>✖ 結束比賽</button>
 <div id="quiz" hidden>
   <div class="top"><span class="cat"></span><span class="prog"></span></div>
   <div class="emo"></div><div class="q"></div><div class="hint"></div>
@@ -564,8 +567,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=79"></script>
-<script src="js/pano-data.js?v=79"></script>
-<script type="module" src="js/app.js?v=79"></script>
+<script src="js/campus-data.js?v=80"></script>
+<script src="js/pano-data.js?v=80"></script>
+<script type="module" src="js/app.js?v=80"></script>
 </body>
 </html>

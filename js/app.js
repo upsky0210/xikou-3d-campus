@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=79';
-import { furnishFloor } from './furniture.js?v=79';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=79';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=79';
-import { buildCampusWall } from './wall.js?v=79';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=79';
+import { PanoViewer } from './pano.js?v=80';
+import { furnishFloor } from './furniture.js?v=80';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=80';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=80';
+import { buildCampusWall } from './wall.js?v=80';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=80';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1839,7 +1839,10 @@ function pick(e) {
   const hit = raycaster.intersectObjects(vis, false)[0];
   if (hit?.object.userData.cat) meetCat();
   else if (hit?.object.userData.glider) meetGlider(hit.object.userData.glider);
-  else if (hit?.object.userData.npc) meetNPC(hit.object.userData.npc);
+  else if (hit?.object.userData.npc) {                       // 點老師：打招呼，再隨機做個鬼臉
+    const n = hit.object.userData.npc;
+    meetNPC(n); npcFace(n, FUNNY_FACES[Math.random() * FUNNY_FACES.length | 0]);
+  }
   else if (hit?.object.userData.car) honkCar(hit.object.userData.car);
   else if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
   else if (mode !== 'bird') {                                   // 走路模式：點地面就自動走過去
@@ -2645,10 +2648,21 @@ function meetNPC(n) {
   }
   const kid = savedGender() === 'girl' ? '👧' : '👦';
   toast(`${kid} 我：${n.name}好！<br>${line}`);                        // 學生遇到老師會先打招呼
+  npcFace(n, 'happy');                                                  // 老師笑開
 }
+// 換表情，過幾秒自動變回平常的臉
+function npcFace(n, ex, sec = 2.5) { n.exprT = sec; n.g.userData.setFace(ex); }
+const FUNNY_FACES = ['wink', 'tongue', 'surprised', 'happy', 'sleepy'];
 function updateNPCs(t, dt) {
   for (const n of NPCS) {
-    if (n.playing) continue;                                          // 正在跟你打羽球：由遊戲控制
+    // 表情：有指定表情就維持幾秒；平常每 2～6 秒眨一下眼
+    n.blinkT ??= 2 + Math.random() * 4;
+    if (n.exprT > 0) { n.exprT -= dt; if (n.exprT <= 0) n.g.userData.setFace('normal'); }
+    else if ((n.blinkT -= dt) < 0) {
+      n.g.userData.setFace('blink');
+      if (n.blinkT < -0.14) { n.g.userData.setFace('normal'); n.blinkT = 2 + Math.random() * 4; }
+    }
+    if (n.playing) continue;                                          // 正在跟你玩小遊戲：由遊戲控制
     const { armL, armR } = n.g.userData.limbs;
     const dist = Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z);
     const near = mode !== 'bird' && player.floor === n.f && dist < 2.2;
@@ -2826,6 +2840,7 @@ function updateAct(dt) {
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
+  placeQuit();
 }
 function doAction() {
   if (act.busy) { act.busy.press?.(); return; }
@@ -2838,6 +2853,22 @@ function doAction() {
 }
 actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
+const quitBtn = document.getElementById('quitGame');
+function quitGame() {
+  if (act.busy?.badminton) { act.busy.stop(); toast('🏸 下次再來打羽球！'); }
+  else duel?.quit();
+}
+quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+quitBtn.addEventListener('click', quitGame);
+// 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
+function placeQuit() {
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden));
+  if (quitBtn.hidden === show) quitBtn.hidden = !show;
+  if (!show) return;
+  const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
+  if (r.right + 10 + q.width < innerWidth - 8) { quitBtn.style.left = `${r.right + 10}px`; quitBtn.style.top = `${r.top + (r.height - q.height) / 2}px`; }
+  else { quitBtn.style.left = `${Math.max(8, r.left + (r.width - q.width) / 2)}px`; quitBtn.style.top = `${r.top - q.height - 10}px`; }
+}
 const limbs = () => avatar.userData.limbs;
 function resetPose() { const L = limbs(); if (L) for (const k of ['armL', 'armR', 'legL', 'legR']) L[k].rotation.set(0, 0, 0); }
 
@@ -2975,6 +3006,7 @@ function startBadminton(n) {
         shuttle.position.y = ground(p[0], p[2]) + 0.04;
         fl = null;
         if (!over) end();
+        npcFace(n, 'happy', 3);                                           // 老師笑了
         toast(rally > 0 && rally >= best ? `🏸 漏接了！來回 ${rally} 球，新紀錄！🎉` : `🏸 漏接了！這局來回 ${rally} 球（最高 ${best} 球）`);
       }
     },
@@ -2992,8 +3024,8 @@ function startBadminton(n) {
       const [qx, qz] = [T0.x + rx * off, T0.z + rz * off];
       const sp = shuttle.position;
       launch([sp.x, sp.y, sp.z], [qx, ground(qx, qz) + 1.95, qz], smash ? 0.7 : 1.3, smash ? 0.35 : 2.2, false);
-      if (smash) toast(`💥 殺球！（來回 ${rally} 球）`);
-      else if (rally % 5 === 0) toast(`🏸 好球！來回 ${rally} 球`);
+      if (smash) { toast(`💥 殺球！（來回 ${rally} 球）`); npcFace(n, 'surprised', 1.4); }
+      else if (rally % 5 === 0) { toast(`🏸 好球！來回 ${rally} 球`); npcFace(n, 'happy', 1.4); }
     },
     stop() {
       myRacket.removeFromParent(); npcRacket.removeFromParent();
@@ -3006,7 +3038,7 @@ function startBadminton(n) {
 }
 
 /* ---------------- 投籃比賽：跟鄧老師輪流投 5 球（操場籃球場、活動中心） ----------------
-   站在罰球線附近；你用原本的力道條投籃，老師自動投（大約六成命中）；投完比分數。 */
+   站在罰球線附近；你用原本的力道條投籃，老師自動投（大約八成命中）；投完比分數。 */
 
 const SHOOTOUT_KEY = 'campus-shootout-wins', SHOOTOUT_N = 5;
 let duel = null;
@@ -3054,6 +3086,7 @@ function startShootout(n) {
       onDone: (made) => {
         if (made) me++;
         toast(made ? `🏀 你投進了！（${me}：${them}）` : `😣 你沒進（${me}：${them}）`);
+        npcFace(n, made ? 'surprised' : 'tongue', 1.5);
         wait(1.0, `🏀 換${n.name}投　${score()}`, theirTurn);
       },
     });
@@ -3069,17 +3102,19 @@ function startShootout(n) {
         if (t < 0.7) return;
         const y = n.g.position.y + 2.05;
         shoot(sp, 0, 0, 0, {
-          quiet: true, made: Math.random() < 0.6, limbs: nL, from: { x: Q.x, y, z: Q.z },
+          quiet: true, made: Math.random() < 0.8, limbs: nL, from: { x: Q.x, y, z: Q.z },
           label: `🏀 ${n.name}出手！　${score()}`,
           onDone: (made) => {
             if (made) them++;
             toast(made ? `🏀 ${n.name}投進了！（${me}：${them}）` : `${n.name}沒進！（${me}：${them}）`);
+            npcFace(n, made ? 'happy' : 'sad', 1.6);
             if (k < SHOOTOUT_N) wait(1.0, `🏀 換你投　${score()}`, myTurn);
             else wait(1.2, `🏁 比賽結束　${score()}`, () => {
               if (me > them) { wins++; try { localStorage.setItem(SHOOTOUT_KEY, String(wins)); } catch { /* 私密模式 */ } }
               toast(me > them ? `🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）`
                 : me === them ? `🤝 平手！${me}：${them}，再比一次？` : `💪 ${n.name}贏了 ${them}：${me}，再接再厲！`);
               finish();
+              npcFace(n, me > them ? 'sad' : me === them ? 'wink' : 'happy', 3);
             });
           },
         });
@@ -3153,6 +3188,7 @@ function startWords(n) {
     const q = qs[k];
     locked = true; quizInput.disabled = true;
     $('.hint').textContent = q.en.split('').join(' ');
+    npcFace(n, ok ? 'happy' : 'sad', 1.8);
     msg(ok ? `✅ 答對了！<b>${q.en}</b> = ${q.zh}` : `答案是 <b>${q.en}</b>（${q.zh}），記起來囉！`, ok ? 'ok' : 'no');
     sayEnglish(q.en);
     setTimeout(next, ok ? 1300 : 2200);
