@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=67';
-import { furnishFloor } from './furniture.js?v=67';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=67';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=67';
-import { buildCampusWall } from './wall.js?v=67';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=67';
+import { PanoViewer } from './pano.js?v=68';
+import { furnishFloor } from './furniture.js?v=68';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=68';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=68';
+import { buildCampusWall } from './wall.js?v=68';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=68';
 
 /* =========================================================
  * 溪口國小 3D 校園

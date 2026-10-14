@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=67';
+import { Batch, mat, SPOTS } from './blocks.js?v=68';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -228,7 +228,7 @@ function classroom(put, fr, room) {
     }
     put(corkMat(), 0.03, Math.min(4.5, W - 1), 0.95, L - 0.015, 0, 1.5, true);
   } else if (senior) {
-    seniorBack(put, fr);                                              // 5～6 年級（依照片）
+    seniorBack(put, fr, room);                                              // 5～6 年級（依照片）
   } else {
     put(mat('planks', '#d6b98a'), 0.42, cw, 1.7, u, 0, 0);
     const n = Math.max(2, Math.floor(cw / 0.42)), cell = cw / n;
@@ -1418,7 +1418,7 @@ const archBoardMat = () => once('archboard', () => new THREE.MeshLambertMaterial
   for (let i = 0; i < 9; i++) c.fillRect(40 + i * 46, 110 + (i % 2) * 34, 34, 28);
   c.fillStyle = '#f2d1e0'; for (let i = 0; i < 5; i++) c.fillRect(30 + i * 12, 90 + Math.floor(i / 5) * 12, 9, 9);
 }) }));
-function seniorBack(put, fr) {
+function seniorBack(put, fr, room) {
   const W = fr.W, L = fr.L, A = fr.away, D = -A;
   const lime = mat('wool', '#8fd14f'), wood = mat('wool', '#c8a77c');
   // 後牆兩排置物櫃
@@ -1438,8 +1438,10 @@ function seniorBack(put, fr) {
   for (let i = 0; i < sn; i++) put(i % 2 ? lime : wood, sl / sn - 0.05, 0.02, 0.7, 1.6 + (sl / sn) * (i + 0.5), A * (W / 2 - 0.37), 0.08);
   // 前面角落：灰色屏風老師區
   put(mat('wool', '#b8bcc0'), 1.5, 0.05, 1.2, 1.25, A * (W / 2 - 1.75), 0);
-  // 書櫃（D 側後面）
-  put(booksMat(), 1.0, 0.35, 1.6, L - 1.5, D * (W / 2 - 0.2), 0, true);
+  // 書櫃（D 側＝門那一側）：放在後門前面的牆邊，不擋門（門寬最多 1.6 m）
+  const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
+  const backU = doorU.length ? doorU[doorU.length - 1] : L - 1.5;
+  put(booksMat(), 1.0, 0.35, 1.6, Math.max(2.5, backU - 0.8 - 0.85), D * (W / 2 - 0.2), 0, true);
 }
 
 // 3F 思科教室（依照片）：淺藍牆；前牆白板＋大電視、旁邊洞洞板；兩側牆是木框凹槽（白色玻璃板＋電視）下面灰色矮櫃；
