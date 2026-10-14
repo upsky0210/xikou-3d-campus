@@ -458,6 +458,14 @@ export function makeBlockNPC(look) {
   if (look.spiky) {                                          // 刺刺的短髮
     for (const [x, z, h] of [[-0.14, -0.12, 0.06], [0.02, -0.16, 0.08], [0.15, -0.08, 0.05], [-0.06, 0.05, 0.07], [0.1, 0.12, 0.05]]) box(hg, 0.12, h, 0.12, hair, x, 1.78 - NECK + h / 2, z);
   }
+  if (look.beret) {                                         // 貝雷帽：歪一邊、前面有字母 H
+    const bm = cloth(look.beret.color), lm = new THREE.MeshLambertMaterial({ color: look.beret.letter });
+    const bg = new THREE.Group(); bg.position.set(0.04, 1.8 - NECK, 0); bg.rotation.z = -0.18; hg.add(bg);
+    box(bg, 0.5, 0.07, 0.48, bm, 0, 0, 0);
+    box(bg, 0.42, 0.06, 0.4, bm, 0.02, 0.06, 0);
+    box(bg, 0.05, 0.05, 0.05, bm, 0.02, 0.11, 0);              // 帽頂小蒂頭
+    for (const [w, h, x, y] of [[0.022, 0.09, -0.04, 0.03], [0.022, 0.09, 0.04, 0.03], [0.06, 0.02, 0, 0.03]]) box(bg, w, h, 0.01, lm, x, y, -0.245).castShadow = false;
+  }
   if (look.longHair) {
     box(g, 0.5, 0.86, 0.1, hair, 0, 1.36, 0.25);            // 背後長髮
     box(g, 0.08, 0.5, 0.42, hair, -0.255, 1.4, 0.02);       // 兩側
@@ -469,6 +477,12 @@ export function makeBlockNPC(look) {
   box(g, 0.46, 0.6, 0.26, top, 0, 1.0, 0);                  // 上衣
   box(g, 0.2, 0.05, 0.27, cloth(look.collar || look.top), 0, 1.3, 0);   // 領子
   if (look.collar) box(g, 0.1, 0.12, 0.02, cloth(look.collar), 0, 1.24, -0.13);   // 領口露出的襯衫
+  if (look.tie) {                                           // 領帶
+    box(g, 0.07, 0.06, 0.02, cloth(look.tie), 0, 1.22, -0.14);
+    box(g, 0.06, 0.24, 0.015, cloth(look.tie), 0, 1.07, -0.137);
+  }
+  if (look.buttons) for (const y of [0.92, 0.78]) box(g, 0.04, 0.04, 0.015, new THREE.MeshLambertMaterial({ color: look.buttons, emissive: '#5a4300' }), 0.09, y, -0.137);
+  if (look.badge) look.badge.forEach((c, i) => box(g, 0.1, 0.018, 0.012, cloth(c), 0.13, 1.16 - i * 0.018, -0.136));   // 胸章
   if (look.zip) box(g, 0.02, 0.5, 0.01, cloth(look.zip), 0, 1.0, -0.135);          // 外套拉鍊
   if (look.whistle) {
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
@@ -488,6 +502,14 @@ export function makeBlockNPC(look) {
     return p;
   };
   const armL = arm(-1), armR = arm(1);
+  if (look.recorder) {                                      // 左手拿著白色直笛（斜斜往上）
+    const rg = new THREE.Group(); rg.position.set(0, -0.6, -0.16); rg.rotation.set(0.25, 0, -0.7); armL.add(rg);
+    const wm = new THREE.MeshLambertMaterial({ color: '#f6f1e8' }), hm = new THREE.MeshLambertMaterial({ color: '#2b2b2b' });
+    box(rg, 0.05, 0.56, 0.05, wm, 0, 0.12, 0);
+    box(rg, 0.065, 0.05, 0.065, wm, 0, 0.36, 0);               // 吹嘴那一節
+    box(rg, 0.065, 0.04, 0.065, wm, 0, -0.14, 0);              // 尾端
+    for (let k = 0; k < 5; k++) box(rg, 0.022, 0.022, 0.01, hm, 0, 0.26 - k * 0.07, -0.027).castShadow = false;
+  }
 
   box(g, 0.47, 0.12, 0.27, pants, 0, 0.72, 0);
   const leg = (side) => {

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=65';
-import { furnishFloor } from './furniture.js?v=65';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=65';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=65';
-import { buildCampusWall } from './wall.js?v=65';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=65';
+import { PanoViewer } from './pano.js?v=66';
+import { furnishFloor } from './furniture.js?v=66';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=66';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=66';
+import { buildCampusWall } from './wall.js?v=66';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=66';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2435,6 +2435,40 @@ const NPCS = [
         'WWWWWWWWWWWWWWWW',
         'WWWWWWWWWWWWWWWW',
         'WWWWWWWWWWWWWWWW',
+      ],
+    },
+  },
+  {
+    name: '小瑜老師', title: '音樂老師',
+    hello: ['🎵 小瑜老師：今天一起來吹直笛吧！', '🎶 小瑜老師：上課前先把直笛擦乾淨唷！', '👍 小瑜老師：唱得很好聽，讚！'],
+    // 3 樓音樂教室一（303）前面、鋼琴旁邊，面向學生（東）
+    places: [
+      { floor: '3F', where: '音樂教室一', at: () => { const r = rooms.find((x) => x.name === '音樂教室一'); return [r.m.x1 + 1.9, r.cz + 0.9, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依圖：棕色貝雷帽（白色 H）、橘棕色長直髮（旁分瀏海）、大大的棕色眼睛、腮紅、開口笑；
+      // 棕色西裝外套＋白襯衫＋紅領帶、金色鈕扣、綠白黃胸章；手拿白色直笛
+      skin: '#f8dcc4', hair: '#b8662a', top: '#6e5233', pants: '#4f3c26', shoe: '#3a2a20',
+      longHair: true, longSleeve: true, collar: '#ffffff', tie: '#d6334a', buttons: '#e8c22a',
+      badge: ['#2e8b57', '#ffffff', '#e8c22a'], beret: { color: '#6e5233', letter: '#f4efe4' }, recorder: true,
+      pal: { H: '#b8662a', h: '#d98b45', S: '#f8dcc4', E: '#4a2412', e: '#9b5a2e', W: '#ffffff', B: '#f4a5a0', M: '#8e2a2a', T: '#e86a6a' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHhHHHHHHhHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSHHHHH',
+        'HHHHHHHSSSSSSHHH',
+        'HHHHSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSEeeSSSSEeeSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHSSSSMTTMSSSSHH',
+        'HHSSSSSMMSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
       ],
     },
   },
