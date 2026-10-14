@@ -519,22 +519,9 @@ export function makeBlockNPC(look) {
       box(rg, 0.065, 0.04, 0.065, wm, 0, -0.14, 0);            // 尾端
       for (let k = 0; k < 5; k++) box(rg, 0.022, 0.022, 0.01, hm, 0, 0.26 - k * 0.07, -0.027).castShadow = false;
     } else if (kind === 'racket') {                         // 黑色羽球拍（直直立起來）
-      rg.position.set(0, -0.64, -0.12); rg.rotation.set(-0.5, 0, 0);
-      const bk = M('#1f1f22');
-      box(rg, 0.045, 0.2, 0.045, bk, 0, 0, 0);                 // 握把
-      box(rg, 0.018, 0.26, 0.018, bk, 0, 0.23, 0);             // 拍桿
-      const cy = 0.5, rw = 0.2, rh = 0.26;                      // 拍框（方塊拼成的橢圓）
-      box(rg, 0.02, rh - 0.08, 0.02, bk, -rw / 2, cy, 0); box(rg, 0.02, rh - 0.08, 0.02, bk, rw / 2, cy, 0);
-      box(rg, rw - 0.06, 0.02, 0.02, bk, 0, cy + rh / 2, 0); box(rg, rw - 0.06, 0.02, 0.02, bk, 0, cy - rh / 2, 0);
-      for (const sx of [-1, 1]) for (const sy of [-1, 1]) box(rg, 0.04, 0.04, 0.02, bk, sx * (rw / 2 - 0.02), cy + sy * (rh / 2 - 0.02), 0);
-      const net = new THREE.Mesh(new THREE.PlaneGeometry(rw - 0.01, rh - 0.01), new THREE.MeshLambertMaterial({ color: '#e8e8e8', transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
-      net.position.set(0, cy, 0); rg.add(net);
+      rg.position.set(0, -0.64, -0.12); rg.rotation.set(-0.5, 0, 0); rg.add(makeRacket());
     } else if (kind === 'shuttle') {                        // 羽毛球（球頭朝上）
-      rg.position.set(0, -0.7, -0.08);
-      box(rg, 0.05, 0.04, 0.05, M('#f4f2ec'), 0, 0.02, 0);     // 球頭
-      box(rg, 0.052, 0.012, 0.052, M('#222222'), 0, 0.045, 0); // 黑色膠帶
-      const fe = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.06, 0.09, 8, 1, true), new THREE.MeshLambertMaterial({ color: '#fbfaf5', side: THREE.DoubleSide }));
-      fe.position.set(0, 0.095, 0); rg.add(fe);
+      rg.position.set(0, -0.7, -0.08); rg.add(makeShuttle());
     }
   };
   if (look.holdL) holdItem(armL, look.holdL);
@@ -560,6 +547,32 @@ export function makeBlockNPC(look) {
   }
 
   g.userData.limbs = { armL, armR, legL, legR };
+  return g;
+}
+
+/* ---------- 羽球拍（握把在原點、拍面往 +y）、羽毛球（球頭在下、羽毛往 +y） ---------- */
+
+export function makeRacket() {
+  const g = new THREE.Group(), bk = new THREE.MeshLambertMaterial({ color: '#1f1f22' });
+  const box = (w, h, d, x, y) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), bk); m.position.set(x, y, 0); g.add(m); return m; };
+  box(0.045, 0.2, 0.045, 0, 0);                                // 握把
+  box(0.018, 0.26, 0.018, 0, 0.23);                            // 拍桿
+  const cy = 0.5, rw = 0.2, rh = 0.26;                          // 拍框（方塊拼成的橢圓）
+  box(0.02, rh - 0.08, 0.02, -rw / 2, cy); box(0.02, rh - 0.08, 0.02, rw / 2, cy);
+  box(rw - 0.06, 0.02, 0.02, 0, cy + rh / 2); box(rw - 0.06, 0.02, 0.02, 0, cy - rh / 2);
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) box(0.04, 0.04, 0.02, sx * (rw / 2 - 0.02), cy + sy * (rh / 2 - 0.02));
+  const net = new THREE.Mesh(new THREE.PlaneGeometry(rw - 0.01, rh - 0.01), new THREE.MeshLambertMaterial({ color: '#e8e8e8', transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
+  net.position.set(0, cy, 0); g.add(net);
+  return g;
+}
+export function makeShuttle() {
+  const g = new THREE.Group();
+  const cork = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, 0.05), new THREE.MeshLambertMaterial({ color: '#f4f2ec' }));
+  cork.position.y = 0.02; g.add(cork);
+  const band = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.012, 0.052), new THREE.MeshLambertMaterial({ color: '#222222' }));
+  band.position.y = 0.045; g.add(band);
+  const fe = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.06, 0.09, 8, 1, true), new THREE.MeshLambertMaterial({ color: '#fbfaf5', side: THREE.DoubleSide }));
+  fe.position.y = 0.095; g.add(fe);
   return g;
 }
 

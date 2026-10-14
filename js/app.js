@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=70';
-import { furnishFloor } from './furniture.js?v=70';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=70';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=70';
-import { buildCampusWall } from './wall.js?v=70';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=70';
+import { PanoViewer } from './pano.js?v=71';
+import { furnishFloor } from './furniture.js?v=71';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider } from './extras.js?v=71';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=71';
+import { buildCampusWall } from './wall.js?v=71';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=71';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1770,12 +1770,13 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyM') setMode(mode === 'bird' ? 'third' : 'bird');
   if (e.code === 'KeyV' && mode !== 'bird') setMode(mode === 'first' ? 'third' : 'first');
   if (e.code === 'KeyC') { const g = savedGender() === 'girl' ? 'boy' : 'girl'; setGender(g); toast(g === 'girl' ? '👧 換成女學生' : '👦 換成男學生'); }
+  if (e.code === 'Space' && act.busy?.badminton) { e.preventDefault(); if (!e.repeat) doAction(); return; }   // 打羽球：空白鍵也是揮拍
   if (e.code === 'Space' && mode !== 'bird' && player.jump === 0) { player.vy = 4.2; e.preventDefault(); }
   if (e.code === 'KeyF' && e.repeat) return;
   if (e.code === 'KeyF' && (act.spot || act.busy)) doAction();                 // 靠近籃框、溜滑梯時 F 是互動
   else if (e.code === 'Slash' || e.code === 'KeyF') { if (e.code === 'Slash') e.preventDefault(); openSearch(); }
   if (e.code === 'KeyP') openGallery();
-  if (e.code === 'Escape') { closeSearch(); hideInfo(); closeGallery(); }
+  if (e.code === 'Escape') { closeSearch(); hideInfo(); closeGallery(); act.busy?.badminton && act.busy.stop(); }
 });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
 
@@ -2335,7 +2336,7 @@ function meetGlider(gl) { toast(gl.hello); }
 
 const NPCS = [
   {
-    name: '呂老師', title: '體育老師',
+    name: '呂老師', title: '體育老師', game: 'badminton',
     hello: '🏃‍♀️ 呂老師：嗨！今天也要來操場動一動喔！',
     // 操場北側直道、起跑線旁，面向球場
     at: () => {
@@ -2505,11 +2506,13 @@ const NPCS = [
     },
   },
   {
-    name: '俞瑾老師', title: '五年四班導師',
+    name: '俞瑾老師', title: '五年四班導師', game: 'badminton',
     hello: ['🏸 俞瑾老師：下課一起來打羽球吧！', '🏸 俞瑾老師：五年四班的同學，作業交了沒？', '🐿️ 俞瑾老師：小聲一點，蜜袋鼯在睡覺喔！'],
-    // 4 樓五年四班（418 室）教室前面（至善樓教室前後對調，黑板在南），面向學生（北）
+    // 隨機出現：4 樓五年四班（418 室）教室前面（至善樓教室前後對調，黑板在南）面向學生，
+    //   或 4F 活動中心東半邊（面向西，可以打羽球；教室裡不行）
     places: [
       { floor: '4F', where: '五年四班', at: () => { const r = rooms.find((x) => x.code === '504'); return [r.cx - 0.6, r.m.z2 - 1.6, 0]; } },
+      { floor: '4F', where: '活動中心', game: true, at: () => { const r = rooms.find((x) => x.name === '活動中心'); return [r.cx + 6, r.cz - 4, Math.PI / 2]; } },
     ],
     look: {
       // 依圖：黑色及肩直髮、齊瀏海、棕色大眼睛、淺淺微笑；紅色連帽 T（白色抽繩、大口袋）；左手羽球拍、右手羽毛球
@@ -2572,6 +2575,7 @@ function meetNPC(n) {
 }
 function updateNPCs(t, dt) {
   for (const n of NPCS) {
+    if (n.playing) continue;                                          // 正在跟你打羽球：由遊戲控制
     const { armL, armR } = n.g.userData.limbs;
     const dist = Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z);
     const near = mode !== 'bird' && player.floor === n.f && dist < 2.2;
@@ -2738,9 +2742,14 @@ function nearestSpot() {
 let actLabel = '';
 function updateAct(dt) {
   if (act.busy) act.busy.tick(dt);
-  act.spot = act.busy ? null : nearestSpot();
+  act.spot = act.busy ? null : badmintonSpot() || nearestSpot();   // 靠近老師時打羽球優先（活動中心也有籃框）
+  const sp = act.spot;
   const label = act.busy ? (act.busy.label ?? (act.busy.press ? '🏀 出手！ <kbd>F</kbd>' : ''))
-    : act.spot ? (act.spot.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>' : act.spot.kind === 'toy' ? `${TOYS[act.spot.toy].icon} 玩${act.spot.name} <kbd>F</kbd>` : `🛝 溜${act.spot.name} <kbd>F</kbd>`) : '';
+    : !sp ? ''
+    : sp.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>'
+    : sp.kind === 'toy' ? `${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`
+    : sp.kind === 'badminton' ? `🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`
+    : `🛝 溜${sp.name} <kbd>F</kbd>`;
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
 }
 function doAction() {
@@ -2748,11 +2757,175 @@ function doAction() {
   if (act.spot?.kind === 'hoop') startShot(act.spot);
   else if (act.spot?.kind === 'slide') startSlide(act.spot);
   else if (act.spot?.kind === 'toy') startToy(act.spot);
+  else if (act.spot?.kind === 'badminton') startBadminton(act.spot.npc);
 }
 actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
 const limbs = () => avatar.userData.limbs;
 function resetPose() { const L = limbs(); if (L) for (const k of ['armL', 'armR', 'legL', 'legR']) L[k].rotation.set(0, 0, 0); }
+
+/* ---------------- 羽球小遊戲：在操場或活動中心遇到會打羽球的老師，就可以跟老師對打 ----------------
+   架起球網、學生站到 6 公尺外；左右移動接球（A D／← →／搖桿），羽毛球飛到身邊時按 F／空白鍵（手機按橘色按鈕）揮拍。
+   時機抓得很準就是「殺球」；漏接就結束，記錄最高來回數。 */
+
+const BADMINTON_KEY = 'campus-badminton-best';
+const shuttle = makeShuttle(); shuttle.scale.setScalar(1.8); shuttle.visible = false; scene.add(shuttle);
+const myRacket = makeRacket(), npcRacket = makeRacket();
+for (const r of [myRacket, npcRacket]) { r.position.set(0, -0.6, 0); r.rotation.x = Math.PI; }   // 接在手上，當成手臂的延伸
+const badmintonNet = (() => {
+  const g = new THREE.Group();
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 32;
+  const c = cv.getContext('2d'); c.strokeStyle = 'rgba(25,25,25,.9)';
+  for (let x = 0; x <= 256; x += 4) { c.beginPath(); c.moveTo(x + 0.5, 0); c.lineTo(x + 0.5, 32); c.stroke(); }
+  for (let y = 0; y <= 32; y += 4) { c.beginPath(); c.moveTo(0, y + 0.5); c.lineTo(256, y + 0.5); c.stroke(); }
+  const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace;
+  const net = new THREE.Mesh(new THREE.PlaneGeometry(6.1, 0.76), new THREE.MeshLambertMaterial({ map: tx, transparent: true, side: THREE.DoubleSide }));
+  net.position.y = 1.17; g.add(net);
+  const white = new THREE.MeshLambertMaterial({ color: '#f4f4f4' }), pole = new THREE.MeshLambertMaterial({ color: '#c9ccd1' });
+  const tape = new THREE.Mesh(new THREE.BoxGeometry(6.1, 0.05, 0.02), white); tape.position.y = 1.55; g.add(tape);
+  for (const sx of [-1, 1]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.55, 0.06), pole); p.position.set(sx * 3.08, 0.775, 0); g.add(p); }
+  g.visible = false; scene.add(g);
+  return g;
+})();
+// 老師可不可以在這裡打：呂老師一直在操場；俞瑾老師只有在活動中心的時候可以（教室裡不行）
+const canPlayBadminton = (n) => n.game === 'badminton' && (!n.places || !!n.places[n.placeIdx]?.game);
+function badmintonSpot() {
+  if (mode === 'bird') return null;
+  for (const n of NPCS) {
+    if (canPlayBadminton(n) && player.floor === n.f && Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z) < 2.6) return { kind: 'badminton', npc: n };
+  }
+  return null;
+}
+function startBadminton(n) {
+  stopAuto();
+  const f = n.f, T0 = n.g.position.clone(), yaw0 = n.yaw;
+  // 球場方向＝老師面向的方向；學生站 6 公尺外（站不下就近一點）
+  const ux = -Math.sin(yaw0), uz = -Math.cos(yaw0);
+  let D = 6;
+  while (D > 3.5 && !isWalkable(f, T0.x + ux * D, T0.z + uz * D, 0.3)) D -= 0.5;
+  const rx = uz, rz = -ux;                                            // 學生面向老師時的「右手邊」
+  const P0 = { x: T0.x + ux * D, z: T0.z + uz * D };
+  const ground = (x, z) => f.y + groundAt(f, x, z);
+  const face = Math.atan2(ux, uz);                                    // 學生面向老師
+  let me = 0, them = 0, themTo = 0;                                   // 左右偏移（公尺）
+  const myAt = () => [P0.x + rx * me, P0.z + rz * me];
+  const npcAt = () => [T0.x + rx * them, T0.z + rz * them];
+  const mx0 = T0.x + ux * D / 2, mz0 = T0.z + uz * D / 2;
+  badmintonNet.position.set(mx0, ground(mx0, mz0), mz0);
+  badmintonNet.rotation.y = Math.atan2(-rz, rx);
+  badmintonNet.visible = true;
+  placeAt(f, P0.x, P0.z, face); avatar.rotation.y = face; player.pitch = 0.08;
+  const L = limbs(); L?.armR.add(myRacket);
+  const nL = n.g.userData.limbs, nArm = n.look.holdL === 'racket' ? nL.armL : nL.armR;   // 俞瑾老師本來就左手拿拍
+  if (nArm === nL.armR) nArm.add(npcRacket);
+  n.playing = true;
+  const tFace = Math.atan2(-ux, -uz);                                 // 老師面向學生
+  n.g.rotation.y = tFace;
+  let best = 0; try { best = +localStorage.getItem(BADMINTON_KEY) || 0; } catch { /* 私密模式 */ }
+  const touch = matchMedia('(pointer: coarse)').matches;
+  toast(touch ? '🏸 用搖桿左右移動，羽毛球飛到身邊時按橘色按鈕揮拍！' : '🏸 用 A D 或 ← → 左右移動，羽毛球飛到身邊時按 F 或空白鍵揮拍！');
+
+  let rally = 0, t = 0, fl = null, swing = 9, npcSwing = 9, phase = 0, moving = 0, over = 0, serveAt = 1.6;
+  const SEX = 1.2;                                                   // 學生擊球高度（學生比例比較小）
+  // 羽毛球飛行：a → b 直線＋拋物線（H＝最高點比直線高多少）；k>1 之後沿著同一條拋物線繼續往下掉
+  const launch = (a, b, T, H, toMe) => { fl = { a, b, T, H, t: 0, toMe, hit: false }; shuttle.visible = true; };
+  const flAt = (k) => {
+    const { a, b, H } = fl;
+    return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k + 4 * H * k * (1 - k), a[2] + (b[2] - a[2]) * k];
+  };
+  const npcShot = () => {
+    // 老師回球：越打越快、越打越刁
+    const off = (Math.random() * 2 - 1) * Math.min(2.2, 0.6 + rally * 0.18);
+    const [nx, nz] = npcAt();
+    const T = Math.max(0.85, 1.65 - rally * 0.06);
+    launch([nx, ground(nx, nz) + 1.95, nz], [P0.x + rx * off, ground(P0.x, P0.z) + SEX, P0.z + rz * off], T, 2.0, true);
+    npcSwing = 0;
+  };
+  const end = () => {
+    over = 1;
+    if (rally > best) { best = rally; try { localStorage.setItem(BADMINTON_KEY, String(best)); } catch { /* 私密模式 */ } }
+  };
+  act.busy = {
+    badminton: true,
+    get label() { return over ? `🏸 來回 <b>${rally}</b> 球　最高 ${best}` : `🏸 揮拍 <kbd>F</kbd>　來回 <b>${rally}</b>　最高 ${best}`; },
+    tick(dt) {
+      t += dt;
+      if (mode === 'bird' || player.floor !== f) { this.stop(); return; }
+      // 左右移動
+      if (!over) {
+        let mv = 0;
+        if (keys.KeyA || keys.ArrowLeft) mv -= 1;
+        if (keys.KeyD || keys.ArrowRight) mv += 1;
+        mv += joy.x;
+        mv = Math.max(-1, Math.min(1, mv));
+        me = Math.max(-2.6, Math.min(2.6, me + mv * 4.6 * dt));
+        if (Math.abs(mv) > 0.05) phase += dt * 9;
+        moving += ((Math.abs(mv) > 0.05 ? 1 : 0) - moving) * Math.min(1, dt * 10);
+      }
+      const [px, pz] = myAt();
+      player.x = px; player.z = pz; player.gy = groundAt(f, px, pz);
+      player.yaw = face; avatar.rotation.y = face;
+      // 老師跑去接球
+      them += Math.max(-6 * dt, Math.min(6 * dt, themTo - them));
+      const [nx, nz] = npcAt();
+      n.g.position.set(nx, ground(nx, nz), nz); n.g.rotation.y = tFace;
+      // 手臂：學生準備姿勢／揮拍；老師也一樣
+      swing += dt; npcSwing += dt;
+      const arm = (a, s) => {
+        if (s < 0.25) { a.rotation.set(-2.2 - (s / 0.25) * 2.4, 0, 0.15); return; }      // 由上往前揮下去
+        a.rotation.set(-2.2, 0, 0.35);                                                     // 舉拍準備
+      };
+      if (L) {
+        animatePerson(avatar, phase, over ? 0 : moving);
+        arm(L.armR, swing);
+      }
+      arm(nArm, npcSwing);
+      // 發球
+      if (!fl && !over) { if (t > serveAt) npcShot(); return; }
+      if (!fl) { if (over && (over += dt) > 2.2) this.stop(); return; }
+      fl.t += dt;
+      const k = fl.t / fl.T, p = flAt(k), q = flAt(k + 0.01);
+      shuttle.position.set(p[0], p[1], p[2]);
+      const v = new THREE.Vector3(q[0] - p[0], q[1] - p[1], q[2] - p[2]).normalize();
+      shuttle.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), v);       // 球頭在前面
+      if (!fl.toMe && k >= 1) {                                       // 老師接到了，打回來
+        npcShot();
+        return;
+      }
+      if (fl.toMe && !over && fl.t > fl.T + 0.18) end();          // 來不及了
+      if (p[1] <= ground(p[0], p[2]) + 0.04) {                          // 掉到地上
+        shuttle.position.y = ground(p[0], p[2]) + 0.04;
+        fl = null;
+        if (!over) end();
+        toast(rally > 0 && rally >= best ? `🏸 漏接了！來回 ${rally} 球，新紀錄！🎉` : `🏸 漏接了！這局來回 ${rally} 球（最高 ${best} 球）`);
+      }
+    },
+    press() {
+      if (over) return;
+      if (swing < 0.3) return;                                        // 揮拍中
+      swing = 0;
+      if (!fl || !fl.toMe || fl.hit) return;
+      const tl = fl.T - fl.t, [px, pz] = myAt(), d = Math.hypot(fl.b[0] - px, fl.b[2] - pz);
+      if (tl > 0.3 || tl < -0.18 || d > 1.0) return;                  // 太早、太晚、太遠：揮空
+      fl.hit = true; rally++;
+      const smash = Math.abs(tl) < 0.08 && d < 0.6;
+      const off = (Math.random() * 2 - 1) * 1.8;
+      themTo = off;
+      const [qx, qz] = [T0.x + rx * off, T0.z + rz * off];
+      const sp = shuttle.position;
+      launch([sp.x, sp.y, sp.z], [qx, ground(qx, qz) + 1.95, qz], smash ? 0.7 : 1.3, smash ? 0.35 : 2.2, false);
+      if (smash) toast(`💥 殺球！（來回 ${rally} 球）`);
+      else if (rally % 5 === 0) toast(`🏸 好球！來回 ${rally} 球`);
+    },
+    stop() {
+      myRacket.removeFromParent(); npcRacket.removeFromParent();
+      shuttle.visible = false; badmintonNet.visible = false;
+      n.playing = false; n.g.position.copy(T0); n.g.rotation.y = yaw0;
+      for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);
+      resetPose(); act.busy = null;
+    },
+  };
+}
 
 /* ---------------- 草地上的童玩：跳繩、扯鈴、小飛機 ---------------- */
 
@@ -3386,5 +3559,5 @@ if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
+window.__campus = { shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
