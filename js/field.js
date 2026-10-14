@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=78';
+import { Batch, mat, SPOTS } from './blocks.js?v=79';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -526,6 +526,33 @@ const paverMat = () => {
   t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter;
   return (paverMat.m = new THREE.MeshLambertMaterial({ map: t }));
 };
+// Subaru 森林人（方方高高的休旅車：黑色輪拱飾板、車頂架、大燈會亮）。單獨一組（不合併），點了會閃大燈、按喇叭
+//   車長沿 z、車頭朝 dir（1＝往 +z）；回傳 { g, lights }
+function forester(x, z, dir, color) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); if (dir < 0) g.rotation.y = Math.PI;
+  const M = (c, o = {}) => new THREE.MeshLambertMaterial({ color: c, ...o });
+  const body = M(color), clad = M('#26282b'), glass = M('#2b3440'), tire = M('#151517'), rim = M('#9aa1a8'), rail = M('#1d1f22');
+  const box = (m, w, h, d, px, py, pz) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(px, py, pz); o.castShadow = true; g.add(o); return o; };
+  box(body, 1.84, 0.78, 4.6, 0, 0.78, 0);                          // 車身（比轎車高）
+  box(clad, 1.88, 0.24, 4.64, 0, 0.42, 0);                          // 下緣黑色飾板
+  box(glass, 1.7, 0.66, 2.75, 0, 1.5, -0.25);                       // 車窗（車廂方方正正、到車尾）
+  box(body, 1.66, 0.08, 2.7, 0, 1.86, -0.25);                       // 車頂
+  for (const sx of [-0.62, 0.62]) box(rail, 0.06, 0.08, 2.3, sx, 1.94, -0.25);   // 車頂架
+  box(M('#3a3c40'), 1.2, 0.2, 0.06, 0, 0.82, 2.31);                 // 水箱罩
+  box(M('#c9ccd0'), 0.18, 0.1, 0.07, 0, 0.84, 2.33);                 // 廠徽
+  for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+    box(tire, 0.32, 0.72, 0.72, a * 0.84, 0.36, c * 1.45);
+    box(rim, 0.33, 0.34, 0.34, a * 0.84, 0.36, c * 1.45);
+  }
+  const lights = [];
+  for (const sx of [-0.62, 0.62]) {
+    lights.push(box(M('#fff6c8', { emissive: '#000000' }), 0.42, 0.14, 0.06, sx, 1.0, 2.3));    // 大燈
+    box(M('#c0392b'), 0.36, 0.14, 0.06, sx, 1.02, -2.3);                                        // 尾燈
+  }
+  // 碰撞：蓋場景時登記一個方塊
+  Batch.collector?.push({ x1: x - 0.94, x2: x + 0.94, z1: z - 2.32, z2: z + 2.32, y1: 0, y2: 1.95 });
+  return { g, lights };
+}
 // 鐵皮浪板（資源回收場）：淺灰綠色、直條紋
 const tinMat = () => {
   if (tinMat.m) return tinMat.m;
@@ -544,9 +571,10 @@ export function buildParking(group, x1, x2, z1, z2, { guardZ = z2 + 9, shedX2 = 
   const line = mat('wool', '#ece8e2');
   // 西邊沿圍牆：3 台前後首尾相接、車頭朝南；最南邊那台緊靠警衛室北牆，往北排上去
   ['#7d8790', '#f4f4f2', '#25272b'].forEach((c, i) => car(b, x1 + 1.25, guardZ - 2.4 - i * 4.4, 1, c, false));
-  // 北邊沿扶手：2 台並排、車頭朝南（靠東邊一點，後面是資源回收場）
+  // 北邊沿扶手：2 台並排、車頭朝南（靠東邊一點，後面是資源回收場）：藍色森林人（Upsky 老師的車）、綠色森林人（同事看了也跟著買）
   const nx = [x1 + 6.8, x1 + 9.5];
-  nx.forEach((x, i) => car(b, x, z1 + 2.35, 1, ['#2f5a9e', '#2a4f9e'][i], false));
+  const foresters = [forester(nx[0], z1 + 2.4, 1, '#2f5aa0'), forester(nx[1], z1 + 2.4, 1, '#3e6b4f')];
+  for (const fo of foresters) group.add(fo.g);
   for (let i = 0; i <= nx.length; i++) b.box(line, 0.1, 0.02, 4.8, x1 + 4.05 + i * 2.7, 0.045, z1 + 2.4);
   // 東邊靠乙梯（走廊那側）：4 台並排、車頭朝西（朝中間車道）
   const ez = [0, 1, 2, 3].map((i) => z2 - 1.6 - i * 2.7);
@@ -583,6 +611,7 @@ export function buildParking(group, x1, x2, z1, z2, { guardZ = z2 + 9, shedX2 = 
     b.box(steel, 0.06, 0.06, c - a, x2 - 0.25, 1.0, (a + c) / 2);
   }
   b.build(group);
+  return foresters;
 }
 
 /* ---------- 校門口一帶（依 2026-10-14 照片）

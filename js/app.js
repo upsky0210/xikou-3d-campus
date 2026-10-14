@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=78';
-import { furnishFloor } from './furniture.js?v=78';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=78';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=78';
-import { buildCampusWall } from './wall.js?v=78';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=78';
+import { PanoViewer } from './pano.js?v=79';
+import { furnishFloor } from './furniture.js?v=79';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=79';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=79';
+import { buildCampusWall } from './wall.js?v=79';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=79';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -770,7 +770,9 @@ function buildOutdoor() {
     // 教師停車場：乙梯北邊、敬業樓廁所南邊、圍牆和西側走廊之間的空地
     const px1 = mx(D.outdoor.wall?.x1 ?? 300) + 0.6, px2 = mx(645) - 0.7, pz1 = mz(230) + 0.3, pz2 = mz(475) - 0.4;
     const guardRoom = rooms.find((r) => r.name === '警衛室'), wc = rooms.find((r) => r.f.id === '1F' && r.name === '廁所' && r.building === 'A');
-    buildParking(g, px1, px2, pz1, pz2, { guardZ: guardRoom ? guardRoom.m.z1 : undefined, shedX2: wc ? wc.m.x1 - 0.3 : undefined });   // 資源回收場到敬業樓廁所旁
+    const foresters = buildParking(g, px1, px2, pz1, pz2, { guardZ: guardRoom ? guardRoom.m.z1 : undefined, shedX2: wc ? wc.m.x1 - 0.3 : undefined });   // 資源回收場到敬業樓廁所旁
+    // 彩蛋：點兩台森林人會閃大燈、按喇叭
+    for (const fo of foresters || []) fo.g.traverse((o) => { if (o.isMesh) { o.userData.car = fo; pickables.push(o); } });
     floors[1].labels.add(makeTag('教師停車場', 'PARKING', (px1 + px2) / 2, 0, (pz1 + pz2) / 2, { accent: '#2f6fb5', h: 2.6, stem: 3.5 }));
   }
   if (O.facadeC) {
@@ -1838,6 +1840,7 @@ function pick(e) {
   if (hit?.object.userData.cat) meetCat();
   else if (hit?.object.userData.glider) meetGlider(hit.object.userData.glider);
   else if (hit?.object.userData.npc) meetNPC(hit.object.userData.npc);
+  else if (hit?.object.userData.car) honkCar(hit.object.userData.car);
   else if (hit?.object.userData.pano) openPano(hit.object.userData.pano);
   else if (mode !== 'bird') {                                   // 走路模式：點地面就自動走過去
     const pt = groundPoint(e);
@@ -2304,6 +2307,27 @@ function meetCat() {
   let first = true;
   try { first = !localStorage.getItem(CAT_KEY); localStorage.setItem(CAT_KEY, '1'); } catch { /* 私密模式，忽略 */ }
   toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
+}
+
+/* ---------------- 彩蛋：點停車場的森林人，閃兩下大燈、叭叭兩聲 ---------------- */
+
+let honkAudio = null;
+function honkCar(car) {
+  if (car.busy) return;
+  car.busy = true;
+  const set = (on) => car.lights.forEach((l) => l.material.emissive.set(on ? '#fff3b0' : '#000000'));
+  [0, 260, 520, 780].forEach((t, i) => setTimeout(() => set(i % 2 === 0), t));
+  setTimeout(() => { set(false); car.busy = false; }, 1040);
+  try {
+    honkAudio ||= new (window.AudioContext || window.webkitAudioContext)();
+    const ac = honkAudio, t0 = ac.currentTime;
+    for (const st of [0, 0.26]) {                                   // 兩短聲：兩個音疊在一起比較像汽車喇叭
+      const gain = ac.createGain(); gain.connect(ac.destination);
+      gain.gain.setValueAtTime(0, t0 + st); gain.gain.linearRampToValueAtTime(0.12, t0 + st + 0.02);
+      gain.gain.setValueAtTime(0.12, t0 + st + 0.16); gain.gain.linearRampToValueAtTime(0, t0 + st + 0.2);
+      for (const hz of [415, 523]) { const o = ac.createOscillator(); o.type = 'square'; o.frequency.value = hz; o.connect(gain); o.start(t0 + st); o.stop(t0 + st + 0.21); }
+    }
+  } catch { /* 沒有聲音就只閃燈 */ }
 }
 
 /* ---------------- 小寵物：蜜袋鼯（五年四班 1 隻、1F 教務處 2 隻）、倉鼠羞羞（3F 輔導室） ---------------- */
