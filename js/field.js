@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=56';
+import { Batch, mat, SPOTS } from './blocks.js?v=58';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -159,11 +159,15 @@ export function buildStage(group, m) {
   b.box(mat('wool', '#e9e4da'), W - 0.1, 0.02, depth - 0.15, xc, ph + 0.06, z0 + depth / 2);
   // 後牆：白牆、左邊一扇門、中間彩色拼貼、右邊鐵窗
   const wy = ph, wh = 1.95;
-  b.box(white, W * 0.82, wh, 0.12, xc, wy + wh / 2, z0 + 0.06);
+  {                                                                    // 後牆，留出白鐵門的門洞（對準學務處的門）
+    const wl = xc - W * 0.41, wr = xc + W * 0.41, d0 = x1 + 1.39 - 0.5, d1 = x1 + 1.39 + 0.5;
+    b.box(white, d0 - wl, wh, 0.12, (wl + d0) / 2, wy + wh / 2, z0 + 0.06);
+    b.box(white, wr - d1, wh, 0.12, (d1 + wr) / 2, wy + wh / 2, z0 + 0.06);
+    b.box(white, d1 - d0, wh - 2.0, 0.12, (d0 + d1) / 2, wy + 2.0 + (wh - 2.0) / 2, z0 + 0.06);
+  }
   for (const s of [-1, 1]) b.box(white, 0.25, wh, 1.2, xc + s * W * 0.41, wy + wh / 2, z0 + 0.6);   // 兩側白色短牆
   // 後牆的門：白鐵門，打開著，直通學務處（位置對準學務處南牆的門）
   const dx = x1 + 1.39;
-  b.box(mat('wool', '#3a3f45'), 0.9, 1.95, 0.04, dx, wy + 0.975, z0 + 0.15);                         // 門洞（暗）
   b.box(mat('wool', '#c9cdd2'), 0.05, 1.95, 0.85, dx + 0.47, wy + 0.975, z0 + 0.6);                  // 打開的白鐵門片
   b.plain(mosaicMat(), 3.6, 1.5, 0.04, x1 + 4.45, wy + 0.75, z0 + 0.14);
   b.box(mat('wool', '#3a4048'), 0.7, 0.95, 0.04, x1 + 6.75, wy + 1.0, z0 + 0.14);                 // 鐵窗
@@ -220,7 +224,7 @@ function palm(b, x, z, h) {
 /**
  * 勤學樓南面：x1～x2 是外牆範圍，z 是外牆外側，floors 層樓；stage = [sx1, sx2] 司令臺範圍
  */
-export function buildFacadeC(group, x1, x2, z, floors, FH, stage) {
+export function buildFacadeC(group, x1, x2, z, floors, FH, stage, base = 0) {
   const b = new Batch();
   const frame = mat('wool', '#4b3b30'), ledge = mat('wool', '#e6d6b3'), louver = mat('wool', '#2f7d5c');
   const slat = mat('wool', '#c98c4a'), bluePanel = mat('wool', '#3c6fc8'), greenPanel = mat('wool', '#2f8f6a'), ac = mat('wool', '#e9ebec');
@@ -228,14 +232,14 @@ export function buildFacadeC(group, x1, x2, z, floors, FH, stage) {
   const rnd = rng(23);
   const [sx1, sx2] = stage, scx = (sx1 + sx2) / 2;
   // 樓板外凸的水平遮陽板
-  for (let k = 1; k <= floors; k++) b.box(ledge, x2 - x1, 0.22, out, (x1 + x2) / 2, k * FH - 0.11, z + out / 2);
+  for (let k = 1; k <= floors; k++) b.box(ledge, x2 - x1, 0.22, out, (x1 + x2) / 2, base + k * FH - 0.11, z + out / 2);
   for (let i = 0; i < n; i++) {
     const bx0 = x1 + i * bw, bx = bx0 + bw / 2;
-    if (bx0 > sx1 - 0.6 && bx0 < sx2 + 0.6) b.box(frame, 0.12, H - 4.9, 0.12, bx0, (H + 4.9) / 2, z + out);   // 司令臺上方：從雨遮上面開始
-    else b.box(frame, 0.12, H, 0.12, bx0, H / 2, z + out);             // 鋼架直柱
+    if (bx0 > sx1 - 0.6 && bx0 < sx2 + 0.6) b.box(frame, 0.12, H + base - 4.9, 0.12, bx0, (H + base + 4.9) / 2, z + out);   // 司令臺上方：從雨遮上面開始
+    else b.box(frame, 0.12, H + base, 0.12, bx0, (H + base) / 2, z + out);   // 鋼架直柱（從地面）
     const mid = Math.abs(bx - scx) < 3.2;                               // 司令臺正上方那兩格：藍色擴張網＋布條
     for (let k = 0; k < floors; k++) {
-      const y0 = k * FH;
+      const y0 = base + k * FH;
       if (k === 0 && bx > sx1 - 0.5 && bx < sx2 + 0.5) continue;       // 一樓被司令臺擋住
       b.box(frame, bw, 0.08, 0.1, bx, y0 + 2.75, z + out);              // 鋼架橫桿
       const t = mid ? 2 : (rnd() * 4) | 0;
@@ -245,10 +249,10 @@ export function buildFacadeC(group, x1, x2, z, floors, FH, stage) {
       if (rnd() < 0.55) b.box(ac, 0.8, 0.6, 0.32, bx + (rnd() < 0.5 ? -0.8 : 0.8), y0 + 1.05, z + out - 0.25);   // 冷氣室外機
     }
   }
-  b.box(frame, 0.12, H, 0.12, x2, H / 2, z + out);
+  b.box(frame, 0.12, H + base, 0.12, x2, (H + base) / 2, z + out);
   // 校訓布條：司令臺上方左黃右綠
-  b.plain(bannerMat('banner-y', '#f3c84a', '#b0472f', '愛人', '如己', 'Love your neighbor as yourself.'), 1.7, 6.0, 0.04, sx1 + 2.1, 9.6, z + out + 0.12);
-  b.plain(bannerMat('banner-g', '#bfe3cf', '#2c4a63', '盡心', '盡力', 'Do your best.'), 1.7, 6.0, 0.04, sx2 - 1.1, 9.6, z + out + 0.12);
+  b.plain(bannerMat('banner-y', '#f3c84a', '#b0472f', '愛人', '如己', 'Love your neighbor as yourself.'), 1.7, 6.0, 0.04, sx1 + 2.1, base + 9.6, z + out + 0.12);
+  b.plain(bannerMat('banner-g', '#bfe3cf', '#2c4a63', '盡心', '盡力', 'Do your best.'), 1.7, 6.0, 0.04, sx2 - 1.1, base + 9.6, z + out + 0.12);
   // 一樓牆腳的灌木
   for (const [a, c] of [[x1 + 0.5, sx1 - 2.6], [sx2 + 2.0, x2 - 0.3]]) b.box(mat('leaves'), c - a, 0.8, 0.7, (a + c) / 2, 0.4, z + 0.45);
   // 大王椰子：司令臺左邊四棵、右邊三棵
@@ -310,31 +314,22 @@ const archMat = () => texMat('arches', 200, 832, (c, w, h) => {
 });
 
 /** x1～x2：牆面範圍（xa 是壁畫和拱形陽臺的分界），z：外牆外側，H：牆高 */
-export function buildMuralBlock(group, x1, xa, x2, z, H) {
+export function buildMuralBlock(group, x1, xa, x2, z, H, base = 0) {
   const b = new Batch();
-  b.plain(muralMat(), xa - x1, 16.2, 0.3, (x1 + xa) / 2, 8.1, z + 0.15);
-  // 拱形陽臺那一欄：一樓是通道（沒有門），只蓋二樓以上，兩側留柱子
+  const beige = mat('wool', '#ecdcb4');
+  // 壁畫整面跟著建築墊高；底下補一段牆腳
+  b.plain(muralMat(), xa - x1, 16.2, 0.3, (x1 + xa) / 2, base + 8.1, z + 0.15);
+  if (base) b.box(mat('wool', '#d9c79c'), xa - x1, base, 0.3, (x1 + xa) / 2, base / 2, z + 0.15);
+  // 拱形陽臺那一欄：一樓是通道（沒有門），只蓋二樓以上，兩側留柱子（柱子從地面開始）
   {
     const y0 = 3.3, g = new THREE.BoxGeometry(x2 - xa, 16.2 - y0, 0.3), uv = g.attributes.uv;
     for (let i = 16; i < 24; i++) uv.setY(i, (y0 + (16.2 - y0) * uv.getY(i)) / 16.2);
-    g.translate((xa + x2) / 2, (y0 + 16.2) / 2, z + 0.15);
+    g.translate((xa + x2) / 2, base + (y0 + 16.2) / 2, z + 0.15);
     b.add(archMat(), g);
-    b.box(mat('wool', '#e8d7ad'), 0.7, y0, 0.3, xa + 0.35, y0 / 2, z + 0.15);
-    b.box(mat('wool', '#e8d7ad'), 0.5, y0, 0.3, x2 - 0.25, y0 / 2, z + 0.15);
+    b.box(mat('wool', '#e8d7ad'), 0.7, base + y0, 0.3, xa + 0.35, (base + y0) / 2, z + 0.15);
+    b.box(mat('wool', '#e8d7ad'), 0.5, base + y0, 0.3, x2 - 0.25, (base + y0) / 2, z + 0.15);
   }
-  const beige = mat('wool', '#ecdcb4'), stone = mat('wool', '#d6d2c8');
-  b.box(beige, 2.4, 1.2, 0.5, x1 + 4.6, 16.8, z + 0.15);              // 頂上凸起的那一塊
-  // 通道口的階梯（3 階）＋兩旁花臺
-  const ex = (xa + 0.7 + x2 - 0.5) / 2, steps = 3, raised = [];
-  for (let i = 0; i < steps; i++) {
-    const h = 0.12 * (steps - i), z0 = z + 0.3 + i * 0.4;
-    b.box(stone, 2.4, h, 0.4, ex, h / 2, z0 + 0.2);
-    raised.push({ x1: ex - 1.2, x2: ex + 1.2, z1: z0, z2: z0 + 0.4, h });
-  }
-  for (const s of [-1, 1]) {
-    b.box(beige, 0.6, 0.9, 1.6, ex + s * 1.55, 0.45, z + 1.1);
-    b.box(mat('leaves'), 0.5, 0.4, 1.4, ex + s * 1.55, 1.1, z + 1.1);
-  }
+  b.box(beige, 2.4, 1.2, 0.5, x1 + 4.6, base + 16.8, z + 0.15);       // 頂上凸起的那一塊
   // 壁畫前面三棵樹（圓形樹穴）
   for (const x of [x1 - 3.5, x1 - 0.8, x1 + 2.0]) {
     const g = new THREE.CylinderGeometry(0.75, 0.75, 0.4, 16); g.translate(x, 0.2, z + 1.6); b.add(mat('wool', '#d9d6cc'), g);
@@ -342,9 +337,9 @@ export function buildMuralBlock(group, x1, xa, x2, z, H) {
     b.box(mat('leaves'), 2.8, 1.8, 2.4, x, 3.4, z + 1.6);
     b.box(mat('leaves'), 2.0, 0.8, 1.8, x, 4.6, z + 1.6);
   }
-  palm(b, x2 + 0.6, z + 1.3, 15);
+  palm(b, x2 + 0.6, z + 1.3, 15 + base);
   b.build(group);
-  return raised;
+  return [];
 }
 
 /* ---------- 中庭（依照片）：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑 ---------- */
@@ -379,35 +374,36 @@ const railMat = () => texMat('ironrail', 256, 64, (c, w, h) => {
  * z：走廊外緣；dir：立面朝哪邊（+1 朝 +z、-1 朝 -z）
  */
 function courtFacade(b, group, x1, x2, z, dir, floors, FH, opt = {}) {
+  const base = opt.base || 0;
   const col = mat('wool', '#e6dcc8'), beam = mat('wool', '#ece4d4'), ac = mat('wool', '#eceeef');
   const n = Math.round((x2 - x1) / 4.4), bw = (x2 - x1) / n, H = floors * FH;
-  for (let i = 0; i <= n; i++) b.box(col, 0.6, H, 0.6, x1 + i * bw, H / 2, z + dir * 0.3);
+  for (let i = 0; i <= n; i++) b.box(col, 0.6, H + base, 0.6, x1 + i * bw, (H + base) / 2, z + dir * 0.3);
   for (let k = 1; k <= floors; k++) {
-    const y = k * FH;
+    const y = base + k * FH;
     b.box(beam, x2 - x1, 0.5, 0.5, (x1 + x2) / 2, y - 0.25, z + dir * 0.25);
     for (let i = 0; i < n; i++) for (const s of [-1, 1]) {               // 開口上方兩角切角
       const g = new THREE.BoxGeometry(0.9, 0.3, 0.45); g.rotateZ(s * 0.6);
       g.translate(x1 + i * bw + bw / 2 - s * (bw / 2 - 0.55), y - 0.6, z + dir * 0.25);
       b.add(beam, g);
     }
-    if (k < floors) for (let i = 0; i <= n; i += 1) if ((i + k) % 2 === 0) b.box(ac, 0.3, 0.55, 0.75, x1 + i * bw + 0.48, (k - 1) * FH + 2.3, z + dir * 0.45);
+    if (k < floors) for (let i = 0; i <= n; i += 1) if ((i + k) % 2 === 0) b.box(ac, 0.3, 0.55, 0.75, x1 + i * bw + 0.48, base + (k - 1) * FH + 2.3, z + dir * 0.45);
   }
   // 一樓波浪飾帶（opt.eaves：這一段改成咖啡色小屋簷）
   for (let i = 0; i < n; i++) {
     const cx = x1 + (i + 0.5) * bw;
     if (opt.eaves && cx > opt.eaves[0] && cx < opt.eaves[1]) {
-      const g = new THREE.BoxGeometry(bw - 0.8, 0.08, 1.0); g.rotateX(dir * 0.45); g.translate(cx, 2.65, z + dir * 0.45);
+      const g = new THREE.BoxGeometry(bw - 0.8, 0.08, 1.0); g.rotateX(dir * 0.45); g.translate(cx, base + 2.65, z + dir * 0.45);
       b.add(mat('wool', '#6b4a3a'), g);
       continue;
     }
     const wv = new THREE.Mesh(new THREE.PlaneGeometry(bw - 0.6, 0.7), waveMat());
-    wv.position.set(cx, FH - 0.85, z + dir * 0.52); if (dir < 0) wv.rotation.y = Math.PI;
+    wv.position.set(cx, base + FH - 0.85, z + dir * 0.52); if (dir < 0) wv.rotation.y = Math.PI;
     group.add(wv);
   }
   // 樓名
   if (opt.name) {
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.1), opt.name);
-    sign.position.set((x1 + x2) / 2, opt.nameY ?? H + 0.6, z + dir * 0.62); if (dir < 0) sign.rotation.y = Math.PI;
+    sign.position.set((x1 + x2) / 2, opt.nameY ?? base + H + 0.6, z + dir * 0.62); if (dir < 0) sign.rotation.y = Math.PI;
     group.add(sign);
   }
 }
@@ -421,23 +417,23 @@ function bananaTree(b, x, z, h = 2.8) {
 }
 
 /** m：中庭範圍（公尺）。回傳可以走上去的墊高區域 */
-export function buildCourtyard(group, m, FH) {
+export function buildCourtyard(group, m, FH, base = 0) {
   const b = new Batch(), raised = [];
   // 敬業樓（北邊，立面朝南）：一到三樓走廊，四、五樓整排直條遮陽板
-  courtFacade(b, group, m.x1, m.x2, m.z1, 1, 3, FH);
+  courtFacade(b, group, m.x1, m.x2, m.z1, 1, 3, FH, { base });
   const fin = mat('wool', '#e2d8c3');
-  b.box(fin, m.x2 - m.x1, 0.7, 0.7, (m.x1 + m.x2) / 2, 3 * FH + 0.35, m.z1 + 0.35);
-  for (let x = m.x1 + 0.4; x < m.x2; x += 0.95) b.box(fin, 0.24, 2 * FH - 0.7, 0.7, x, 3 * FH + 0.7 + (2 * FH - 0.7) / 2, m.z1 + 0.35);
+  b.box(fin, m.x2 - m.x1, 0.7, 0.7, (m.x1 + m.x2) / 2, base + 3 * FH + 0.35, m.z1 + 0.35);
+  for (let x = m.x1 + 0.4; x < m.x2; x += 0.95) b.box(fin, 0.24, 2 * FH - 0.7, 0.7, x, base + 3 * FH + 0.7 + (2 * FH - 0.7) / 2, m.z1 + 0.35);
   const nA = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.1), nameMat('name-jy', '敬業樓', 'Jing Ye'));
-  nA.position.set((m.x1 + m.x2) / 2, 5 * FH + 0.6, m.z1 + 0.72); group.add(nA);
-  b.box(fin, m.x2 - m.x1, 1.3, 0.6, (m.x1 + m.x2) / 2, 5 * FH + 0.65, m.z1 + 0.3);
+  nA.position.set((m.x1 + m.x2) / 2, base + 5 * FH + 0.6, m.z1 + 0.72); group.add(nA);
+  b.box(fin, m.x2 - m.x1, 1.3, 0.6, (m.x1 + m.x2) / 2, base + 5 * FH + 0.65, m.z1 + 0.3);
   // 勤學樓（南邊，立面朝北）：四層走廊，一樓東段（幼兒園）是咖啡色小屋簷
-  courtFacade(b, group, m.x1, m.x2, m.z2, -1, 4, FH, { eaves: [4, m.x2], name: nameMat('name-qx', '勤學樓', 'Qin Xue') });
-  b.box(mat('wool', '#e4dccb'), m.x2 - m.x1, 1.3, 0.6, (m.x1 + m.x2) / 2, 4 * FH + 0.65, m.z2 - 0.3);
-  b.box(mat('wool', '#2f86d0'), 0.5, 3.0, 0.4, -4.2, 1.5, m.z2 - 0.5);                           // 藍色柱子
+  courtFacade(b, group, m.x1, m.x2, m.z2, -1, 4, FH, { base, eaves: [4, m.x2], name: nameMat('name-qx', '勤學樓', 'Qin Xue') });
+  b.box(mat('wool', '#e4dccb'), m.x2 - m.x1, 1.3, 0.6, (m.x1 + m.x2) / 2, base + 4 * FH + 0.65, m.z2 - 0.3);
+  b.box(mat('wool', '#2f86d0'), 0.5, 3.0 + base, 0.4, -4.2, (3.0 + base) / 2, m.z2 - 0.5);                           // 藍色柱子
 
   // 會議室前小花台：墊高平台、雕花鐵欄杆、弧形階梯、樹籬、香蕉樹、波浪石牆、百葉箱、石桌椅
-  const tx1 = -9.5, tx2 = -2.5, tz1 = m.z1 + 0.05, tz2 = m.z1 + 2.2, th = 0.9;
+  const tx1 = -9.5, tx2 = -2.5, tz1 = m.z1 + 0.05, tz2 = m.z1 + 2.2, th = base || 0.9;
   const granite = mat('wool', '#a8918a');
   b.box(granite, tx2 - tx1, th, tz2 - tz1, (tx1 + tx2) / 2, th / 2, (tz1 + tz2) / 2);
   b.box(mat('wool', '#cfc6b8'), tx2 - tx1, 0.04, tz2 - tz1, (tx1 + tx2) / 2, th + 0.02, (tz1 + tz2) / 2);
@@ -447,8 +443,8 @@ export function buildCourtyard(group, m, FH) {
   const rail2 = new THREE.Mesh(new THREE.PlaneGeometry(tz2 - tz1, 0.9), railMat());
   rail2.rotation.y = Math.PI / 2; rail2.position.set(tx1 + 0.05, th + 0.45, (tz1 + tz2) / 2); group.add(rail2);
   b.box(mat('wool', '#2a2a2a'), tx2 - tx1 - 1.2, 0.05, 0.05, (tx1 + tx2) / 2 - 0.6, th + 0.92, tz2 - 0.05);
-  for (let i = 0; i < 5; i++) {                                         // 弧形階梯往東下
-    const h = th - (i + 1) * 0.18, x = tx2 + 0.2 + i * 0.4, wz = (tz2 - tz1) + i * 0.25;
+  for (let i = 0; i < 8; i++) {                                         // 弧形階梯往東下
+    const h = th - (i + 1) * 0.2, x = tx2 + 0.2 + i * 0.4, wz = (tz2 - tz1) + i * 0.25;
     if (h <= 0) break;
     b.box(granite, 0.4, h, wz, x, h / 2, tz1 + wz / 2);
     raised.push({ x1: x - 0.2, x2: x + 0.2, z1: tz1, z2: tz1 + wz, h });

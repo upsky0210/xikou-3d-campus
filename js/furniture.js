@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=56';
+import { Batch, mat, SPOTS } from './blocks.js?v=58';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1481,8 +1481,8 @@ function ciscoRoom(put, fr, room) {
     put(leg, 1.8, 0.75, 0.04, u, v, 0.4);                                      // 下層置物板
     for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(leg, 0.05, 0.05, 0.78, u + a * 0.88, v + b * 0.38, 0);
     for (const du of [-0.5, 0.5]) for (const s of [-1, 1]) {
-      put(stool, 0.32, 0.32, 0.04, u + du, v + s * 0.68, 0.44);
-      for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(stool, 0.04, 0.04, 0.44, u + du + a * 0.13, v + s * 0.68 + b * 0.13, 0);
+      put(stool, 0.24, 0.24, 0.04, u + du, v + s * 0.68, 0.44);
+      for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(stool, 0.04, 0.04, 0.44, u + du + a * 0.09, v + s * 0.68 + b * 0.09, 0);
     }
   }
 }
@@ -1574,7 +1574,7 @@ export function furnishFloor(f, wallT) {
   batch.build(g);
   // 中庭：遊樂器材、南洋杉、樹籬
   const court = f.rooms.find((r) => r.name === '中庭');
-  if (court) decorateCourtyard(court.m, f.y).build(g);
+  if (court) decorateCourtyard(court.m, f.level === 0 ? 0 : f.y).build(g);   // 中庭在地面（建築一樓有墊高）
   for (const room of f.rooms) {
     if (room.hidden || room.open || room.type === 'garden' || room.type === 'hall') continue;
     addSign(room, f, g, wallT);

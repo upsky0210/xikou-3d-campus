@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=56';
-import { furnishFloor } from './furniture.js?v=56';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=56';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=56';
-import { buildCampusWall } from './wall.js?v=56';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=56';
+import { PanoViewer } from './pano.js?v=58';
+import { furnishFloor } from './furniture.js?v=58';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat } from './extras.js?v=58';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking } from './field.js?v=58';
+import { buildCampusWall } from './wall.js?v=58';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=58';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -15,6 +15,8 @@ import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, 
 const D = window.CAMPUS;
 const S = D.PX_PER_M, [OX, OY] = D.ORIGIN;
 const FLOOR_H = 3.6, WALL_H = 3.0, RAIL_H = 1.1, WALL_T = BLOCKY ? 0.3 : 0.16;
+// 建築一樓比戶外地面高（依使用者說明：約司令臺高度）。操場、停車場、中庭、游泳館在地面（y = 0）
+const BASE = 1.2;
 const LABEL_FONT = '"Noto Sans TC", "Microsoft JhengHei", sans-serif';
 const CEIL_T = FLOOR_H - WALL_H - 0.3;      // 天花板厚度：牆頂到上一層地板底
 const AVATAR_SCALE = 0.8;                 // 角色大小（學生比例，進教室才不會太大）
@@ -41,7 +43,7 @@ const className = (code) => `${CN[+code[0]]}年${CN[+code.slice(1)] ?? +code.sli
 /* ---------------- 資料整理 ---------------- */
 
 const floors = D.floors.map((f, idx) => ({
-  ...f, idx, y: f.level * FLOOR_H, rooms: [], walk: [], segs: [], stairs: [], boxes: [],
+  ...f, idx, y: f.level * FLOOR_H + BASE, rooms: [], walk: [], segs: [], stairs: [], boxes: [],
   group: new THREE.Group(), labels: new THREE.Group(), navGroup: new THREE.Group(), grid: null,
 }));
 const floorById = Object.fromEntries(floors.map((f) => [f.id, f]));
@@ -455,6 +457,74 @@ for (const s of stairs) {
   }
 }
 for (const f of floors) addRailings(f);
+// 1 樓戶外墊高的地方（司令臺、花台）：{ x1, x2, z1, z2, h }，h 是離地面的高度
+const raised = [];
+// 一樓「室內」（建築裡：走廊、教室、穿堂、樓梯間）；中庭花園不算
+function indoor1F(x, z) {
+  for (const w of floorById['1F'].walk) if (w.kind !== 'outdoor' && w.room?.type !== 'garden' && inRect(w.m, x, z)) return true;
+  return false;
+}
+// 一樓走廊、穿堂外面直接通到戶外的邊（這裡會有往下的階梯）：{ ax, az, bx, bz, nx, nz }，n 是往外的方向
+let openEdges = null;
+function computeOpenEdges() {
+  const f = floorById['1F'], out = [], STEP = 0.25;
+  for (const w of f.walk) {
+    if (w.kind === 'outdoor' || w.kind === 'stair' || w.room?.type === 'garden') continue;
+    if (w.kind === 'room' && !w.room.open) continue;             // 有牆的教室不做階梯
+    const { x1, z1, x2, z2 } = w.m;
+    for (const [ax, az, bx, bz, nx, nz] of [[x1, z1, x2, z1, 0, -1], [x1, z2, x2, z2, 0, 1], [x1, z1, x1, z2, -1, 0], [x2, z1, x2, z2, 1, 0]]) {
+      const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / STEP));
+      let start = -1;
+      for (let i = 0; i <= n; i++) {
+        const t = i / n, px = ax + (bx - ax) * t, pz = az + (bz - az) * t, ox = px + nx * 0.4, oz = pz + nz * 0.4;
+        const open = i < n && !indoor1F(ox, oz) && isWalkable(f, ox, oz, 0);
+        if (open && start < 0) start = i;
+        if (!open && start >= 0) {
+          out.push({ ax: ax + (bx - ax) * start / n, az: az + (bz - az) * start / n, bx: ax + (bx - ax) * i / n, bz: az + (bz - az) * i / n, nx, nz });
+          start = -1;
+        }
+      }
+    }
+  }
+  return out;
+}
+const STEP_H = 0.3, STEP_D = 0.32, NSTEP = Math.round(BASE / STEP_H);
+// 地面高度（相對於這一層的樓板）：一樓室內 0、戶外 -BASE；司令臺、花台、走廊邊的階梯會比較高
+function groundAt(f, x, z) {
+  if (f.level !== 0) return 0;
+  if (indoor1F(x, z)) return 0;
+  let h = -BASE;
+  for (const r of raised) if (x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) h = Math.max(h, r.h - BASE);
+  openEdges ||= computeOpenEdges();
+  for (const e of openEdges) {
+    const d = (x - e.ax) * e.nx + (z - e.az) * e.nz;
+    if (d < 0 || d >= NSTEP * STEP_D) continue;
+    const t = e.nx ? z : x, a = e.nx ? Math.min(e.az, e.bz) : Math.min(e.ax, e.bx), b = e.nx ? Math.max(e.az, e.bz) : Math.max(e.ax, e.bx);
+    if (t < a || t > b) continue;
+    h = Math.max(h, -BASE + (NSTEP - Math.floor(d / STEP_D)) * STEP_H);
+  }
+  return Math.min(0, h);
+}
+// 一樓的地基（建築底下那一段牆腳）＋走廊、穿堂外面往下的階梯
+function buildPlinth() {
+  const f = floorById['1F'], b = new Batch();
+  const plinth = mat('wool', '#d9cfbd'), stone = mat('wool', '#bdb7ad'), stone2 = mat('wool', '#aaa49a');
+  for (const w of f.walk) {
+    if (w.kind === 'outdoor' || w.room?.type === 'garden') continue;
+    if (w.stair && w.stair.floors.includes('B1')) continue;     // 往地下室的樓梯：底下是空的
+    const { x1, z1, x2, z2 } = w.m;
+    b.box(plinth, x2 - x1, BASE - 0.12, z2 - z1, (x1 + x2) / 2, (BASE - 0.12) / 2, (z1 + z2) / 2);
+  }
+  openEdges ||= computeOpenEdges();
+  for (const e of openEdges) {
+    const len = Math.hypot(e.bx - e.ax, e.bz - e.az), cx = (e.ax + e.bx) / 2, cz = (e.az + e.bz) / 2;
+    for (let i = 0; i < NSTEP; i++) {
+      const h = (NSTEP - i) * STEP_H, d = (i + 0.5) * STEP_D, x = cx + e.nx * d, z = cz + e.nz * d;
+      b.box(i % 2 ? stone2 : stone, e.nx ? STEP_D : len, h, e.nx ? len : STEP_D, x, h / 2, z);
+    }
+  }
+  b.build(f.group);
+}
 
 // 圍牆的四段（公尺）：西邊避開正門兩側的樹籬（540～1110 像素那段）
 function wallRuns() {
@@ -689,7 +759,7 @@ function buildOutdoor() {
   {
     // 中庭：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑（依照片）
     const court = rooms.find((r) => r.name === '中庭');
-    if (court) raised.push(...buildCourtyard(g, court.m, FLOOR_H));
+    if (court) raised.push(...buildCourtyard(g, court.m, FLOOR_H, BASE));
   }
   {
     // 教師停車場：乙梯北邊、敬業樓廁所南邊、圍牆和西側走廊之間的空地
@@ -700,8 +770,8 @@ function buildOutdoor() {
   if (O.facadeC) {
     // 勤學樓背面、思源樓面向操場那面（依照片）
     const F = O.facadeC, st = rectM(O.stage);
-    buildFacadeC(g, mx(F.x[0]), mx(F.x[1]), mz(F.y) + WALL_T / 2, 4, FLOOR_H, [st.x1, st.x2]);
-    raised.push(...buildMuralBlock(g, mx(F.mural[0]), mx(F.mural[1]), mx(F.mural[2]), mz(F.y) + WALL_T / 2, 4 * FLOOR_H));
+    buildFacadeC(g, mx(F.x[0]), mx(F.x[1]), mz(F.y) + WALL_T / 2, 4, FLOOR_H, [st.x1, st.x2], BASE);
+    raised.push(...buildMuralBlock(g, mx(F.mural[0]), mx(F.mural[1]), mx(F.mural[2]), mz(F.y) + WALL_T / 2, 4 * FLOOR_H, BASE));
   }
   if (O.pool) {
     // 條紋屋頂建築（牆已經在資料階段加進碰撞），這裡蓋屋頂
@@ -736,7 +806,7 @@ function buildOutdoor() {
   }
   if (O.tower) {
     // 正門左邊那座有圓窗的圓柱塔
-    const T = O.tower, r = T.r / S, h = T.floors * FLOOR_H;
+    const T = O.tower, r = T.r / S, h = T.floors * FLOOR_H + BASE;
     const geo = new THREE.CylinderGeometry(r, r, h, BLOCKY ? 16 : 32, 1, true, Math.PI, Math.PI);
     if (BLOCKY) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * Math.PI * r, uv.getY(i) * h); }
     const cyl = new THREE.Mesh(geo, mat('concrete', '#efe0bf', { side: THREE.DoubleSide }));
@@ -746,7 +816,7 @@ function buildOutdoor() {
     for (let k = 1; k < T.floors; k++) {         // 圓窗
       const win = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.1, 16), new THREE.MeshLambertMaterial({ color: '#41566b' }));
       win.rotation.z = Math.PI / 2;
-      win.position.set(mx(T.cx) - r - 0.02, k * FLOOR_H + 1.6, mz(T.cy));
+      win.position.set(mx(T.cx) - r - 0.02, BASE + k * FLOOR_H + 1.6, mz(T.cy));
       g.add(win);
     }
   }
@@ -897,7 +967,8 @@ function buildFloor(f) {
     const { x1, z1, x2, z2 } = w.m;
     const thick = f.level === 0 ? 0.12 : 0.3;
     const slab = new THREE.Mesh(blockBox(x2 - x1, thick, z2 - z1), floorMat(type, f, w.room));
-    slab.position.set((x1 + x2) / 2, f.y - thick / 2 + 0.01, (z1 + z2) / 2);
+    const sy = f.level === 0 && type === 'garden' ? 0 : f.y;          // 一樓中庭在地面高度
+    slab.position.set((x1 + x2) / 2, sy - thick / 2 + 0.01, (z1 + z2) / 2);
     slab.receiveShadow = true;
     if (w.room) { slab.userData.room = w.room; pickables.push(slab); }
     f.group.add(slab);
@@ -938,10 +1009,11 @@ function buildFloor(f) {
     const horiz = Math.abs(s.az - s.bz) < 1e-6;
     const len = Math.hypot(s.bx - s.ax, s.bz - s.az) + WALL_T;
     const cx = (s.ax + s.bx) / 2, cz = (s.az + s.bz) / 2;
+    const yb = f.level === 0 && (s.kind === 'poolwall' || s.kind === 'poolstripe' || s.kind === 'hedge') ? 0 : f.y;   // 戶外的牆在地面
     const piece = (m, y0, y1, a = -len / 2, b = len / 2) => {
       const mid = (a + b) / 2, L = b - a;
-      if (horiz) batch.box(m, L, y1 - y0, WALL_T, cx + mid, f.y + (y0 + y1) / 2, cz);
-      else batch.box(m, WALL_T, y1 - y0, L, cx, f.y + (y0 + y1) / 2, cz + mid);
+      if (horiz) batch.box(m, L, y1 - y0, WALL_T, cx + mid, yb + (y0 + y1) / 2, cz);
+      else batch.box(m, WALL_T, y1 - y0, L, cx, yb + (y0 + y1) / 2, cz + mid);
     };
     if (s.kind === 'rail') {
       piece(railMat, 0, s.h);
@@ -1115,7 +1187,7 @@ const BLD_POS = { A: [1100, 360], B: [1620, 820], C: [1110, 1180], D: [580, 820]
 for (const [k, b] of Object.entries(D.buildings)) {
   const [px, py] = BLD_POS[k];
   const en = { A: 'JING YE', B: 'ZHI SHAN', C: 'QIN XUE', D: 'SI YUAN' }[k] || '', acc = { A: '#c0392b', B: '#2f6fb5', C: '#d9730d', D: '#2d8a57' }[k];
-  buildingLabels.add(makeTag(b.name, `${k} 棟 · ${en}`, mx(px), (k === 'A' ? 5 : 4) * FLOOR_H + 0.8, mz(py), { accent: acc, h: 7, stem: 6 }));
+  buildingLabels.add(makeTag(b.name, `${k} 棟 · ${en}`, mx(px), BASE + (k === 'A' ? 5 : 4) * FLOOR_H + 0.8, mz(py), { accent: acc, h: 7, stem: 6 }));
 }
 scene.add(buildingLabels);
 
@@ -1240,7 +1312,8 @@ const cellAt = (f, x, z) => f.index?.get(Math.floor(x / HCELL) * 100003 + Math.f
 
 // 家具等方塊：腰部以下、夠大的才算擋路（桌椅、櫃子、樹幹、溜滑梯）；細桌腳、地毯、掛在牆上的東西不算
 function isObstacle(b, f) {
-  const y1 = b.y1 - f.y, y2 = b.y2 - f.y, w = b.x2 - b.x1, d = b.z2 - b.z1;
+  const g = f.y + (f.level === 0 ? groundAt(f, (b.x1 + b.x2) / 2, (b.z1 + b.z2) / 2) : 0);
+  const y1 = b.y1 - g, y2 = b.y2 - g, w = b.x2 - b.x1, d = b.z2 - b.z1;
   if (y1 > 0.75 || y2 < 0.3) return false;
   if (Math.min(w, d) >= 0.25) return true;
   return Math.max(w, d) >= 0.8 && Math.min(w, d) >= 0.03 && y1 < 0.3 && y2 - y1 >= 0.6;   // 細長的牆、圍網
@@ -2114,17 +2187,18 @@ function buildPanoMarkers() {
   for (const s of panoScenes) {
     const icon = new THREE.Sprite(iconMat);
     icon.scale.set(1.1, 1.1, 1);
-    icon.position.set(s.x, s.f.y + 1.7, s.z);
+    const gAt = s.f.level === 0 ? groundAt(s.f, s.x, s.z) : 0;
+    icon.position.set(s.x, s.f.y + gAt + 1.7, s.z);
     icon.userData = { pano: s, bob: Math.random() * 6 };
     icon.renderOrder = 3;
     s.f.group.add(icon);
     pickables.push(icon);
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
-    ring.position.set(s.x, s.f.y + 0.04, s.z);
+    ring.position.set(s.x, s.f.y + gAt + 0.04, s.z);
     s.f.group.add(ring);
     if (s.idx === 0) {
-      const lbl = makeLabel(`📷 ${s.spot.zh}`, '', s.x, s.f.y + 3.1, s.z, { bg: '#7b2cbf', h: 0.95 });
+      const lbl = makeLabel(`📷 ${s.spot.zh}`, '', s.x, s.f.y + gAt + 3.1, s.z, { bg: '#7b2cbf', h: 0.95 });
       lbl.userData.pano = s;
       pickables.push(lbl);
       s.f.labels.add(lbl);
@@ -2285,6 +2359,39 @@ const NPCS = [
     },
   },
   {
+    name: '鄧老師', title: '體育組長',
+    hello: ['🏀 鄧老師：同學要多運動唷！', '🏀 鄧老師：一起來打球吧！'],
+    // 操場中間北邊那座籃球場，面向南
+    at: () => {
+      const T = D.outdoor.track;
+      return [mx(T.center[0]) + 3, mz(T.center[1]) - 5.3, Math.PI];
+    },
+    look: {
+      // 依照片：深咖啡色短髮（旁分）、淺膚色、細長眼、淺淺微笑；灰綠色 T 恤、白色短褲、紅色哨子（黑色掛繩）
+      skin: '#ecbf9c', hair: '#3a2a20', top: '#557d7a', pants: '#f1efe8', stripe: '#9fcfb5', shoe: '#f4f4f4',
+      shortHair: true, whistle: true,
+      pal: { H: '#3a2a20', h: '#4d392b', S: '#ecbf9c', B: '#3a2a20', E: '#2a1a14', N: '#d6a382', M: '#b06a5c' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHhHHHHHHHHH',
+        'HHHHHSSHHHHHHHHH',
+        'HHSSSSSSHHHSSSHH',
+        'HSSSSSSSSSSSSSSH',
+        'SSBBBSSSSSSBBBSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSEESSSSSSEESSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'NSSSSSSSSSSSSSSN',
+      ],
+    },
+  },
+  {
     name: '阿喵老師', title: '電腦老師',
     hello: [
       '🐱 阿喵老師：要專心上課唷！',
@@ -2323,18 +2430,22 @@ const NPCS = [
 for (const n of NPCS) {
   const g = makeBlockNPC(n.look);
   const [x, z, yaw] = n.at();
-  g.position.set(x, 0, z); g.rotation.y = yaw;
+  const gy = floors[1].y + groundAt(floors[1], x, z);                // 室內在樓板上、戶外在地面
+  g.position.set(x, gy, z); g.rotation.y = yaw;
   n.yaw = yaw; n.g = g; n.near = false;
   g.traverse((o) => { if (o.isMesh) { o.userData.npc = n; pickables.push(o); } });
   floors[1].group.add(g);
-  floors[1].labels.add(makeLabel(n.name, n.title, x, 2.45 + ((n.look.headScale || 1) - 1) * 0.9, z, { bg: '#2d6a4f', h: 0.75 }));
+  floors[1].labels.add(makeLabel(n.name, n.title, x, gy + 2.45 + ((n.look.headScale || 1) - 1) * 0.9, z, { bg: '#2d6a4f', h: 0.75 }));
 }
 // hello 可以是好幾句：每次隨機換一句（不會連續兩次一樣）
 function meetNPC(n) {
-  if (!Array.isArray(n.hello)) { toast(n.hello); return; }
-  let k; do k = Math.random() * n.hello.length | 0; while (n.hello.length > 1 && k === n.last);
-  n.last = k;
-  toast(n.hello[k]);
+  let line = n.hello;
+  if (Array.isArray(n.hello)) {
+    let k; do k = Math.random() * n.hello.length | 0; while (n.hello.length > 1 && k === n.last);
+    n.last = k; line = n.hello[k];
+  }
+  const kid = savedGender() === 'girl' ? '👧' : '👦';
+  toast(`${kid} 我：${n.name}好！<br>${line}`);                        // 學生遇到老師會先打招呼
 }
 function updateNPCs(t, dt) {
   for (const n of NPCS) {
@@ -2453,7 +2564,7 @@ function shoot(sp, p, ideal, tol) {
       life += dt;
       phys.vy -= G * dt;
       ball.position.x += phys.vx * dt; ball.position.y += phys.vy * dt; ball.position.z += phys.vz * dt;
-      const floorY = f.y + 0.13;
+      const floorY = f.y + groundAt(f, ball.position.x, ball.position.z) + 0.13;
       if (ball.position.y < floorY) { ball.position.y = floorY; phys.vy = Math.abs(phys.vy) * 0.55; phys.vx *= 0.7; phys.vz *= 0.7; }
       if (life > 1.6) { ball.visible = false; act.busy = null; }
     },
@@ -2511,14 +2622,6 @@ function startSlide(sp) {
 const clock = new THREE.Clock();
 let navTick = 0, walkPhase = 0, walkAmt = 0;
 
-// 1 樓墊高的地方（司令臺、入口階梯）：{ x1, x2, z1, z2, h }
-const raised = [];
-function groundAt(f, x, z) {
-  if (f.level !== 0) return 0;
-  let h = 0;
-  for (const r of raised) if (x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) h = Math.max(h, r.h);
-  return h;
-}
 
 // 第三人稱鏡頭：zoom 是想要的距離（滾輪可調），dist 是實際距離（被擋住時會拉近）
 const cam = { zoom: 5.5 * AVATAR_SCALE, dist: 5.5 * AVATAR_SCALE };
@@ -2746,6 +2849,7 @@ await Promise.all([
   BLOCKY && document.fonts?.load('44px "Cubic 11"', '溪口國小'),
 ]).catch(() => {});
 for (const f of floors) buildFloor(f);
+buildPlinth();
 Batch.collector = floors[1].boxes;
 buildOutdoor();
 Batch.collector = null;
@@ -2779,13 +2883,13 @@ document.getElementById('avatarBtn').onclick = () => openChooser();
 
 const COVER_SPOTS = [
   { title: '敬業樓', sub: 'A · JING YE', lift: 40, note: '圖書館、會議室、校長室、電腦教室，五樓活動中心', acc: '#c0392b',
-    at: () => [mx(1100), 5 * FLOOR_H + 1, mz(360)], go: () => [floorById['1F'], mx(1300), mz(364), Math.PI / 2] },
+    at: () => [mx(1100), BASE + 5 * FLOOR_H + 1, mz(360)], go: () => [floorById['1F'], mx(1300), mz(364), Math.PI / 2] },
   { title: '至善樓', sub: 'B · ZHI SHAN', note: '幼兒園教室、潛能教室，頂樓菜園', acc: '#2f6fb5',
-    at: () => [mx(1620), 4 * FLOOR_H + 1, mz(820)], go: () => [floorById['1F'], mx(1526), mz(700), 0] },
+    at: () => [mx(1620), BASE + 4 * FLOOR_H + 1, mz(820)], go: () => [floorById['1F'], mx(1526), mz(700), 0] },
   { title: '勤學樓', sub: 'C · QIN XUE', note: '學務處、健康中心、幼兒園，樓上是班級教室', acc: '#d9730d',
-    at: () => [mx(1110), 4 * FLOOR_H + 1, mz(1180)], go: () => [floorById['1F'], mx(1100), mz(1082), -Math.PI / 2] },
+    at: () => [mx(1110), BASE + 4 * FLOOR_H + 1, mz(1180)], go: () => [floorById['1F'], mx(1100), mz(1082), -Math.PI / 2] },
   { title: '思源樓', sub: 'D · SI YUAN', lift: 84, dx: 10, note: '正門穿堂、教務處、總務處，樓上是班級教室', acc: '#2d8a57',
-    at: () => [mx(580), 4 * FLOOR_H + 1, mz(820)], go: () => [floorById['1F'], mx(560), mz(825), -Math.PI / 2] },
+    at: () => [mx(580), BASE + 4 * FLOOR_H + 1, mz(820)], go: () => [floorById['1F'], mx(560), mz(825), -Math.PI / 2] },
   { title: '操場', sub: 'SPORTS FIELD', lift: 78, dx: -48, note: '跑道、籃球場、司令臺', acc: '#2d8a57',
     at: () => [mx(D.outdoor.track.center[0]), 0, mz(D.outdoor.track.center[1])],
     go: () => { const T = D.outdoor.track; return [floorById['1F'], mx(T.center[0]), mz(T.center[1]), 0]; } },
