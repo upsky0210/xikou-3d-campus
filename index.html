@@ -328,11 +328,19 @@
   #cover .list button.on { background: #ffe9a8; }
   #cover .go { margin-top: 10px; background: #c0392b; color: #fff; border: 3px solid #2b2b2b; border-radius: 0; padding: 6px 14px; font-weight: 900;
     text-shadow: none; box-shadow: 3px 3px 0 rgba(0,0,0,.25); }
+  #cover .credit { position: absolute; right: 2vw; bottom: 5vh; background: #fbf6ea; border: 3px solid #2b2b2b; box-shadow: 6px 6px 0 rgba(0,0,0,.25);
+    padding: 0 14px 10px; font-size: 13px; line-height: 1.7; transform: rotate(.6deg); }
+  #cover .credit .hd { margin: 0 -14px 6px; background: #2b2b2b; color: #fbf6ea; padding: 4px 12px; font-size: 11px; letter-spacing: 3px; font-weight: 700; }
+  #cover .credit dl { margin: 0; display: grid; grid-template-columns: auto 1fr; column-gap: 6px; }
+  #cover .credit dt { color: #6b6458; font-weight: 700; }
+  #cover .credit dd { margin: 0; font-weight: 700; }
   @media (max-width: 760px), (max-aspect-ratio: 23/20) {
     #cover .intro { left: 16px; right: 16px; top: 18px; max-width: none; }
     #cover h1 { font-size: 46px; }
     #cover .lead { display: none; }
-    #cover .guide { left: 16px; bottom: 16px; }
+    #cover .guide { left: 16px; bottom: 88px; }
+    #cover .credit { left: 16px; right: 16px; bottom: 12px; padding: 4px 10px; font-size: 11px; line-height: 1.45; transform: none; box-shadow: 4px 4px 0 rgba(0,0,0,.25); }
+    #cover .credit .hd { display: none; }
     #cover .tags { display: none; }                         /* 手機：浮動紙條太擠，改用下面導覽卡的按鈕 */
   }
 
@@ -414,6 +422,14 @@
     <p>點一棟建築或地點看介紹，再點一次就直接過去。</p>
     <div class="list"></div>
     <button class="go" hidden>帶我過去 ↗</button>
+  </div>
+  <div class="credit">
+    <div class="hd">CREDITS · 製作資訊</div>
+    <dl>
+      <dt>設計者：</dt><dd>Upsky（阿喵老師）</dd>
+      <dt>發想：</dt><dd>FB 瓦特／大勇國小</dd>
+      <dt>使用工具：</dt><dd>Claude Code、Muse AI</dd>
+    </dl>
   </div>
 </div>
 
