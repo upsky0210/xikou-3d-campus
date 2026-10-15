@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=87';
-import { furnishFloor } from './furniture.js?v=87';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=87';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=87';
-import { buildCampusWall } from './wall.js?v=87';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=87';
+import { PanoViewer } from './pano.js?v=88';
+import { furnishFloor } from './furniture.js?v=88';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=88';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=88';
+import { buildCampusWall } from './wall.js?v=88';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=88';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2748,6 +2748,39 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: 'Poyen 老師', title: '五年一班導師', game: 'rps',
+    hello: ['😴 Poyen 老師：小朋友，睡午覺，下午才有精神哦！', '😴 Poyen 老師：小朋友，睡午覺，下午才有精神哦！<br>✂️ 要不要來猜個拳？'],
+    // 4 樓五年一班（413 室）教室前面、電視旁邊（勤學樓教室黑板在西邊），面向學生（東）；老師桌在南邊，站北邊一點
+    places: [
+      { floor: '4F', where: '五年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '501'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深藍色 Nike 棒球帽（藍綠色勾勾）、黑色短髮、黑框方眼鏡、笑開露牙；螢光綠連帽拉鍊外套（藍色抽繩）、牛仔褲、黑色斜背包
+      skin: '#efc9a8', hair: '#1b1714', top: '#8fdc2c', pants: '#5a7fb8', shoe: '#3a3a3a',
+      shortHair: true, longSleeve: true, hoodie: '#2a4fb8', pocket: '#84cf26', zip: '#6b7a5a', bag: '#1d1d1f',
+      cap: { color: '#1f2a4a', logo: '#2fc4c4' },
+      pal: { H: '#1b1714', h: '#2c2622', S: '#efc9a8', B: '#1b1714', K: '#151515', E: '#1e130d', N: '#ddb08e', M: '#9c3b34', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HSSSSSSSSSSSSSSH',
+        'HSSSSSSSSSSSSSSH',
+        'SBBBSSSSSSSSBBBS',
+        'SKKKKKKSSKKKKKKS',
+        'SKSSSSKKKKSSSSKS',
+        'SKSEESKSSKSEESKS',
+        'SKKKKKKSSKKKKKKS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSMMMMMMMMMMSSS',
+        'SSSMTTTTTTTTMSSS',
+        'SSSSMMMMMMMMSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -2971,6 +3004,7 @@ function updateAct(dt) {
     : sp.kind === 'badminton' ? `🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
+    : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
     : sp.kind === 'feed' ? '🐢 餵烏龜 <kbd>F</kbd>'
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
@@ -2985,6 +3019,7 @@ function doAction() {
   else if (act.spot?.kind === 'badminton') startBadminton(act.spot.npc);
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
+  else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
   else if (act.spot?.kind === 'feed') feedTurtles();
 }
@@ -3357,6 +3392,94 @@ function startWords(n) {
   quizBox.hidden = false;
   $('.tip').textContent = `${n.name}：Let's practice！看中文打出英文單字 🔊 答完會唸出發音`;
   ask();
+}
+
+/* ---------------- 剪刀石頭布：在五年一班遇到 Poyen 老師，可以猜拳（三戰兩勝，平手重來） ----------------
+   點按鈕或按 1／2／3 出拳；喊完「剪刀、石頭、布！」一起亮出來，老師頭上也會冒出他出的拳。 */
+
+const RPS_KEY = 'campus-rps-wins';
+const RPS = [{ e: '✌️', n: '剪刀' }, { e: '✊', n: '石頭' }, { e: '🖐️', n: '布' }];
+const rpsBox = document.getElementById('rps');
+function startRps(n) {
+  stopAuto();
+  const $ = (sel) => rpsBox.querySelector(sel);
+  const btns = [...rpsBox.querySelectorAll('[data-h]')];
+  let me = 0, them = 0, round = 0, wins = 0, locked = false, bubble = null, done = false;
+  try { wins = +localStorage.getItem(RPS_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  n.g.rotation.y = Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z);   // 老師面向你
+  const nL = n.g.userData.limbs;
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const show = () => {
+    $('.who').textContent = n.name;
+    $('.score').innerHTML = `你 ${me} ： ${them} ${n.name}`;
+    $('.round').textContent = me >= 2 || them >= 2 ? '比賽結束' : `第 ${round + 1} 局`;
+  };
+  // 老師頭上的拳（名牌下面）
+  const popHand = (h) => {
+    clearHand();
+    bubble = makeLabel(RPS[h].e, '', n.g.position.x, n.g.position.y + 2.15, n.g.position.z, { bg: '#8fdc2c', h: 0.7 });
+    scene.add(bubble);
+  };
+  const clearHand = () => { if (bubble) { scene.remove(bubble); bubble.material.map?.dispose(); bubble.material.dispose(); bubble = null; } };
+  const ready = () => {
+    locked = false; btns.forEach((b) => (b.disabled = false));
+    $('.me').textContent = '❔'; $('.them').textContent = '❔';
+    $('.me').classList.remove('shake'); $('.them').classList.remove('shake');
+    show();
+  };
+  const finish = () => {
+    done = true; rpsBox.hidden = true; clearHand();
+    removeEventListener('keydown', onKey, true);
+    for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const choose = (h) => {
+    if (locked) return;
+    locked = true; btns.forEach((b) => (b.disabled = true));
+    clearHand();
+    $('.me').classList.add('shake'); $('.them').classList.add('shake');
+    $('.me').textContent = '✊'; $('.them').textContent = '✊';
+    msg('剪刀、石頭、布！');
+    // 老師一起甩手：舉起右手上下擺
+    let t = 0;
+    act.busy = { label: '✂️ 剪刀石頭布…', tick(dt) { t += dt; nL.armR.rotation.x = -1.6 + Math.sin(t * 20) * 0.45; } };
+    setTimeout(() => {
+      if (done) return;                                                // 中途按了結束
+      const tHand = Math.random() * 3 | 0, r = (h - tHand + 3) % 3;   // 0 平手、1 你贏、2 老師贏
+      $('.me').classList.remove('shake'); $('.them').classList.remove('shake');
+      $('.me').textContent = RPS[h].e; $('.them').textContent = RPS[tHand].e;
+      nL.armR.rotation.x = -1.9;
+      popHand(tHand);
+      act.busy = { label: '✂️ 剪刀石頭布中…', tick() {} };
+      if (r === 0) { msg(`平手！都出${RPS[h].n}，再來一次！`); npcFace(n, 'wink', 1.6); }
+      else if (r === 1) { me++; round++; msg(`✅ ${RPS[h].n}贏${RPS[tHand].n}！你贏這局！`, 'ok'); npcFace(n, 'sad', 1.8); }
+      else { them++; round++; msg(`❌ ${RPS[tHand].n}贏${RPS[h].n}！${n.name}贏這局`, 'no'); npcFace(n, 'tongue', 1.8); }
+      show();
+      if (me < 2 && them < 2) { setTimeout(() => { if (!done) ready(); }, 1300); return; }
+      // 三戰兩勝結束
+      setTimeout(() => {
+        if (done) return;
+        if (me > them) { wins++; try { localStorage.setItem(RPS_KEY, String(wins)); } catch { /* 私密模式 */ } }
+        npcFace(n, me > them ? 'surprised' : 'happy', 3);
+        finish();
+        toast(me > them ? `🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）<br>${n.name}：好厲害！記得睡午覺，下午才有精神哦！`
+          : `😝 ${n.name}贏了！${them}：${me}<br>${n.name}：再接再厲！先去睡個午覺養精神吧！`);
+      }, 1500);
+    }, 900);
+  };
+  const onKey = (e) => {
+    const k = { Digit1: 0, Digit2: 1, Digit3: 2, Numpad1: 0, Numpad2: 1, Numpad3: 2 }[e.code];
+    if (k !== undefined) { e.preventDefault(); e.stopPropagation(); choose(k); }
+  };
+  addEventListener('keydown', onKey, true);
+  btns.forEach((b) => (b.onclick = () => choose(+b.dataset.h)));
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`✂️ 下次再來找${n.name}猜拳！`); } };
+  act.busy = { label: '✂️ 剪刀石頭布中…', tick() {} };                 // 猜拳時不能走動
+  rpsBox.hidden = false;
+  msg(`${n.name}：來猜拳吧！先贏兩局的人獲勝！`);
+  ready();
 }
 
 /* ---------------- 著色小遊戲：在美勞教室遇到哈囉老師，幫動物線稿塗顏色 ----------------

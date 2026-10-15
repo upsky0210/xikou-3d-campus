@@ -276,7 +276,24 @@
   #paint .btns { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
   #paint .btns button { padding: 7px 12px; font-weight: 700; border-radius: 10px; background: #e8508a; color: #fff; }
   #paint .btns button.sub { background: #f1e6ec; color: #333; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint {
+  /* 剪刀石頭布（Poyen 老師） */
+  #rps { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(400px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 16px; box-shadow: var(--shadow); padding: 16px 18px; text-align: center; }
+  #rps .top { display: flex; justify-content: space-between; font-size: 13px; color: #666; }
+  #rps .score { font-size: 22px; font-weight: 900; margin: 8px 0 2px; }
+  #rps .vs { display: flex; justify-content: space-around; align-items: center; margin: 6px 0; }
+  #rps .vs div { width: 110px; } #rps .vs small { display: block; color: #777; font-size: 12px; }
+  #rps .hand { font-size: 54px; line-height: 1.15; min-height: 64px; }
+  #rps .hand.shake { animation: rpsShake .3s ease-in-out infinite; }
+  @keyframes rpsShake { 50% { transform: translateY(-10px); } }
+  #rps .msg { min-height: 1.6em; font-weight: 700; margin: 4px 0 10px; }
+  #rps .msg.ok { color: #1b8a3a; } #rps .msg.no { color: #c0392b; }
+  #rps .btns { display: flex; gap: 8px; justify-content: center; }
+  #rps .btns button { font-size: 30px; padding: 6px 12px; border-radius: 12px; background: #8fdc2c; line-height: 1.1; }
+  #rps .btns button small { display: block; font-size: 12px; font-weight: 700; color: #234; }
+  #rps .btns button:disabled { opacity: .45; }
+  #rps .quit { margin-top: 10px; padding: 6px 14px; border-radius: 10px; background: #e5e1ee; color: #333; font-weight: 700; }
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -445,6 +462,16 @@
   <div class="msg"></div>
   <div class="btns"><button class="done">完成 ✨</button><button class="sub next">換一隻</button><button class="sub clear">重來</button><button class="sub save">存成圖片</button><button class="sub quit">結束 Esc</button></div>
 </div>
+<div id="rps" hidden>
+  <div class="top"><span>✂️ 剪刀石頭布・三戰兩勝</span><span class="round"></span></div>
+  <div class="score"></div>
+  <div class="vs"><div><small>你</small><div class="hand me">❔</div></div><b>VS</b><div><small class="who"></small><div class="hand them">❔</div></div></div>
+  <div class="msg"></div>
+  <div class="btns">
+    <button data-h="0">✌️<small>剪刀 1</small></button><button data-h="1">✊<small>石頭 2</small></button><button data-h="2">🖐️<small>布 3</small></button>
+  </div>
+  <button class="quit">結束 Esc</button>
+</div>
 <div id="power" hidden><div class="lbl">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
 
 <div id="gallery" hidden>
@@ -589,8 +616,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=87"></script>
-<script src="js/pano-data.js?v=87"></script>
-<script type="module" src="js/app.js?v=87"></script>
+<script src="js/campus-data.js?v=88"></script>
+<script src="js/pano-data.js?v=88"></script>
+<script type="module" src="js/app.js?v=88"></script>
 </body>
 </html>

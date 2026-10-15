@@ -401,6 +401,7 @@ export function animatePerson(g, phase, amount) {
  *   patches: 毛色色塊 [[顏色, x, y, w, h], ...]（取代條紋）, ears: [左耳色, 右耳色], whisker: 鬍鬚色
  *   headScale: 頭放大倍數
  *   bun: 頭髮往後綁成低髮髻（臉旁留兩撮）, lanyard: 識別證掛繩顏色, sleeveless: 無袖
+ *   cap: { color, logo } 棒球帽（帽簷朝前、前面一個勾勾標誌）, pocket: 連帽 T 口袋顏色
  * }
  */
 export function makeBlockNPC(look) {
@@ -468,6 +469,15 @@ export function makeBlockNPC(look) {
     box(bg, 0.05, 0.05, 0.05, bm, 0.02, 0.11, 0);              // 帽頂小蒂頭
     for (const [w, h, x, y] of [[0.022, 0.09, -0.04, 0.03], [0.022, 0.09, 0.04, 0.03], [0.06, 0.02, 0, 0.03]]) box(bg, w, h, 0.01, lm, x, y, -0.245).castShadow = false;
   }
+  if (look.cap) {                                           // 棒球帽：帽身、往前伸的帽簷、前面的勾勾標誌、頂上小鈕扣
+    const cm = cloth(look.cap.color), lm = new THREE.MeshLambertMaterial({ color: look.cap.logo || '#ffffff' });
+    box(hg, 0.5, 0.17, 0.5, cm, 0, 1.79 - NECK, 0.01);
+    box(hg, 0.44, 0.12, 0.44, cm, 0, 1.9 - NECK, 0.02);
+    box(hg, 0.46, 0.035, 0.24, cm, 0, 1.715 - NECK, -0.33);     // 帽簷
+    box(hg, 0.05, 0.03, 0.05, cm, 0, 1.97 - NECK, 0.02);
+    const sw = box(hg, 0.15, 0.03, 0.01, lm, 0.01, 1.8 - NECK, -0.252); sw.rotation.z = 0.35; sw.castShadow = false;   // 勾勾
+    box(hg, 0.05, 0.03, 0.01, lm, -0.07, 1.785 - NECK, -0.252).castShadow = false;
+  }
   if (look.longHair) {
     box(g, 0.5, 0.86, 0.1, hair, 0, 1.36, 0.25);            // 背後長髮
     box(g, 0.08, 0.5, 0.42, hair, -0.255, 1.4, 0.02);       // 兩側
@@ -494,7 +504,7 @@ export function makeBlockNPC(look) {
   if (look.hoodie) {                                        // 連帽 T：背後的帽子、白色抽繩、前面大口袋
     box(g, 0.4, 0.2, 0.1, top, 0, 1.25, 0.17);
     for (const x of [-0.06, 0.06]) box(g, 0.02, 0.16, 0.012, cloth(look.hoodie), x, 1.18, -0.136);
-    box(g, 0.3, 0.13, 0.015, cloth('#a8161f'), 0, 0.8, -0.137);
+    box(g, 0.3, 0.13, 0.015, cloth(look.pocket || '#a8161f'), 0, 0.8, -0.137);
   }
   if (look.zip) box(g, 0.02, 0.5, 0.01, cloth(look.zip), 0, 1.0, -0.135);          // 外套拉鍊
   if (look.lanyard) {                                       // 識別證：掛繩斜斜到胸前、白色卡片
