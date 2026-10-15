@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=83';
+import { Batch, mat, SPOTS } from './blocks.js?v=84';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1345,11 +1345,11 @@ function counselingRoom(put, fr, room) {
   put(mat('wool', '#b8bdc2'), 0.65, 0.65, 1.75, 0.4, E(2.45), 0);
   put(mat('wool', '#aeb4b9'), 0.9, 0.03, 2.05, 1.25, E(W / 2 - 0.03), 0); put(knob, 0.06, 0.04, 0.06, 0.9, E(W / 2 - 0.06), 1.0);
   // ---- 隔出休息區的木櫃（1.6 m 高，門朝東邊休息區；朝西那面是平的木皮），上面放金色、紅色裝飾 ----
-  const pv = 1.75, pu0 = 0.8, pu1 = 5.0, pu = (pu0 + pu1) / 2;
+  const pv = 1.55, pu0 = 1.45, pu1 = 5.0, pu = (pu0 + pu1) / 2;   // 北端跟收納櫃之間留一條小走道（依照片）
   put(mat('planks', '#b9a184'), pu1 - pu0, 0.5, 1.6, pu, E(pv), 0); put(white, pu1 - pu0 + 0.05, 0.55, 0.03, pu, E(pv), 1.6);
   for (let u = pu0 + 0.35; u < pu1; u += 0.7) { put(knob, 0.05, 0.03, 0.05, u, E(pv + 0.26), 1.0); put(mat('wool', '#a08868'), 0.015, 0.01, 1.5, u + 0.35, E(pv + 0.255), 0.05); }
-  put(mat('wool', '#d4af37'), 2.2, 0.12, 0.1, pu + 0.3, E(pv), 1.63); put(mat('wool', '#c0392b'), 0.3, 0.3, 0.18, pu + 1.0, E(pv), 1.63);
-  put(mat('wool', '#f2efe6'), 2.0, 0.01, 0.28, pu - 0.4, E(pv - 0.26), 0.85);   // 西面貼的小卡片
+  put(mat('wool', '#d4af37'), 2.0, 0.12, 0.1, pu + 0.2, E(pv), 1.63); put(mat('wool', '#c0392b'), 0.3, 0.3, 0.18, pu + 0.9, E(pv), 1.63);
+  put(mat('wool', '#f2efe6'), 1.8, 0.01, 0.28, pu - 0.3, E(pv - 0.26), 0.85);   // 西面貼的小卡片
   // ---- 東邊休息區（北→南）：小桌子＋倉鼠籠、愛心椅凳、木茶几、雙人沙發、微波爐電鍋櫃、匾額 ----
   const tv = W / 2 - 0.33;
   for (const u of [1.95, 2.95]) {
@@ -1362,17 +1362,17 @@ function counselingRoom(put, fr, room) {
   put(kidsDrawingMat(), 1.4, 0.01, 0.35, 2.3, E(W / 2 - 0.02), 1.1, true);          // 牆上小朋友畫的倉鼠籠
   put(mat('wool', '#d9dadb'), 3.6, 0.02, 1.1, 3.1, E(W / 2 - 0.05), 1.65);          // 灰色捲簾
   const ott = mat('wool', '#8fa3ad');                                              // 愛心形椅凳
-  for (const s of [-1, 1]) put.geo(ott, new THREE.CylinderGeometry(0.19, 0.19, 0.42, 14), 3.35 + s * 0.1, E(2.45 - 0.1), 0.21);
-  put.geo(ott, new THREE.CylinderGeometry(0.15, 0.15, 0.42, 4).rotateY(Math.PI / 4), 3.35, E(2.6), 0.21);
-  put(mat('planks', '#d8b98a'), 0.6, 1.0, 0.04, 4.0, E(2.75), 0.42);              // 木茶几（黑腳）＋藍色裁紙機
-  for (const s of [-1, 1]) put(black, 0.6, 0.04, 0.42, 4.0, E(2.75 + s * 0.45), 0);
-  put(mat('wool', '#2f5aa8'), 0.35, 0.3, 0.03, 4.0, E(2.7), 0.46);
+  for (const s of [-1, 1]) put.geo(ott, new THREE.CylinderGeometry(0.19, 0.19, 0.42, 14), 3.6 + s * 0.1, E(2.65), 0.21);
+  put.geo(ott, new THREE.CylinderGeometry(0.15, 0.15, 0.42, 4).rotateY(Math.PI / 4), 3.6, E(2.8), 0.21);
+  put(mat('planks', '#d8b98a'), 0.6, 0.9, 0.04, 4.2, E(3.05), 0.42);              // 木茶几（黑腳）＋藍色裁紙機
+  for (const s of [-1, 1]) put(black, 0.6, 0.04, 0.42, 4.2, E(3.05 + s * 0.4), 0);
+  put(mat('wool', '#2f5aa8'), 0.35, 0.3, 0.03, 4.2, E(3.0), 0.46);
   const sofa = mat('wool', '#3b2c2e'), cushion = mat('wool', '#4a383a');          // 深咖啡雙人沙發，面向北
-  put(sofa, 0.85, 1.5, 0.3, 4.9, E(2.75), 0.08); put(cushion, 0.62, 1.2, 0.12, 4.82, E(2.75), 0.38);
-  put(sofa, 0.22, 1.5, 0.48, 5.22, E(2.75), 0.38);
-  for (const s of [-1, 1]) put(sofa, 0.85, 0.16, 0.62, 4.9, E(2.75 + s * 0.67), 0);
+  put(sofa, 0.85, 1.15, 0.3, 5.0, E(3.05), 0.08); put(cushion, 0.62, 0.85, 0.12, 4.92, E(3.05), 0.38);   // 西邊留走道
+  put(sofa, 0.22, 1.15, 0.48, 5.32, E(3.05), 0.38);
+  for (const s of [-1, 1]) put(sofa, 0.85, 0.15, 0.62, 5.0, E(3.05 + s * 0.5), 0);
   const bear = mat('wool', '#c58a4a');                                              // 沙發上的小熊
-  put(bear, 0.18, 0.24, 0.24, 4.85, E(2.3), 0.5); put(bear, 0.15, 0.18, 0.16, 4.85, E(2.3), 0.74);
+  put(bear, 0.18, 0.24, 0.24, 4.95, E(2.75), 0.5); put(bear, 0.15, 0.18, 0.16, 4.95, E(2.75), 0.74);
   const mv = W / 2 - 0.27;                                                          // 微波爐電鍋櫃（深灰框、木門、上面微波爐）
   put(mat('wool', '#4a4d52'), 0.9, 0.5, 0.95, 5.9, E(mv), 0); put(lightWood, 0.85, 0.02, 0.45, 5.9, E(mv - 0.26), 0.05);
   put(mat('wool', '#2b2d31'), 0.84, 0.46, 0.4, 5.9, E(mv + 0.02), 0.52);
@@ -1429,9 +1429,10 @@ function counselingRoom(put, fr, room) {
     us.forEach((u, i) => desk(u, v, ci === 1 && i === 1));
   });
   // 東南邊單獨一張（旁邊護貝機放在小白櫃上）
-  panel(6.6, E(0.4) + D * 0.4, cw, 0.05); for (const s of [-1, 1]) panel(6.6 + s * cw / 2, E(0.4), 0.05, 0.8);
-  desk(6.6, E(0.4), false);
-  put(white, 0.5, 0.5, 0.7, 7.45, E(1.4), 0); put(mat('wool', '#d9d9d9'), 0.3, 0.45, 0.1, 7.45, E(1.4), 0.7);
+  const su = 7.0;                                                                    // 跟中間辦公桌區之間留走道
+  panel(su, E(0.4) + D * 0.4, cw, 0.05); for (const s of [-1, 1]) panel(su + s * cw / 2, E(0.4), 0.05, 0.8);
+  desk(su, E(0.4), false);
+  put(white, 0.5, 0.5, 0.7, L - 0.3, E(0.45), 0); put(mat('wool', '#d9d9d9'), 0.3, 0.45, 0.1, L - 0.3, E(0.45), 0.7);
   // ---- 西邊：窗下木矮櫃（兩扇門中間）、窗戶上的雪人貼紙 ----
   const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
   const c0 = (doorU[0] ?? 1.5) + 1.05, c1 = (doorU[1] ?? L - 1.5) - 1.05;
