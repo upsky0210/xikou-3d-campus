@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=86';
-import { furnishFloor } from './furniture.js?v=86';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=86';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=86';
-import { buildCampusWall } from './wall.js?v=86';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=86';
+import { PanoViewer } from './pano.js?v=87';
+import { furnishFloor } from './furniture.js?v=87';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=87';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=87';
+import { buildCampusWall } from './wall.js?v=87';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=87';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1844,6 +1844,7 @@ function pick(e) {
   const vis = pickables.filter((o) => { let p = o; while (p) { if (!p.visible) return false; p = p.parent; } return true; });
   const hit = raycaster.intersectObjects(vis, false)[0];
   if (hit?.object.userData.cat) meetCat();
+  else if (hit?.object.userData.turtle) meetTurtle();
   else if (hit?.object.userData.glider) meetGlider(hit.object.userData.glider);
   else if (hit?.object.userData.npc) {                       // 點老師：打招呼，再隨機做個鬼臉
     const n = hit.object.userData.npc;
@@ -2379,6 +2380,98 @@ for (const gl of GLIDERS) {
 }
 function meetGlider(gl) { toast(gl.hello); }
 
+/* ---------------- 生態池的烏龜：兩隻（一隻在水裡繞圈游、一隻趴在石頭上曬太陽），池邊可以餵食，一天最多餵兩次 ---------------- */
+
+const TURTLE_KEY = 'campus-turtle-feed', FEED_MAX = 2;
+const pondM = D.outdoor.pond ? rectM(D.outdoor.pond) : null;
+const turtles = [];
+let feed = null;                                     // 正在吃：{ x, z, pellets: [...], t }
+if (pondM) {
+  const rim = 0.35, ix1 = pondM.x1 + rim, ix2 = pondM.x2 - rim, iz1 = pondM.z1 + rim, iz2 = pondM.z2 - rim;
+  const rock = [pondM.x2 - rim - 0.4, pondM.z1 + rim + 0.4, 0.3 + 0.245];   // 跟 furniture.js 池裡的大石頭同一個位置（石頭頂面高度）
+  for (const [i, col] of [[0, '#4f7f3a'], [1, '#5d6b3a']]) {
+    const g = makeTurtle(col);
+    const t = { g, i, home: i === 1 ? rock : null, th: 0, mode: i === 1 ? 'rest' : 'swim', box: [ix1, ix2, iz1, iz2] };
+    if (t.home) { g.position.set(t.home[0], t.home[2], t.home[1]); g.rotation.y = 2.4; }
+    else g.position.set((ix1 + ix2) / 2 + (ix2 - ix1) / 2 * 0.62, 0.27, (iz1 + iz2) / 2);   // 從繞圈路線的起點開始游
+    floors[1].group.add(g);
+    g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.turtle = true; pickables.push(o); } });
+    turtles.push(t);
+  }
+}
+const pondCenter = () => [(pondM.x1 + pondM.x2) / 2, (pondM.z1 + pondM.z2) / 2];
+function pondSpot() {
+  if (!pondM || mode === 'bird' || player.floor !== floors[1]) return null;
+  const dx = Math.max(pondM.x1 - player.x, 0, player.x - pondM.x2), dz = Math.max(pondM.z1 - player.z, 0, player.z - pondM.z2);
+  return Math.hypot(dx, dz) < 1.6 ? { kind: 'feed' } : null;
+}
+function meetTurtle() { toast(turtles.length ? '🐢 生態池的烏龜正在慢慢游泳～<br>走到池邊按 F 可以餵牠們（一天最多兩次喔）' : ''); }
+function feedTurtles() {
+  if (feed) { toast('🐢 烏龜正在吃，等牠們吃完再說～'); return; }
+  const today = new Date().toLocaleDateString('sv');
+  let rec = { d: today, n: 0 };
+  try { const o = JSON.parse(localStorage.getItem(TURTLE_KEY) || 'null'); if (o?.d === today) rec = o; } catch { /* 私密模式 */ }
+  if (rec.n >= FEED_MAX) {
+    toast('🐢 烏龜已經吃飽飽了！<br>再餵牠們會太撐，吃不完的飼料還會汙染水源唷～明天再來吧！');
+    return;
+  }
+  rec.n++;
+  try { localStorage.setItem(TURTLE_KEY, JSON.stringify(rec)); } catch { /* 私密模式 */ }
+  // 飼料撒在離你最近的水面上
+  const [ix1, ix2, iz1, iz2] = turtles[0].box;
+  const fx = Math.min(ix2 - 0.3, Math.max(ix1 + 0.3, player.x)), fz = Math.min(iz2 - 0.3, Math.max(iz1 + 0.3, player.z));
+  const pm = new THREE.MeshLambertMaterial({ color: '#8b5a2b' }), pellets = [];
+  for (let k = 0; k < 10; k++) {
+    const o = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.02, 0.035), pm);
+    o.position.set(fx + (Math.random() - 0.5) * 0.4, 0.31, fz + (Math.random() - 0.5) * 0.4);
+    floors[1].group.add(o); pellets.push(o);
+  }
+  feed = { x: fx, z: fz, pellets, t: 0 };
+  for (const t of turtles) t.mode = 'go';
+  toast(rec.n < FEED_MAX ? `🐢 你撒了一小把飼料，烏龜游過來吃得好開心！<br>（今天還可以再餵 ${FEED_MAX - rec.n} 次）`
+    : '🐢 烏龜吃得飽飽的～今天就餵到這裡囉！<br>餵太多吃不完，會汙染水源喔！');
+}
+function updateTurtles(t, dt) {
+  for (const tu of turtles) {
+    const g = tu.g, [ix1, ix2, iz1, iz2] = tu.box, cx = (ix1 + ix2) / 2, cz = (iz1 + iz2) / 2;
+    let tx, tz, ty = 0.27, speed = 0.18, paddle = 1;
+    if (tu.mode === 'swim') {                                       // 沿著池子繞橢圓慢慢游
+      tu.th += dt * 0.22;
+      tx = cx + (ix2 - ix1) / 2 * 0.62 * Math.cos(tu.th); tz = cz + (iz2 - iz1) / 2 * 0.7 * Math.sin(tu.th); speed = 0.3;
+    } else if (tu.mode === 'rest') {                                // 趴在石頭上，偶爾探頭
+      [tx, tz, ty] = [tu.home[0], tu.home[1], tu.home[2]]; paddle = 0;
+      g.userData.head.position.z = -0.2 - Math.max(0, Math.sin(t * 0.7 + tu.i)) * 0.04;
+    } else if (tu.mode === 'go' || tu.mode === 'eat') {             // 游去吃飼料（兩隻一左一右）
+      tx = feed.x + (tu.i ? 0.22 : -0.22); tz = feed.z + 0.05; speed = 0.35;
+    } else {                                                       // back：吃完回去（石頭那隻爬回石頭）
+      if (tu.home) [tx, tz] = [tu.home[0], tu.home[1]];
+      else { tu.mode = 'swim'; tu.th = Math.atan2((g.position.z - cz) / ((iz2 - iz1) / 2 * 0.7), (g.position.x - cx) / ((ix2 - ix1) / 2 * 0.62)); continue; }
+    }
+    const dx = tx - g.position.x, dz = tz - g.position.z, d = Math.hypot(dx, dz);
+    if (d > 0.02) {
+      const step = Math.min(d, speed * dt);
+      g.position.x += dx / d * step; g.position.z += dz / d * step;
+      const yaw = Math.atan2(-dx, -dz); let dy = yaw - g.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+      g.rotation.y += dy * Math.min(1, dt * 3);
+    } else if (tu.mode === 'go') tu.mode = 'eat';
+    else if (tu.mode === 'back') { tu.mode = 'rest'; }
+    // 在石頭上／水裡的高度（從石頭滑下水、爬回石頭）
+    const onRock = tu.home && Math.hypot(g.position.x - tu.home[0], g.position.z - tu.home[1]) < 0.2;
+    const wantY = onRock ? tu.home[2] : ty === 0.27 ? 0.27 + Math.sin(t * 2 + tu.i) * 0.008 : ty;
+    g.position.y += (wantY - g.position.y) * Math.min(1, dt * 4);
+    g.userData.legs.forEach((l, k) => { l.rotation.y = paddle * Math.sin(t * 5 + k * 1.6) * 0.5; });
+    if (tu.mode === 'eat') g.userData.head.position.z = -0.2 - (Math.sin(t * 9) > 0 ? 0.05 : 0);   // 伸頭吃
+    else if (tu.mode !== 'rest') g.userData.head.position.z = -0.2;
+  }
+  if (feed) {                                                       // 飼料一顆一顆被吃掉
+    feed.t += dt;
+    const eating = turtles.some((tu) => tu.mode === 'eat');
+    if (eating && feed.pellets.length && feed.t > 0.5) { feed.t = 0; feed.pellets.pop().removeFromParent(); }
+    for (const o of feed.pellets) o.position.y = 0.31 + Math.sin(t * 3 + o.position.x * 20) * 0.006;
+    if (!feed.pellets.length) { feed = null; for (const tu of turtles) tu.mode = 'back'; }
+  }
+}
+
 /* ---------------- 老師 NPC（依照片畫成方塊人） ---------------- */
 
 const NPCS = [
@@ -2869,7 +2962,7 @@ function nearestSpot() {
 let actLabel = '';
 function updateAct(dt) {
   if (act.busy) act.busy.tick(dt);
-  act.spot = act.busy ? null : badmintonSpot() || nearestSpot();   // 靠近老師時打羽球優先（活動中心也有籃框）
+  act.spot = act.busy ? null : badmintonSpot() || pondSpot() || nearestSpot();   // 靠近老師時打羽球優先（活動中心也有籃框）
   const sp = act.spot;
   const label = act.busy ? (act.busy.label ?? (act.busy.press ? '🏀 出手！ <kbd>F</kbd>' : ''))
     : !sp ? ''
@@ -2879,6 +2972,7 @@ function updateAct(dt) {
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
+    : sp.kind === 'feed' ? '🐢 餵烏龜 <kbd>F</kbd>'
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
   placeQuit();
@@ -2892,6 +2986,7 @@ function doAction() {
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
+  else if (act.spot?.kind === 'feed') feedTurtles();
 }
 actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
@@ -3450,6 +3545,49 @@ const ANIMALS = (() => {
       k.E(176, 266, 13, 10, 0, 3.5); k.E(224, 266, 13, 10, 0, 3.5);
       k.E(156, 350, 28, 13); k.E(244, 350, 28, 13);
     }],
+    ['游泳館的橘貓', (c) => {
+      const k = kit(c);
+      k.F('M0 0 L400 0 L400 196 L0 196 Z', 3.5);                                                       // 游泳館藍色泡泡牆
+      for (const [x, y, r] of [[34, 40, 22], [92, 110, 18], [40, 156, 14], [320, 44, 20], [372, 112, 16], [300, 150, 12], [150, 28, 12], [260, 22, 10]]) k.E(x, y, r, r, 0, 3.5);
+      k.F('M0 196 L400 196 L400 400 L0 400 Z', 4.5);                                                   // 階梯（三階）
+      k.S('M0 300 L400 300 M0 366 L400 366', 4.5); k.S('M0 312 L400 312 M0 378 L400 378', 2.5);
+      k.S('M350 120 L350 300 M380 120 L380 300', 4.5); k.F('M340 112 L390 112 L390 126 L340 126 Z', 3.5);   // 不鏽鋼扶手
+      const body = 'M96 294 C84 214 128 176 200 174 C272 176 316 214 304 294 Z';
+      k.F(body);                                                                                        // 香箱坐的身體
+      k.clip(body, () => k.S('M112 218 C130 230 132 256 118 280 M288 218 C270 230 268 256 282 280 M134 192 C152 206 156 228 146 246 M266 192 C248 206 244 228 254 246', 4));   // 身上的虎斑
+      const tail = 'M100 286 C150 306 250 306 300 286 C312 294 312 306 300 312 C250 330 150 330 100 312 C88 304 88 294 100 286 Z';
+      k.F(tail);                                                                                        // 尾巴繞在前面
+      k.clip(tail, () => k.S('M250 290 L246 330 M272 288 L268 326 M228 292 L224 330', 3.5));
+      for (const x of [170, 230]) { k.E(x, 296, 24, 13); k.S(`M${x - 8} 290 L${x - 8} 300 M${x + 8} 290 L${x + 8} 300`, 2.5); }   // 前腳
+      k.F('M132 132 L124 62 L180 102 Z'); k.F('M268 132 L276 62 L220 102 Z');                          // 耳朵
+      k.F('M140 120 L136 84 L166 104 Z', 3); k.F('M260 120 L264 84 L234 104 Z', 3);
+      k.E(200, 150, 84, 66);                                                                            // 頭
+      k.S('M180 92 L184 112 M200 88 L200 110 M220 92 L216 112', 4);                                    // 額頭花紋
+      k.S('M154 148 C162 138 174 138 182 148 M218 148 C226 138 238 138 246 148', 4.5);                 // 瞇瞇眼（曬太陽好舒服）
+      k.F('M191 168 L209 168 L200 178 Z', 3.5); k.S('M200 178 C195 188 186 188 182 182 M200 178 C205 188 214 188 218 182', 3.5);
+      k.E(146, 172, 14, 9, 0, 3); k.E(254, 172, 14, 9, 0, 3);
+      k.S('M150 164 L94 154 M150 176 L92 180 M250 164 L306 154 M250 176 L308 180', 2.5);
+    }],
+    ['蜜袋鼯米果', (c) => {
+      const k = kit(c);
+      for (const [x, y] of [[60, 70], [340, 60], [330, 150], [70, 170]]) k.F(`M${x} ${y - 14} L${x + 4} ${y - 4} L${x + 14} ${y} L${x + 4} ${y + 4} L${x} ${y + 14} L${x - 4} ${y + 4} L${x - 14} ${y} L${x - 4} ${y - 4} Z`, 3);   // 小星星
+      k.F('M300 300 C352 310 362 360 326 386 C314 394 300 386 308 374 C332 350 322 320 292 318 Z');   // 蓬蓬的尾巴（垂在袋子外面）
+      k.S('M316 330 C326 338 330 350 326 362', 2.5);
+      k.E(150, 112, 30, 36, -0.3); k.E(250, 112, 30, 36, 0.3); k.E(150, 116, 16, 22, -0.3, 3); k.E(250, 116, 16, 22, 0.3, 3);   // 大耳朵
+      k.F('M128 250 C120 196 150 150 200 150 C250 150 280 196 272 250 Z');                            // 身體
+      k.E(200, 160, 66, 56);                                                                            // 頭
+      k.E(170, 156, 20, 22); k.E(230, 156, 20, 22); k.dot(170, 158, 15, 17); k.dot(230, 158, 15, 17);
+      k.shine(164, 150, 6); k.shine(224, 150, 6); k.shine(175, 166, 2.5); k.shine(235, 166, 2.5);
+      k.F('M192 186 L208 186 L200 194 Z', 3); k.S('M200 194 C196 200 190 200 188 196 M200 194 C204 200 210 200 212 196', 3);
+      k.E(160, 192, 12, 8, 0, 3); k.E(240, 192, 12, 8, 0, 3);
+      k.S('M170 184 L136 178 M170 192 L138 196 M230 184 L264 178 M230 192 L262 196', 2.5);
+      k.E(200, 236, 24, 24, 0, 4); for (const [x, y] of [[192, 228], [208, 232], [198, 244], [210, 246]]) k.dot(x, y, 2.5);   // 抱著的點心餅乾
+      k.E(176, 236, 12, 10, 0, 3.5); k.E(224, 236, 12, 10, 0, 3.5);                                   // 小手
+      k.F('M96 254 C96 380 304 380 304 254 Z');                                                         // 藍色保暖袋
+      k.E(200, 254, 106, 18, 0, 4.5);
+      k.clip('M96 254 C96 380 304 380 304 254 Z', () => { for (let x = 120; x <= 290; x += 24) k.S(`M${x} 270 C${x - 4} 310 ${x - 4} 340 ${x} 380`, 2.5); });   // 刷毛布紋
+      k.F('M184 300 C184 288 196 288 200 298 C204 288 216 288 216 300 C216 312 200 322 200 322 C200 322 184 312 184 300 Z', 3);   // 袋子上的愛心
+    }],
   ];
 })();
 const PAINT_PRAISE = ['🌈 哇！這配色好有創意，老師好喜歡！', '👏 塗得好仔細，連小地方都沒漏掉！', '🎨 你是小小藝術家！這張可以貼在教室後面的作品牆喔！',
@@ -3965,7 +4103,7 @@ function update(dt) {
     orbit.update();
   }
 
-  if (floors[1].group.visible) { cat.userData.anim(t); updateBirds(t, dt); }
+  if (floors[1].group.visible) { cat.userData.anim(t); updateBirds(t, dt); updateTurtles(t, dt); }
   updateNPCs(t, dt);
   // 雲慢慢飄
   if (clouds) {

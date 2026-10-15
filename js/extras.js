@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=86';
+import { Batch, mat, SPOTS } from './blocks.js?v=87';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -409,6 +409,36 @@ export function makeHamster() {
     box(fur, 0.022, 0.022, 0.012, sx * 0.03, 0.15, -0.09);    // 小耳朵
     box(paw, 0.018, 0.012, 0.02, sx * 0.022, 0.05, -0.122);   // 扶在洞口的小手
   }
+  return g;
+}
+
+/* ---------- 生態池的烏龜（前面是 -z）：綠色龜殼（六角花紋）、黃綠色頭和腳；腳可以划水 ---------- */
+export function makeTurtle(shellColor = '#4f7f3a') {
+  const g = new THREE.Group();
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const c = cv.getContext('2d');
+  c.fillStyle = shellColor; c.fillRect(0, 0, 64, 64);
+  c.strokeStyle = '#2f4f22'; c.lineWidth = 2;
+  for (const [x, y] of [[16, 16], [48, 16], [32, 32], [16, 48], [48, 48], [0, 32], [64, 32]]) {
+    c.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; c.lineTo(x + Math.cos(a) * 11, y + Math.sin(a) * 11); } c.closePath(); c.stroke();
+  }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const skin = new THREE.MeshLambertMaterial({ color: '#8fae4a' }), dark = new THREE.MeshLambertMaterial({ color: '#2f4f22' });
+  const shell = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshLambertMaterial({ map: tex }));
+  shell.scale.set(1, 0.6, 1.25); shell.position.y = 0.02; g.add(shell);
+  const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.165, 0.165, 0.03, 16), dark); rim.scale.set(1, 1, 1.25); rim.position.y = 0.02; g.add(rim);
+  const box = (m, w, h, d, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); g.add(o); return o; };
+  const head = new THREE.Group(); head.position.set(0, 0.04, -0.2); g.add(head);
+  const hb = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.1), skin); hb.position.z = -0.03; head.add(hb);
+  for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.018, 0.015), new THREE.MeshLambertMaterial({ color: '#111', emissive: '#080808' })); e.position.set(sx * 0.041, 0.012, -0.05); head.add(e); }
+  const legs = [];
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const l = new THREE.Group(); l.position.set(sx * 0.13, 0.01, sz * 0.12); g.add(l);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.03, 0.06), skin); m.position.x = sx * 0.04; l.add(m);
+    legs.push(l);
+  }
+  box(skin, 0.03, 0.025, 0.06, 0, 0.01, 0.21);                       // 尾巴
+  g.userData.head = head; g.userData.legs = legs;
   return g;
 }
 
