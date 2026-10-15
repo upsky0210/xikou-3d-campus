@@ -87,16 +87,16 @@
   // 1F
   // 依使用者說明：從停車場往溪口情廊走，先到幸運方塘（門在西邊），再來才是圖書館
   R('1F', 'A', [705, 195, 780, 330], { no: '105', name: '幸運方塘（自造基地）', alias: '研討室', type: 'special', doors: 'S', doorAt: { S: [0.2] } });
-  R('1F', 'A', [780, 195, 1260, 330], { no: '103', name: '圖書館', type: 'special', doors: 'S' });
-  R('1F', 'A', [1260, 195, 1505, 330], { no: '106', name: '托育中心', type: 'kinder', doors: 'S' });
+  R('1F', 'A', [780, 195, 1260, 330], { no: '103', name: '圖書館', type: 'special', doors: 'S', doorAt: { S: [0.18] } });   // 只有一扇門（東邊那扇後門沒有）
+  R('1F', 'A', [1260, 195, 1505, 330], { no: '106', name: '托育中心', type: 'kinder', doors: 'S', doorAt: { S: [0.82] } });   // 只有東邊一扇門
   R('1F', 'A', [705, 398, 770, 545], { no: '113', name: '油印室', type: 'office', doors: 'N', doorAt: { N: [0.78] } });   // 門開在溪口情廊那邊（依照片）
   R('1F', 'A', [770, 398, 865, 545], { no: '112', name: '人事室・會計室', type: 'office', doors: 'S' });
-  R('1F', 'A', [865, 398, 1100, 545], { no: '111', name: '會議室', type: 'office', doors: 'NS' });
+  R('1F', 'A', [865, 398, 1100, 545], { no: '111', name: '會議室', type: 'office', doors: 'NS', doorAt: { N: [0.18] } });   // 溪口情廊那面只有西邊一扇門
   R('1F', 'A', [1100, 398, 1260, 545], { name: '校長室', type: 'office', doors: 'S' });
-  R('1F', 'A', [1260, 398, 1345, 545], { no: '110', name: '資訊室', type: 'office', doors: 'NS' });
-  R('1F', 'A', [1345, 398, 1505, 545], { no: '109', name: '電腦教室一', type: 'special', doors: 'NS' });
+  R('1F', 'A', [1260, 398, 1345, 545], { no: '110', name: '資訊室', type: 'office', doors: 'NS', doorAt: { N: [] } });   // 溪口情廊那面沒有門（門都在中庭那邊）
+  R('1F', 'A', [1345, 398, 1505, 545], { no: '109', name: '電腦教室一', type: 'special', doors: 'NS', doorAt: { N: [] } });   // 溪口情廊那面沒有門
   R('1F', 'B', [1548, 150, 1685, 330], { name: '（未標示空間）', type: 'storage', doors: 'W', hidden: true });
-  R('1F', 'B', [1548, 400, 1685, 580], { name: '廁所', type: 'wc', doors: 'W' });
+  R('1F', 'B', [1548, 400, 1685, 595], { name: '廁所', type: 'wc', doors: 'W' });   // 跟白雲班中間不留縫（原本多出一條通道）
   R('1F', 'B', [1548, 595, 1680, 750], { no: '127', name: '白雲班（幼 2 歲）', type: 'kinder', doors: 'W' });
   R('1F', 'B', [1548, 755, 1680, 905], { no: '126', name: '太陽班', type: 'kinder', doors: 'W' });
   R('1F', 'B', [1548, 910, 1680, 1060], { no: '125', name: '星星班', type: 'kinder', doors: 'W' });
