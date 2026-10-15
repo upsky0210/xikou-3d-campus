@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=89';
+import { Batch, mat, SPOTS } from './blocks.js?v=90';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -205,7 +205,8 @@ const bannerMat = (key, bg, ink, a, bTxt, en) => texMat(key, 160, 480, (c, w, h)
   [...bTxt].forEach((ch, i) => c.fillText(ch, w * 0.68, 120 + i * 56));
 });
 
-function palm(b, x, z, h) {
+// wallZ：樹後面（北邊）建築外牆的位置；朝牆那邊的葉子剪掉，才不會穿進樓上的教室
+function palm(b, x, z, h, wallZ = -Infinity) {
   const trunk = mat('wool', '#a59d90'), leaf = mat('wool', '#3f8f3a'), leaf2 = mat('wool', '#5aa046');
   b.box(trunk, 0.4, h, 0.4, x, h / 2, z);
   b.box(mat('wool', '#7fa84a'), 0.5, 1.0, 0.5, x, h + 0.1, z);       // 葉鞘（綠色那段）
@@ -213,6 +214,7 @@ function palm(b, x, z, h) {
     const a = (j / 11) * Math.PI * 2 + (j % 2) * 0.2;
     for (let k = 0; k < 4; k++) {
       const r = 0.5 + k * 0.75, y = h + 0.6 - k * k * 0.14;
+      if (z + Math.sin(a) * r - 0.45 < wallZ + 0.2) continue;                  // 碰到牆的葉子不畫
       const g = new THREE.BoxGeometry(0.8, 0.07, 0.34 - k * 0.04);
       g.rotateZ(-0.15 - k * 0.12); g.rotateY(-a);
       g.translate(x + Math.cos(a) * r, y, z + Math.sin(a) * r);
@@ -256,8 +258,8 @@ export function buildFacadeC(group, x1, x2, z, floors, FH, stage, base = 0) {
   // 一樓牆腳的灌木
   for (const [a, c] of [[x1 + 0.5, sx1 - 2.6], [sx2 + 2.0, x2 - 0.3]]) b.box(mat('leaves'), c - a, 0.8, 0.7, (a + c) / 2, 0.4, z + 0.45);
   // 大王椰子：司令臺左邊四棵、右邊三棵
-  for (const x of [sx1 - 13, sx1 - 10, sx1 - 7, sx1 - 3.6]) palm(b, x, z + 1.3, 13 + rnd() * 2);
-  for (const x of [sx2 + 3.4, sx2 + 6.6, sx2 + 9.6]) palm(b, x, z + 1.3, 12.5 + rnd() * 2.5);
+  for (const x of [sx1 - 13, sx1 - 10, sx1 - 7, sx1 - 3.6]) palm(b, x, z + 1.3, 13 + rnd() * 2, z);
+  for (const x of [sx2 + 3.4, sx2 + 6.6, sx2 + 9.6]) palm(b, x, z + 1.3, 12.5 + rnd() * 2.5, z);
   b.build(group);
 }
 
@@ -337,7 +339,7 @@ export function buildMuralBlock(group, x1, xa, x2, z, H, base = 0) {
     b.box(mat('leaves'), 2.8, 1.8, 2.4, x, 3.4, z + 1.6);
     b.box(mat('leaves'), 2.0, 0.8, 1.8, x, 4.6, z + 1.6);
   }
-  palm(b, x2 + 0.6, z + 1.3, 15 + base);
+  palm(b, x2 + 0.6, z + 1.3, 15 + base, z);
   b.build(group);
   return [];
 }
