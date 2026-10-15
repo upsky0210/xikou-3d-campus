@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=81';
-import { furnishFloor } from './furniture.js?v=81';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=81';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=81';
-import { buildCampusWall } from './wall.js?v=81';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=81';
+import { PanoViewer } from './pano.js?v=82';
+import { furnishFloor } from './furniture.js?v=82';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=82';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=82';
+import { buildCampusWall } from './wall.js?v=82';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=82';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -369,13 +369,17 @@ function addRailings(f) {
       let start = -1;
       for (let i = 0; i <= n; i++) {
         const t = i / n, px = ax + (bx - ax) * t, pz = az + (bz - az) * t;
-        const open = i < n && !isWalkable(f, px + nx * OUT, pz + nz * OUT, 0);
+        // 樓梯間：外面是露天的地方（小田園）也要有牆，樓梯兩側才不會懸空
+        const ox = px + nx * OUT, oz = pz + nz * OUT;
+        const open = i < n && (w.kind === 'stair'
+          ? !f.walk.some((a) => a !== w && a.kind !== 'outdoor' && !a.room?.open && inRect(a.m, ox, oz))
+          : !isWalkable(f, ox, oz, 0));
         if (open && start < 0) start = i;
         if (!open && start >= 0) {
           const t0 = start / n, t1 = i / n;
           const seg = { ax: ax + (bx - ax) * t0, az: az + (bz - az) * t0, bx: ax + (bx - ax) * t1, bz: az + (bz - az) * t1, h: RAIL_H, color, kind: 'rail' };
-          // 樓梯間外側是有窗的牆，不是矮欄杆
-          if (w.kind === 'stair') Object.assign(seg, { h: WALL_H, kind: 'wall', bld: w.stair.building });
+          // 樓梯間外側是有窗的牆，不是矮欄杆；一路蓋到上一層（不留縫）。甲梯面向小田園那面是壁畫牆（沒有窗，依照片）
+          if (w.kind === 'stair') Object.assign(seg, { h: FLOOR_H, kind: 'wall', bld: w.stair.building, solid: w.stair.id === '甲梯' && nz === -1 });
           f.segs.push(seg);
           start = -1;
         }
@@ -2358,10 +2362,10 @@ const GLIDERS = [
   {
     make: makeHamster, name: '羞羞',
     hello: '🐹 我是倉鼠羞羞，住在輔導室！<br>有點害羞，所以都躲在粉紅色小熊屋裡偷看你～',
-    // 3F 輔導室：OA 屏風辦公桌北邊那排、最西邊那張的西側桌角（鍵盤旁邊），面向門口（西）
+    // 3F 輔導室：OA 屏風辦公桌西邊那排、最北邊那張的桌角（螢幕旁邊），面向門口（西）
     at: () => {
       const r = rooms.find((x) => x.name === '輔導室'), inset = WALL_T / 2 + 0.02;
-      return [r.f, r.cx - 2.2, r.m.z1 + inset + 2.6, 0.75, Math.PI / 2];   // 跟 furniture.js counselingRoom 同一張桌子
+      return [r.f, r.cx - 2.0, r.m.z1 + inset + 1.42, 0.75, Math.PI / 2];   // 跟 furniture.js counselingRoom 同一張桌子
     },
   },
 ];
@@ -3724,7 +3728,7 @@ await Promise.all([
   BLOCKY && document.fonts?.load('44px "Cubic 11"', '溪口國小'),
 ]).catch(() => {});
 /* ---------------- 依 10-15 新照片：小田園一帶、溪口情廊入口 ----------------
-   甲梯外牆（面向 2F 小田園）：馬賽克壁畫「溪」字＋揮毛筆的人，牆腳一長條「印象溪口」水彩布條；小田園地面六角形地磚
+   甲梯外牆（面向 2F 小田園）：馬賽克壁畫「溪」「口」兩個字＋揮毛筆的人，牆腳一長條「印象溪口」水彩布條；小田園地面六角形地磚
    2F 舞蹈教室東牆（隔著走廊面向小田園）：木紋牆＋房子形狀的小黑板「溪口園藝小尖兵」、飲水機、「溪口小農夫」二十四節氣看板、木長凳
    1F 溪口情廊東端（甲梯下來往停車場方向）：白色歐式門框＋「XIKOU GALLERY」字；情廊裡木紋地磚、白色壁柱、黃色拱、軌道燈 */
 const photoTex = (w, h, draw, opt = {}) => {
@@ -3759,6 +3763,8 @@ function buildPhotoScenes() {
       c.fillStyle = '#efe6c4'; c.fillRect(40, 40, 170, 130);
       c.fillStyle = '#1d1b1a'; c.font = '700 110px "Noto Serif TC", "Noto Sans TC", serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.fillText('溪', 125, 108);
+      c.fillStyle = '#efe6c4'; c.fillRect(40, 180, 170, 130);                // 下面一格「口」
+      c.fillStyle = '#1d1b1a'; c.fillText('口', 125, 248);
       // 右下：揮大毛筆的人（淺黃底、黑紅色大筆觸、綠色草地）
       const X = 230, Y = 210, PW = 230, PH = 400;
       c.fillStyle = '#efe6c4'; c.fillRect(X, Y, PW, PH);
