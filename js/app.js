@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=88';
-import { furnishFloor } from './furniture.js?v=88';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=88';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=88';
-import { buildCampusWall } from './wall.js?v=88';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=88';
+import { PanoViewer } from './pano.js?v=89';
+import { furnishFloor } from './furniture.js?v=89';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=89';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=89';
+import { buildCampusWall } from './wall.js?v=89';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=89';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3407,18 +3407,29 @@ function startRps(n) {
   let me = 0, them = 0, round = 0, wins = 0, locked = false, bubble = null, done = false;
   try { wins = +localStorage.getItem(RPS_KEY) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
+  // 站到老師斜前方 2.2 公尺（偏右一點），鏡頭才不會被自己擋住老師；猜拳時先把這層的名牌收起來
+  {
+    const T = n.g.position, fx = -Math.sin(n.yaw), fz = -Math.cos(n.yaw), rx = -fz, rz = fx;
+    let px = T.x + fx * 2.2 + rx * 1.0, pz = T.z + fz * 2.2 + rz * 1.0;
+    if (!isWalkable(n.f, px, pz, 0)) { px = T.x + fx * 2.2 - rx * 1.0; pz = T.z + fz * 2.2 - rz * 1.0; }
+    const faceYaw = Math.atan2(-(T.x - px), -(T.z - pz));
+    placeAt(n.f, px, pz, faceYaw); avatar.rotation.y = faceYaw; player.pitch = -0.05;
+    player.yaw = faceYaw + 0.42;                                       // 角色面向老師，鏡頭偏一點角度，老師就在角色旁邊、不會被擋住
+    n.f.labels.visible = false;
+  }
   n.g.rotation.y = Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z);   // 老師面向你
   const nL = n.g.userData.limbs;
+  for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);          // 放下打招呼的手
   const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
   const show = () => {
     $('.who').textContent = n.name;
-    $('.score').innerHTML = `你 ${me} ： ${them} ${n.name}`;
+    $('.score').textContent = `${me} ： ${them}`;
     $('.round').textContent = me >= 2 || them >= 2 ? '比賽結束' : `第 ${round + 1} 局`;
   };
   // 老師頭上的拳（名牌下面）
   const popHand = (h) => {
     clearHand();
-    bubble = makeLabel(RPS[h].e, '', n.g.position.x, n.g.position.y + 2.15, n.g.position.z, { bg: '#8fdc2c', h: 0.7 });
+    bubble = makeLabel(RPS[h].e, '', n.g.position.x, n.g.position.y + 2.45, n.g.position.z, { bg: '#8fdc2c', h: 0.7 });
     scene.add(bubble);
   };
   const clearHand = () => { if (bubble) { scene.remove(bubble); bubble.material.map?.dispose(); bubble.material.dispose(); bubble = null; } };
@@ -3430,6 +3441,7 @@ function startRps(n) {
   };
   const finish = () => {
     done = true; rpsBox.hidden = true; clearHand();
+    updateVisibility();                                                 // 名牌放回來
     removeEventListener('keydown', onKey, true);
     for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);
     n.playing = false; act.busy = null; duel = null;
