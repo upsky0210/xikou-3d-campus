@@ -294,7 +294,29 @@
   #rps .btns button small { font-size: 11px; font-weight: 700; color: #234; line-height: 1.2; }
   #rps .btns button:disabled { opacity: .45; }
   #rps .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; justify-content: center; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps {
+  /* 直笛記憶（小瑜老師）：一樣放在畫面下方 */
+  #flute { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 10px 8px; text-align: center; }
+  #flute .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #flute .top b { color: #6e5233; }
+  #flute .prog { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; min-height: 12px; margin: 5px 0 2px; }
+  #flute .prog i { width: 10px; height: 10px; border-radius: 50%; background: #e3dccf; }
+  #flute .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; }
+  #flute .msg.ok { color: #1b8a3a; } #flute .msg.no { color: #c0392b; }
+  #flute .keys { display: flex; gap: 5px; justify-content: center; }
+  #flute .keys button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 2px 4px;
+    border-radius: 10px; background: color-mix(in srgb, var(--c) 30%, #fff); border: 2px solid var(--c); color: #234; transition: transform .1s; }
+  #flute .keys button b { font-size: 14px; line-height: 1.1; } #flute .keys button b small { display: block; font-size: 9px; }
+  #flute .keys button > small { font-size: 10px; color: #555; }
+  #flute .keys button.lit { background: var(--c); transform: translateY(-4px) scale(1.06); }
+  #flute .keys button:disabled { opacity: .55; cursor: default; } #flute .keys button.lit:disabled { opacity: 1; }
+  #flute .fing { display: grid; grid-template-columns: 6px 6px; column-gap: 1px; row-gap: 1px; }
+  #flute .fing i { grid-column: 2; width: 6px; height: 6px; border-radius: 50%; border: 1px solid #234; box-sizing: border-box; }
+  #flute .fing i.th { grid-column: 1; grid-row: 1; border-style: dashed; }
+  #flute .fing i.on { background: #234; }
+  #flute .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: #777; }
+  #flute .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #flute {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -472,6 +494,13 @@
     <button class="quit">結束<br>Esc</button>
   </div>
 </div>
+<div id="flute" hidden>
+  <div class="top"><span>🎵 直笛記憶・<b class="lv"></b></span><span class="lives"></span></div>
+  <div class="prog"></div>
+  <div class="msg"></div>
+  <div class="keys"></div>
+  <div class="foot"><span class="best"></span><button class="quit">結束 Esc</button></div>
+</div>
 <div id="power" hidden><div class="lbl">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
 
 <div id="gallery" hidden>
@@ -616,8 +645,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=90"></script>
-<script src="js/pano-data.js?v=90"></script>
-<script type="module" src="js/app.js?v=90"></script>
+<script src="js/campus-data.js?v=91"></script>
+<script src="js/pano-data.js?v=91"></script>
+<script type="module" src="js/app.js?v=91"></script>
 </body>
 </html>

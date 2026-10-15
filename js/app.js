@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=90';
-import { furnishFloor } from './furniture.js?v=90';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=90';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=90';
-import { buildCampusWall } from './wall.js?v=90';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=90';
+import { PanoViewer } from './pano.js?v=91';
+import { furnishFloor } from './furniture.js?v=91';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=91';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=91';
+import { buildCampusWall } from './wall.js?v=91';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=91';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2612,11 +2612,12 @@ const NPCS = [
     },
   },
   {
-    name: '小瑜老師', title: '音樂老師',
-    hello: ['🎵 小瑜老師：今天一起來吹直笛吧！', '🎶 小瑜老師：上課前先把直笛擦乾淨唷！', '👍 小瑜老師：唱得很好聽，讚！'],
-    // 3 樓音樂教室二（304）前面、鋼琴旁邊，面向學生（東）
+    name: '小瑜老師', title: '音樂老師', game: 'recorder',
+    hello: ['🎵 小瑜老師：今天一起來吹直笛吧！', '🎶 小瑜老師：上課前先把直笛擦乾淨唷！', '👍 小瑜老師：唱得很好聽，讚！',
+      '🎵 小瑜老師：要不要來玩直笛記憶？老師吹一段，你照著吹回去！'],
+    // 3 樓音樂教室二（304）前面、鋼琴旁邊，面向學生（東）；在這裡可以玩直笛記憶
     places: [
-      { floor: '3F', where: '音樂教室二', at: () => { const r = rooms.find((x) => x.name === '音樂教室二'); return [r.m.x1 + 1.9, r.cz + 0.9, -Math.PI / 2]; } },
+      { floor: '3F', where: '音樂教室二', game: true, at: () => { const r = rooms.find((x) => x.name === '音樂教室二'); return [r.m.x1 + 1.9, r.cz + 0.9, -Math.PI / 2]; } },
     ],
     look: {
       // 依圖：棕色貝雷帽（白色 H）、橘棕色長直髮（旁分瀏海）、大大的棕色眼睛、腮紅、開口笑；
@@ -3005,6 +3006,7 @@ function updateAct(dt) {
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
     : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
+    : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
     : sp.kind === 'feed' ? '🐢 餵烏龜 <kbd>F</kbd>'
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
@@ -3020,6 +3022,7 @@ function doAction() {
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
   else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
+  else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
   else if (act.spot?.kind === 'feed') feedTurtles();
 }
@@ -3034,7 +3037,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden));   // 單字、著色有自己的結束鈕
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && fluteBox.hidden));   // 單字、著色、猜拳、直笛有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -3397,6 +3400,20 @@ function startWords(n) {
 /* ---------------- 剪刀石頭布：在五年一班遇到 Poyen 老師，可以猜拳（三戰兩勝，平手重來） ----------------
    點按鈕或按 1／2／3 出拳；喊完「剪刀、石頭、布！」一起亮出來，老師頭上也會冒出他出的拳。 */
 
+// 面對面的小遊戲（猜拳、直笛）：站到老師斜前方 2.2 公尺（偏右一點），鏡頭才不會被自己擋住老師；
+//   先把這層的名牌收起來，老師轉過來面向你、放下打招呼的手
+function faceTeacher(n) {
+  const T = n.g.position, fx = -Math.sin(n.yaw), fz = -Math.cos(n.yaw), rx = -fz, rz = fx;
+  let px = T.x + fx * 2.2 + rx * 1.0, pz = T.z + fz * 2.2 + rz * 1.0;
+  if (!isWalkable(n.f, px, pz, 0)) { px = T.x + fx * 2.2 - rx * 1.0; pz = T.z + fz * 2.2 - rz * 1.0; }
+  const faceYaw = Math.atan2(-(T.x - px), -(T.z - pz));
+  placeAt(n.f, px, pz, faceYaw); avatar.rotation.y = faceYaw; player.pitch = -0.05;
+  player.yaw = faceYaw + 0.42;                                         // 角色面向老師，鏡頭偏一點角度，老師就在角色旁邊、不會被擋住
+  n.f.labels.visible = false;
+  n.g.rotation.y = Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z);
+  for (const k of ['armL', 'armR']) n.g.userData.limbs[k].rotation.set(0, 0, 0);
+}
+
 const RPS_KEY = 'campus-rps-wins';
 const RPS = [{ e: '✌️', n: '剪刀' }, { e: '✊', n: '石頭' }, { e: '🖐️', n: '布' }];
 const rpsBox = document.getElementById('rps');
@@ -3407,19 +3424,8 @@ function startRps(n) {
   let me = 0, them = 0, round = 0, wins = 0, locked = false, bubble = null, done = false;
   try { wins = +localStorage.getItem(RPS_KEY) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
-  // 站到老師斜前方 2.2 公尺（偏右一點），鏡頭才不會被自己擋住老師；猜拳時先把這層的名牌收起來
-  {
-    const T = n.g.position, fx = -Math.sin(n.yaw), fz = -Math.cos(n.yaw), rx = -fz, rz = fx;
-    let px = T.x + fx * 2.2 + rx * 1.0, pz = T.z + fz * 2.2 + rz * 1.0;
-    if (!isWalkable(n.f, px, pz, 0)) { px = T.x + fx * 2.2 - rx * 1.0; pz = T.z + fz * 2.2 - rz * 1.0; }
-    const faceYaw = Math.atan2(-(T.x - px), -(T.z - pz));
-    placeAt(n.f, px, pz, faceYaw); avatar.rotation.y = faceYaw; player.pitch = -0.05;
-    player.yaw = faceYaw + 0.42;                                       // 角色面向老師，鏡頭偏一點角度，老師就在角色旁邊、不會被擋住
-    n.f.labels.visible = false;
-  }
-  n.g.rotation.y = Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z);   // 老師面向你
+  faceTeacher(n);
   const nL = n.g.userData.limbs;
-  for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);          // 放下打招呼的手
   const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
   const show = () => {
     $('.who').textContent = n.name;
@@ -3455,13 +3461,13 @@ function startRps(n) {
     msg('剪刀、石頭、布！');
     // 老師一起甩手：舉起右手上下擺
     let t = 0;
-    act.busy = { label: '✂️ 剪刀石頭布…', tick(dt) { t += dt; nL.armR.rotation.x = -1.6 + Math.sin(t * 20) * 0.45; } };
+    act.busy = { label: '✂️ 剪刀石頭布…', tick(dt) { t += dt; nL.armR.rotation.x = 1.6 + Math.sin(t * 20) * 0.45; } };
     setTimeout(() => {
       if (done) return;                                                // 中途按了結束
       const tHand = Math.random() * 3 | 0, r = (h - tHand + 3) % 3;   // 0 平手、1 你贏、2 老師贏
       $('.me').classList.remove('shake'); $('.them').classList.remove('shake');
       $('.me').textContent = RPS[h].e; $('.them').textContent = RPS[tHand].e;
-      nL.armR.rotation.x = -1.9;
+      nL.armR.rotation.x = 1.9;
       popHand(tHand);
       act.busy = { label: '✂️ 剪刀石頭布中…', tick() {} };
       if (r === 0) { msg(`平手！都出${RPS[h].n}，再來一次！`); npcFace(n, 'wink', 1.6); }
@@ -3492,6 +3498,152 @@ function startRps(n) {
   rpsBox.hidden = false;
   msg(`${n.name}：來猜拳吧！先贏兩局的人獲勝！`);
   ready();
+}
+
+/* ---------------- 直笛記憶：在音樂教室二遇到小瑜老師，老師吹一段，你照順序吹回去（每過一關多一個音） ----------------
+   用直笛最先學的五個音 Sol La Si 高音Do 高音Re；點按鈕或按 1～5。吹錯了老師會再吹一次（兩顆愛心），第二次錯就結束，記錄最高關數。 */
+
+const FLUTE_KEY = 'campus-flute-best';
+// 高音直笛（聽起來比譜高八度）：G5 A5 B5 C6 D6；f 是指法：後面拇指孔｜前面 7 個孔，1 是按住
+const FLUTE = [
+  { n: 'Sol', abc: 'G', hz: 784.0, c: '#ef5350', f: '1|1110000' },
+  { n: 'La', abc: 'A', hz: 880.0, c: '#ffa726', f: '1|1100000' },
+  { n: 'Si', abc: 'B', hz: 987.8, c: '#fdd835', f: '1|1000000' },
+  { n: 'Do', hi: true, abc: 'C', hz: 1046.5, c: '#66bb6a', f: '1|0100000' },
+  { n: 'Re', hi: true, abc: 'D', hz: 1174.7, c: '#42a5f5', f: '0|0100000' },
+];
+const fluteName = (k) => (FLUTE[k].hi ? '高音' : '') + FLUTE[k].n;
+let fluteAudio = null;
+// 用 WebAudio 合成直笛聲：正弦波＋一點點高八度泛音、輕輕的顫音、柔和的起音
+function fluteNote(hz, dur = 0.45) {
+  try {
+    fluteAudio ||= new (window.AudioContext || window.webkitAudioContext)();
+    const ac = fluteAudio, t = ac.currentTime + 0.01;
+    if (ac.state === 'suspended') ac.resume();
+    const o = ac.createOscillator(), o2 = ac.createOscillator(), lfo = ac.createOscillator();
+    const g = ac.createGain(), g2 = ac.createGain(), lg = ac.createGain();
+    o.type = 'sine'; o.frequency.value = hz;
+    o2.type = 'triangle'; o2.frequency.value = hz * 2; g2.gain.value = 0.06;
+    lfo.frequency.value = 5.5; lg.gain.value = hz * 0.004;
+    lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.05);
+    g.gain.setValueAtTime(0.18, t + Math.max(0.06, dur - 0.1)); g.gain.linearRampToValueAtTime(0, t + dur);
+    for (const x of [o, o2, lfo]) { x.start(t); x.stop(t + dur + 0.03); }
+  } catch { /* 沒有音效也能玩 */ }
+}
+const fluteBox = document.getElementById('flute');
+// 五個音的按鈕：唱名、音名＋按鍵、指法圖（左邊那顆是後面的拇指孔）
+fluteBox.querySelector('.keys').innerHTML = FLUTE.map((x, k) => {
+  const [th, fr] = x.f.split('|');
+  const holes = `<i class="th ${th === '1' ? 'on' : ''}"></i>` + [...fr].map((h) => `<i class="${h === '1' ? 'on' : ''}"></i>`).join('');
+  return `<button data-k="${k}" style="--c:${x.c}"><b>${x.hi ? '<small>高音</small>' : ''}${x.n}</b><span class="fing">${holes}</span><small>${x.abc}・${k + 1}</small></button>`;
+}).join('');
+function startFlute(n) {
+  stopAuto();
+  const $ = (sel) => fluteBox.querySelector(sel);
+  const btns = [...fluteBox.querySelectorAll('[data-k]')];
+  let best = 0, seq = [], pos = 0, lives = 2, done = false, listening = false, bubble = null;
+  try { best = +localStorage.getItem(FLUTE_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const nL = n.g.userData.limbs;
+  const level = () => seq.length - 2;                                   // 第 1 關 3 個音
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const show = () => {
+    $('.lv').textContent = `第 ${level()} 關`;
+    $('.lives').textContent = '❤️'.repeat(lives) + '🤍'.repeat(2 - lives);
+    $('.best').textContent = best ? `🏅 最佳紀錄：第 ${best} 關` : '🏅 還沒有紀錄，加油！';
+    $('.prog').innerHTML = seq.map((k, i) => `<i style="${i < pos ? `background:${FLUTE[k].c}` : ''}"></i>`).join('');
+  };
+  const setBtns = (on) => btns.forEach((b) => (b.disabled = !on));
+  const light = (k, ms) => { const b = btns[k]; b.classList.add('lit'); setTimeout(() => b.classList.remove('lit'), ms); };
+  const clearNote = () => { if (bubble) { scene.remove(bubble); bubble.material.map?.dispose(); bubble.material.dispose(); bubble = null; } };
+  const popNote = (k) => {                                              // 老師頭上冒出音符
+    clearNote();
+    bubble = makeLabel(`♪ ${fluteName(k)}`, '', n.g.position.x, n.g.position.y + 2.45, n.g.position.z, { bg: FLUTE[k].c, h: 0.45 });
+    scene.add(bubble);
+  };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  // 舉起直笛到嘴邊（左手拿直笛、右手扶著下面；直笛是左手最後一個子物件，吹的時候轉成吹嘴朝嘴巴、笛尾朝前下方）
+  const flute = nL.armL.children.at(-1), restRot = flute.rotation.clone();
+  const blow = (on) => {
+    nL.armL.rotation.set(on ? 1.15 : 0, 0, on ? 0.55 : 0); nL.armR.rotation.set(on ? 0.95 : 0, 0, on ? -0.35 : 0);
+    if (on) flute.rotation.set(-0.5, 0, -0.7); else flute.rotation.copy(restRot);
+  };
+  const teacherPlays = async () => {
+    listening = false; setBtns(false); pos = 0; show();
+    msg(`🎵 ${n.name}吹給你聽，仔細聽喔…`);
+    blow(true);
+    await wait(800);
+    const step = Math.max(400, 650 - seq.length * 20);                // 越後面吹得越快一點
+    for (const k of seq) {
+      if (done) return;
+      fluteNote(FLUTE[k].hz, step / 1000 * 0.85); light(k, step * 0.8); popNote(k);
+      nL.armR.rotation.x = 0.95 + (k - 2) * 0.04;                       // 右手跟著音高動一動
+      await wait(step);
+    }
+    clearNote(); blow(false);
+    if (done) return;
+    listening = true; setBtns(true);
+    msg(`換你吹！照順序按出這 ${seq.length} 個音`);
+  };
+  const addNote = () => {                                               // 隨機加一個音（不要同一個音連續出現三次）
+    let k;
+    do k = Math.random() * FLUTE.length | 0; while (seq.length >= 2 && seq.at(-1) === k && seq.at(-2) === k);
+    seq.push(k);
+  };
+  const press = (k) => {
+    if (!listening) return;
+    fluteNote(FLUTE[k].hz, 0.35); light(k, 260);
+    if (k === seq[pos]) {
+      pos++; show();
+      if (pos < seq.length) return;
+      listening = false; setBtns(false);
+      if (level() > best) { best = level(); try { localStorage.setItem(FLUTE_KEY, String(best)); } catch { /* 私密模式 */ } }
+      npcFace(n, 'happy', 1.6);
+      msg(['✅ 全部吹對了！', '✅ 好好聽！', '✅ 音感真好！'][Math.random() * 3 | 0] + '下一關多一個音', 'ok');
+      setTimeout(() => { if (done) return; addNote(); teacherPlays(); }, 1500);
+      return;
+    }
+    lives--; listening = false; setBtns(false); show();
+    if (lives > 0) {
+      npcFace(n, 'surprised', 1.6);
+      msg(`❌ 第 ${pos + 1} 個音應該是 ${fluteName(seq[pos])}，老師再吹一次給你聽`, 'no');
+      setTimeout(() => { if (!done) teacherPlays(); }, 1800);
+      return;
+    }
+    npcFace(n, 'sad', 1.8);
+    msg(`❌ 第 ${pos + 1} 個音應該是 ${fluteName(seq[pos])}`, 'no');
+    const lv = level() - 1;
+    setTimeout(() => {
+      if (done) return;
+      npcFace(n, 'happy', 3);
+      finish();
+      toast(lv > 0 ? `🎵 你過了 ${lv} 關！（最佳紀錄：第 ${best} 關）<br>${n.name}：很棒喔！回家多練習，下次挑戰更長的旋律！`
+        : `🎵 ${n.name}：沒關係，多聽幾次就記得了，再來挑戰一次吧！`);
+    }, 1600);
+  };
+  const finish = () => {
+    done = true; fluteBox.hidden = true; clearNote(); blow(false);
+    updateVisibility();                                                 // 名牌放回來
+    removeEventListener('keydown', onKey, true);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const onKey = (e) => {
+    const k = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4, Numpad1: 0, Numpad2: 1, Numpad3: 2, Numpad4: 3, Numpad5: 4 }[e.code];
+    if (k !== undefined) { e.preventDefault(); e.stopPropagation(); press(k); }
+  };
+  addEventListener('keydown', onKey, true);
+  btns.forEach((b) => (b.onclick = () => press(+b.dataset.k)));
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`🎵 下次再來找${n.name}吹直笛！`); } };
+  act.busy = { label: '', tick() {} };                                  // 玩的時候不能走動（視窗在下面，橘色提示鈕先收起來）
+  fluteBox.hidden = false;
+  for (let i = 0; i < 3; i++) addNote();
+  msg(`${n.name}：老師先吹，你照順序吹回去喔！`);
+  show(); setBtns(false);
+  setTimeout(() => { if (!done) teacherPlays(); }, 1200);
 }
 
 /* ---------------- 著色小遊戲：在美勞教室遇到哈囉老師，幫動物線稿塗顏色 ----------------
