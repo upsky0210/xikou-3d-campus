@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=82';
-import { furnishFloor } from './furniture.js?v=82';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=82';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=82';
-import { buildCampusWall } from './wall.js?v=82';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=82';
+import { PanoViewer } from './pano.js?v=83';
+import { furnishFloor } from './furniture.js?v=83';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=83';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=83';
+import { buildCampusWall } from './wall.js?v=83';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=83';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2361,11 +2361,11 @@ const GLIDERS = [
   },
   {
     make: makeHamster, name: '羞羞',
-    hello: '🐹 我是倉鼠羞羞，住在輔導室！<br>有點害羞，所以都躲在粉紅色小熊屋裡偷看你～',
-    // 3F 輔導室：OA 屏風辦公桌西邊那排、最北邊那張的桌角（螢幕旁邊），面向門口（西）
+    hello: '🐹 我是倉鼠羞羞，住在輔導室的透明小屋裡！<br>有點害羞，所以都躲在粉紅色小熊屋裡偷看你～',
+    // 3F 輔導室（依空景照片）：東邊休息區最北邊那張小桌子上的透明倉鼠籠裡，面向西邊
     at: () => {
-      const r = rooms.find((x) => x.name === '輔導室'), inset = WALL_T / 2 + 0.02;
-      return [r.f, r.cx - 2.0, r.m.z1 + inset + 1.42, 0.75, Math.PI / 2];   // 跟 furniture.js counselingRoom 同一張桌子
+      const r = rooms.find((x) => x.name === '輔導室'), inset = WALL_T / 2 + 0.02, W = r.m.x2 - r.m.x1 - inset * 2;
+      return [r.f, r.cx + W / 2 - 0.33 + 0.05, r.m.z1 + inset + 1.85, 0.77, Math.PI / 2];   // 跟 furniture.js counselingRoom 的籠子同一個位置
     },
   },
 ];

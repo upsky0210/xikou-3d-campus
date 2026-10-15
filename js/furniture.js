@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=82';
+import { Batch, mat, SPOTS } from './blocks.js?v=83';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1285,10 +1285,13 @@ function woodChairU(put, u, v, face, wood = mat('wool', '#6b3a22')) {
   for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(wood, 0.05, 0.05, 0.44, u + a * 0.19, v + b * 0.19, 0);
 }
 
-// 3F 輔導室（依兩張照片＋使用者說明）：淺萊姆綠牆（東牆淺灰）、淺色木紋地板；中間一區 OA 屏風辦公桌（坐下來面向門口；灰色下板＋木紋腰帶＋霧面玻璃、
-//   白色桌面、一張粉紅桌墊）；南牆白板行事曆、時鐘、抽屜櫃＋地球儀、西南角白框木心展示櫃；
-//   東邊高木皮櫃台、灰色門、冰箱；西邊（走廊、中庭那側）窗戶貼紙雪人、窗下木矮櫃
-// u：從北牆往南；v：A 東（校外）、D 西（走廊、門）
+// 3F 輔導室（依 6 張空景照片＋使用者說明）：
+//   西牆（走廊）：雪人窗、兩扇門、窗下木矮櫃；南牆淺綠：白板行事曆、時鐘、抽屜櫃＋地球儀，前面一座木格柵展示櫃（圓弧頂、噴瓶圓層板、禮物盒）
+//   北牆：一整排到頂的米白收納櫃（圓把手），東北角冰箱、東牆北端灰色門
+//   東牆灰色捲簾窗；北半段用一道 1.6 m 木櫃隔出休息區：小桌子（倉鼠籠、小朋友的畫）、愛心椅凳、木茶几（裁紙機）、深咖啡雙人沙發（小熊）、
+//   微波爐電鍋櫃、「歡喜招吉祥」匾額；南半段白色圓桌＋紅圓凳、貼綠色海報的木門櫃
+//   中間兩排 OA 屏風辦公桌（坐下來面向西邊的門口），東南邊另一張單獨的辦公桌＋護貝機
+// u：從北牆往南；v：A 東（校外、灰牆）、D 西（走廊、門）
 const snowmanMat = (scarf) => once(`snowman${scarf}`, () => new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, map: bigTex(64, 128, (c) => {
   c.fillStyle = '#ffffff';
   c.beginPath(); c.arc(32, 94, 26, 0, Math.PI * 2); c.fill();
@@ -1311,56 +1314,125 @@ const calendarBoardMat = () => once('calboard', () => new THREE.MeshLambertMater
   c.fillStyle = '#e8506a'; c.beginPath(); c.arc(54, 104, 6, 0, Math.PI * 2); c.arc(64, 104, 6, 0, Math.PI * 2); c.fill();
   c.beginPath(); c.moveTo(48, 106); c.lineTo(59, 120); c.lineTo(70, 106); c.fill();   // 愛心
 }) }));
+const blessingMat = () => once('blessing', () => new THREE.MeshLambertMaterial({ map: bigTex(96, 224, (c, w, h) => {
+  c.fillStyle = '#c9a54a'; c.fillRect(0, 0, w, h);                       // 金色框
+  c.fillStyle = '#f4ead2'; c.fillRect(9, 9, w - 18, h - 18);
+  c.fillStyle = '#1d1b1a'; c.font = '700 30px "Noto Serif TC", "Noto Sans TC", serif'; c.textAlign = 'center';
+  ['歡', '喜', '招', '吉', '祥'].forEach((t, i) => c.fillText(t, w / 2, 48 + i * 36));
+}) }));
+const kidsDrawingMat = () => once('kidsdraw', () => new THREE.MeshLambertMaterial({ map: bigTex(256, 64, (c, w, h) => {
+  c.fillStyle = '#d9dadb'; c.fillRect(0, 0, w, h);
+  for (let i = 0; i < 5; i++) {
+    const x = 6 + i * 50; c.fillStyle = '#fbfbf8'; c.fillRect(x, 6 + (i % 2) * 4, 44, 52);
+    c.strokeStyle = '#6b6b6b'; c.lineWidth = 1.5; c.strokeRect(x + 10, 20, 24, 20); c.beginPath(); c.arc(x + 22, 30, 6, 0, Math.PI * 2); c.stroke();   // 鉛筆畫的倉鼠籠
+  }
+}) }));
 function counselingRoom(put, fr, room) {
-  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  const W = fr.W, L = fr.L, A = fr.away, D = -A, E = (v) => A * v;           // E(v)：往東 v 公尺
   const green = mat('wool', '#e3eba6'), greyWall = mat('wool', '#d3d6d8'), white = mat('wool', '#f3f3f0');
   const grey = mat('wool', '#a7acb1'), woodBand = mat('wool', '#caa577'), frost = mat('glass'), alu = mat('wool', '#c9cdd1');
-  const black = mat('wool', '#1d1f22'), lightWood = mat('planks', '#c9ae8a');
-  put(mat('planks', '#cdbfa8'), L, W, 0.012, L / 2, 0, 0);                    // 淺色木紋地板
-  // 牆面：北牆、南牆淺萊姆綠；東牆（窗下、窗上）淺灰
-  put(green, 0.02, W - 0.1, 2.96, 0.012, 0, 0); put(green, 0.02, W - 0.1, 2.96, L - 0.012, 0, 0);
-  for (const [y0, h] of [[0, 1.0], [2.2, 0.78]]) put(greyWall, L - 0.1, 0.02, h, L / 2, A * (W / 2 - 0.012), y0);
-  // 南牆：白板行事曆、時鐘、抽屜櫃＋地球儀（東邊）、白框木心展示櫃（西南角）
-  put(calendarBoardMat(), 0.03, 1.7, 1.1, L - 0.03, D * 0.4, 1.25, true);
-  put.geo(white, new THREE.CylinderGeometry(0.17, 0.17, 0.04, 20).rotateX(Math.PI / 2), L - 0.04, A * 0.75, 2.4, 0);
-  put(black, 0.01, 0.02, 0.12, L - 0.07, A * 0.75, 2.38); put(black, 0.01, 0.1, 0.02, L - 0.07, A * 0.75 + 0.04, 2.4);
-  put(mat('wool', '#ede2cc'), 0.45, 1.0, 0.8, L - 0.25, A * 1.65, 0);
-  put(mat('wool', '#9aa0a6'), 0.35, 0.9, 0.38, L - 0.22, A * 1.65, 0.8);
-  for (let r = 0; r < 4; r++) put(white, 0.01, 0.84, 0.02, L - 0.4, A * 1.65, 0.86 + r * 0.09);
-  put(M.metal(), 0.04, 0.04, 0.22, L - 0.25, A * 1.8, 1.18);
-  put.geo(mat('wool', '#3d7cc9'), new THREE.SphereGeometry(0.17, 12, 10), L - 0.25, A * 1.8, 1.55);   // 地球儀
-  const sv = D * (W / 2 - 0.62);
-  put(white, 0.5, 0.95, 2.35, L - 0.27, sv, 0);
-  put(mat('planks', '#9b6a3c'), 0.02, 0.62, 1.75, L - 0.53, sv, 0.45);
-  for (const y of [0.95, 1.45, 1.95]) put(white, 0.3, 0.62, 0.03, L - 0.68, sv, y);
-  // 中間 OA 屏風辦公桌：2 排 × 3 組（南北向排開），人坐在桌子東邊、臉朝西邊的門口（依使用者說明）
-  //   每組前面（西側）一道屏風、組與組中間也有屏風
-  const us = [1.9, 3.25, 4.6], cw = 1.35, colsV = [D * 1.9, D * -0.2];
+  const black = mat('wool', '#1d1f22'), lightWood = mat('planks', '#c9ae8a'), knob = M.metal();
+  put(mat('planks', '#bdb3a3'), L, W, 0.012, L / 2, 0, 0);                     // 灰木紋地板
+  // 牆面：南牆淺萊姆綠、北牆櫃子上方綠、東牆淺灰
+  put(green, 0.02, W - 0.1, 2.96, L - 0.012, 0, 0); put(green, 0.02, W - 0.1, 0.55, 0.012, 0, 2.42);
+  for (const [y0, h] of [[0, 1.0], [2.2, 0.78]]) put(greyWall, L - 0.1, 0.02, h, L / 2, E(W / 2 - 0.012), y0);
+  // ---- 北牆：到頂的米白收納櫃（從西牆到冰箱前） ----
+  const cv0 = -W / 2 + 0.02, cv1 = 2.05, cab = mat('wool', '#e9e1cf');
+  put(cab, 0.6, cv1 - cv0, 2.4, 0.31, E((cv0 + cv1) / 2), 0);
+  for (let v = cv0 + 0.55; v < cv1; v += 0.55) put(mat('wool', '#cfc6b2'), 0.01, 0.015, 2.3, 0.615, E(v), 0.05);   // 櫃門縫
+  for (let v = cv0 + 0.275; v < cv1; v += 0.55) for (const y of [0.95, 1.65]) put(knob, 0.03, 0.05, 0.05, 0.625, E(v + 0.18), y);
+  // 東北角：冰箱、東牆北端灰色門
+  put(mat('wool', '#b8bdc2'), 0.65, 0.65, 1.75, 0.4, E(2.45), 0);
+  put(mat('wool', '#aeb4b9'), 0.9, 0.03, 2.05, 1.25, E(W / 2 - 0.03), 0); put(knob, 0.06, 0.04, 0.06, 0.9, E(W / 2 - 0.06), 1.0);
+  // ---- 隔出休息區的木櫃（1.6 m 高，門朝東邊休息區；朝西那面是平的木皮），上面放金色、紅色裝飾 ----
+  const pv = 1.75, pu0 = 0.8, pu1 = 5.0, pu = (pu0 + pu1) / 2;
+  put(mat('planks', '#b9a184'), pu1 - pu0, 0.5, 1.6, pu, E(pv), 0); put(white, pu1 - pu0 + 0.05, 0.55, 0.03, pu, E(pv), 1.6);
+  for (let u = pu0 + 0.35; u < pu1; u += 0.7) { put(knob, 0.05, 0.03, 0.05, u, E(pv + 0.26), 1.0); put(mat('wool', '#a08868'), 0.015, 0.01, 1.5, u + 0.35, E(pv + 0.255), 0.05); }
+  put(mat('wool', '#d4af37'), 2.2, 0.12, 0.1, pu + 0.3, E(pv), 1.63); put(mat('wool', '#c0392b'), 0.3, 0.3, 0.18, pu + 1.0, E(pv), 1.63);
+  put(mat('wool', '#f2efe6'), 2.0, 0.01, 0.28, pu - 0.4, E(pv - 0.26), 0.85);   // 西面貼的小卡片
+  // ---- 東邊休息區（北→南）：小桌子＋倉鼠籠、愛心椅凳、木茶几、雙人沙發、微波爐電鍋櫃、匾額 ----
+  const tv = W / 2 - 0.33;
+  for (const u of [1.95, 2.95]) {
+    put(mat('wool', '#e6ebe6'), 0.95, 0.6, 0.04, u, E(tv), 0.7);
+    for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(mat('wool', '#8b5a32'), 0.05, 0.05, 0.7, u + a * 0.42, E(tv + b * 0.25), 0);
+  }
+  put(white, 0.62, 0.42, 0.03, 1.95, E(tv), 0.74);                                 // 倉鼠籠：白色底盤＋透明壓克力
+  put(frost, 0.62, 0.42, 0.3, 1.95, E(tv), 0.77);
+  put(mat('planks', '#d9b98a'), 0.2, 0.3, 0.12, 2.15, E(tv), 0.77);                // 籠子裡的木頭小屋台
+  put(kidsDrawingMat(), 1.4, 0.01, 0.35, 2.3, E(W / 2 - 0.02), 1.1, true);          // 牆上小朋友畫的倉鼠籠
+  put(mat('wool', '#d9dadb'), 3.6, 0.02, 1.1, 3.1, E(W / 2 - 0.05), 1.65);          // 灰色捲簾
+  const ott = mat('wool', '#8fa3ad');                                              // 愛心形椅凳
+  for (const s of [-1, 1]) put.geo(ott, new THREE.CylinderGeometry(0.19, 0.19, 0.42, 14), 3.35 + s * 0.1, E(2.45 - 0.1), 0.21);
+  put.geo(ott, new THREE.CylinderGeometry(0.15, 0.15, 0.42, 4).rotateY(Math.PI / 4), 3.35, E(2.6), 0.21);
+  put(mat('planks', '#d8b98a'), 0.6, 1.0, 0.04, 4.0, E(2.75), 0.42);              // 木茶几（黑腳）＋藍色裁紙機
+  for (const s of [-1, 1]) put(black, 0.6, 0.04, 0.42, 4.0, E(2.75 + s * 0.45), 0);
+  put(mat('wool', '#2f5aa8'), 0.35, 0.3, 0.03, 4.0, E(2.7), 0.46);
+  const sofa = mat('wool', '#3b2c2e'), cushion = mat('wool', '#4a383a');          // 深咖啡雙人沙發，面向北
+  put(sofa, 0.85, 1.5, 0.3, 4.9, E(2.75), 0.08); put(cushion, 0.62, 1.2, 0.12, 4.82, E(2.75), 0.38);
+  put(sofa, 0.22, 1.5, 0.48, 5.22, E(2.75), 0.38);
+  for (const s of [-1, 1]) put(sofa, 0.85, 0.16, 0.62, 4.9, E(2.75 + s * 0.67), 0);
+  const bear = mat('wool', '#c58a4a');                                              // 沙發上的小熊
+  put(bear, 0.18, 0.24, 0.24, 4.85, E(2.3), 0.5); put(bear, 0.15, 0.18, 0.16, 4.85, E(2.3), 0.74);
+  const mv = W / 2 - 0.27;                                                          // 微波爐電鍋櫃（深灰框、木門、上面微波爐）
+  put(mat('wool', '#4a4d52'), 0.9, 0.5, 0.95, 5.9, E(mv), 0); put(lightWood, 0.85, 0.02, 0.45, 5.9, E(mv - 0.26), 0.05);
+  put(mat('wool', '#2b2d31'), 0.84, 0.46, 0.4, 5.9, E(mv + 0.02), 0.52);
+  put.geo(mat('wool', '#e8508a'), new THREE.CylinderGeometry(0.14, 0.14, 0.22, 12), 5.7, E(mv), 0.64);   // 粉紅電鍋
+  put.geo(mat('wool', '#c62828'), new THREE.CylinderGeometry(0.13, 0.11, 0.16, 12), 6.1, E(mv), 0.61);
+  put(black, 0.5, 0.36, 0.3, 5.9, E(mv), 0.95);                                    // 微波爐
+  put(blessingMat(), 0.42, 0.02, 0.98, 5.3, E(W / 2 - 0.02), 1.55, true);           // 「歡喜招吉祥」匾額
+  // ---- 東南邊：白色圓桌＋紅圓凳、貼綠色海報的木門櫃 ----
+  put.geo(white, new THREE.CylinderGeometry(0.45, 0.45, 0.04, 20), 6.65, E(2.45), 0.72);
+  put(M.metal(), 0.06, 0.06, 0.72, 6.65, E(2.45), 0);
+  for (const [du, dv] of [[-0.6, 0.15], [0.55, -0.1]]) {
+    put.geo(mat('wool', '#c0392b'), new THREE.CylinderGeometry(0.17, 0.17, 0.04, 12), 6.65 + du, E(2.45 + dv), 0.45);
+    put(mat('wool', '#c0392b'), 0.04, 0.04, 0.45, 6.65 + du, E(2.45 + dv), 0);
+  }
+  put(mat('planks', '#8c7a66'), 1.0, 0.45, 2.0, 7.75, E(W / 2 - 0.25), 0);
+  put(mat('wool', '#6b5a48'), 0.015, 0.01, 1.9, 7.75, E(W / 2 - 0.48), 0.05);
+  put(mat('wool', '#5cb85c'), 0.3, 0.01, 0.55, 7.55, E(W / 2 - 0.48), 1.25);
+  // ---- 南牆：白板行事曆、時鐘、抽屜櫃＋地球儀；前面的木格柵展示櫃、禮物盒 ----
+  put(calendarBoardMat(), 0.03, 1.7, 1.1, L - 0.03, E(0.1), 1.25, true);
+  put.geo(white, new THREE.CylinderGeometry(0.17, 0.17, 0.04, 20).rotateX(Math.PI / 2), L - 0.04, E(-1.15), 2.4, 0);
+  put(black, 0.01, 0.02, 0.12, L - 0.07, E(-1.15), 2.38); put(black, 0.01, 0.1, 0.02, L - 0.07, E(-1.15) + 0.04, 2.4);
+  put(mat('wool', '#ede2cc'), 0.45, 1.6, 0.8, L - 0.25, E(1.75), 0);
+  put(mat('wool', '#9aa0a6'), 0.35, 0.6, 0.38, L - 0.22, E(1.35), 0.8);
+  for (let r = 0; r < 4; r++) put(white, 0.01, 0.54, 0.02, L - 0.4, E(1.35), 0.86 + r * 0.09);
+  put(M.metal(), 0.04, 0.04, 0.22, L - 0.25, E(1.95), 0.8);
+  put.geo(mat('wool', '#3d7cc9'), new THREE.SphereGeometry(0.17, 12, 10), L - 0.25, E(1.95), 1.17);
+  const au = L - 0.95, av = -2.1;                                                   // 展示櫃（長邊跟南牆平行）
+  put(lightWood, 0.42, 1.25, 0.85, au, E(av), 0);
+  put(white, 0.4, 0.5, 1.25, au, E(av + 0.35), 0.85);                               // 右半邊開放格（白）
+  for (const y of [1.25, 1.65]) put(lightWood, 0.38, 0.48, 0.03, au - 0.02, E(av + 0.35), y);
+  for (let k = 0; k < 5; k++) put(mat('wool', '#7a4a2a'), 0.06, 0.07, 1.25, au, E(av - 0.55 + k * 0.13), 0.85);   // 直條木格柵
+  put(lightWood, 0.5, 1.35, 0.07, au, E(av), 2.1);                                  // 圓弧頂板（簡化成長板）
+  put(mat('wool', '#efe6d8'), 0.02, 0.28, 0.42, au - 0.22, E(av - 0.4), 1.35);      // 掛著的帆布袋
+  put.geo(white, new THREE.CylinderGeometry(0.28, 0.28, 0.03, 16), au - 0.32, E(av + 0.5), 0.92);   // 圓形小層板＋噴瓶
+  for (const dv of [-0.08, 0.08]) put(white, 0.07, 0.07, 0.22, au - 0.36, E(av + 0.5 + dv), 0.935);
+  [['#a8ded8', 0, 0], ['#c0392b', 0, 0.3], ['#f4b8c8', 0.4, 0]].forEach(([col, du, y]) => put(mat('wool', col), 0.32, 0.32, 0.3, au - 0.55 - du, E(av + 0.6), y));   // 禮物盒
+  // ---- 中間：兩排 OA 屏風辦公桌，人坐在桌子東邊、臉朝西邊的門口 ----
+  const us = [2.3, 3.6, 4.9], cw = 1.3;
   const panel = (u, v, du, dv) => {
     put(grey, du, dv, 0.72, u, v, 0); put(woodBand, du, dv, 0.26, u, v, 0.72); put(frost, du, dv, 0.27, u, v, 0.98);
     put(alu, du + 0.02, dv + 0.02, 0.03, u, v, 1.25);
   };
-  colsV.forEach((v, ci) => {
-    panel((us[0] + us[2]) / 2, v + D * 0.4, cw * 3, 0.05);                       // 前面（西側）一整道屏風
-    for (let k = 0; k <= 3; k++) panel(us[0] - cw / 2 + k * cw, v, 0.05, 0.8);     // 組與組中間
-    us.forEach((u, i) => {
-      put(white, cw - 0.08, 0.72, 0.04, u, v, 0.71);                              // 白色桌面（高 0.75）
-      put(white, 0.42, 0.55, 0.66, u + cw / 2 - 0.3, v + A * 0.05, 0);            // 活動抽屜櫃
-      put(black, 0.6, 0.05, 0.38, u, v + D * 0.22, 0.77); put(screenMat(), 0.55, 0.02, 0.33, u, v + D * 0.19, 0.79);   // 螢幕朝東（對著坐的人）
-      put(black, 0.45, 0.16, 0.02, u, v + A * 0.12, 0.75);                        // 鍵盤
-      if (ci === 1 && i === 1) put(mat('wool', '#e9b9c4'), 0.75, 0.42, 0.01, u + 0.1, v + A * 0.12, 0.75);   // 粉紅桌墊（依照片）
-      officeChair(put, u, v + A * 0.75, 0, D, '#2b2d31');                         // 椅子在東邊，坐下來面向西（門口）
-    });
+  const desk = (u, v, pink) => {
+    put(white, cw - 0.08, 0.72, 0.04, u, v, 0.71);                                   // 白色桌面（高 0.75）
+    put(white, 0.42, 0.55, 0.66, u + cw / 2 - 0.3, v + A * 0.05, 0);                 // 活動抽屜櫃
+    put(black, 0.6, 0.05, 0.38, u, v + D * 0.22, 0.77); put(screenMat(), 0.55, 0.02, 0.33, u, v + D * 0.19, 0.79);
+    put(black, 0.45, 0.16, 0.02, u, v + A * 0.12, 0.75);                             // 鍵盤
+    if (pink) put(mat('wool', '#e9b9c4'), 0.75, 0.42, 0.01, u + 0.1, v + A * 0.12, 0.75);
+    officeChair(put, u, v + A * 0.75, 0, D, '#2b2d31');                              // 椅子在東邊，坐下來面向西（門口）
+  };
+  [E(-2.2), E(-0.2)].forEach((v, ci) => {
+    panel((us[0] + us[2]) / 2, v + D * 0.4, cw * 3, 0.05);                           // 前面（西側）一整道屏風
+    for (let k = 0; k <= 3; k++) panel(us[0] - cw / 2 + k * cw, v, 0.05, 0.8);        // 組與組中間
+    us.forEach((u, i) => desk(u, v, ci === 1 && i === 1));
   });
-  // 東邊：冰箱（東北角）、灰色門、高木皮櫃台（上面有金色、紅色裝飾）、後面小木桌
-  put(mat('wool', '#c4c8cc'), 0.65, 0.65, 1.75, 0.45, A * (W / 2 - 0.4), 0);
-  put(mat('wool', '#b9bec3'), 0.95, 0.03, 2.05, 1.65, A * (W / 2 - 0.03), 0);
-  put(M.metal(), 0.06, 0.04, 0.06, 1.3, A * (W / 2 - 0.06), 1.0);
-  const kv = A * (W / 2 - 1.6);
-  put(mat('planks', '#b89a78'), 0.5, 3.0, 1.45, 5.6, kv, 0); put(white, 0.55, 3.05, 0.03, 5.6, kv, 1.45);
-  put(mat('wool', '#d4af37'), 0.1, 1.2, 0.08, 5.6, kv - A * 0.3, 1.48); put(mat('wool', '#c0392b'), 0.16, 0.3, 0.16, 5.6, kv - A * 0.5, 1.48);
-  put(M.wood(), 0.6, 0.9, 0.72, 6.5, A * (W / 2 - 0.6), 0);
-  // 西邊：窗下木矮櫃（兩扇門中間）、窗戶上的雪人貼紙
+  // 東南邊單獨一張（旁邊護貝機放在小白櫃上）
+  panel(6.6, E(0.4) + D * 0.4, cw, 0.05); for (const s of [-1, 1]) panel(6.6 + s * cw / 2, E(0.4), 0.05, 0.8);
+  desk(6.6, E(0.4), false);
+  put(white, 0.5, 0.5, 0.7, 7.45, E(1.4), 0); put(mat('wool', '#d9d9d9'), 0.3, 0.45, 0.1, 7.45, E(1.4), 0.7);
+  // ---- 西邊：窗下木矮櫃（兩扇門中間）、窗戶上的雪人貼紙 ----
   const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
   const c0 = (doorU[0] ?? 1.5) + 1.05, c1 = (doorU[1] ?? L - 1.5) - 1.05;
   if (c1 - c0 > 1) { put(lightWood, c1 - c0, 0.42, 0.85, (c0 + c1) / 2, D * (W / 2 - 0.23), 0); put(white, c1 - c0 + 0.05, 0.45, 0.03, (c0 + c1) / 2, D * (W / 2 - 0.23), 0.85); }
