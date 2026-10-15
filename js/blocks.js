@@ -502,6 +502,23 @@ export function makeBlockNPC(look) {
     box(g, 0.14, 0.17, 0.014, new THREE.MeshLambertMaterial({ color: '#ffffff' }), 0, 0.93, -0.14);
     box(g, 0.14, 0.04, 0.016, cloth(look.lanyard), 0, 0.995, -0.14);
   }
+  if (look.beanie) {                                        // 毛線帽：帽身＋反折帽緣＋頂端毛球
+    const bm = cloth(look.beanie);
+    box(hg, 0.5, 0.16, 0.5, bm, 0, 1.84 - NECK, 0);
+    box(hg, 0.52, 0.08, 0.52, cloth(look.beanieCuff || look.beanie), 0, 1.76 - NECK, 0);
+    box(hg, 0.14, 0.12, 0.14, bm, 0, 1.97 - NECK, 0);
+  }
+  if (look.scarf) {                                         // 圍巾：繞脖子一圈，兩端垂在胸前
+    const [a, b2] = look.scarf.map((c) => cloth(c));
+    box(g, 0.5, 0.11, 0.32, a, 0, 1.31, 0);
+    box(g, 0.11, 0.42, 0.03, b2, -0.11, 1.08, -0.15); box(g, 0.1, 0.36, 0.03, a, 0.1, 1.11, -0.152);
+    box(g, 0.08, 0.06, 0.032, a, -0.11, 1.0, -0.153);                 // 米白那端上的紅色蝴蝶結
+  }
+  if (look.bag) {                                           // 斜背包：背帶從右肩斜到左腰，小包包在腰側
+    const strap = box(g, 0.03, 0.66, 0.015, cloth(look.bag), 0.02, 1.03, -0.14); strap.rotation.z = -0.62;
+    box(g, 0.22, 0.17, 0.09, cloth(look.bag), -0.2, 0.76, -0.12);
+  }
+  if (look.skirt) box(g, 0.5, 0.62, 0.3, cloth(look.skirt), 0, 0.42, 0);   // 長裙（蓋到腳踝）
   if (look.whistle) {
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), 0.06, 1.2, -0.135);
@@ -511,7 +528,7 @@ export function makeBlockNPC(look) {
   const arm = (side) => {
     const p = pivot(side * 0.33, 1.3);
     if (look.longSleeve) {
-      box(p, 0.19, 0.58, 0.21, top, 0, -0.29, 0);
+      box(p, 0.19, 0.58, 0.21, look.sleeve ? cloth(look.sleeve) : top, 0, -0.29, 0);   // sleeve：背心底下的外套袖子
       box(p, 0.16, 0.1, 0.18, skin, 0, -0.63, 0);
     } else {
       if (look.sleeveless) box(p, 0.17, 0.68, 0.18, skin, 0, -0.34, 0);   // 無袖：整條手臂
@@ -536,6 +553,11 @@ export function makeBlockNPC(look) {
       for (let k = 0; k < 5; k++) box(rg, 0.022, 0.022, 0.01, hm, 0, 0.26 - k * 0.07, -0.027).castShadow = false;
     } else if (kind === 'racket') {                         // 黑色羽球拍（直直立起來）
       rg.position.set(0, -0.64, -0.12); rg.rotation.set(-0.5, 0, 0); rg.add(makeRacket());
+    } else if (kind === 'brush') {                          // 水彩筆（木頭筆桿、銀色筆箍、沾了顏料的筆毛）
+      rg.position.set(0, -0.64, -0.1); rg.rotation.set(-0.7, 0, 0);
+      box(rg, 0.025, 0.3, 0.025, M('#c98b4a'), 0, 0.08, 0);
+      box(rg, 0.03, 0.05, 0.03, M('#c9cdd1'), 0, 0.25, 0);
+      box(rg, 0.035, 0.07, 0.035, M('#e53935'), 0, 0.31, 0);
     } else if (kind === 'shuttle') {                        // 羽毛球（球頭朝上）
       rg.position.set(0, -0.7, -0.08); rg.add(makeShuttle());
     }

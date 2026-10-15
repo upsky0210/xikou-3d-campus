@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=84';
-import { furnishFloor } from './furniture.js?v=84';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=84';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=84';
-import { buildCampusWall } from './wall.js?v=84';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=84';
+import { PanoViewer } from './pano.js?v=85';
+import { furnishFloor } from './furniture.js?v=85';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeHamster } from './extras.js?v=85';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=85';
+import { buildCampusWall } from './wall.js?v=85';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=85';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2620,6 +2620,41 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '哈羅老師', title: '美勞老師', game: 'paint',
+    hello: ['🎨 哈羅老師：哈囉～今天想畫什麼動物呢？', '🎨 哈羅老師：顏色沒有對錯，大膽塗上你喜歡的顏色！',
+      '🖍️ 哈羅老師：要不要來幫小動物穿上新衣服？', '🎨 哈羅老師：哈囉哈囉！美勞教室今天開張囉～'],
+    // 3 樓美勞教室（311）前面講台旁，面向學生（東）；在這裡可以玩著色
+    places: [
+      { floor: '3F', where: '美勞教室', game: true, at: () => { const r = rooms.find((x) => x.name === '美勞教室'); return [r.m.x1 + 1.4, r.cz + 1.3, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：米色毛線帽（頂端毛球）、咖啡色長直髮、笑開露牙；紅白圍巾（米白那端有紅色蝴蝶結）、
+      //   卡其色鋪棉背心＋咖啡色外套袖子、酒紅色長裙＋深色內搭、白色球鞋、米色斜背包；美勞老師手拿水彩筆
+      skin: '#f6d6c0', hair: '#5a3423', top: '#c49a6c', sleeve: '#9c6b45', pants: '#2b2b30', shoe: '#f4f4f4',
+      longHair: true, longSleeve: true, beanie: '#d8c4a8', beanieCuff: '#cdb698', scarf: ['#d32f2f', '#f2e6da'],
+      skirt: '#8e2a3a', bag: '#dccbbd', holdR: 'brush',
+      pal: { K: '#d8c4a8', k: '#c4ae90', H: '#5a3423', h: '#7a4a32', S: '#f6d6c0', E: '#2a1610', W: '#ffffff', N: '#e8b89e', B: '#f2a7a0', M: '#b84a4a', T: '#ffffff' },
+      face: [
+        'KKKKKKKKKKKKKKKK',
+        'KkKKkKKkKKkKKkKK',
+        'KKKKKKKKKKKKKKKK',
+        'kkkkkkkkkkkkkkkk',
+        'HHHHHHSSSHHHHHHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEESSSSSSEESHH',
+        'HHSEWSSSSSSEWSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -2843,6 +2878,7 @@ function updateAct(dt) {
     : sp.kind === 'badminton' ? `🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
+    : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
   placeQuit();
@@ -2855,6 +2891,7 @@ function doAction() {
   else if (act.spot?.kind === 'badminton') startBadminton(act.spot.npc);
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
+  else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
 }
 actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
@@ -2867,7 +2904,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden));
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden));   // 單字、著色有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -3225,6 +3262,174 @@ function startWords(n) {
   quizBox.hidden = false;
   $('.tip').textContent = `${n.name}：Let's practice！看中文打出英文單字 🔊 答完會唸出發音`;
   ask();
+}
+
+/* ---------------- 著色小遊戲：在美勞教室遇到哈羅老師，幫動物線稿塗顏色 ----------------
+   動物線稿用程式畫在 400×400 的畫布上；先把「被黑線圍起來的區塊」編號，點一下就把整塊塗成選的顏色（可以一直換色重塗） */
+
+const paintBox = document.getElementById('paint'), paintCv = paintBox.querySelector('canvas');
+const PAINT_KEY = 'campus-paint-count';
+const PAINT_COLORS = ['#e53935', '#fb8c00', '#fdd835', '#9ccc65', '#43a047', '#4fc3f7', '#1e88e5', '#8e24aa', '#f48fb1', '#8d6e63', '#ffe0b2', '#9e9e9e', '#424242', '#ffffff'];
+// 動物線稿（黑線）：c 是 2D context，已經設好線條粗細與顏色
+const ANIMALS = (() => {
+  const E = (c, x, y, rx, ry, rot = 0) => { c.beginPath(); c.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); c.stroke(); };
+  const P = (c, pts, close = true) => { c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); if (close) c.closePath(); c.stroke(); };
+  const dot = (c, x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fillStyle = '#222'; c.fill(); };
+  return [
+    ['貓咪', (c) => {
+      E(c, 200, 300, 95, 70); P(c, [[285, 310], [330, 260], [355, 190], [372, 196], [350, 270], [300, 335]]);   // 身體、尾巴
+      E(c, 200, 160, 85, 72); P(c, [[130, 120], [138, 52], [190, 92]]); P(c, [[270, 120], [262, 52], [210, 92]]);   // 頭、耳朵
+      E(c, 168, 150, 14, 18); E(c, 232, 150, 14, 18); dot(c, 168, 152, 6); dot(c, 232, 152, 6);
+      P(c, [[192, 180], [208, 180], [200, 190]]); P(c, [[200, 190], [188, 202]], false); P(c, [[200, 190], [212, 202]], false);
+      for (const s of [-1, 1]) for (const dy of [-6, 8]) P(c, [[200 + s * 40, 186 + dy * 0.3], [200 + s * 95, 178 + dy]], false);
+      E(c, 160, 362, 28, 16); E(c, 240, 362, 28, 16);
+    }],
+    ['小狗', (c) => {
+      E(c, 200, 315, 92, 62); for (const x of [140, 260]) P(c, [[x - 18, 350], [x - 18, 385], [x + 18, 385], [x + 18, 350]], false);
+      P(c, [[288, 300], [340, 250], [352, 262], [300, 318]]);
+      E(c, 200, 160, 78, 72); E(c, 122, 168, 26, 58, 0.25); E(c, 278, 168, 26, 58, -0.25);
+      E(c, 200, 200, 40, 30); E(c, 200, 186, 13, 9); c.fillStyle = '#222'; c.fill();
+      E(c, 170, 148, 11, 13); E(c, 230, 148, 11, 13); dot(c, 170, 150, 5); dot(c, 230, 150, 5);
+      P(c, [[188, 214], [200, 222], [212, 214]], false); E(c, 236, 120, 22, 16);   // 嘴巴、眼睛上的斑點
+    }],
+    ['兔子', (c) => {
+      E(c, 200, 300, 85, 78); E(c, 280, 330, 22, 22);
+      E(c, 200, 175, 66, 60); E(c, 168, 82, 20, 62, -0.12); E(c, 232, 82, 20, 62, 0.12); E(c, 168, 86, 9, 44, -0.12); E(c, 232, 86, 9, 44, 0.12);
+      E(c, 176, 168, 9, 12); E(c, 224, 168, 9, 12); dot(c, 176, 170, 4); dot(c, 224, 170, 4);
+      P(c, [[193, 192], [207, 192], [200, 200]]); E(c, 160, 205, 14, 9); E(c, 240, 205, 14, 9);
+      E(c, 165, 372, 30, 15); E(c, 235, 372, 30, 15); E(c, 200, 300, 42, 50);
+    }],
+    ['小魚', (c) => {
+      E(c, 185, 200, 125, 80); P(c, [[302, 200], [372, 130], [372, 270]]);
+      P(c, [[150, 124], [205, 70], [235, 126]]); P(c, [[160, 276], [200, 320], [225, 272]]);
+      for (const x of [140, 200, 250]) { c.beginPath(); c.moveTo(x, 200 - Math.sqrt(Math.max(0, 1 - ((x - 185) / 125) ** 2)) * 80); c.quadraticCurveTo(x + 22, 200, x, 200 + Math.sqrt(Math.max(0, 1 - ((x - 185) / 125) ** 2)) * 80); c.stroke(); }
+      E(c, 100, 185, 16, 16); dot(c, 102, 185, 7); P(c, [[68, 214], [86, 222]], false);
+      E(c, 70, 90, 14, 14); E(c, 46, 54, 9, 9); E(c, 318, 330, 12, 12);
+    }],
+    ['小鳥', (c) => {
+      P(c, [[30, 330], [370, 330], [370, 352], [30, 352]]); E(c, 300, 315, 30, 14);     // 樹枝、葉子
+      E(c, 190, 220, 92, 70); E(c, 262, 150, 50, 46); P(c, [[306, 142], [350, 152], [306, 164]]);
+      E(c, 272, 140, 9, 10); dot(c, 274, 141, 4); E(c, 175, 228, 58, 34, -0.2);
+      P(c, [[104, 230], [40, 200], [52, 240], [100, 250]]);
+      P(c, [[180, 288], [176, 330]], false); P(c, [[210, 288], [214, 330]], false);
+      E(c, 290, 172, 12, 8);
+    }],
+    ['烏龜', (c) => {
+      c.beginPath(); c.moveTo(70, 270); c.bezierCurveTo(80, 110, 320, 110, 330, 270); c.closePath(); c.stroke();   // 殼
+      P(c, [[160, 190], [200, 165], [240, 190], [240, 235], [200, 255], [160, 235]]);
+      for (const [a, b] of [[[160, 190], [110, 175]], [[240, 190], [290, 175]], [[160, 235], [100, 268]], [[240, 235], [300, 268]], [[200, 165], [200, 130]], [[200, 255], [200, 270]]]) P(c, [a, b], false);
+      E(c, 362, 250, 34, 28); E(c, 372, 242, 6, 7); dot(c, 373, 243, 3);
+      for (const x of [110, 290]) E(c, x, 300, 26, 22);
+      P(c, [[60, 262], [30, 280], [62, 278]]);
+    }],
+    ['蝴蝶', (c) => {
+      E(c, 200, 210, 14, 95); E(c, 200, 108, 18, 18);
+      P(c, [[196, 92], [160, 40]], false); P(c, [[204, 92], [240, 40]], false); E(c, 160, 40, 8, 8); E(c, 240, 40, 8, 8);
+      E(c, 118, 160, 86, 62, -0.5); E(c, 282, 160, 86, 62, 0.5); E(c, 130, 270, 62, 48, 0.5); E(c, 270, 270, 62, 48, -0.5);
+      E(c, 110, 150, 26, 20); E(c, 290, 150, 26, 20); E(c, 128, 272, 18, 14); E(c, 272, 272, 18, 14);
+      E(c, 160, 190, 12, 12); E(c, 240, 190, 12, 12);
+    }],
+    ['倉鼠羞羞', (c) => {
+      E(c, 200, 230, 125, 118); E(c, 108, 128, 30, 28); E(c, 292, 128, 30, 28); E(c, 108, 128, 15, 14); E(c, 292, 128, 15, 14);
+      E(c, 200, 292, 70, 50);                                                       // 白肚子
+      E(c, 160, 190, 11, 13); E(c, 240, 190, 11, 13); dot(c, 161, 192, 6); dot(c, 241, 192, 6);
+      P(c, [[192, 214], [208, 214], [200, 223]]); E(c, 135, 228, 18, 12); E(c, 265, 228, 18, 12);
+      E(c, 168, 262, 16, 12); E(c, 232, 262, 16, 12); E(c, 150, 342, 28, 15); E(c, 250, 342, 28, 15);   // 小手、腳
+      P(c, [[200, 120], [200, 168]], false);
+    }],
+  ];
+})();
+const PAINT_PRAISE = ['🌈 哇！這配色好有創意，老師好喜歡！', '👏 塗得好仔細，連小地方都沒漏掉！', '🎨 你是小小藝術家！這張可以貼在教室後面的作品牆喔！',
+  '✨ 顏色搭得好漂亮，看起來好開心！', '💖 老師要把這張拍照收藏起來～'];
+function startPaint(n) {
+  stopAuto();
+  const W = 400, cx = paintCv.getContext('2d', { willReadFrequently: true });
+  const $ = (sel) => paintBox.querySelector(sel);
+  const msg = (t, cls = '') => { const m = $('.msg'); m.innerHTML = t; m.style.color = cls === 'no' ? '#c0392b' : cls === 'ok' ? '#1b8a3a' : ''; };
+  let k = Math.random() * ANIMALS.length | 0, color = PAINT_COLORS[0], label, line, base, colors, fills = 0, first = true;
+  // 畫線稿 → 找出黑線、把其他地方依「被線圍起來」分區編號
+  const load = () => {
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, W, W);
+    cx.lineWidth = 6; cx.lineJoin = cx.lineCap = 'round'; cx.strokeStyle = '#222';
+    ANIMALS[k][1](cx);
+    base = cx.getImageData(0, 0, W, W);
+    const d = base.data, N = W * W;
+    line = new Uint8Array(N); label = new Int32Array(N).fill(-1);
+    for (let i = 0; i < N; i++) line[i] = d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2] < 420 ? 1 : 0;
+    let L = 0; const st = new Int32Array(N);
+    for (let i = 0; i < N; i++) {
+      if (line[i] || label[i] >= 0) continue;
+      let sp = 0; st[sp++] = i; label[i] = L;
+      while (sp) {
+        const j = st[--sp], x = j % W, y = (j / W) | 0;
+        for (const q of [x > 0 ? j - 1 : -1, x < W - 1 ? j + 1 : -1, y > 0 ? j - W : -1, y < W - 1 ? j + W : -1]) if (q >= 0 && !line[q] && label[q] < 0) { label[q] = L; st[sp++] = q; }
+      }
+      L++;
+    }
+    colors = new Array(L).fill(null);
+    $('.name').textContent = `今天畫：${ANIMALS[k][0]}`;
+    msg(first ? `${n.name}：哈囉！幫這隻${ANIMALS[k][0]}穿上漂亮的顏色吧～<br>點一個顏色，再點圖裡的空白處就能塗上去！` : '點一個顏色，再點圖裡的空白處就能塗上去！');
+    first = false;
+    draw();
+  };
+  const draw = () => {
+    const out = cx.createImageData(W, W), o = out.data, d = base.data;
+    for (let i = 0; i < W * W; i++) {
+      const c = !line[i] && colors[label[i]];
+      if (c) { o[i * 4] = c[0]; o[i * 4 + 1] = c[1]; o[i * 4 + 2] = c[2]; }
+      else { o[i * 4] = d[i * 4]; o[i * 4 + 1] = d[i * 4 + 1]; o[i * 4 + 2] = d[i * 4 + 2]; }
+      o[i * 4 + 3] = 255;
+    }
+    cx.putImageData(out, 0, 0);
+  };
+  const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const fillAt = (e) => {
+    const r = paintCv.getBoundingClientRect();
+    let x = Math.round((e.clientX - r.left) / r.width * W), y = Math.round((e.clientY - r.top) / r.height * W);
+    // 點到黑線上：找最近的空白處
+    let idx = -1;
+    for (let rr = 0; rr <= 6 && idx < 0; rr++) for (let dy = -rr; dy <= rr && idx < 0; dy++) for (let dx = -rr; dx <= rr; dx++) {
+      const xx = x + dx, yy = y + dy;
+      if (xx < 0 || yy < 0 || xx >= W || yy >= W) continue;
+      const j = yy * W + xx; if (!line[j]) { idx = j; break; }
+    }
+    if (idx < 0) return;
+    colors[label[idx]] = color === '#ffffff' ? null : rgb(color);
+    draw();
+    if (++fills % 5 === 0) npcFace(n, 'happy', 1.2);
+  };
+  // 調色盤
+  $('.pal').innerHTML = PAINT_COLORS.map((c) => `<button data-c="${c}" style="background:${c}" title="${c === '#ffffff' ? '橡皮擦（白色）' : c}"></button>`).join('');
+  const pick = (c) => { color = c; paintBox.querySelectorAll('.pal button').forEach((b) => b.classList.toggle('on', b.dataset.c === c)); };
+  $('.pal').onclick = (e) => { const b = e.target.closest('button'); if (b) pick(b.dataset.c); };
+  pick(color);
+  paintCv.onpointerdown = (e) => { e.preventDefault(); e.stopPropagation(); fillAt(e); };
+  const colored = () => colors.filter(Boolean).length;
+  $('.next').onclick = () => { k = (k + 1) % ANIMALS.length; load(); };
+  $('.clear').onclick = () => { colors.fill(null); draw(); msg('重新開始！'); };
+  $('.save').onclick = () => { const a = document.createElement('a'); a.download = `${ANIMALS[k][0]}著色.png`; a.href = paintCv.toDataURL('image/png'); a.click(); msg('📥 圖片存好了！', 'ok'); };
+  $('.done').onclick = () => {
+    if (colored() < 3) { msg('還有好多地方是白白的，再多塗幾個顏色吧！', 'no'); npcFace(n, 'surprised', 1.2); return; }
+    let cnt = 1; try { cnt = (+localStorage.getItem(PAINT_KEY) || 0) + 1; localStorage.setItem(PAINT_KEY, String(cnt)); } catch { /* 私密模式 */ }
+    const name = ANIMALS[k][0];
+    finish();
+    npcFace(n, 'happy', 3);
+    toast(`${PAINT_PRAISE[Math.random() * PAINT_PRAISE.length | 0]}<br>🖼️ ${name}完成！這是你在美勞教室畫的第 ${cnt} 張作品`);
+  };
+  $('.quit').onclick = () => duel?.quit();
+  // 著色時鍵盤只留 Esc（不要按到 E／Q 換樓層、C 換角色）
+  const keyGuard = (e) => { e.stopPropagation(); if (e.code === 'Escape') duel?.quit(); };
+  addEventListener('keydown', keyGuard, true);
+  const finish = () => {
+    paintBox.hidden = true; removeEventListener('keydown', keyGuard, true);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  n.playing = true;
+  n.g.rotation.y = Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z);   // 老師面向你
+  duel = { quit() { finish(); toast(`🎨 ${n.name}：下次再來畫畫喔！`); } };
+  act.busy = { label: '🎨 著色中…', tick() {} };
+  paintBox.hidden = false;
+  load();
 }
 
 /* ---------------- 草地上的童玩：跳繩、扯鈴、小飛機 ---------------- */

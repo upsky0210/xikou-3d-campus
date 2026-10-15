@@ -263,7 +263,20 @@
   #quiz .btns button { padding: 8px 14px; font-weight: 700; border-radius: 10px; background: #6a3fc0; color: #fff; }
   #quiz .btns button.sub { background: #e5e1ee; color: #333; }
   #quiz .tip { font-size: 12px; color: #888; margin-top: 8px; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz {
+  /* 著色小遊戲（哈羅老師） */
+  #paint { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 16px; box-shadow: var(--shadow); padding: 12px 14px; text-align: center; }
+  #paint .top { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; }
+  #paint .cat { background: #e8508a; color: #fff; border-radius: 999px; padding: 2px 10px; }
+  #paint canvas { display: block; width: min(100%, 50vh); aspect-ratio: 1; margin: 8px auto; border: 2px solid #ddd; border-radius: 8px; background: #fff; touch-action: none; cursor: crosshair; }
+  #paint .pal { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  #paint .pal button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #999; padding: 0; box-shadow: none; }
+  #paint .pal button.on { outline: 3px solid #222; outline-offset: 2px; }
+  #paint .msg { min-height: 1.4em; margin: 6px 0; font-weight: 700; font-size: 14px; }
+  #paint .btns { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  #paint .btns button { padding: 7px 12px; font-weight: 700; border-radius: 10px; background: #e8508a; color: #fff; }
+  #paint .btns button.sub { background: #f1e6ec; color: #333; }
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -425,6 +438,13 @@
   <div class="btns"><button class="go">送出 Enter</button><button class="sub skip">我不會</button><button class="sub quit">結束 Esc</button></div>
   <div class="tip">🔊 答完會唸出單字的發音</div>
 </div>
+<div id="paint" hidden>
+  <div class="top"><span class="cat">🎨 哈羅老師的著色本</span><span class="name"></span></div>
+  <canvas width="400" height="400"></canvas>
+  <div class="pal"></div>
+  <div class="msg"></div>
+  <div class="btns"><button class="done">完成 ✨</button><button class="sub next">換一隻</button><button class="sub clear">重來</button><button class="sub save">存成圖片</button><button class="sub quit">結束 Esc</button></div>
+</div>
 <div id="power" hidden><div class="lbl">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
 
 <div id="gallery" hidden>
@@ -569,8 +589,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=84"></script>
-<script src="js/pano-data.js?v=84"></script>
-<script type="module" src="js/app.js?v=84"></script>
+<script src="js/campus-data.js?v=85"></script>
+<script src="js/pano-data.js?v=85"></script>
+<script type="module" src="js/app.js?v=85"></script>
 </body>
 </html>
