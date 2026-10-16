@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=98';
+import { Batch, mat, SPOTS } from './blocks.js?v=102';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1734,6 +1734,137 @@ function guardRoom(put, fr, room) {
   put(mat('wool', '#d23a2f'), 0.02, 0.35, 0.9, 0.02, D * (W / 2 - 0.6), 1.1);        // 紅色春聯
 }
 
+// B1 敬業樓地下室（依照片）：一大片磨石子地、白柱子包紫色防撞墊、牆邊藍色防撞墊、淺藍天花板＋橘色水管＋吊掛日光燈；
+//   北半邊是桌球區（藍色 STIGA 桌球桌、深藍／寶藍色擋板、收起來的桌子、發球網），中間是自行車道（白線、斑馬線、腳踏車圖示、吊掛紅綠燈），
+//   南牆一整排自行車安全海報，東端（甲梯出口）彩虹壁畫「至善 思源 敬業 勤學」＋白色雙開門，旁邊跳高軟墊、橘色布幕、巧拼
+//   u：從北牆往南（0～L），v：從中間往東為正（西 -W/2、東 +W/2）
+const bikePosterMat = (k) => once('bikeposter' + k, () => new THREE.MeshLambertMaterial({ map: bigTex(880, 340, (c, w, h) => {
+  const [title, col, band] = [['自行車上路須知', '#c0392b', '#f3e7ff'], ['自行車號誌須知', '#c0392b', '#ffeef0'],
+    ['自行車騎行守則', '#1f5fa8', '#e8f3ff'], ['自行車體驗區', '#2e7d32', '#eef8ea']][k];
+  c.fillStyle = '#fbfbf8'; c.fillRect(0, 0, w, h);
+  c.fillStyle = band; c.fillRect(0, 0, w, 60);
+  c.strokeStyle = '#d9d9d9'; c.lineWidth = 4; c.strokeRect(2, 2, w - 4, h - 4);
+  c.fillStyle = '#fff6e0'; c.fillRect(24, 22, 260, 58); c.strokeStyle = col; c.lineWidth = 4; c.strokeRect(24, 22, 260, 58);
+  c.fillStyle = col; c.font = '900 34px "Noto Sans TC", sans-serif'; c.textBaseline = 'middle'; c.fillText(title, 36, 52);
+  // 插圖：小朋友騎腳踏車、號誌、圓形圖示（只畫成色塊，字太小看不清）
+  const bike = (x, y, s, frame) => {
+    c.strokeStyle = '#333'; c.lineWidth = 3 * s;
+    for (const dx of [-28, 28]) { c.beginPath(); c.arc(x + dx * s, y, 20 * s, 0, 7); c.stroke(); }
+    c.strokeStyle = frame; c.lineWidth = 5 * s; c.beginPath(); c.moveTo(x - 28 * s, y); c.lineTo(x - 6 * s, y - 26 * s); c.lineTo(x + 18 * s, y - 26 * s); c.lineTo(x + 28 * s, y); c.moveTo(x - 6 * s, y - 26 * s); c.lineTo(x, y); c.lineTo(x + 18 * s, y - 26 * s); c.stroke();
+    c.fillStyle = '#f2a65a'; c.beginPath(); c.arc(x, y - 52 * s, 9 * s, 0, 7); c.fill();
+    c.fillStyle = '#e8762b'; c.beginPath(); c.arc(x, y - 56 * s, 10 * s, Math.PI, 0); c.fill();
+  };
+  if (k === 3) bike(170, 230, 2.2, '#d63a2a');
+  else for (let i = 0; i < 3; i++) bike(90 + i * 120, 250, 0.9, ['#2a7ad6', '#d63a2a', '#2e9a4a'][i]);
+  const colors = ['#f2b134', '#5bb0e0', '#e8584f', '#7cc38a', '#9b7ad6'];
+  for (let i = 0; i < 6; i++) {
+    const x = 460 + (i % 3) * 135, y = 100 + Math.floor(i / 3) * 120;
+    c.fillStyle = '#ffffff'; c.fillRect(x, y, 120, 105); c.strokeStyle = colors[(i + k) % 5]; c.lineWidth = 5; c.strokeRect(x, y, 120, 105);
+    c.fillStyle = colors[(i + k + 2) % 5]; c.beginPath(); c.arc(x + 60, y + 45, 28, 0, 7); c.fill();
+    c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(x + 15, y + 82, 90, 6);
+  }
+  c.fillStyle = 'rgba(0,0,0,.22)'; for (let i = 0; i < 5; i++) c.fillRect(30, 110 + i * 14, 380 - (i % 2) * 60, 5);
+}) }));
+const rainbowMuralMat = () => once('rainbowmural', () => new THREE.MeshLambertMaterial({ map: bigTex(900, 400, (c, w, h) => {
+  const sky = c.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, '#5cb6ea'); sky.addColorStop(1, '#c9ecff');
+  c.fillStyle = sky; c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(255,255,255,.85)'; for (const [x, y] of [[90, 40], [760, 60], [520, 30]]) { c.beginPath(); c.ellipse(x, y, 50, 16, 0, 0, 7); c.fill(); }
+  ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa'].forEach((col, i) => {
+    c.strokeStyle = col; c.lineWidth = 12; c.beginPath(); c.arc(450, 330, 250 - i * 12, Math.PI, 0); c.stroke();
+  });
+  c.fillStyle = '#1d3a8a'; c.font = '900 34px "Noto Sans TC", sans-serif'; c.textAlign = 'center'; c.fillText('至善　思源　敬業　勤學', 450, 52);
+  c.fillStyle = '#8bd36a'; c.fillRect(0, 300, w, 100);
+  c.fillStyle = '#ffffff'; for (let x = 0; x < w; x += 22) c.fillRect(x, 290, 6, 30);                 // 白色小圍籬
+  for (let i = 0; i < 40; i++) { c.fillStyle = ['#ff6b8a', '#ffd23a', '#ffffff', '#8a6ae0'][i % 4]; c.beginPath(); c.arc(20 + (i * 97) % w, 330 + (i * 37) % 60, 5, 0, 7); c.fill(); }
+  for (const [x, s] of [[300, 1], [700, 0.8]]) {                                                   // 兩棵大樹
+    c.fillStyle = '#7a5232'; c.fillRect(x - 10 * s, 220, 20 * s, 100);
+    c.fillStyle = '#5bb33a'; c.beginPath(); c.arc(x, 190, 70 * s, 0, 7); c.fill(); c.fillStyle = '#7fd04a'; c.beginPath(); c.arc(x - 25 * s, 175, 40 * s, 0, 7); c.fill();
+  }
+  c.fillStyle = '#2f6b4f'; c.fillRect(400, 240, 110, 70); c.strokeStyle = '#8a5a2a'; c.lineWidth = 5; c.strokeRect(400, 240, 110, 70);   // 小黑板
+  c.fillStyle = '#ffffff'; c.font = '700 16px sans-serif'; c.fillText('1+5=6', 455, 270); c.fillText('4+1=5', 455, 294);
+  const kid = (x, y, shirt, hair) => {
+    c.fillStyle = '#f5c99a'; c.beginPath(); c.arc(x, y, 15, 0, 7); c.fill();
+    c.fillStyle = hair; c.beginPath(); c.arc(x, y - 4, 15, Math.PI, 0); c.fill();
+    c.fillStyle = shirt; c.fillRect(x - 12, y + 14, 24, 28); c.fillStyle = '#3a4a8a'; c.fillRect(x - 10, y + 42, 8, 16); c.fillRect(x + 2, y + 42, 8, 16);
+  };
+  kid(150, 250, '#e53935', '#3a2a1a'); kid(560, 280, '#e53935', '#3a2a1a'); kid(620, 285, '#fdd835', '#5a3a1a'); kid(820, 275, '#e53935', '#2a1a10');
+  c.fillStyle = '#f5c99a'; c.beginPath(); c.arc(100, 205, 17, 0, 7); c.fill(); c.fillStyle = '#c99a5a'; c.beginPath(); c.arc(100, 198, 17, Math.PI, 0); c.fill();   // 老師
+  c.fillStyle = '#f19ab0'; c.fillRect(85, 222, 30, 50); c.fillStyle = '#8a8a8a'; c.fillRect(88, 272, 10, 30); c.fillRect(102, 272, 10, 30);
+}) }));
+function bikeIconMat() {
+  return once('bikeicon', () => new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, map: bigTex(256, 160, (c, w, h) => {
+    c.strokeStyle = '#ffffff'; c.fillStyle = '#ffffff'; c.lineWidth = 12;
+    for (const x of [60, 196]) { c.beginPath(); c.arc(x, 110, 40, 0, 7); c.stroke(); }
+    c.beginPath(); c.moveTo(60, 110); c.lineTo(110, 60); c.lineTo(170, 60); c.lineTo(196, 110); c.stroke();
+    c.beginPath(); c.arc(130, 24, 16, 0, 7); c.fill(); c.fillRect(112, 40, 30, 30);
+  }) }));
+}
+function tableTennisHall(put, fr) {
+  const W = fr.W, L = fr.L;
+  const white = M.white(), purple = mat('wool', '#8a2fa0'), blue = mat('wool', '#1d5fc4'), line = mat('wool', '#fbfbfb');
+  put(mat('tile', '#d6d6d2'), L, W, 0.012, L / 2, 0, 0);                         // 灰白磨石子地
+  // 柱子：白色、下段包紫色防撞墊（三排、每 5 公尺一根）
+  const rowsU = [6.0, 11.4, 16.8], colsV = [];
+  for (let v = -20; v <= 20; v += 5) colsV.push(v);
+  for (const u of rowsU) for (const v of colsV) { put(white, 0.55, 0.55, 2.36, u, v, 0); put(purple, 0.78, 0.78, 1.55, u, v, 0); }
+  // 南北兩面牆的壁柱：藍色防撞墊（南牆貼海報的地方也一樣）
+  for (const v of colsV) for (const [u, s] of [[0.25, 1], [L - 0.25, -1]]) { put(white, 0.5, 0.6, 2.36, u, v, 0); put(blue, 0.55, 0.9, 1.55, u + s * 0.04, v, 0); }
+  // 天花板（B1 上面就是地面，室內高 2.4 公尺）：淺藍色天花板、橘色水管、吊掛日光燈
+  put(mat('wool', '#cfe4ec'), L, W, 0.02, L / 2, 0, 2.36);
+  const orange = mat('wool', '#e0582a'), lamp = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#fffbe8', emissiveIntensity: 0.9 });
+  for (const u of [3.5, 9.0, 20.5]) put(orange, 0.12, W - 0.6, 0.12, u, 0, 2.2);
+  for (const u of [3.0, 8.7, 14.1, 19.6]) for (let v = -22.5; v <= 22.5; v += 4.5) {
+    put(M.grey(), 0.02, 0.02, 0.2, u, v - 0.5, 2.16); put(M.grey(), 0.02, 0.02, 0.2, u, v + 0.5, 2.16);
+    put(M.grey(), 0.2, 1.3, 0.06, u, v, 2.1); put(lamp, 0.12, 1.2, 0.02, u, v, 2.08);
+  }
+  // 北半邊：桌球區（靠北牆一排、西半邊再一區），外面圍一圈擋板
+  const tableTop = mat('wool', '#1f4fa0'), leg = mat('wool', '#d8dadc'), netMat = mat('wool', '#16244a');
+  const pingTable = (u, v) => {
+    put(tableTop, 1.525, 2.74, 0.04, u, v, 0.72); put(white, 1.53, 0.02, 0.005, u, v, 0.76);   // 桌面＋中線
+    put(netMat, 1.7, 0.02, 0.15, u, v, 0.76);                                                // 網子
+    for (const dv of [-1.0, 1.0]) for (const du of [-0.6, 0.6]) put(leg, 0.05, 0.05, 0.72, u + du, v + dv, 0);
+    put(leg, 0.04, 2.0, 0.04, u, v, 0.15);
+  };
+  for (let v = -22; v <= 18; v += 4) pingTable(2.9, v);
+  for (let v = -21; v <= -5; v += 4) pingTable(8.7, v);
+  const cabort = mat('wool', '#252a78'), chanson = mat('wool', '#2563c9');
+  const fence = (u, v, du, dv, k) => put(k % 3 === 1 ? chanson : cabort, du, dv, 0.72, u, v, 0.05);
+  for (let v = -23, k = 0; v < 19; v += 2.1, k++) if (k % 4 !== 3) fence(5.3, v + 1, 0.04, 2.0, k);    // 桌球區南邊那排擋板（每隔幾片留一個缺口進出）
+  for (let v = -23, k = 0; v < -3; v += 2.1, k++) fence(11.0, v + 1, 0.04, 2.0, k + 1);
+  for (let u = 6.6, k = 0; u < 10.8; u += 2.1, k++) fence(u + 1, -2.6, 2.0, 0.04, k);
+  // 北牆邊：收起來立著的桌球桌、發球網
+  for (let v = -17.5; v <= 12.5; v += 5) { put(tableTop, 0.12, 1.5, 1.45, 0.75, v, 0.15); put(leg, 0.5, 1.4, 0.15, 0.75, v, 0); }
+  put(blue, 0.04, 2.2, 1.5, 0.7, 19.5, 0.3); for (const dv of [-1.1, 1.1]) put(blue, 0.8, 0.04, 1.8, 1.0, 19.5 + dv, 0);
+  // 自行車道：兩條白線、斑馬線、腳踏車圖示、終點方框（白線）
+  put(line, 0.08, 36, 0.006, 12.5, 3, 0.013); put(line, 0.08, 36, 0.006, 14.1, 3, 0.013);
+  for (let v = 4; v <= 13; v += 0.7) put(line, 1.6, 0.32, 0.006, 15.2, v, 0.013);
+  put(bikeIconMat(), 1.1, 1.6, 0.004, 13.3, -6, 0.016, true);
+  for (const [a, b] of [[10.5, 15.2], [17.6, 15.2]]) put(line, 0.08, 9, 0.006, a, 20.5, 0.013);   // 東端方框
+  for (const v of [16, 25]) put(line, 7.1, 0.08, 0.006, 14.05, v, 0.013);
+  for (let v = 17.5; v <= 23.5; v += 1.5) put(line, 2.2, 0.06, 0.006, 11.6, v, 0.013);
+  // 吊掛的綠色紅綠燈（三個燈＋兩個燈的行人號誌）
+  const signal = mat('wool', '#2f6b3a'), lens = mat('wool', '#1b2420');
+  for (const [u, v] of [[11.0, 4], [11.0, 16]]) {
+    put(M.grey(), 0.04, 0.04, 0.12, u, v, 2.24); put(signal, 0.32, 1.0, 0.3, u, v, 1.94);
+    for (const dv of [-0.32, 0, 0.32]) put(lens, 0.02, 0.24, 0.24, u - 0.17, v + dv, 1.97);
+  }
+  put(signal, 0.3, 0.32, 0.62, 16.8 - 0.42, 10, 1.6); for (const y of [1.66, 1.94]) put(lens, 0.02, 0.24, 0.24, 16.8 - 0.58, 10, y);
+  // 南牆：自行車安全海報（四大張，貼在藍色防撞墊中間）
+  [-12.5, -7.5, -2.5, 2.5].forEach((v, k) => put(bikePosterMat(k), 0.03, 4.2, 1.62, L - 0.03, v, 0.55, true));
+  put(white, 0.01, 0.4, 0.55, L - 0.04, 7.5, 1.2);                                            // 柱子上的闖關單（第十站）
+  // 東南角：跳高軟墊、跳高架、橘色布幕、疊起來的巧拼
+  put(mat('wool', '#3a7fd0'), 3.2, 4.0, 0.45, 19.6, 20.0, 0); put(mat('wool', '#4a8fe0'), 2.8, 3.6, 0.2, 19.6, 20.0, 0.45);
+  for (const du of [-1.9, 1.9]) put(M.grey(), 0.05, 0.05, 1.5, 19.6 + du, 17.6, 0);
+  put(mat('wool', '#f4f4f4'), 3.8, 0.04, 0.04, 19.6, 17.6, 1.25);
+  put(mat('wool', '#e88a1a'), 0.04, 4.0, 2.2, L - 0.08, 19.5, 0.1);
+  for (let i = 0; i < 9; i++) put(mat('wool', i % 3 ? '#2a9a6a' : '#3a6ad0'), 1.5, 1.5, 0.08, 21.2, 23.6, i * 0.09);
+  // 東牆（甲梯出口）：彩虹壁畫、白色雙開門、消防栓箱
+  put(rainbowMuralMat(), 5.0, 0.03, 2.2, 16.0, W / 2 - 0.03, 0.12, true);
+  put(mat('wool', '#eceae4'), 2.0, 0.08, 2.2, 20.9, W / 2 - 0.06, 0); put(mat('glass'), 0.8, 0.09, 1.0, 20.5, W / 2 - 0.06, 1.2); put(mat('glass'), 0.8, 0.09, 1.0, 21.3, W / 2 - 0.06, 1.2);
+  put(mat('wool', '#d23a2f'), 0.4, 0.15, 0.5, 7.0, W / 2 - 0.1, 1.2);
+  put(mat('wool', '#e8e2c8'), 0.5, 0.12, 0.6, 7.6, W / 2 - 0.08, 1.4); put(mat('wool', '#e8e2c8'), 0.5, 0.12, 0.6, 8.3, W / 2 - 0.08, 1.4);
+}
+
 /** 依名稱、種類挑布置 */
 function furnishRoom(room, fr, put) {
   const n = room.name || '', t = room.type;
@@ -1757,6 +1888,7 @@ function furnishRoom(room, fr, put) {
   if (n === '器材室') return sportsRoom(put, fr);                      // 1F 體育器材室，依照片
   if (n === '警衛室') return guardRoom(put, fr, room);                 // 依照片
   if (n === '學務處') return studentAffairs(put, fr, room);                  // 依照片
+  if (n === '桌球教室') return tableTennisHall(put, fr);                // B1 敬業樓地下室，依照片
   if (n.includes('活動中心')) return gym(put, fr);
   if (n.includes('舞蹈') || n.includes('律動')) return danceRoom(put, fr);
   if (n === '會議室' && room.no === '111') return meetingRoom(put, fr, room);   // 1F 會議室依照片

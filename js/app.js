@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=98';
-import { furnishFloor } from './furniture.js?v=98';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=98';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=98';
-import { buildCampusWall } from './wall.js?v=98';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=98';
+import { PanoViewer } from './pano.js?v=102';
+import { furnishFloor } from './furniture.js?v=102';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=102';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=102';
+import { buildCampusWall } from './wall.js?v=102';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=102';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -457,7 +457,7 @@ for (const s of stairs) {
           const open = i < n && !covered(x, z) && !outside(ox, oz);
           if (open && start < 0) start = i;
           if (!open && start >= 0) {
-            add(u1 + (u2 - u1) * (start / n), v1 + (v2 - v1) * (start / n), u1 + (u2 - u1) * (i / n), v1 + (v2 - v1) * (i / n), { h: FLOOR_H, solid: false });
+            add(u1 + (u2 - u1) * (start / n), v1 + (v2 - v1) * (start / n), u1 + (u2 - u1) * (i / n), v1 + (v2 - v1) * (i / n), { h: FLOOR_H, solid: s.id === '乙梯' && f.level < 0 });   // 乙梯 B1 那段（依照片）：實牆沒有窗
             start = -1;
           }
         }
@@ -4792,6 +4792,93 @@ function buildPhotoScenes() {
     wallPic(f2, tiles, x, gy + 0.62, zS - 5.45, 4.1, 1.18, Math.PI / 2);
     const bench = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 2.0), new THREE.MeshLambertMaterial({ color: '#d9bf98' }));
     bench.position.set(x + 0.3, gy + 0.21, zS - 5.9); bench.castShadow = true; f2.group.add(bench);
+  }
+  // ---- 乙梯往 B1（依照片）：沿著樓梯斜度的黃褐色磨石子腰牆（上面一排黃色圓點）＋灰色飾帶＋扶手，牆上掛一張張彩色海報；
+  //   最下面一段（往上那段樓梯底下、放書包的地方）牆上是「行人專心走／馬路如虎口」老虎標語＋斑馬線，牆邊排著書包 ----
+  {
+    const fB = floorById['B1'], s = fB.stairs.find((x) => x.id === '乙梯'), g = s.g, H = FLOOR_H;
+    const k01 = (u) => Math.max(0, Math.min(1, (u - g.s0) / (g.f1 - g.s0)));
+    const yA = (u) => (u <= g.s0 ? 0 : u >= g.f1 ? H / 2 : (H / 2) * k01(u));          // A 道（北側）的階梯高度
+    const yBunder = (u) => H / 2 + (H / 2) * (1 - k01(u)) - 0.25;                       // B 道（南側）樓梯底面
+    const wainTex = photoTex(256, 256, (c, w, h) => {
+      c.fillStyle = '#c9a86a'; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 1500; i++) { c.fillStyle = ['#b08e52', '#ddc28a', '#a07a44'][i % 3]; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+      c.fillStyle = '#f2e04a'; for (const x of [64, 192]) { c.beginPath(); c.ellipse(x, 52, 30, 36, 0, 0, 7); c.fill(); }
+    }, { repeat: [1, 1] });
+    const greyTex = photoTex(128, 32, (c, w, h) => {
+      c.fillStyle = '#8b9093'; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 300; i++) { c.fillStyle = i % 2 ? '#6e7376' : '#b5b9bb'; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+      c.fillStyle = '#1d1d1d'; c.fillRect(0, h - 3, w, 3);
+    }, { repeat: [1, 1] });
+    // 斜面四邊形：沿著牆從 u1 到 u2，下緣高度 y(u)，往上 hh；z 是牆面位置
+    const band = (m, u1, u2, yFn, y0, hh, v) => {
+      const pts = [], uvs = [], N = 10;
+      for (let i = 0; i <= N; i++) {
+        const u = u1 + (u2 - u1) * i / N, [x, z] = g.toXZ(u, v), y = fB.y + yFn(u) + y0;
+        pts.push(x, y, z, x, y + hh, z); uvs.push(u, 0, u, hh);
+      }
+      const geo = new THREE.BufferGeometry(), idx = [];
+      for (let i = 0; i < N; i++) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.setIndex(idx); geo.computeVertexNormals();
+      const mesh = new THREE.Mesh(geo, m); m.side = THREE.DoubleSide; mesh.receiveShadow = true; fB.group.add(mesh);
+    };
+    const vN = WALL_T / 2 + 0.03, vM = g.Wd / 2 - WALL_T / 2 - 0.03;                   // 北牆、中間那道牆（兩段樓梯中間）朝北的牆面（牆有厚度，要貼在牆面外側）
+    band(wainTex, 0, g.L, yA, 0, 1.0, vN); band(greyTex, 0, g.L, yA, 1.0, 0.16, vN);
+    band(wainTex, g.s0, g.f1, yA, 0, 1.0, vM); band(greyTex, g.s0, g.f1, yA, 1.0, 0.16, vM);
+    // 北牆扶手（不鏽鋼）
+    const steel = new THREE.MeshLambertMaterial({ color: '#c9ccd0' });
+    for (let i = 0; i < 12; i++) {
+      const u1 = g.s0 + (g.f1 - g.s0) * i / 12, u2 = g.s0 + (g.f1 - g.s0) * (i + 1) / 12, [x1, z] = g.toXZ(u1, 0.1), [x2] = g.toXZ(u2, 0.1);
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(x2 - x1, yA(u2) - yA(u1)) + 0.02, 0.04, 0.04), steel);
+      rail.position.set((x1 + x2) / 2, fB.y + (yA(u1) + yA(u2)) / 2 + 0.85, z); rail.rotation.z = Math.atan2(yA(u2) - yA(u1), x2 - x1); fB.group.add(rail);
+    }
+    // 北牆：沿著樓梯掛的彩色海報（袋子形狀的彩色框＋中間一張宣導海報）
+    const posterTex = (col, k) => photoTex(160, 230, (c, w, h) => {
+      c.fillStyle = col; c.beginPath(); c.moveTo(10, 30); c.lineTo(w - 10, 30); c.lineTo(w - 4, h - 6); c.lineTo(4, h - 6); c.closePath(); c.fill();
+      c.strokeStyle = '#111'; c.lineWidth = 4; c.stroke(); c.beginPath(); c.moveTo(6, h - 60); c.lineTo(w - 6, h - 60); c.stroke();
+      c.fillStyle = '#555'; c.fillRect(w / 2 - 4, 0, 8, 32);
+      c.fillStyle = '#fbfaf2'; c.fillRect(24, 44, w - 48, 110);
+      c.fillStyle = ['#3a8fd0', '#e8762b', '#6a4a2a', '#2e9a4a'][k % 4]; c.beginPath(); c.arc(w / 2, 95, 30, 0, 7); c.fill();
+      c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(34, 50, w - 68, 8); c.fillRect(34, 136, w - 68, 6);
+    }, { alpha: true });
+    ['#d63a3a', '#3fbf5a', '#f2d23a', '#7ac8e8', '#e85a3a', '#3fbf5a'].forEach((col, k) => {
+      const u = 1.6 + k * 1.25, [x, z] = g.toXZ(u, vN + 0.01);
+      wallPic(fB, posterTex(col, k), x, fB.y + yA(u) + 1.75, z, 0.55, 0.8, 0);
+    });
+    // 中間那道牆朝北那面（走下來在右手邊、從 B1 往上看在左手邊）：「行人專心走 ／ 馬路如虎口」＋兩隻黃色老虎＋斑馬線，左右各一張海報（綠框、藍框）
+    const slogan = photoTex(1360, 520, (c, w, h) => {
+      const circles = (x, chars) => chars.forEach((ch, i) => {
+        c.fillStyle = ['#e8573a', '#f08a3a', '#f2d23a', '#7fd17a', '#7fd17a'][i]; c.beginPath(); c.arc(x, 60 + i * 98, 46, 0, 7); c.fill();
+        c.fillStyle = '#111'; c.font = '900 64px "Noto Sans TC", "Microsoft JhengHei", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ch, x, 62 + i * 98);
+      });
+      circles(520, [...'行人專心走']); circles(840, [...'馬路如虎口']);
+      c.fillStyle = '#7d7d7d'; c.beginPath(); c.moveTo(610, 40); c.lineTo(750, 40); c.lineTo(770, 480); c.lineTo(590, 480); c.fill();   // 斑馬線
+      c.fillStyle = '#ffffff'; for (let i = 0; i < 6; i++) { const y = 52 + i * 72; c.fillRect(618 - i * 3, y, 124 + i * 6, 58); }
+      const tiger = (x, flip) => {
+        c.save(); c.translate(x, 0); c.scale(flip ? -1 : 1, 1);
+        c.fillStyle = '#f2d23a'; c.beginPath(); c.moveTo(-90, 460); c.bezierCurveTo(-110, 300, -40, 150, 40, 140); c.lineTo(70, 120); c.lineTo(90, 200); c.lineTo(60, 260); c.lineTo(90, 440); c.closePath(); c.fill();
+        c.fillStyle = '#111'; c.beginPath(); c.ellipse(20, 190, 12, 9, 0, 0, 7); c.fill();
+        c.strokeStyle = '#2a5ab0'; c.lineWidth = 7; for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo(-60 + i * 18, 300); c.lineTo(-30 + i * 18, 380); c.stroke(); }
+        c.fillStyle = '#ffffff'; c.beginPath(); c.moveTo(70, 230); c.lineTo(90, 245); c.lineTo(66, 252); c.fill();
+        c.restore();
+      };
+      tiger(330, false); tiger(1030, true);
+      const board = (x, col) => { c.fillStyle = col; c.fillRect(x, 90, 150, 300); c.strokeStyle = '#111'; c.lineWidth = 4; c.strokeRect(x, 90, 150, 300); c.fillStyle = '#fbfaf2'; c.fillRect(x + 14, 110, 122, 150); c.fillStyle = '#8a6a4a'; c.beginPath(); c.arc(x + 75, 190, 34, 0, 7); c.fill(); };
+      board(20, '#7fd99a'); board(1190, '#7cc8ea');
+    }, { alpha: true });
+    {
+      const u = 3.0, [x, z] = g.toXZ(u, vM - 0.01);
+      wallPic(fB, slogan, x, fB.y + yA(u) + 1.85, z, 3.2, 1.22, Math.PI);                // 面向北（-z）
+    }
+    // B1 樓梯口的平地：靠牆排著書包（滾輪書包、運動提袋）
+    const bagCols = ['#e8506a', '#3a3a3a', '#2a5ab0', '#c0392b'];
+    bagCols.forEach((col, i) => {
+      const [x, z] = g.toXZ(0.35, g.Wd - 0.35 - i * 0.42);
+      const bag = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.45 + (i % 3) * 0.08, 0.24), new THREE.MeshLambertMaterial({ color: col }));
+      bag.position.set(x, fB.y + bag.geometry.parameters.height / 2, z); bag.castShadow = true; fB.group.add(bag);
+      if (i % 2 === 0) { const h2 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.4, 0.03), steel); h2.position.set(x, fB.y + 0.75, z + 0.08); fB.group.add(h2); }
+    });
   }
   // ---- 3F「秋天的信」壁畫（依照片）：團輔室東牆、正對潛能教室一和二的門；整面畫到天花板，下面三分之一是馬賽克小磁磚 ----
   //   左邊秋天的樹（兔子穿紅毛衣靠著樹、松鼠）、中間池塘＋踏腳石＋青蛙、遠方綠色山丘、紅屋頂小屋、柏樹、涼亭、蝴蝶；
