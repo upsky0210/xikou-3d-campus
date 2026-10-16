@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=136';
-import { furnishFloor } from './furniture.js?v=136';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=136';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=136';
-import { buildCampusWall } from './wall.js?v=136';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=136';
+import { PanoViewer } from './pano.js?v=137';
+import { furnishFloor } from './furniture.js?v=137';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=137';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=137';
+import { buildCampusWall } from './wall.js?v=137';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=137';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3006,6 +3006,38 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '竹竹老師', title: '自然老師', game: 'heat',
+    hello: ['📖 竹竹老師：上課要專心唷！', '🔍 竹竹老師：從細節觀察不同的地方！', '🌡️ 竹竹老師：要不要來玩熱脹冷縮？'],
+    // 2 樓自然教室二（205）前面：跟自然教室一一樣的配置（白板在東），站在白板和大實驗桌中間，面向學生（西）
+    places: [
+      { floor: '2F', where: '自然教室二', game: true, at: () => { const r = rooms.find((x) => x.name === '自然教室二'); return [r.m.x2 - 0.75, r.cz + 0.3, Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色長直髮（中分）、細框圓眼鏡、燦爛笑容；米黃色短袖 T 恤、淺灰色運動長褲、白色手錶
+      skin: '#f2cfb4', hair: '#1c1614', top: '#f1e9c8', pants: '#b9bcc2', shoe: '#e8e8e8',
+      longHair: true,
+      pal: { H: '#1c1614', h: '#2e2420', S: '#f2cfb4', K: '#b8b0a8', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f0b0a8', N: '#e2b296', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHSHHHHHHHH',
+        'HHHHHHSSSHHHHHHH',
+        'HHHHHSSSSSHHHHHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHKEEKKKKKKEEKHH',
+        'HHKEWKSSSSKEWKHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -3246,6 +3278,7 @@ function updateAct(dt) {
     : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
     : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
+    : sp.kind === 'heat' ? `🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`
     : sp.kind === 'float' ? `🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`
     : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
@@ -3267,6 +3300,7 @@ function doAction() {
   else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
   else if (act.spot?.kind === 'glider') startFood(act.spot.npc);
   else if (act.spot?.kind === 'float') startFood(act.spot.npc, FLOAT_Q);
+  else if (act.spot?.kind === 'heat') startFood(act.spot.npc, HEAT_Q);
   else if (act.spot?.kind === 'baseball') startBaseball(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
   else if (act.spot?.kind === 'feed') feedTurtles();
@@ -4022,6 +4056,62 @@ FLOAT_Q.start = (n) => {
 FLOAT_Q.show = (q) => { floatItem.userData.set(q.e); floatItem.visible = true; FLOAT_Q.anim = null; const T = floatTank.position; floatItem.position.set(T.x, T.y + 1.0, T.z); };
 FLOAT_Q.reveal = (q) => { FLOAT_Q.anim = { t: 0, ok: q.ok }; };
 FLOAT_Q.end = () => { floatTank.visible = false; floatItem.visible = false; FLOAT_Q.tick = null; };
+
+/* ---------------- 熱脹冷縮：在自然教室二遇到竹竹老師，猜猜東西受熱／遇冷會膨脹還是收縮（固體、液體、氣體都有） ----------------
+   一回 5 題；答完實驗桌上的東西真的變大或變小，下面是火焰（加熱）或冰塊（冷卻） */
+const HEAT_KEY = 'campus-heat-best';
+const HEAT_ITEMS = [
+  { e: '🏓', c: '🔥', k: '氣體', n: '凹掉的乒乓球泡熱水', ok: 1, why: '球裡的空氣受熱膨脹，把凹下去的地方撐回來！' },
+  { e: '🎈', c: '🔥', k: '氣體', n: '氣球放在大太陽下', ok: 1, why: '氣球裡的空氣受熱膨脹，氣球會變大一點。' },
+  { e: '🚲', c: '🔥', k: '氣體', n: '夏天曬太陽的腳踏車輪胎', ok: 1, why: '輪胎裡的空氣受熱膨脹，所以夏天打氣不要打太飽。' },
+  { e: '🌡️', c: '🔥', k: '液體', n: '溫度計放進熱水裡', ok: 1, why: '溫度計裡的液體受熱膨脹，紅線就往上升。' },
+  { e: '🍲', c: '🔥', k: '液體', n: '裝很滿的湯一直加熱', ok: 1, why: '湯（液體）受熱膨脹，體積變大，就容易溢出來。' },
+  { e: '🫙', c: '🔥', k: '固體', n: '轉不開的果醬瓶鐵蓋沖熱水', ok: 1, why: '金屬蓋受熱膨脹，變得鬆一點，就比較好打開。' },
+  { e: '🛤️', c: '🔥', k: '固體', n: '夏天的鐵軌', ok: 1, why: '鐵軌受熱膨脹會變長，所以鐵軌中間要留一點縫。' },
+  { e: '🔌', c: '🔥', k: '固體', n: '夏天的電線', ok: 1, why: '電線受熱膨脹變長，看起來垂得比較低。' },
+  { e: '🎈', c: '❄️', k: '氣體', n: '氣球放進冰箱', ok: 0, why: '氣球裡的空氣遇冷收縮，氣球會變小。' },
+  { e: '🧴', c: '❄️', k: '氣體', n: '裝熱水蓋緊的寶特瓶慢慢變涼', ok: 0, why: '瓶子裡的空氣遇冷收縮，瓶子會凹進去。' },
+  { e: '🏀', c: '❄️', k: '氣體', n: '冬天放在外面的籃球', ok: 0, why: '球裡的空氣遇冷收縮，籃球摸起來比較軟、比較不彈。' },
+  { e: '🌡️', c: '❄️', k: '液體', n: '溫度計放進冰水裡', ok: 0, why: '溫度計裡的液體遇冷收縮，紅線就往下降。' },
+  { e: '🧪', c: '❄️', k: '液體', n: '熱水裝滿試管再放涼', ok: 0, why: '水（液體）遇冷收縮，水面會比原來低一點。' },
+  { e: '🛤️', c: '❄️', k: '固體', n: '冬天的鐵軌', ok: 0, why: '鐵軌遇冷收縮變短，中間的縫會變寬。' },
+  { e: '🔌', c: '❄️', k: '固體', n: '冬天的電線', ok: 0, why: '電線遇冷收縮變短，會拉得比較緊。' },
+  { e: '⚫', c: '❄️', k: '固體', n: '加熱後穿不過鐵環的鐵球，放進冷水', ok: 0, why: '鐵球遇冷收縮變小，又可以穿過鐵環了！' },
+];
+const heatSprite = (size) => {                                        // 實驗桌上的東西、火焰／冰塊（emoji 小圖）
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+  sp.scale.set(size, size, 1); sp.renderOrder = 5; sp.visible = false; scene.add(sp);
+  sp.userData.size = size;
+  sp.userData.set = (e) => { const c = cv.getContext('2d'); c.clearRect(0, 0, 128, 128); c.font = '96px "Segoe UI Emoji", "Apple Color Emoji", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e, 64, 70); tex.needsUpdate = true; };
+  return sp;
+};
+const heatItem = heatSprite(0.36), heatFire = heatSprite(0.24);
+const HEAT_Q = { list: HEAT_ITEMS, key: HEAT_KEY, title: '🌡️ 熱脹冷縮：膨脹還是收縮？', icon: '🌡️', yes: ['➕', '膨脹'], no: ['➖', '收縮'],
+  ask: (q) => `${q.c}「${q.n}」會膨脹還是收縮？（${q.k}）`, intro: '從細節觀察不同的地方！東西變熱、變冷的時候，會變大還是變小呢？',
+  endTalk: (sc, n) => (sc === n ? '全部答對！你觀察得好仔細！' : sc >= 3 ? '很棒喔！上課專心，就會越來越厲害！' : '沒關係，記住：受熱膨脹、遇冷收縮！'),
+  quitTalk: (n) => `🌡️ 下次再來找${n.name}做實驗！上課要專心唷！` };
+// 東西放在竹竹老師前面的大實驗桌上，下面是火焰或冰塊；答完慢慢變大或變小
+HEAT_Q.start = (n) => {
+  const r = rooms.find((x) => x.name === '自然教室二'), f = r.f;
+  HEAT_Q.at = new THREE.Vector3(r.m.x2 - 1.75, f.y + 0.87, r.cz + 0.3);
+  HEAT_Q.anim = null;
+  HEAT_Q.tick = (dt) => {
+    const a = HEAT_Q.anim; if (!a) return;
+    a.t += dt;
+    const k = Math.min(1, a.t / 1.2), s = heatItem.userData.size * (1 + (a.ok ? 0.45 : -0.4) * (1 - (1 - k) ** 3));
+    heatItem.scale.set(s, s, 1); heatItem.position.y = HEAT_Q.at.y + 0.42 + (s - heatItem.userData.size) / 2;
+    heatFire.position.y = HEAT_Q.at.y + 0.13 + Math.sin(a.t * 12) * 0.01;
+  };
+};
+HEAT_Q.show = (q) => {
+  const T = HEAT_Q.at, s = heatItem.userData.size; HEAT_Q.anim = null;
+  heatItem.userData.set(q.e); heatItem.scale.set(s, s, 1); heatItem.position.set(T.x, T.y + 0.42, T.z); heatItem.visible = true;
+  heatFire.userData.set(q.c === '🔥' ? '🔥' : '🧊'); heatFire.position.set(T.x, T.y + 0.13, T.z); heatFire.visible = true;
+};
+HEAT_Q.reveal = (q) => { HEAT_Q.anim = { t: 0, ok: q.ok }; };
+HEAT_Q.end = () => { heatItem.visible = false; heatFire.visible = false; HEAT_Q.tick = null; };
 
 function startFood(n, Q = GLIDER_Q) {
   stopAuto();
