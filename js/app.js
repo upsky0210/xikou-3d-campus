@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=120';
-import { furnishFloor } from './furniture.js?v=120';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=120';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=120';
-import { buildCampusWall } from './wall.js?v=120';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=120';
+import { PanoViewer } from './pano.js?v=123';
+import { furnishFloor } from './furniture.js?v=123';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=123';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=123';
+import { buildCampusWall } from './wall.js?v=123';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=123';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5055,6 +5055,38 @@ function buildPhotoScenes() {
     wallPic(f2, tiles, x, gy + 0.62, zS - 5.45, 4.1, 1.18, Math.PI / 2);
     const bench = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 2.0), new THREE.MeshLambertMaterial({ color: '#d9bf98' }));
     bench.position.set(x + 0.3, gy + 0.21, zS - 5.9); bench.castShadow = true; f2.group.add(bench);
+  }
+  // ---- 2F 教師會辦公室朝中庭的外牆（依照片）：彩色文化石磚（米白、灰藍、淺咖啡），兩扇門中間掛「樂學方堂 Learning Paradise」 ----
+  {
+    const r = rooms.find((x) => x.name === '教師會辦公室'), f = r.f, H = 2.95, z = r.m.z2 + WALL_T / 2 + 0.02;
+    const brick = photoTex(256, 256, (c, w, h) => {
+      const cols = ['#e8dcc4', '#d9c4a0', '#b9c2c8', '#c9b49a', '#efe6d4', '#a8b4bc', '#cdb08a', '#e0d0b6'];
+      c.fillStyle = '#d8d2c6'; c.fillRect(0, 0, w, h);
+      for (let row = 0; row < 16; row++) for (let k = -1; k < 6; k++) {
+        const x = k * 50 + (row % 2) * 25, y = row * 16;
+        c.fillStyle = cols[(row * 7 + k * 3 + (k * row) % 5) % cols.length]; c.fillRect(x + 1, y + 1, 47, 14);
+        c.fillStyle = 'rgba(0,0,0,.06)'; c.fillRect(x + 1 + (row * k * 13) % 30, y + 4, 10, 2);   // 磚面的紋路
+      }
+    }, { repeat: [1, 1] });
+    brick.map.wrapS = brick.map.wrapT = THREE.RepeatWrapping;
+    const ds = (r.doorPts || []).filter((d) => d.side === 'S').map((d) => d.x).sort((a, b) => a - b), dw = 0.8;
+    const cuts = [r.m.x1 + 0.05, ...ds.flatMap((x) => [x - dw, x + dw]), r.m.x2 - 0.05];
+    for (let i = 0; i < cuts.length; i += 2) {
+      const a = cuts[i], b = cuts[i + 1]; if (b - a < 0.1) continue;
+      const m = brick.clone(); m.map = brick.map.clone(); m.map.repeat.set(b - a, H); m.map.needsUpdate = true;
+      wallPic(f, m, (a + b) / 2, f.y + H / 2, z, b - a, H, 0);
+    }
+    // 門楣上方也貼磚
+    for (const x of ds) { const m = brick.clone(); m.map = brick.map.clone(); m.map.repeat.set(dw * 2, H - 2.25); m.map.needsUpdate = true; wallPic(f, m, x, f.y + 2.25 + (H - 2.25) / 2, z, dw * 2, H - 2.25, 0); }
+    const sign = photoTex(640, 220, (c, w, h) => {
+      c.fillStyle = '#4a2418'; c.font = '900 120px "Noto Sans TC", "Microsoft JhengHei", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillStyle = 'rgba(0,0,0,.25)'; c.fillText('樂學方堂', w / 2 + 5, 79);
+      c.fillStyle = '#5a2a1c'; c.fillText('樂學方堂', w / 2, 74);
+      c.fillStyle = '#3a1a14'; c.fillRect(70, 150, 500, 58);
+      c.fillStyle = '#ffffff'; c.font = '700 40px "Comic Sans MS", "Noto Sans TC", sans-serif'; c.fillText('Learning Paradise', w / 2, 180);
+    }, { alpha: true });
+    const mid = ds.length >= 2 ? (ds[0] + ds[1]) / 2 : (r.m.x1 + r.m.x2) / 2;
+    wallPic(f, sign, mid, f.y + 1.75, z + 0.02, 2.6, 0.9, 0);
   }
   // ---- 2F 國際牆（依照片）：敬業樓西側走廊兩面牆（面向西）。北段：「SAY HELLO TO THE WORLD!」國旗樹＋兩幅世界地圖、上面一排各國時鐘；
   //   南段：南北美洲＋大大的臺灣（小朋友用各國語言打招呼）。地圖用簡化的大陸形狀重畫 ----

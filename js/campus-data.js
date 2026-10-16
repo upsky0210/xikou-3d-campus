@@ -121,7 +121,7 @@
   R('2F', 'A', [1055, 195, 1160, 330], { name: '（準備室）', type: 'storage', doors: 'S', hidden: true });
   R('2F', 'A', [1160, 195, 1350, 330], { no: '205', name: '自然教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
   R('2F', 'A', [1350, 195, 1510, 330], { no: '206', name: '舞蹈教室', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
-  R('2F', 'A', [705, 398, 865, 545], { no: '212', name: '教師會辦公室', type: 'office', doors: 'N' });
+  R('2F', 'A', [705, 398, 865, 545], { no: '212', name: '教師會辦公室', type: 'office', doors: 'S', mainDoor: 'S', solidSides: 'S' });   // 門都開在中庭那側；外牆是彩色文化石「樂學方堂」（沒有窗）
   R('2F', 'A', [865, 398, 1190, 545], { no: '211', name: '視聽教室', type: 'special', doors: 'NS', mainDoor: 'S' });
   R('2F', 'A', [1190, 398, 1350, 545], { no: '210', name: '英語教室一', type: 'special', doors: 'NS', mainDoor: 'S' });
   R('2F', 'A', [1350, 398, 1510, 545], { no: '209', name: '幼兒多功能活動室一', type: 'kinder', doors: 'NS', mainDoor: 'S' });
