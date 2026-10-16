@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=129';
-import { furnishFloor } from './furniture.js?v=129';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=129';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=129';
-import { buildCampusWall } from './wall.js?v=129';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=129';
+import { PanoViewer } from './pano.js?v=130';
+import { furnishFloor } from './furniture.js?v=130';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=130';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=130';
+import { buildCampusWall } from './wall.js?v=130';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=130';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2971,6 +2971,38 @@ const NPCS = [
         'HHSSSMTTTTMSSSHH',
         'HHHSSSMMMMSSSHHH',
         'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '丁丁老師', title: '自然老師',
+    hello: ['🧪 丁丁老師：我們來做實驗吧！', '🤫 丁丁老師：請保持安靜，不要講話。', '🔬 丁丁老師：同學們跟我一起做！'],
+    // 2 樓自然教室一（204）前面：站在白板和大實驗桌中間，隔著實驗桌面向學生（東）
+    places: [
+      { floor: '2F', where: '自然教室一', at: () => { const r = rooms.find((x) => x.name === '自然教室一'); return [r.m.x1 + 0.75, r.cz + 0.6, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色平頭短髮、圓臉、淡淡微笑；灰藍色 Polo 衫（裡面黑色內衣）、黑色長褲
+      skin: '#e8bf9c', hair: '#1c1816', top: '#7f8fb8', pants: '#1f1f22', shoe: '#2a2a2a',
+      shortHair: true, collar: '#7f8fb8', buttons: '#eef0f4',
+      pal: { H: '#1c1816', h: '#2e2622', S: '#e8bf9c', B: '#2a2018', E: '#1e130d', N: '#d4a684', M: '#9c4a3e' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHhHHHHhHHHHhHHH',
+        'HHHHHHHHHHHHHHHH',
+        'SHSSSSSSSSSSSSHS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSBBBSSSSSSBBBSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSEESSSSSSEESSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSMSSSSMSSSSS',
+        'SSSSSSMMMMSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
       ],
     },
   },
