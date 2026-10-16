@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=137';
+import { Batch, mat, SPOTS } from './blocks.js?v=139';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -512,6 +512,32 @@ const natPosterMat = (k) => once('natposter' + k, () => new THREE.MeshLambertMat
   for (let i = 0; i < 6; i++) { c.fillStyle = ['#c9a27a', '#8aa0b8', '#b85a4a', '#d8d0c0', '#6a8a6a', '#a07ac0'][(i + k) % 6]; c.beginPath(); c.ellipse(36 + (i % 2) * 80, 74 + Math.floor(i / 2) * 50, 26, 18, 0, 0, 7); c.fill(); }
   c.fillStyle = dark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.3)'; for (let i = 0; i < 4; i++) c.fillRect(16, 200 - i * 9, w - 32, 4);
 }) }));
+// 倉鼠「奶茶」（依照片）：灰色毛、背上深灰條紋、白色肚子和臉頰、粉紅色耳朵、黑眼睛；
+//   透明塑膠飼養箱，裡面鋪木屑和白色紙棉，薄荷綠食盆、不鏽鋼飲水管、透明小屋
+function hamsterCage(put, u, v, y) {
+  const clear = once('hamGlass', () => new THREE.MeshLambertMaterial({ color: '#e6f4ff', transparent: true, opacity: 0.22, depthWrite: false }));
+  const Lc = 0.62, Wc = 0.42, Hc = 0.3;                                          // 箱子：沿 u 長、沿 v 寬
+  put(mat('wool', '#e8d6ae'), Lc - 0.02, Wc - 0.02, 0.05, u, v, y);              // 木屑
+  for (const [du, dv] of [[-0.18, 0.1], [0.05, -0.12], [0.2, 0.12], [-0.05, 0.02]]) put(mat('wool', '#f6f6f2'), 0.12, 0.1, 0.025, u + du, v + dv, y + 0.05);   // 白色紙棉
+  put(clear, Lc, Wc, Hc, u, v, y);                                               // 透明箱子
+  put(mat('wool', '#a8dcc6'), 0.12, 0.12, 0.04, u + 0.17, v - 0.1, y + 0.05);     // 薄荷綠食盆
+  put(mat('wool', '#c8a060'), 0.08, 0.08, 0.02, u + 0.17, v - 0.1, y + 0.09);     // 盆裡的飼料
+  put(M.grey(), 0.02, 0.02, 0.2, u + 0.22, v + 0.17, y + 0.12);                   // 不鏽鋼飲水管
+  put(clear, 0.16, 0.14, 0.12, u - 0.2, v - 0.1, y + 0.05);                       // 透明小屋
+  // 奶茶（臉朝 +u，蹲在食盆旁；比實際放大一點，才看得清楚）
+  const g = mat('wool', '#9a9a9c'), dk = mat('wool', '#6e6e72'), wt = mat('wool', '#eeeeea'), hy = y + 0.05, k = 1.7;
+  const p = (m, du, dv, h, ou, ov, oy) => put(m, du * k, dv * k, h * k, u - 0.02 + ou * k, v + 0.04 + ov * k, hy + oy * k);
+  p(wt, 0.13, 0.1, 0.05, 0, 0, 0);                                               // 白色肚子
+  p(g, 0.13, 0.1, 0.06, 0, 0, 0.04);                                             // 身體
+  p(dk, 0.11, 0.025, 0.006, 0, 0, 0.1);                                          // 背上的深色條紋
+  p(g, 0.06, 0.08, 0.06, 0.08, 0, 0.03);                                         // 頭
+  p(wt, 0.03, 0.06, 0.03, 0.105, 0, 0.02);                                       // 白色臉頰、嘴巴
+  p(mat('wool', '#f2b8b8'), 0.01, 0.015, 0.02, 0.112, 0, 0.035);                 // 粉紅鼻子
+  for (const s of [-1, 1]) {
+    p(M.dark(), 0.012, 0.012, 0.012, 0.106, s * 0.028, 0.06);                    // 黑眼睛
+    p(mat('wool', '#e8a8a8'), 0.012, 0.022, 0.025, 0.065, s * 0.03, 0.09);       // 粉紅耳朵
+  }
+}
 function natureRoom(put0, fr, room) {
   // 前後鏡射（依使用者說明）：白板在東、洗手槽在西 → 下面的 u 都從東邊量
   const Lm = fr.L, put = (m, du, dv, h, u, v, y, plain) => put0(m, du, dv, h, Lm - u, v, y, plain);
@@ -531,6 +557,7 @@ function natureRoom(put0, fr, room) {
   put(mat('planks', '#8a7a68'), 0.06, 0.95, 2.1, 0.04, A * (W / 2 - 1.3), 0);
   // 前面：大實驗桌（玻璃木紋桌面）、老師電腦桌
   put(grey, 1.0, 1.8, 0.82, 1.6, D * 0.3, 0); put(glassTop, 1.1, 1.9, 0.05, 1.6, D * 0.3, 0.82);   // 門口要走得進來：桌子往中間收
+  if (room?.name === '自然教室二') hamsterCage(put, 1.6, D * 0.95, 0.87);          // 竹竹老師養的倉鼠「奶茶」：放在電視前大實驗桌的一端
   put(mat('planks', '#d8c8ae'), 0.8, 1.3, 0.74, 0.65, A * 1.6, 0); put(mat('planks', '#e6d8c0'), 0.85, 1.4, 0.04, 0.65, A * 1.6, 0.74);
   put(M.dark(), 0.05, 0.55, 0.36, 0.5, A * 1.6, 0.82); put(screenMat(), 0.02, 0.5, 0.32, 0.53, A * 1.6, 0.84);
   put(M.dark(), 0.4, 0.2, 0.42, 0.65, A * 1.1, 0.78); put(mat('wool', '#d32f2f'), 0.3, 0.12, 0.3, 0.65, A * 2.1, 0.78);
