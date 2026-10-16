@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=104';
-import { furnishFloor } from './furniture.js?v=104';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=104';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=104';
-import { buildCampusWall } from './wall.js?v=104';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=104';
+import { PanoViewer } from './pano.js?v=105';
+import { furnishFloor } from './furniture.js?v=105';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=105';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=105';
+import { buildCampusWall } from './wall.js?v=105';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=105';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2694,8 +2694,8 @@ const NPCS = [
     },
   },
   {
-    name: '俞瑾老師', title: '五年四班導師', game: 'badminton',
-    hello: ['🏸 俞瑾老師：下課一起來打羽球吧！', '🏸 俞瑾老師：五年四班的同學，作業交了沒？', '🐿️ 俞瑾老師：小聲一點，蜜袋鼯在睡覺喔！'],
+    name: '陳老師', title: '五年四班導師', game: 'badminton',
+    hello: ['🏸 陳老師：下課一起來打羽球吧！', '🏸 陳老師：五年四班的同學，作業交了沒？', '🐿️ 陳老師：小聲一點，蜜袋鼯在睡覺喔！'],
     // 隨機出現：4 樓五年四班（418 室）教室前面（至善樓教室前後對調，黑板在南）面向學生，
     //   或 4F 活動中心東半邊（面向西，可以打羽球；教室裡不行）
     places: [
@@ -3186,7 +3186,7 @@ const badmintonNet = (() => {
   g.visible = false; scene.add(g);
   return g;
 })();
-// 老師可不可以在這裡打：呂老師一直在操場；俞瑾老師只有在活動中心的時候可以（教室裡不行）
+// 老師可不可以在這裡打：呂老師一直在操場；陳老師只有在活動中心的時候可以（教室裡不行）
 //（鄧老師的投籃比賽也用同一套：game＝'shootout'）
 const canPlayGame = (n) => !!n.game && !n.playing && (!n.places || !!n.places[n.placeIdx]?.game);
 function badmintonSpot() {
@@ -3216,7 +3216,7 @@ function startBadminton(n) {
   badmintonNet.visible = true;
   placeAt(f, P0.x, P0.z, face); avatar.rotation.y = face; player.pitch = 0.08;
   const L = limbs(); L?.armR.add(myRacket);
-  const nL = n.g.userData.limbs, nArm = n.look.holdL === 'racket' ? nL.armL : nL.armR;   // 俞瑾老師本來就左手拿拍
+  const nL = n.g.userData.limbs, nArm = n.look.holdL === 'racket' ? nL.armL : nL.armR;   // 陳老師本來就左手拿拍
   if (nArm === nL.armR) nArm.add(npcRacket);
   n.playing = true;
   const tFace = Math.atan2(-ux, -uz);                                 // 老師面向學生
