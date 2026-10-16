@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=123';
-import { furnishFloor } from './furniture.js?v=123';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=123';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=123';
-import { buildCampusWall } from './wall.js?v=123';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=123';
+import { PanoViewer } from './pano.js?v=124';
+import { furnishFloor } from './furniture.js?v=124';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=124';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=124';
+import { buildCampusWall } from './wall.js?v=124';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=124';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2937,6 +2937,38 @@ const NPCS = [
         'HHSSSSMMMMSSSSHH',
         'HHSSSSSSSSSSSSHH',
         'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '林老師', title: '三年五班導師',
+    hello: ['😊 林老師：三年五班的小朋友，早安！', '📒 林老師：記得把聯絡簿拿給爸爸媽媽簽名喔！', '🌸 林老師：今天也要開開心心上學！'],
+    // 2 樓三年五班（226 室）教室前面（至善樓教室前後對調，黑板在南），面向學生
+    places: [
+      { floor: '2F', where: '三年五班', at: () => { const r = rooms.find((x) => x.code === '305'); return [r.cx - 0.6, r.m.z2 - 1.6, 0]; } },
+    ],
+    look: {
+      // 依照片：深棕色長捲髮（旁分瀏海）、大大的笑容；白色洋裝
+      skin: '#f6d8c6', hair: '#3a2218', top: '#f7f4ee', pants: '#f6d8c6', shoe: '#efe8dc',
+      longHair: true, skirt: '#f7f4ee',
+      pal: { H: '#3a2218', h: '#5a3424', S: '#f6d8c6', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f2b2b0', N: '#e6b8a2', M: '#c0605a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHSSHHHHHHHH',
+        'HHHHSSSSSHHHHHHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
         'HHHHSSSSSSSSHHHH',
       ],
     },
