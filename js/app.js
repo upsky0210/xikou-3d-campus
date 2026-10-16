@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=93';
-import { furnishFloor } from './furniture.js?v=93';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=93';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=93';
-import { buildCampusWall } from './wall.js?v=93';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=93';
+import { PanoViewer } from './pano.js?v=94';
+import { furnishFloor } from './furniture.js?v=94';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=94';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=94';
+import { buildCampusWall } from './wall.js?v=94';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=94';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3694,7 +3694,7 @@ function startFlute(n) {
 }
 
 /* ---------------- 蜜袋鼯能吃嗎？：遇到邱老師（教務處的花花、泡泡是她養的），判斷每樣東西蜜袋鼯能不能吃 ----------------
-   一次 10 題（能吃、不能吃各 5 題，順序打亂）；點按鈕或按 1（可以吃）／2（不能吃），答完老師會說明原因。 */
+   一回 5 題（能吃、不能吃各 2～3 題，順序打亂）；點按鈕或按 1（可以吃）／2（不能吃），答完老師會說明原因。 */
 
 const FOOD_KEY = 'campus-glider-food-best';
 const GLIDER_FOOD = [
@@ -3727,7 +3727,8 @@ function startFood(n) {
   const $ = (sel) => foodBox.querySelector(sel);
   const btns = [...foodBox.querySelectorAll('[data-a]')];
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const qs = shuffle([...shuffle(GLIDER_FOOD.filter((q) => q.ok)).slice(0, 5), ...shuffle(GLIDER_FOOD.filter((q) => !q.ok)).slice(0, 5)]);
+  const nOk = Math.random() < 0.5 ? 2 : 3;                               // 一回 5 題：能吃、不能吃各 2～3 題
+  const qs = shuffle([...shuffle(GLIDER_FOOD.filter((q) => q.ok)).slice(0, nOk), ...shuffle(GLIDER_FOOD.filter((q) => !q.ok)).slice(0, 5 - nOk)]);
   let i = 0, score = 0, locked = false, done = false, best = 0;
   try { best = +localStorage.getItem(FOOD_KEY) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
@@ -3758,10 +3759,10 @@ function startFood(n) {
       if (done) return;
       if (++i < qs.length) { ready(); return; }
       if (score > best) { best = score; try { localStorage.setItem(FOOD_KEY, String(best)); } catch { /* 私密模式 */ } }
-      npcFace(n, score >= 7 ? 'happy' : 'wink', 3);
+      npcFace(n, score >= 4 ? 'happy' : 'wink', 3);
       finish();
       toast(`🐿️ 答對 ${score}／${qs.length} 題！（最佳紀錄：${best} 題）<br>${n.name}：${score === qs.length ? '你是蜜袋鼯小專家！花花和泡泡謝謝你～'
-        : score >= 7 ? '很不錯喔！記住不能吃的東西，就是愛護小動物！' : '沒關係，記住哪些不能吃，就是愛護小動物唷！'}`);
+        : score >= 3 ? '很不錯喔！記住不能吃的東西，就是愛護小動物！' : '沒關係，記住哪些不能吃，就是愛護小動物唷！'}`);
     }, 2600);
   };
   const onKey = (e) => {

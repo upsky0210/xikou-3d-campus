@@ -242,6 +242,8 @@
   }
   body.mc button:hover { filter: brightness(1.12); }
   body.mc button:disabled { background: #555; color: #999; text-shadow: none; filter: none; }
+  /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
+  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #flute button, body.mc #food button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
   body.mc .iconbtn.primary, body.mc #info .acts [data-act=go], body.mc #results button, body.mc #pano .ctrl .audio {
@@ -668,8 +670,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=93"></script>
-<script src="js/pano-data.js?v=93"></script>
-<script type="module" src="js/app.js?v=93"></script>
+<script src="js/campus-data.js?v=94"></script>
+<script src="js/pano-data.js?v=94"></script>
+<script type="module" src="js/app.js?v=94"></script>
 </body>
 </html>

@@ -125,7 +125,7 @@
   R('2F', 'A', [1350, 398, 1510, 545], { no: '209', name: '幼兒多功能活動室一', type: 'kinder', doors: 'NS' });
   R('2F', 'B', [1555, 150, 1690, 330], { name: '露臺（小田園）', type: 'garden', open: true, farm: true });
   R('2F', 'B', [1555, 400, 1690, 480], { name: '廁所', type: 'wc', doors: 'W' });
-  R('2F', 'B', [1555, 480, 1690, 585], { no: '208', name: '幼兒園辦公室', type: 'office', doors: 'W' });
+  R('2F', 'B', [1555, 480, 1690, 595], { no: '208', name: '幼兒園辦公室', type: 'office', doors: 'W' });   // 跟隔壁中間不留縫
   R('2F', 'B', [1555, 595, 1690, 750], { no: '227', name: '幼兒多功能活動室二', type: 'kinder', doors: 'W' });
   R('2F', 'B', [1555, 755, 1690, 905], { no: '226', code: '305', type: 'class', doors: 'W' });
   R('2F', 'B', [1555, 910, 1690, 1060], { no: '225', code: '104', type: 'class', doors: 'W' });
@@ -150,7 +150,7 @@
   R('3F', 'A', [1345, 398, 1430, 545], { no: '309', name: '諮商室', type: 'office', doors: 'N' });
   R('3F', 'A', [1430, 398, 1510, 545], { no: '309-1', name: '團輔室', type: 'office', doors: 'N' });
   R('3F', 'B', [1555, 400, 1690, 480], { no: '307', name: '潛能教室二', type: 'special', doors: 'W' });
-  R('3F', 'B', [1555, 480, 1690, 585], { no: '308', name: '潛能教室一', type: 'special', doors: 'W' });
+  R('3F', 'B', [1555, 480, 1690, 595], { no: '308', name: '潛能教室一', type: 'special', doors: 'W' });   // 跟輔導室中間不留縫
   R('3F', 'B', [1555, 595, 1690, 750], { no: '327', name: '輔導室', type: 'office', doors: 'W' });
   R('3F', 'B', [1555, 755, 1690, 905], { no: '326', code: '304', type: 'class', doors: 'W' });
   R('3F', 'B', [1555, 910, 1690, 1060], { no: '325', code: '303', type: 'class', doors: 'W' });
@@ -166,7 +166,7 @@
   // 4F
   R('4F', 'A', [705, 150, 1510, 585], { name: '活動中心', type: 'hall', doors: 'WE', tall: true });   // 挑高兩層（4F 球場 + 5F 看台）
   R('4F', 'B', [1555, 400, 1690, 480], { no: '404', name: '儲藏室（教具）', type: 'storage', doors: 'W' });
-  R('4F', 'B', [1555, 480, 1690, 585], { no: '405', name: '儲藏室（資訊設備）', type: 'storage', doors: 'W' });
+  R('4F', 'B', [1555, 480, 1690, 595], { no: '405', name: '儲藏室（資訊設備）', type: 'storage', doors: 'W' });   // 跟客語教室中間不留縫
   R('4F', 'B', [1555, 595, 1690, 750], { no: '420', name: '客語教室', type: 'special', doors: 'W' });
   R('4F', 'B', [1555, 755, 1690, 905], { no: '419', code: '505', type: 'class', doors: 'W' });
   R('4F', 'B', [1555, 910, 1690, 1060], { no: '418', code: '504', type: 'class', doors: 'W' });
