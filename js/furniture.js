@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=132';
+import { Batch, mat, SPOTS } from './blocks.js?v=133';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -512,9 +512,12 @@ const natPosterMat = (k) => once('natposter' + k, () => new THREE.MeshLambertMat
   for (let i = 0; i < 6; i++) { c.fillStyle = ['#c9a27a', '#8aa0b8', '#b85a4a', '#d8d0c0', '#6a8a6a', '#a07ac0'][(i + k) % 6]; c.beginPath(); c.ellipse(36 + (i % 2) * 80, 74 + Math.floor(i / 2) * 50, 26, 18, 0, 0, 7); c.fill(); }
   c.fillStyle = dark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.3)'; for (let i = 0; i < 4; i++) c.fillRect(16, 200 - i * 9, w - 32, 4);
 }) }));
-function natureRoom(put, fr, room) {
+function natureRoom(put0, fr, room) {
+  // 前後鏡射（依使用者說明）：白板在東、洗手槽在西 → 下面的 u 都從東邊量
+  const Lm = fr.L, put = (m, du, dv, h, u, v, y, plain) => put0(m, du, dv, h, Lm - u, v, y, plain);
+  put.geo = (m, g, u, v, y, r) => put0.geo(m, g, Lm - u, v, y, r);
   // 櫃子沿牆排，但門口那一段要空出來（兩邊的門都在同樣的 u 附近）
-  const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]);
+  const doorU = (room?.doorPts || []).map((d) => Lm - fr.toLocal(d.x, d.z)[0]);
   const runs = (a, b) => { const cuts = doorU.filter((u) => u > a - 0.9 && u < b + 0.9).sort((x, y) => x - y); const out = []; let s0 = a;
     for (const u of cuts) { if (u - 0.9 > s0 + 0.3) out.push([s0, u - 0.9]); s0 = Math.max(s0, u + 0.9); } if (b > s0 + 0.3) out.push([s0, b]); return out; };
   const W = fr.W, L = fr.L, A = fr.away, D = -A;                                 // A：北（櫃子）、D：南（窗戶、門）；u：西（白板）→ 東（洗手槽）
@@ -539,11 +542,15 @@ function natureRoom(put, fr, room) {
   put(natPosterMat(1), 0.02, 0.8, 0.6, L - 0.04, A * 2.8, 1.35, true);
   put(white, 0.4, 0.4, 0.9, L - 0.5, A * (W / 2 - 0.6), 0);
   // 北牆：木色高櫃＋五張礦物海報（黑框）、櫃頂紙箱、地球儀
-  for (const [a, b] of runs(0.5, L - 1.1)) {
+  const cabRuns = runs(0.5, L - 1.1);
+  for (const [a, b] of cabRuns) {
     put(cab, b - a, 0.55, 2.3, (a + b) / 2, A * (W / 2 - 0.3), 0);
     for (let u = a + 0.6; u < b; u += 0.6) put(mat('wool', '#cbb999'), 0.015, 0.02, 2.2, u, A * (W / 2 - 0.58), 0.05);
   }
-  for (let k = 0; k < 5; k++) put(natPosterMat(k), 0.66, 0.03, 0.9, 1.6 + k * 0.78, A * (W / 2 - 0.59), 1.3, true);
+  // 礦物海報掛在最長那段櫃子上（不會掛到門口懸空）
+  const [ra, rb] = cabRuns.reduce((x, y) => (y[1] - y[0] > x[1] - x[0] ? y : x), [0, 0]);
+  const np = Math.min(5, Math.floor((rb - ra) / 0.78)), pc = (ra + rb) / 2;
+  for (let k = 0; k < np; k++) put(natPosterMat(k), 0.66, 0.03, 0.9, pc + (k - (np - 1) / 2) * 0.78, A * (W / 2 - 0.59), 1.3, true);
   for (let k = 0; k < 4; k++) put(mat('wool', '#c9a46a'), 0.6, 0.45, 0.4, L - 4.2 + k * 0.65, A * (W / 2 - 0.3), 2.3);
   put.geo(mat('wool', '#3a8fd0'), new THREE.SphereGeometry(0.2, 14, 10), 0.7, A * (W / 2 - 0.3), 2.52);
   // 南牆：窗戶下灰木色矮櫃
