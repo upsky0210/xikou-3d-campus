@@ -114,12 +114,13 @@
   R('1F', null, [705, 585, 1505, 1060], { name: '中庭', type: 'garden', open: true });
 
   // 2F
-  // 敬業樓 2、3 樓南排（靠中庭）的教室：主要門口在中庭那側（mainDoor：門牌掛在那邊）
-  R('2F', 'A', [705, 195, 865, 330], { no: '203', name: '律動教室', type: 'special', doors: 'S' });
-  R('2F', 'A', [865, 195, 1055, 330], { no: '204', name: '自然教室一', type: 'special', doors: 'S' });
+  // 敬業樓 2、3 樓南排（靠中庭）的教室：主要門口在中庭那側（mainDoor：門牌掛在那邊）；
+  //   北排（靠圍牆）的教室：靠圍牆那側的走廊也有門，門牌掛那邊（frameDoors：家具方向照原本只有南門時排）
+  R('2F', 'A', [705, 195, 865, 330], { no: '203', name: '律動教室', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
+  R('2F', 'A', [865, 195, 1055, 330], { no: '204', name: '自然教室一', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
   R('2F', 'A', [1055, 195, 1160, 330], { name: '（準備室）', type: 'storage', doors: 'S', hidden: true });
-  R('2F', 'A', [1160, 195, 1350, 330], { no: '205', name: '自然教室二', type: 'special', doors: 'S' });
-  R('2F', 'A', [1350, 195, 1510, 330], { no: '206', name: '舞蹈教室', type: 'special', doors: 'S' });
+  R('2F', 'A', [1160, 195, 1350, 330], { no: '205', name: '自然教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
+  R('2F', 'A', [1350, 195, 1510, 330], { no: '206', name: '舞蹈教室', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
   R('2F', 'A', [705, 398, 865, 545], { no: '212', name: '教師會辦公室', type: 'office', doors: 'N' });
   R('2F', 'A', [865, 398, 1190, 545], { no: '211', name: '視聽教室', type: 'special', doors: 'NS', mainDoor: 'S' });
   R('2F', 'A', [1190, 398, 1350, 545], { no: '210', name: '英語教室一', type: 'special', doors: 'NS', mainDoor: 'S' });
@@ -140,11 +141,11 @@
   R('2F', 'C', [1355, 1105, 1510, 1245], { no: '222', code: '103', type: 'class', doors: 'N' });
 
   // 3F
-  R('3F', 'A', [705, 195, 945, 330], { no: '303', name: '音樂教室一', type: 'special', doors: 'S' });
-  R('3F', 'A', [945, 195, 1105, 330], { no: '304', name: '音樂教室二', type: 'special', doors: 'S', doorAt: { S: [0.3] } });
-  R('3F', 'A', [1105, 195, 1345, 330], { no: '305', name: '電腦教室二', type: 'special', doors: 'S' });
-  R('3F', 'A', [1345, 195, 1425, 330], { no: '306', name: '潛能教室四', type: 'special', doors: 'S' });
-  R('3F', 'A', [1425, 195, 1510, 330], { no: '306', name: '潛能教室三', type: 'special', doors: 'S' });
+  R('3F', 'A', [705, 195, 945, 330], { no: '303', name: '音樂教室一', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.15] } });
+  R('3F', 'A', [945, 195, 1105, 330], { no: '304', name: '音樂教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { S: [0.3], N: [0.3] } });
+  R('3F', 'A', [1105, 195, 1345, 330], { no: '305', name: '電腦教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.52] } });
+  R('3F', 'A', [1345, 195, 1425, 330], { no: '306', name: '潛能教室四', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
+  R('3F', 'A', [1425, 195, 1510, 330], { no: '306', name: '潛能教室三', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
   R('3F', 'A', [705, 398, 870, 545], { no: '312', name: '思科教室', alias: '自然教室三', type: 'special', doors: 'NS', mainDoor: 'S' });
   R('3F', 'A', [870, 398, 1105, 545], { no: '311', name: '美勞教室', type: 'special', doors: 'NS', mainDoor: 'S' });
   R('3F', 'A', [1105, 398, 1345, 545], { no: '310', name: '英語教室二', type: 'special', doors: 'NS', mainDoor: 'S' });

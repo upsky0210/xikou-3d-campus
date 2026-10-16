@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=115';
-import { furnishFloor } from './furniture.js?v=115';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=115';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=115';
-import { buildCampusWall } from './wall.js?v=115';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=115';
+import { PanoViewer } from './pano.js?v=120';
+import { furnishFloor } from './furniture.js?v=120';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=120';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=120';
+import { buildCampusWall } from './wall.js?v=120';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=120';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2523,6 +2523,8 @@ function updateTurtles(t, dt) {
 
 // 樂樂棒球場（操場遊戲場西邊草地）：本壘在南、投手丘在北（打出去的球往操場飛）；校長的位置會用到，要先宣告
 const BB = { home: { x: -28, z: 77 }, mound: { x: -28, z: 70.5 }, side: 7 };
+// Teacher Angela 在科任教師辦公室站的地方
+const ANGELA_OFFICE = { x: (r) => r.cx + 1.2, z: (r) => r.cz + 2.6 };   // 靠門口那片空地（辦公桌之間太窄，猜拳時學生站不下）
 const NPCS = [
   {
     name: '呂老師', title: '體育老師', game: 'badminton',
@@ -2800,6 +2802,7 @@ const NPCS = [
   },
   {
     name: 'Poyen 老師', title: '五年一班導師', game: 'rps',
+    rpsTalk: { start: '來猜拳吧！先贏兩局的人獲勝！', win: '好厲害！記得睡午覺，下午才有精神哦！', lose: '再接再厲！先去睡個午覺養精神吧！' },
     hello: ['😴 Poyen 老師：小朋友，睡午覺，下午才有精神哦！', '😴 Poyen 老師：小朋友，睡午覺，下午才有精神哦！<br>✂️ 要不要來猜個拳？'],
     // 4 樓五年一班（413 室）教室前面、電視旁邊（勤學樓教室黑板在西邊），面向學生（東）；老師桌在南邊，站北邊一點
     places: [
@@ -2899,6 +2902,42 @@ const NPCS = [
         'SSSSMTTTTTTMSSSS',
         'SSSSSMMMMMMSSSSS',
         'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
+    name: 'Teacher Angela', title: '英文老師', game: 'rps',
+    hello: ['🔤 Teacher Angela：快樂學英文！Happy English!', '👍 Teacher Angela：說得很標準，你好棒！Good job!',
+      "✂️ Teacher Angela：Let's play rock-paper-scissors! 要不要來猜拳？"],
+    rpsTalk: { start: 'Rock, paper, scissors! 先贏兩局的人獲勝！', win: 'Wow, you win! 說得很標準、猜拳也好厲害，你好棒！', lose: 'I win! 沒關係，再接再厲，Keep trying!' },
+    rpsKey: 'campus-rps-wins-angela',
+    // 隨機出現：2 樓英語教室一（210）前面講台旁（Ashley 老師站另一邊），或 2 樓科任教師辦公室；兩個地方都可以猜拳
+    places: [
+      { floor: '2F', where: '英語教室一', game: true, at: () => { const r = rooms.find((x) => x.name === '英語教室一'); return [r.m.x1 + 1.3, r.cz - 1.4, -Math.PI / 2]; } },
+      { floor: '2F', where: '科任教師辦公室', game: true, at: () => { const r = rooms.find((x) => x.name === '科任教師辦公室'); return [ANGELA_OFFICE.x(r), ANGELA_OFFICE.z(r), Math.PI / 2]; } },   // 面向辦公室裡面（西）
+    ],
+    look: {
+      // 依照片：深棕色長直髮、豹紋髮箍（粉紅蝴蝶結）、溫柔微笑；鼠尾草綠針織開襟外套＋灰色 Polo 衫、深灰百褶裙、咖啡色斜背包
+      skin: '#f6d8c6', hair: '#3a2418', top: '#9aa58a', pants: '#f0d2c0', shoe: '#3a3a3a',
+      longHair: true, longSleeve: true, collar: '#c4c4c0', buttons: '#7a8070', skirt: '#4a4d55', bag: '#7a3a2a',
+      pal: { H: '#3a2418', h: '#5a3a26', L: '#c8965a', l: '#4a2e1a', P: '#f29ab8', S: '#f6d8c6', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f2b2b0', N: '#e6b8a2', M: '#c0605a' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HLLlLLLLLPPPLlLH',
+        'LlLLLlLLLPPPLLlL',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHhHHHHHHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
       ],
     },
   },
@@ -3559,7 +3598,7 @@ function startRps(n) {
   const $ = (sel) => rpsBox.querySelector(sel);
   const btns = [...rpsBox.querySelectorAll('[data-h]')];
   let me = 0, them = 0, round = 0, wins = 0, locked = false, bubble = null, done = false;
-  try { wins = +localStorage.getItem(RPS_KEY) || 0; } catch { /* 私密模式 */ }
+  try { wins = +localStorage.getItem(n.rpsKey || RPS_KEY) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
   faceTeacher(n);
   const nL = n.g.userData.limbs;
@@ -3615,11 +3654,11 @@ function startRps(n) {
       // 三戰兩勝結束
       setTimeout(() => {
         if (done) return;
-        if (me > them) { wins++; try { localStorage.setItem(RPS_KEY, String(wins)); } catch { /* 私密模式 */ } }
+        if (me > them) { wins++; try { localStorage.setItem(n.rpsKey || RPS_KEY, String(wins)); } catch { /* 私密模式 */ } }
         npcFace(n, me > them ? 'surprised' : 'happy', 3);
         finish();
-        toast(me > them ? `🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）<br>${n.name}：好厲害！記得睡午覺，下午才有精神哦！`
-          : `😝 ${n.name}贏了！${them}：${me}<br>${n.name}：再接再厲！先去睡個午覺養精神吧！`);
+        toast(me > them ? `🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）<br>${n.name}：${n.rpsTalk?.win ?? '好厲害！'}`
+          : `😝 ${n.name}贏了！${them}：${me}<br>${n.name}：${n.rpsTalk?.lose ?? '再接再厲！'}`);
       }, 1500);
     }, 900);
   };
@@ -3633,7 +3672,7 @@ function startRps(n) {
   duel = { quit() { finish(); toast(`✂️ 下次再來找${n.name}猜拳！`); } };
   act.busy = { label: '✂️ 剪刀石頭布中…', tick() {} };                 // 猜拳時不能走動
   rpsBox.hidden = false;
-  msg(`${n.name}：來猜拳吧！先贏兩局的人獲勝！`);
+  msg(`${n.name}：${n.rpsTalk?.start ?? '來猜拳吧！先贏兩局的人獲勝！'}`);
   ready();
 }
 

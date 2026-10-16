@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=115';
+import { Batch, mat, SPOTS } from './blocks.js?v=120';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -108,7 +108,7 @@ const M = {
 const flipped = (room) => room.type === 'class' && room.building !== 'C';
 
 function frameOf(room, wallT, flip = false) {
-  const m = room.m, d = room.doors || '';
+  const m = room.m, d = room.frameDoors || room.doors || '';   // frameDoors：家具方向用哪幾面門來算（後來加的門不影響擺設）
   const inset = wallT / 2 + 0.02;
   const alongX = /[NS]/.test(d) || (!/[EW]/.test(d) && (m.x2 - m.x1) >= (m.z2 - m.z1));
   const L = (alongX ? m.x2 - m.x1 : m.z2 - m.z1) - inset * 2;   // 前後長度
@@ -388,7 +388,7 @@ function musicRoom2(put, fr) {
   // 老師的白色教具推車（堆滿小東西）、咖啡色布簾、角落置物櫃
   put(M.white(), 0.6, 0.95, 0.55, 2.6, A * 1.3, 0.35); put(M.dark(), 0.6, 0.95, 0.35, 2.6, A * 1.3, 0);
   ['#e53935', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#fb8c00'].forEach((c, i) => put(mat('wool', c), 0.14, 0.14, 0.12 + (i % 3) * 0.08, 2.45 + (i % 2) * 0.28, A * (0.95 + i * 0.13), 0.9));
-  put(mat('wool', '#9a7350'), 0.3, 0.55, 2.75, 3.1, A * (W / 2 - 0.35), 0);
+  put(mat('wool', '#9a7350'), 0.3, 0.55, 2.75, 3.8, A * (W / 2 - 0.35), 0);   // 布簾在北門旁邊
   put(wood, 1.2, 0.4, 2.0, 1.0, A * (W / 2 - 0.22), 0); for (let k = 0; k < 4; k++) put(mat('wool', ['#d9c9a8', '#7a5a3a', '#e8e2d6', '#5a7aa8'][k]), 1.0, 0.3, 0.25, 1.0, A * (W / 2 - 0.25), 0.3 + k * 0.45);
   // 北牆：綠色布告欄矮櫃（木框），上面放樂器
   const cu1 = 3.5, cu2 = L - 1.0;
