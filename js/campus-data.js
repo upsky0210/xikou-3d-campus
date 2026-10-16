@@ -141,7 +141,7 @@
 
   // 3F
   R('3F', 'A', [705, 195, 945, 330], { no: '303', name: '音樂教室一', type: 'special', doors: 'S' });
-  R('3F', 'A', [945, 195, 1105, 330], { no: '304', name: '音樂教室二', type: 'special', doors: 'S' });
+  R('3F', 'A', [945, 195, 1105, 330], { no: '304', name: '音樂教室二', type: 'special', doors: 'S', doorAt: { S: [0.3] } });
   R('3F', 'A', [1105, 195, 1345, 330], { no: '305', name: '電腦教室二', type: 'special', doors: 'S' });
   R('3F', 'A', [1345, 195, 1425, 330], { no: '306', name: '潛能教室四', type: 'special', doors: 'S' });
   R('3F', 'A', [1425, 195, 1510, 330], { no: '306', name: '潛能教室三', type: 'special', doors: 'S' });
