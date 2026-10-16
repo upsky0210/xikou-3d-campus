@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=128';
+import { Batch, mat, SPOTS } from './blocks.js?v=129';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -512,7 +512,11 @@ const natPosterMat = (k) => once('natposter' + k, () => new THREE.MeshLambertMat
   for (let i = 0; i < 6; i++) { c.fillStyle = ['#c9a27a', '#8aa0b8', '#b85a4a', '#d8d0c0', '#6a8a6a', '#a07ac0'][(i + k) % 6]; c.beginPath(); c.ellipse(36 + (i % 2) * 80, 74 + Math.floor(i / 2) * 50, 26, 18, 0, 0, 7); c.fill(); }
   c.fillStyle = dark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.3)'; for (let i = 0; i < 4; i++) c.fillRect(16, 200 - i * 9, w - 32, 4);
 }) }));
-function natureRoom(put, fr) {
+function natureRoom(put, fr, room) {
+  // 櫃子沿牆排，但門口那一段要空出來（兩邊的門都在同樣的 u 附近）
+  const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]);
+  const runs = (a, b) => { const cuts = doorU.filter((u) => u > a - 0.9 && u < b + 0.9).sort((x, y) => x - y); const out = []; let s0 = a;
+    for (const u of cuts) { if (u - 0.9 > s0 + 0.3) out.push([s0, u - 0.9]); s0 = Math.max(s0, u + 0.9); } if (b > s0 + 0.3) out.push([s0, b]); return out; };
   const W = fr.W, L = fr.L, A = fr.away, D = -A;                                 // A：北（櫃子）、D：南（窗戶、門）；u：西（白板）→ 東（洗手槽）
   const grey = mat('wool', '#a9adb2'), glassTop = mat('wool', '#e8d2a4'), cab = mat('wool', '#e3d4bb'), white = M.white();
   put(mat('tile', '#cfd0cc'), L, W, 0.012, L / 2, 0, 0);                         // 磨石子地
@@ -535,13 +539,15 @@ function natureRoom(put, fr) {
   put(natPosterMat(1), 0.02, 0.8, 0.6, L - 0.04, A * 2.8, 1.35, true);
   put(white, 0.4, 0.4, 0.9, L - 0.5, A * (W / 2 - 0.6), 0);
   // 北牆：木色高櫃＋五張礦物海報（黑框）、櫃頂紙箱、地球儀
-  put(cab, L - 1.6, 0.55, 2.3, L / 2 - 0.3, A * (W / 2 - 0.3), 0);
-  for (let u = 1.0; u < L - 1.6; u += 0.6) put(mat('wool', '#cbb999'), 0.015, 0.02, 2.2, u, A * (W / 2 - 0.58), 0.05);
+  for (const [a, b] of runs(0.5, L - 1.1)) {
+    put(cab, b - a, 0.55, 2.3, (a + b) / 2, A * (W / 2 - 0.3), 0);
+    for (let u = a + 0.6; u < b; u += 0.6) put(mat('wool', '#cbb999'), 0.015, 0.02, 2.2, u, A * (W / 2 - 0.58), 0.05);
+  }
   for (let k = 0; k < 5; k++) put(natPosterMat(k), 0.66, 0.03, 0.9, 1.6 + k * 0.78, A * (W / 2 - 0.59), 1.3, true);
   for (let k = 0; k < 4; k++) put(mat('wool', '#c9a46a'), 0.6, 0.45, 0.4, L - 4.2 + k * 0.65, A * (W / 2 - 0.3), 2.3);
   put.geo(mat('wool', '#3a8fd0'), new THREE.SphereGeometry(0.2, 14, 10), 0.7, A * (W / 2 - 0.3), 2.52);
   // 南牆：窗戶下灰木色矮櫃
-  put(mat('planks', '#8f8272'), L - 3.0, 0.42, 0.8, L / 2, D * (W / 2 - 0.23), 0);
+  for (const [a, b] of runs(1.5, L - 1.5)) put(mat('planks', '#8f8272'), b - a, 0.42, 0.8, (a + b) / 2, D * (W / 2 - 0.23), 0);
   // 三列實驗桌（長邊沿 u），兩端疊橘色圓凳
   const stoolTop = mat('wool', '#f07a4a'), stoolLeg = mat('wool', '#1d1d1d');
   const stack = (u, v) => { for (let k = 0; k < 3; k++) put(stoolTop, 0.34, 0.34, 0.05, u, v, 0.3 + k * 0.12); for (const d of [-0.13, 0.13]) put(stoolLeg, 0.03, 0.03, 0.62, u + d, v + d, 0); };
@@ -2077,7 +2083,7 @@ function furnishRoom(room, fr, put) {
   if (n.includes('圖書館')) return library(put, fr);
   if (n === '音樂教室二') return musicRoom2(put, fr);
   if (n === '美勞教室') return artRoom3(put, fr);
-  if (n === '自然教室一' || n === '自然教室二') return natureRoom(put, fr);   // 2F 兩間自然教室，依照片（一樣的配置）                 // 3F 美勞教室，依照片              // 依照片
+  if (n === '自然教室一' || n === '自然教室二') return natureRoom(put, fr, room);   // 2F 兩間自然教室，依照片（一樣的配置）                 // 3F 美勞教室，依照片              // 依照片
   if (n.includes('音樂')) return musicRoom(put, fr);
   if (n.includes('電腦教室一')) return computerRoom1(put, fr);       // 依照片：長條雙面電腦島
   if (n.includes('電腦教室二')) return computerRoomHex(put, fr);   // 依照片：彩色六角電腦島
