@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=133';
-import { furnishFloor } from './furniture.js?v=133';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=133';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=133';
-import { buildCampusWall } from './wall.js?v=133';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=133';
+import { PanoViewer } from './pano.js?v=136';
+import { furnishFloor } from './furniture.js?v=136';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=136';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=136';
+import { buildCampusWall } from './wall.js?v=136';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=136';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2979,7 +2979,7 @@ const NPCS = [
     hello: ['🧪 丁丁老師：我們來做實驗吧！', '🤫 丁丁老師：請保持安靜，不要講話。', '🔬 丁丁老師：同學們跟我一起做！', '🛟 丁丁老師：要不要來做沉浮實驗？'],
     // 2 樓自然教室一（204）前面：站在白板和大實驗桌中間，隔著實驗桌面向學生（西）
     places: [
-      { floor: '2F', where: '自然教室一', game: true, at: () => { const r = rooms.find((x) => x.name === '自然教室一'); return [r.m.x2 - 0.75, r.cz + 0.6, Math.PI / 2]; } },   // 教室前後鏡射：白板在東，面向西
+      { floor: '2F', where: '自然教室一', game: true, at: () => { const r = rooms.find((x) => x.name === '自然教室一'); return [r.m.x2 - 0.75, r.cz + 0.3, Math.PI / 2]; } },   // 教室前後鏡射：白板在東，面向西
     ],
     look: {
       // 依照片：黑色平頭短髮、圓臉、淡淡微笑；灰藍色 Polo 衫（裡面黑色內衣）、黑色長褲
@@ -4006,7 +4006,7 @@ const FLOAT_Q = { list: FLOAT_ITEMS, key: FLOAT_KEY, title: '🧪 沉浮實驗�
 // 水箱放在丁丁老師前面的大實驗桌上；東西從上面掉下來
 FLOAT_Q.start = (n) => {
   const r = rooms.find((x) => x.name === '自然教室一'), f = r.f;
-  floatTank.position.set(r.m.x2 - 1.75, f.y + 0.87, r.cz + 0.6); floatTank.visible = true;
+  floatTank.position.set(r.m.x2 - 1.75, f.y + 0.87, r.cz + 0.3); floatTank.visible = true;
   FLOAT_Q.anim = null;
   FLOAT_Q.tick = (dt) => {
     const a = FLOAT_Q.anim; if (!a) return;

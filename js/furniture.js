@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=133';
+import { Batch, mat, SPOTS } from './blocks.js?v=136';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -526,13 +526,14 @@ function natureRoom(put0, fr, room) {
   // 西牆：OSB 板、白板、喇叭、準備室木門
   put(osbMat(), 0.03, W - 0.1, 2.9, 0.016, 0, 0);
   put(M.grey(), 0.05, 3.4, 1.15, 0.04, A * 0.2, 1.0); put(white, 0.06, 3.3, 1.05, 0.05, A * 0.2, 1.05);
+  put(M.dark(), 0.08, 1.5, 0.88, 0.08, A * 0.2, 1.1); put(screenMat(), 0.02, 1.42, 0.8, 0.13, A * 0.2, 1.14);   // 白板中間的大電視
   for (const dv of [-1.2, 1.2]) put(white, 0.14, 0.28, 0.2, 0.08, A * 0.2 + dv, 2.35);
   put(mat('planks', '#8a7a68'), 0.06, 0.95, 2.1, 0.04, A * (W / 2 - 1.3), 0);
   // 前面：大實驗桌（玻璃木紋桌面）、老師電腦桌
-  put(grey, 1.2, 2.6, 0.82, 1.5, D * 0.6, 0); put(glassTop, 1.3, 2.7, 0.05, 1.5, D * 0.6, 0.82);
-  put(mat('planks', '#d8c8ae'), 0.8, 1.7, 0.74, 1.4, A * 1.9, 0); put(mat('planks', '#e6d8c0'), 0.85, 1.8, 0.04, 1.4, A * 1.9, 0.74);
-  put(M.dark(), 0.05, 0.55, 0.36, 1.2, A * 1.9, 0.82); put(screenMat(), 0.02, 0.5, 0.32, 1.23, A * 1.9, 0.84);
-  put(M.dark(), 0.4, 0.2, 0.42, 1.3, A * 1.25, 0.78); put(mat('wool', '#d32f2f'), 0.3, 0.12, 0.3, 1.3, A * 2.55, 0.78);
+  put(grey, 1.0, 1.8, 0.82, 1.6, D * 0.3, 0); put(glassTop, 1.1, 1.9, 0.05, 1.6, D * 0.3, 0.82);   // 門口要走得進來：桌子往中間收
+  put(mat('planks', '#d8c8ae'), 0.8, 1.3, 0.74, 0.65, A * 1.6, 0); put(mat('planks', '#e6d8c0'), 0.85, 1.4, 0.04, 0.65, A * 1.6, 0.74);
+  put(M.dark(), 0.05, 0.55, 0.36, 0.5, A * 1.6, 0.82); put(screenMat(), 0.02, 0.5, 0.32, 0.53, A * 1.6, 0.84);
+  put(M.dark(), 0.4, 0.2, 0.42, 0.65, A * 1.1, 0.78); put(mat('wool', '#d32f2f'), 0.3, 0.12, 0.3, 0.65, A * 2.1, 0.78);
   // 東牆：薄荷綠牆、洗手槽（六個水龍頭）、自然科海報、電風扇
   put(mat('wool', '#8fd3bf'), 0.03, W - 0.1, 2.9, L - 0.016, 0, 0);
   put(mat('planks', '#dccab0'), 0.6, 4.2, 0.82, L - 0.32, A * 0.4, 0); put(M.grey(), 0.62, 4.2, 0.04, L - 0.32, A * 0.4, 0.82);
@@ -558,7 +559,8 @@ function natureRoom(put0, fr, room) {
   // 三列實驗桌（長邊沿 u），兩端疊橘色圓凳
   const stoolTop = mat('wool', '#f07a4a'), stoolLeg = mat('wool', '#1d1d1d');
   const stack = (u, v) => { for (let k = 0; k < 3; k++) put(stoolTop, 0.34, 0.34, 0.05, u, v, 0.3 + k * 0.12); for (const d of [-0.13, 0.13]) put(stoolLeg, 0.03, 0.03, 0.62, u + d, v + d, 0); };
-  for (const u of [3.4, 5.8, 8.2]) for (const v of [A * 2.3, 0, D * 2.3]) {
+  // 靠牆兩列各兩張、中間一列三張（門口那段不放桌子，才走得進來）
+  for (const [u, v] of [[3.7, A * 2.2], [6.0, A * 2.2], [3.7, 0], [6.0, 0], [8.3, 0], [3.7, D * 2.2], [6.0, D * 2.2]]) {
     put(grey, 1.85, 0.95, 0.75, u, v, 0); put(mat('wool', '#d6d8da'), 1.7, 0.85, 0.3, u, v, 0.3);   // 桌身＋置物格
     put(glassTop, 2.0, 1.05, 0.05, u, v, 0.75);
     for (const dv of [-0.22, 0.22]) stack(u + 1.25, v + dv);
@@ -2168,7 +2170,9 @@ function signTexture(title, sub, kind, en = '') {
 
 function addSign(room, f, group, wallT) {
   // 班牌掛在黑板那一端的門（前門）
-  const door = (room.mainDoor && room.doorPts?.find((d) => d.side === room.mainDoor)) || (flipped(room) ? room.doorPts?.at(-1) : room.doorPts?.[0]);   // mainDoor：主要門口在哪一面
+  const mains = room.mainDoor ? (room.doorPts || []).filter((d) => d.side === room.mainDoor) : [];
+  if (room.signEnd === 'E') mains.sort((a, b) => b.x - a.x);         // signEnd：門牌掛在東邊那扇
+  const door = mains[0] || (flipped(room) ? room.doorPts?.at(-1) : room.doorPts?.[0]);   // mainDoor：主要門口在哪一面
   if (!door) return;
   let title, sub, kind;
   if (room.type === 'class') { title = room.display; sub = room.code; kind = 'class'; }
