@@ -32,10 +32,10 @@
 
   // ---- 樓梯 / 電梯（可在樓層間移動） ----
   const stairs = [
-    { id: '甲梯', rect: [1555, 330, 1690, 400], floors: ['B1', '1F', '2F', '3F', '4F'], building: 'B' },
+    { id: '甲梯', rect: [1555, 330, 1690, 400], floors: ['B1', '1F', '2F', '3F', '4F', '5F'], building: 'B' },   // 5F = 從甲梯上頂樓菜園（依使用者說明）
     { id: '乙梯', rect: [470, 475, 645, 585], floors: ['B1', '1F', '2F', '3F', '4F', '5F'], building: 'D' },
     { id: '丙梯', rect: [515, 1060, 645, 1145], floors: ['B1', '1F', '2F', '3F', '4F'], building: 'C', reverse: true, wall1F: 'W', downFlight: true },   // 往上的階梯從東邊（走廊）往西爬；1 樓西側是牆
-    { id: '丁梯', rect: [1555, 1060, 1690, 1145], floors: ['1F', '2F', '3F', '4F', '5F'], building: 'B' },   // 5F = 至善樓頂樓菜園（推測從丁梯上去）
+    { id: '丁梯', rect: [1555, 1060, 1690, 1145], floors: ['1F', '2F', '3F', '4F'], building: 'B' },
     { id: '電梯', rect: [585, 1200, 645, 1245], floors: ['1F', '2F', '3F', '4F'], elevator: true, door: 'E' },   // 門朝東，在廁所南邊
   ];
 
@@ -66,6 +66,7 @@
       { rect: [705, 150, 1510, 218], noCeil: true, bleacher: 'N' },
       { rect: [705, 517, 1510, 585], noCeil: true, bleacher: 'S' },
       { rect: [1370, 218, 1510, 517], noCeil: true },
+      { rect: [1510, 330, 1555, 595], noCeil: true },   // 甲梯出口（4 樓走廊 B 的樓上），往南接頂樓走道、菜園
     ],
   };
 
@@ -183,6 +184,7 @@
 
   // 5F：活動中心看台（西側；北、南、東側在上面的走廊資料）
   R('5F', 'A', [705, 218, 773, 517], { name: '活動中心看台', type: 'hall', open: true, noCeil: true, bleacher: 'W' });
+  R('5F', 'B', [1555, 400, 1690, 595], { name: '頂樓走道', type: 'garden', open: true });   // 甲梯上來，往南走到菜園（404、405 的樓上）
   R('5F', 'B', [1555, 595, 1690, 1065], { name: '頂樓菜園', type: 'garden', open: true, farm: true });   // 504、505、客語教室的樓上
 
   // ---- 戶外（平面圖上沒有；依 2026-10 使用者提供的空拍圖與街景估計） ----
