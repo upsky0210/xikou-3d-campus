@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=94';
-import { furnishFloor } from './furniture.js?v=94';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=94';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=94';
-import { buildCampusWall } from './wall.js?v=94';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=94';
+import { PanoViewer } from './pano.js?v=95';
+import { furnishFloor } from './furniture.js?v=95';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=95';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=95';
+import { buildCampusWall } from './wall.js?v=95';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=95';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2192,10 +2192,43 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
 }
 
+/* ---------------- 背景音樂：溪口校歌（循環播放） ----------------
+   瀏覽器不讓網頁自己出聲，等第一次點擊／按鍵才開始；右上「🎵 校歌」可以開關（記在這台電腦）。
+   看 360° 實景（有語音導覽）、玩直笛記憶時先暫停，結束再接著播。 */
+
+const BGM_KEY = 'campus-bgm';
+const bgm = new Audio('audio/bgm/school-song.m4a');
+bgm.loop = true; bgm.volume = 0.35; bgm.preload = 'none';
+const bgmBtn = document.getElementById('bgmBtn');
+const bgmHolds = new Set();                                             // 暫停的原因（實景、直笛）
+let bgmOn = true, bgmUnlocked = false;
+try { bgmOn = localStorage.getItem(BGM_KEY) !== '0'; } catch { /* 私密模式 */ }
+function bgmUpdate() {
+  bgmBtn.classList.toggle('off', !bgmOn); bgmBtn.setAttribute('aria-pressed', String(bgmOn));
+  bgmBtn.title = bgmOn ? '關掉校歌' : '播放校歌';
+  bgmBtn.querySelector('i').textContent = bgmOn ? '🎵' : '🔇';
+  if (bgmOn && bgmUnlocked && !bgmHolds.size) bgm.play().catch(() => {});
+  else bgm.pause();
+}
+function bgmHold(why, on) { if (on) bgmHolds.add(why); else bgmHolds.delete(why); bgmUpdate(); }
+bgmBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  bgmOn = !bgmOn; bgmUnlocked = true;
+  try { localStorage.setItem(BGM_KEY, bgmOn ? '1' : '0'); } catch { /* 私密模式 */ }
+  bgmUpdate();
+});
+const bgmUnlock = (e) => {
+  if (bgmUnlocked || e.target.closest?.('#bgmBtn')) return;            // 第一下就按校歌鈕：交給按鈕自己處理
+  bgmUnlocked = true; bgmUpdate();
+  removeEventListener('pointerdown', bgmUnlock, true); removeEventListener('keydown', bgmUnlock, true);
+};
+addEventListener('pointerdown', bgmUnlock, true); addEventListener('keydown', bgmUnlock, true);
+bgmUpdate();
+
 /* ---------------- 360° 環景 ---------------- */
 
 const viewer = new PanoViewer(window.PANO, {
-  onClose: () => { clock.getDelta(); },
+  onClose: () => { clock.getDelta(); bgmHold('pano', false); },
   onLocate: (s) => focusPano(s),
 });
 const panoScenes = viewer.scenes;
@@ -2252,6 +2285,7 @@ function openPano(s) {
   hideInfo(); closeSearch(); closeGallery();
   document.getElementById('panoPrompt').hidden = true;
   for (const k in keys) keys[k] = false;
+  bgmHold('pano', true);
   viewer.open(s.img);
 }
 
@@ -3587,7 +3621,7 @@ fluteBox.querySelector('.keys').innerHTML = FLUTE.map((x, k) => {
   return `<button data-k="${k}" style="--c:${x.c}"><b>${x.hi ? '<small>高音</small>' : ''}${x.n}</b><span class="fing">${holes}</span><small>${x.abc}・${k + 1}</small></button>`;
 }).join('');
 function startFlute(n) {
-  stopAuto();
+  stopAuto(); bgmHold('flute', true);                                   // 聽老師吹直笛時，校歌先停
   const $ = (sel) => fluteBox.querySelector(sel);
   const btns = [...fluteBox.querySelectorAll('[data-k]')];
   let best = 0, seq = [], pos = 0, lives = 2, done = false, listening = false, bubble = null;
@@ -3672,7 +3706,7 @@ function startFlute(n) {
     }, 1600);
   };
   const finish = () => {
-    done = true; fluteBox.hidden = true; clearNote(); blow(false);
+    done = true; fluteBox.hidden = true; clearNote(); blow(false); bgmHold('flute', false);
     updateVisibility();                                                 // 名牌放回來
     removeEventListener('keydown', onKey, true);
     n.playing = false; act.busy = null; duel = null;

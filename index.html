@@ -317,6 +317,8 @@
   #flute .fing i.th { grid-column: 1; grid-row: 1; border-style: dashed; }
   #flute .fing i.on { background: #234; }
   #flute .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: #777; }
+  #bgmBtn i { font-style: normal; } #bgmBtn.off { opacity: .6; }
+  @media (max-width: 1180px) { #bgmBtn span { display: none; } }   /* 上面那排擠不下：只留圖示 */
   #flute .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
   /* 蜜袋鼯能吃嗎？（邱老師） */
   #food { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(360px, calc(100vw - 24px)); z-index: 6;
@@ -451,6 +453,7 @@
     <button data-mode="first">👀 第一人稱</button>
   </div>
   <button class="iconbtn" id="avatarBtn" aria-label="選擇角色">👕 角色</button>
+  <button class="iconbtn" id="bgmBtn" aria-label="背景音樂：校歌" aria-pressed="true"><i>🎵</i><span> 校歌</span></button>
   <div class="spacer"></div>
   <button class="iconbtn" id="openGallery" style="background:#7b2cbf;color:#fff">📷 實景導覽</button>
   <button class="iconbtn primary" id="openSearch">🔍 找教室</button>
@@ -670,8 +673,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=94"></script>
-<script src="js/pano-data.js?v=94"></script>
-<script type="module" src="js/app.js?v=94"></script>
+<script src="js/campus-data.js?v=95"></script>
+<script src="js/pano-data.js?v=95"></script>
+<script type="module" src="js/app.js?v=95"></script>
 </body>
 </html>
