@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=105';
+import { Batch, mat, SPOTS } from './blocks.js?v=109';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1900,7 +1900,38 @@ function furnishRoom(room, fr, put) {
 
 /* ---------- 門牌 ---------- */
 
-function signTexture(title, sub, kind) {
+// 門牌英文（班級教室不用，維持中文＋班級代號）
+const ROOM_EN = {
+  '人事室・會計室': 'Personnel & Accounting', '健康中心': 'Health Center', '儲藏室': 'Storage Room', '器材室': 'Equipment Room',
+  '圖書館': 'Library', '團輔室': 'Group Counseling Room', '太陽班': 'Sun Class', '彩虹班': 'Rainbow Class', '星星班': 'Star Class',
+  '月亮班': 'Moon Class', '白雲班': 'Cloud Class', '學務處': 'Student Affairs Office', '客語教室': 'Hakka Classroom',
+  '家長會': "Parents' Association", '幸運方塘': 'Maker Space', '幼兒園辦公室': 'Kindergarten Office',
+  '幼兒多功能活動室一': 'Kindergarten Activity Room 1', '幼兒多功能活動室二': 'Kindergarten Activity Room 2',
+  '律動教室': 'Rhythm Room', '思科教室': 'Cisco Classroom', '托育中心': 'After-School Care Center', '教務處': 'Academic Affairs Office',
+  '教師會辦公室': "Teachers' Association Office", '方陣教室': 'Science Discovery Room', '會議室': 'Meeting Room',
+  '校長室': "Principal's Office", '桌球教室': 'Table Tennis Room', '油印室': 'Printing Room', '活動中心': 'Activity Center',
+  '潛能教室一': 'Resource Room 1', '潛能教室二': 'Resource Room 2', '潛能教室三': 'Resource Room 3', '潛能教室四': 'Resource Room 4',
+  '科任教師辦公室': 'Subject Teachers\' Office', '穿堂': 'Entrance Hall', '總務處': 'General Affairs Office', '美勞教室': 'Art Room',
+  '自然教室一': 'Science Room 1', '自然教室二': 'Science Room 2', '舞蹈教室': 'Dance Room', '英語教室一': 'English Room 1',
+  '英語教室二': 'English Room 2', '視聽教室': 'Audio-Visual Room', '諮商室': 'Counseling Room', '警衛室': 'Security Office',
+  '資訊室': 'IT Office', '輔導室': 'Counseling Office', '電腦教室一': 'Computer Lab 1', '電腦教室二': 'Computer Lab 2',
+  '音樂教室一': 'Music Room 1', '音樂教室二': 'Music Room 2', '廁所': 'Restroom', '性別友善廁所': 'All-Gender Restroom',
+};
+const roomEn = (title) => ROOM_EN[title.replace(/^🚻\s*/, '')] || '';
+// en：英文（有的話中文縮小一點，分三行：中文／英文／編號）
+function signTexture(title, sub, kind, en = '') {
+  if (en) return bigTex(512, 176, (c, w, h) => {
+    const theme = { room: { bg: '#1e3a5f', border: '#c9a227', ink: '#ffffff', en: '#e8eef6', sub: '#ffd970' },
+      wc: { bg: '#3b6e8f', border: '#ffffff', ink: '#ffffff', en: '#e6f6ff', sub: '#dff' } }[kind];
+    c.fillStyle = theme.border; c.fillRect(0, 0, w, h);
+    c.fillStyle = theme.bg; c.fillRect(10, 10, w - 20, h - 20);
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    const fit = (text, weight, size, min) => { let fs = size; c.font = `${weight} ${fs}px "Noto Sans TC", sans-serif`; while (c.measureText(text).width > w - 44 && fs > min) { fs -= 2; c.font = `${weight} ${fs}px "Noto Sans TC", sans-serif`; } };
+    const y1 = sub ? 50 : 62, y2 = sub ? 104 : 124;
+    c.fillStyle = theme.ink; fit(title, 900, 62, 28); c.fillText(title, w / 2, y1);
+    c.fillStyle = theme.en; fit(en, 700, 36, 18); c.fillText(en, w / 2, y2);
+    if (sub) { c.fillStyle = theme.sub; c.font = '700 28px "Noto Sans TC", sans-serif'; c.fillText(sub, w / 2, 146); }
+  });
   return bigTex(512, 176, (c, w, h) => {
     const theme = {
       class: { bg: '#fffaf0', border: '#d32f2f', ink: '#1d2733', sub: '#d32f2f' },
@@ -1927,7 +1958,7 @@ function addSign(room, f, group, wallT) {
   else if (room.type === 'wc') { title = room.sign || '🚻 廁所'; sub = ''; kind = 'wc'; }
   else { title = (room.name || '').replace(/（.*?）/g, ''); sub = room.no || ''; kind = 'room'; }
   if (!title) return;
-  const face = new THREE.MeshLambertMaterial({ map: signTexture(title, sub, kind) });
+  const face = new THREE.MeshLambertMaterial({ map: signTexture(title, sub, kind, kind === 'class' ? '' : roomEn(title)) });   // 班級教室牌維持中文＋代號
   const edge = new THREE.MeshLambertMaterial({ color: kind === 'class' ? '#d32f2f' : '#c9a227' });
   const horizWall = door.side === 'N' || door.side === 'S';
   // 牌子和牆垂直，凸出到走廊；兩面都有字

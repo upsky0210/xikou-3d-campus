@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=105';
-import { furnishFloor } from './furniture.js?v=105';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=105';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=105';
-import { buildCampusWall } from './wall.js?v=105';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=105';
+import { PanoViewer } from './pano.js?v=109';
+import { furnishFloor } from './furniture.js?v=109';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=109';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=109';
+import { buildCampusWall } from './wall.js?v=109';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=109';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2521,6 +2521,8 @@ function updateTurtles(t, dt) {
 
 /* ---------------- 老師 NPC（依照片畫成方塊人） ---------------- */
 
+// 樂樂棒球場（操場遊戲場西邊草地）：本壘在南、投手丘在北（打出去的球往操場飛）；校長的位置會用到，要先宣告
+const BB = { home: { x: -28, z: 77 }, mound: { x: -28, z: 70.5 }, side: 7 };
 const NPCS = [
   {
     name: '呂老師', title: '體育老師', game: 'badminton',
@@ -2864,13 +2866,16 @@ const NPCS = [
     },
   },
   {
-    name: '張校長', title: '校長',
+    name: '張校長', title: '校長', game: 'baseball',
     hello: ['😊 張校長：小朋友好！', '👍 張校長：你好棒！今天也要開開心心學習喔！', '🌟 張校長：遇到困難不要怕，努力就是最棒的！',
       '📚 張校長：多讀書、多運動，健康又快樂！', '🤝 張校長：有禮貌、會幫助別人，就是溪口的好孩子！'],
-    // 1 樓穿堂（從正門進來），面向校門（西）迎接小朋友
+    // 隨機出現：1 樓穿堂（從正門進來，面向校門迎接小朋友），或操場遊戲場西邊的草地（換上棒球裝，在投手丘上，可以玩樂樂棒球）
     places: [
       { floor: '1F', where: '穿堂', at: () => { const r = rooms.find((x) => x.name === '穿堂'); return [r.cx - 1.2, r.cz + 1.8, Math.PI / 2]; } },
+      { floor: '1F', where: '樂樂棒球場', game: true, outfit: 'baseball', at: () => [BB.mound.x, BB.mound.z, Math.PI] },
     ],
+    // 棒球裝：深藍棒球帽、白色球衣（深藍鈕扣）、白色球褲
+    outfits: { baseball: { cap: { color: '#1f3a7a', logo: '#ffffff' }, top: '#f6f6f2', pants: '#f0efe8', longSleeve: false, collar: null, tie: null, buttons: '#1f3a7a', shoe: '#1d1d1f' } },
     look: {
       // 依照片：黑色短髮（旁分）、細框眼鏡、笑容；深灰藍色西裝、淺藍襯衫、紫藍格紋領帶
       skin: '#efc8a8', hair: '#1c1816', top: '#3b4454', pants: '#3b4454', shoe: '#1d1d1f',
@@ -2908,10 +2913,23 @@ function placeNPC(n, f, x, z, yaw) {
   n.label.userData.base = null;                                       // 讓 updateVisibility 重新算名牌大小與高度
 }
 // 有好幾個地方可以出現的老師：隨機挑一個（跟上次不一樣）
+function useOutfit(n, name) {
+  n.models ||= { base: n.g };
+  const key = name || 'base';
+  if (!n.models[key]) {
+    const g = makeBlockNPC({ ...n.look, ...n.outfits[name] });
+    g.traverse((o) => { if (o.isMesh) { o.userData.npc = n; pickables.push(o); } });
+    n.models[key] = g;
+  }
+  const g = n.models[key];
+  if (g === n.g) return;
+  n.g.removeFromParent(); n.g = g;
+}
 function movePlacesNPC(n) {
   let k; do k = Math.random() * n.places.length | 0; while (n.places.length > 1 && k === n.placeIdx);
   n.placeIdx = k;
   const p = n.places[k], [x, z, yaw] = p.at();
+  if (n.outfits) useOutfit(n, p.outfit);                               // 有的地點要換衣服（校長去打樂樂棒球換棒球裝）
   placeNPC(n, floorById[p.floor], x, z, yaw);
 }
 for (const n of NPCS) {
@@ -3121,6 +3139,7 @@ function updateAct(dt) {
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
     : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
+    : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
     : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
     : sp.kind === 'feed' ? '🐢 餵烏龜 <kbd>F</kbd>'
@@ -3139,6 +3158,7 @@ function doAction() {
   else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
   else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
   else if (act.spot?.kind === 'glider') startFood(act.spot.npc);
+  else if (act.spot?.kind === 'baseball') startBaseball(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
   else if (act.spot?.kind === 'feed') feedTurtles();
 }
@@ -3153,7 +3173,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && fluteBox.hidden && foodBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯有自己的結束鈕
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -3846,6 +3866,175 @@ function startFood(n) {
   foodBox.hidden = false;
   ready();
   msg(`${n.name}：花花和泡泡肚子餓了！哪些東西蜜袋鼯可以吃呢？`);
+}
+
+/* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
+   看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
+   偏掉的壞球不要揮，四壞球保送；三好球出局，三出局結束，記錄最高得分。 */
+
+const BB_KEY = 'campus-baseball-best';
+function buildBaseballField() {
+  const f = floors[1], b = new Batch(), white = mat('wool', '#f8f8f4'), dirt = mat('wool', '#b8865a');
+  const gy = (x, z) => f.y + groundAt(f, x, z);
+  const H = BB.home, d = BB.side / Math.SQRT2;
+  const bases = [[H.x + d, H.z - d], [H.x, H.z - 2 * d], [H.x - d, H.z - d]];
+  b.box(dirt, 2.6, 0.03, 2.6, H.x, gy(H.x, H.z) + 0.015, H.z);                                        // 本壘區的紅土
+  b.box(white, 0.43, 0.04, 0.43, H.x, gy(H.x, H.z) + 0.035, H.z);                                       // 本壘板
+  for (const [x, z] of bases) { b.box(dirt, 1.6, 0.03, 1.6, x, gy(x, z) + 0.015, z); b.box(white, 0.38, 0.08, 0.38, x, gy(x, z) + 0.05, z); }
+  const M2 = BB.mound; b.box(dirt, 2.0, 0.06, 2.0, M2.x, gy(M2.x, M2.z) + 0.03, M2.z); b.box(white, 0.6, 0.07, 0.15, M2.x, gy(M2.x, M2.z) + 0.04, M2.z);
+  // 白色邊線：本壘往一壘、三壘
+  for (const [x, z] of [bases[0], bases[2]]) {
+    const len = Math.hypot(x - H.x, z - H.z), m = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, len), white);
+    m.position.set((x + H.x) / 2, gy(H.x, H.z) + 0.035, (z + H.z) / 2); m.rotation.y = Math.atan2(x - H.x, z - H.z); f.group.add(m);
+  }
+  b.build(f.group);
+  f.labels.add(makeLabel('樂樂棒球場', 'T-BALL', H.x, gy(H.x, H.z) + 2.6, H.z + 1.5, { bg: '#1f3a7a', h: 0.8 }));
+}
+const bbBox = document.getElementById('bb');
+const bbBall = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 8), new THREE.MeshLambertMaterial({ color: '#fffdf2' }));
+bbBall.visible = false; scene.add(bbBall);
+const myBat = (() => {                                                 // 木頭球棒：接在右手，當成手臂的延伸
+  const g = new THREE.Group(), wood = new THREE.MeshLambertMaterial({ color: '#d9a35a' }), grip = new THREE.MeshLambertMaterial({ color: '#2b2b2b' });
+  const h = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.3, 8), grip); h.position.y = -0.1; g.add(h);
+  const br = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.03, 0.6, 10), wood); br.position.y = -0.55; g.add(br);
+  g.position.set(0, -0.62, 0);
+  return g;
+})();
+function startBaseball(n) {
+  stopAuto();
+  const f = n.f, $ = (sel) => bbBox.querySelector(sel), H = BB.home;
+  const gy = (x, z) => f.y + groundAt(f, x, z);
+  const T0 = n.g.position.clone(), yaw0 = n.yaw;
+  let best = 0; try { best = +localStorage.getItem(BB_KEY) || 0; } catch { /* 私密模式 */ }
+  // 學生站在本壘旁邊（打擊區），面向投手丘；鏡頭在後面
+  const bx = H.x - 0.75, bz = H.z + 0.15;
+  placeAt(f, bx, bz, 0); avatar.rotation.y = 0; player.yaw = 0.18; player.pitch = -0.06;
+  n.playing = true; n.g.rotation.y = Math.PI;
+  const L = limbs(), nL = n.g.userData.limbs;
+  if (L) { L.armR.add(myBat); L.armR.rotation.order = 'YXZ'; }
+  let strikes = 0, balls = 0, outs = 0, runs = 0, bases = [0, 0, 0], done = false;
+  let t = 0, nextAt = 1.4, wind = -1, pitch = null, hit = null, swingT = 9, over = 0;
+  const dots = (k, n2, col) => (k = Math.min(k, n2), '●'.repeat(k)).replace(/●/g, `<i style="color:${col}">●</i>`) + '○'.repeat(n2 - k);
+  const show = () => {
+    $('.runs').innerHTML = `得分 <b>${runs}</b>　最高 ${best}`;
+    $('.s').innerHTML = dots(strikes, 2, '#f2b134'); $('.b').innerHTML = dots(balls, 3, '#3fbf5a'); $('.o').innerHTML = dots(outs, 2, '#e8573a');
+    $('.bases').textContent = `壘包 ${['一', '二', '三'].map((x, i) => (bases[i] ? '◆' : '◇') + x).join(' ')}`;
+  };
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const advance = (k) => {                                               // 跑者往前 k 個壘，打者上 k 壘（k=4 全壘打）
+    const nb = [0, 0, 0];
+    for (let i = 2; i >= 0; i--) if (bases[i]) { if (i + k >= 3) runs++; else nb[i + k] = 1; }
+    if (k >= 4) runs++; else nb[k - 1] = 1;
+    bases = nb;
+  };
+  const walk = () => {                                                   // 保送：被擠到的跑者才往前
+    const nb = [...bases];
+    if (nb[0]) { if (nb[1]) { if (nb[2]) runs++; nb[2] = 1; } nb[1] = 1; }
+    nb[0] = 1; bases = nb;
+  };
+  const newBatter = () => { strikes = 0; balls = 0; };
+  const out = (text) => {
+    outs++; newBatter();
+    msg(`${text}　出局！`, 'no'); npcFace(n, 'wink', 1.6);
+    if (outs >= 3) {
+      over = 1;
+      if (runs > best) { best = runs; try { localStorage.setItem(BB_KEY, String(best)); } catch { /* 私密模式 */ } }
+      setTimeout(() => {
+        if (done) return;
+        finish();
+        toast(runs > 0 ? `⚾ 三出局！你拿下 <b>${runs}</b> 分（最高 ${best} 分）<br>${n.name}：打得真好！你好棒，下次再來挑戰！`
+          : `⚾ 三出局！這次沒有得分<br>${n.name}：沒關係，看準球再揮，你一定可以的！`);
+      }, 1800);
+    }
+  };
+  const strike = (text) => { if (++strikes >= 3) out(`${text}　三振`); else { msg(`${text}　好球！`, 'no'); } };
+  // 投球：從校長手上飛到本壘前方（好球在本壘上，壞球偏到外面）
+  const throwBall = () => {
+    const wide = Math.random() < 0.22, T = 0.95 + Math.random() * 0.45;
+    const s0 = T0, a = [s0.x + 0.3, gy(s0.x, s0.z) + 1.55, s0.z + 0.4];
+    const b2 = [H.x + (wide ? (Math.random() < 0.5 ? -1 : 1) * 1.1 : (Math.random() - 0.5) * 0.25), gy(H.x, H.z) + 0.75 + (wide ? 0.3 : 0), H.z - 0.1];
+    pitch = { a, b: b2, T, t: 0, wide, swung: false }; bbBall.visible = true;
+  };
+  const ballAt = (P, k) => [P.a[0] + (P.b[0] - P.a[0]) * k, P.a[1] + (P.b[1] - P.a[1]) * k + 4 * (P.h || 0.25) * k * (1 - k), P.a[2] + (P.b[2] - P.a[2]) * k];
+  // 打出去：依結果飛不同遠、不同高
+  const fly = (kind) => {
+    const p = bbBall.position, ang = kind === 'foul' ? (Math.random() < 0.5 ? -1 : 1) * (1.15 + Math.random() * 0.3) : (Math.random() - 0.5) * 0.7;
+    const dist = { hr: 42, two: 22, one: 11, foul: 12 }[kind], h = { hr: 14, two: 6, one: 1.2, foul: 5 }[kind];
+    const tx = p.x + Math.sin(ang) * dist, tz = p.z - Math.cos(ang) * dist;
+    hit = { a: [p.x, p.y, p.z], b: [tx, gy(tx, tz) + 0.11, tz], T: { hr: 2.4, two: 1.7, one: 1.0, foul: 1.2 }[kind], t: 0, h };
+  };
+  const judge = (dtArr) => {                                              // dtArr：揮棒時間 − 球到本壘的時間
+    const e = Math.abs(dtArr);
+    if (pitch.wide) { strike('😅 壞球不要揮喔！揮棒落空'); return; }
+    if (e < 0.06) { fly('hr'); advance(4); newBatter(); msg('💥 全壘打！！', 'ok'); npcFace(n, 'surprised', 2); toast(`⚾ 全壘打！${n.name}：哇！你好棒！`); return; }
+    if (e < 0.12) { fly('two'); advance(2); newBatter(); msg('⚾ 二壘安打！', 'ok'); npcFace(n, 'happy', 1.8); return; }
+    if (e < 0.2) { fly('one'); advance(1); newBatter(); msg('⚾ 一壘安打！', 'ok'); npcFace(n, 'happy', 1.6); return; }
+    if (e < 0.28) { fly('foul'); if (strikes < 2) strikes++; msg(dtArr < 0 ? '界外球！（揮太早了）' : '界外球！（揮太晚了）'); return; }
+    strike(dtArr < 0 ? '揮太早了，揮棒落空' : '揮太晚了，揮棒落空');
+  };
+  const finish = () => {
+    done = true; bbBox.hidden = true; bbBall.visible = false;
+    myBat.removeFromParent(); if (L) L.armR.rotation.order = 'XYZ';
+    n.playing = false; n.g.position.copy(T0); n.g.rotation.y = yaw0;
+    for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);
+    resetPose(); act.busy = null; duel = null;
+  };
+  act.busy = {
+    label: '',                                                              // 揮棒鈕在上面的視窗裡（F 也可以）
+    tick(dt) {
+      if (done) return;
+      t += dt; swingT += dt;
+      player.x = bx; player.z = bz; avatar.rotation.y = 0;
+      // 學生：準備姿勢（球棒扛在右後方）→ 揮棒（往左前方掃過去）
+      if (L) {
+        const s = Math.min(1, swingT / 0.22);
+        L.armR.rotation.set(1.45 - (swingT < 0.22 ? 0 : 0.2), swingT < 0.6 ? 1.3 - 2.9 * s : 1.3, 0);
+        L.armL.rotation.set(0.9, 0.5, 0);
+      }
+      // 校長：準備投球（舉手）→ 出手
+      if (!pitch && !hit && !over && t > nextAt && wind < 0) wind = 0;
+      if (wind >= 0) {
+        wind += dt;
+        nL.armR.rotation.set(-2.4 + wind * 2.5, 0, 0);
+        if (wind > 0.55) { wind = -1; throwBall(); nL.armR.rotation.set(1.2, 0, 0); }
+      }
+      if (pitch) {
+        pitch.t += dt;
+        const k = pitch.t / pitch.T, p = ballAt(pitch, k);
+        bbBall.position.set(...p);
+        if (k > 1.35) {                                                     // 沒有揮（或揮空）：球過去了
+          if (!pitch.swung) {
+            if (pitch.wide) { if (++balls >= 4) { walk(); newBatter(); msg('四壞球保送！走上一壘 🚶', 'ok'); } else msg('壞球！看得好 👀'); }
+            else strike('🙈 沒揮棒');
+          }
+          pitch = null; bbBall.visible = false; nextAt = t + 1.5; nL.armR.rotation.set(0, 0, 0); show();
+        }
+      }
+      if (hit) {
+        hit.t += dt;
+        const k = Math.min(1, hit.t / hit.T);
+        bbBall.position.set(...ballAt({ a: hit.a, b: hit.b, h: hit.h }, k));
+        if (hit.t > hit.T + 0.6) { hit = null; bbBall.visible = false; nextAt = t + 1.0; show(); }
+      }
+    },
+    press() {
+      if (done || over || swingT < 0.5) return;
+      swingT = 0;
+      if (!pitch || pitch.swung) return;
+      const dtArr = pitch.t - pitch.T;
+      if (dtArr < -0.35) return;                                              // 球還很遠：只是空揮一下
+      pitch.swung = true;
+      judge(dtArr);
+      if (hit) { pitch = null; nL.armR.rotation.set(0, 0, 0); }
+      show();
+    },
+  };
+  $('.swing').onclick = () => act.busy?.press?.();
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`⚾ 下次再來找${n.name}打樂樂棒球！`); } };
+  bbBox.hidden = false;
+  msg(`${n.name}：小朋友好！看準球飛到本壘再揮棒，壞球不要揮喔！`);
+  show();
 }
 
 /* ---------------- 著色小遊戲：在美勞教室遇到哈囉老師，幫動物線稿塗顏色 ----------------
@@ -5145,6 +5334,7 @@ buildPlinth();
 Batch.collector = floors[1].boxes;
 buildOutdoor();
 placeToys();
+buildBaseballField();
 placeBirds();
 Batch.collector = null;
 setupCollision();
@@ -5278,5 +5468,5 @@ if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { NPCS, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
+window.__campus = { NPCS, movePlacesNPC, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
