@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=103';
-import { furnishFloor } from './furniture.js?v=103';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=103';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=103';
-import { buildCampusWall } from './wall.js?v=103';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=103';
+import { PanoViewer } from './pano.js?v=104';
+import { furnishFloor } from './furniture.js?v=104';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=104';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=104';
+import { buildCampusWall } from './wall.js?v=104';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=104';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2860,6 +2860,39 @@ const NPCS = [
         'HHSSSSMMMMSSSSHH',
         'HHHSSSSSSSSSSHHH',
         'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '張校長', title: '校長',
+    hello: ['😊 張校長：小朋友好！', '👍 張校長：你好棒！今天也要開開心心學習喔！', '🌟 張校長：遇到困難不要怕，努力就是最棒的！',
+      '📚 張校長：多讀書、多運動，健康又快樂！', '🤝 張校長：有禮貌、會幫助別人，就是溪口的好孩子！'],
+    // 1 樓穿堂（從正門進來），面向校門（西）迎接小朋友
+    places: [
+      { floor: '1F', where: '穿堂', at: () => { const r = rooms.find((x) => x.name === '穿堂'); return [r.cx - 1.2, r.cz + 1.8, Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色短髮（旁分）、細框眼鏡、笑容；深灰藍色西裝、淺藍襯衫、紫藍格紋領帶
+      skin: '#efc8a8', hair: '#1c1816', top: '#3b4454', pants: '#3b4454', shoe: '#1d1d1f',
+      shortHair: true, longSleeve: true, collar: '#a9cbee', tie: '#6a5aa8', buttons: '#2b313c',
+      pal: { H: '#1c1816', h: '#3a2e28', S: '#efc8a8', K: '#8a8f96', E: '#1e130d', N: '#ddb08e', M: '#9c3b34', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHhHHHHHHH',
+        'HSSSHHHHHHHHHHSH',
+        'SSSSSSSSSSHHHSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SKKKKKSSSSKKKKKS',
+        'SKSEESKKKKSEESKS',
+        'SKKKKKSSSSKKKKKS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSMMMMMMMMMMSSS',
+        'SSSSMTTTTTTMSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
       ],
     },
   },
