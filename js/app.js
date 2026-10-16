@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=113';
-import { furnishFloor } from './furniture.js?v=113';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=113';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=113';
-import { buildCampusWall } from './wall.js?v=113';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=113';
+import { PanoViewer } from './pano.js?v=115';
+import { furnishFloor } from './furniture.js?v=115';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=115';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=115';
+import { buildCampusWall } from './wall.js?v=115';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=115';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5016,6 +5016,117 @@ function buildPhotoScenes() {
     wallPic(f2, tiles, x, gy + 0.62, zS - 5.45, 4.1, 1.18, Math.PI / 2);
     const bench = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 2.0), new THREE.MeshLambertMaterial({ color: '#d9bf98' }));
     bench.position.set(x + 0.3, gy + 0.21, zS - 5.9); bench.castShadow = true; f2.group.add(bench);
+  }
+  // ---- 2F 國際牆（依照片）：敬業樓西側走廊兩面牆（面向西）。北段：「SAY HELLO TO THE WORLD!」國旗樹＋兩幅世界地圖、上面一排各國時鐘；
+  //   南段：南北美洲＋大大的臺灣（小朋友用各國語言打招呼）。地圖用簡化的大陸形狀重畫 ----
+  {
+    const f2b = floorById['2F'], xw = mx(705) - WALL_T / 2 - 0.03, H = 2.7;
+    const ocean = (c, w, h) => {
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3fa4dc'); g.addColorStop(1, '#6cc4ee');
+      c.fillStyle = g; c.fillRect(0, 0, w, h);
+      c.strokeStyle = 'rgba(255,255,255,.12)'; c.lineWidth = 2;
+      for (let i = 0; i < 60; i++) { const x = Math.random() * w, y = Math.random() * h; c.beginPath(); c.arc(x, y, 14 + Math.random() * 20, 0, Math.PI); c.stroke(); }
+      c.fillStyle = '#2a86c4';
+      for (let i = 0; i < 14; i++) { const x = Math.random() * w; c.beginPath(); c.moveTo(x, h); c.quadraticCurveTo(x + 10, h - 60 - Math.random() * 40, x + 4, h - 90); c.lineTo(x + 10, h); c.fill(); }   // 下面的海草
+    };
+    // 大陸：多邊形、淺藍描邊、裡面再分幾塊顏色、小地標
+    const land = (c, ox, oy, w, h, pts, cols) => {
+      c.save(); c.beginPath();
+      const P = pts.map(([x, y]) => [ox + x * w, oy + y * h]), mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      c.moveTo(...mid(P.at(-1), P[0])); P.forEach((p, i) => c.quadraticCurveTo(p[0], p[1], ...mid(p, P[(i + 1) % P.length])));   // 圓滑的海岸線
+      c.closePath();
+      c.strokeStyle = '#bfe6fb'; c.lineWidth = 10; c.stroke(); c.fillStyle = cols[0]; c.fill(); c.clip();
+      for (let i = 1; i < cols.length; i++) { const p = pts[i % pts.length]; c.fillStyle = cols[i]; c.beginPath(); c.arc(ox + (p[0] * 0.6 + 0.2) * w, oy + p[1] * h, 0.22 * Math.min(w, h), 0, 7); c.fill(); }
+      for (let i = 0; i < 26; i++) { const p = pts[i % pts.length]; c.fillStyle = ['#ffffff', '#c0392b', '#6a4a2a', '#2e7d32', '#f1c40f'][i % 5]; c.fillRect(ox + (p[0] * 0.7 + 0.15 * (i % 3)) * w, oy + (p[1] * 0.8 + 0.06 * (i % 4)) * h, 6, 8); }
+      c.restore();
+    };
+    const label = (c, x, y, zh, en, size = 26) => {
+      c.textAlign = 'center'; c.fillStyle = '#ffffff'; c.strokeStyle = '#1d5a8a'; c.lineWidth = 5;
+      c.font = `900 ${size}px "Noto Sans TC", sans-serif`; c.strokeText(zh, x, y); c.fillText(zh, x, y);
+      c.font = `900 ${Math.round(size * 0.62)}px "Arial Black", sans-serif`; c.strokeText(en, x, y + size * 0.85); c.fillText(en, x, y + size * 0.85);
+    };
+    const C = {
+      eu: [[0.1, 0.3], [0.45, 0.1], [0.62, 0.3], [0.5, 0.62], [0.2, 0.7]],
+      as: [[0.02, 0.32], [0.4, 0.05], [0.95, 0.12], [0.85, 0.45], [0.6, 0.85], [0.42, 0.7], [0.15, 0.6]],
+      af: [[0.05, 0.12], [0.75, 0.08], [0.95, 0.4], [0.6, 0.95], [0.4, 0.85], [0.2, 0.42]],
+      oc: [[0.05, 0.3], [0.6, 0.05], [0.95, 0.45], [0.7, 0.95], [0.1, 0.75]],
+      na: [[0.02, 0.25], [0.35, 0.05], [0.95, 0.15], [0.78, 0.55], [0.5, 0.75], [0.4, 0.98], [0.25, 0.7], [0.1, 0.5]],
+      sa: [[0.15, 0.02], [0.75, 0.1], [0.98, 0.35], [0.55, 0.75], [0.35, 0.98], [0.25, 0.55]],
+      gl: [[0.1, 0.1], [0.9, 0.05], [0.7, 0.85], [0.3, 0.95]],
+    };
+    const north = photoTex(1500, 540, (c, w, h) => {
+      ocean(c, w, h);
+      // 國旗樹
+      c.fillStyle = '#8a5a3a'; c.beginPath(); c.moveTo(150, h - 40); c.lineTo(180, 300); c.lineTo(205, 300); c.lineTo(235, h - 40); c.fill();
+      c.strokeStyle = '#8a5a3a'; c.lineWidth = 12;
+      for (const [x, y] of [[110, 230], [280, 240], [190, 180]]) { c.beginPath(); c.moveTo(192, 310); c.lineTo(x, y); c.stroke(); }
+      c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(195, 190, 175, 140, 0, 0, 7); c.fill();
+      const flag = [['#c8102e', '#ffffff'], ['#002868', '#bf0a30'], ['#de2910', '#ffde00'], ['#000000', '#dd0000', '#ffce00'], ['#009246', '#ffffff', '#ce2b37'],
+        ['#fe0000', '#000095'], ['#ffffff', '#bc002d'], ['#0055a4', '#ffffff', '#ef4135'], ['#006847', '#ffffff', '#ce1126'], ['#00843d', '#ffcd00']];
+      for (let i = 0; i < 70; i++) {
+        const a = Math.random() * 7, r = Math.sqrt(Math.random()), x = 195 + Math.cos(a) * r * 150, y = 190 + Math.sin(a) * r * 115, fl = flag[i % flag.length];
+        c.save(); c.translate(x, y); c.rotate((Math.random() - 0.5) * 0.5);
+        fl.forEach((col, k) => { c.fillStyle = col; c.fillRect(-18, -12 + k * 24 / fl.length, 36, 24 / fl.length + 0.5); });
+        c.strokeStyle = 'rgba(0,0,0,.2)'; c.lineWidth = 1; c.strokeRect(-18, -12, 36, 24); c.restore();
+      }
+      c.fillStyle = '#ffffff'; c.strokeStyle = '#1d5a8a'; c.lineWidth = 5; c.font = '900 26px "Arial Black", sans-serif'; c.textAlign = 'center';
+      c.strokeText('SAY HELLO TO THE WORLD!', 195, 52); c.fillText('SAY HELLO TO THE WORLD!', 195, 52);
+      c.fillStyle = '#ffffff'; c.font = '900 22px "Noto Sans TC", sans-serif';
+      [...'我要向全世界打招呼'].forEach((ch, i) => c.fillText(ch, 205, 330 + i * 22));
+      // 第一幅：歐洲、亞洲、非洲、大洋洲
+      land(c, 420, 70, 160, 140, C.eu, ['#f2a0b0', '#9b7ad6', '#f2c14e', '#7cc38a']); label(c, 470, 70, '歐洲', 'EUROPE');
+      land(c, 560, 90, 270, 220, C.as, ['#8fd36a', '#f2a03a', '#9b7ad6', '#f2c14e']); label(c, 700, 115, '亞洲', 'ASIA');
+      land(c, 430, 230, 180, 230, C.af, ['#f2a03a', '#8fd36a', '#c98a3a']); label(c, 400, 400, '非洲', 'AFRICA');
+      land(c, 700, 340, 120, 100, C.oc, ['#f2a03a', '#e8762b']); label(c, 750, 470, '大洋洲', 'OCEANIA');
+      // 第二幅：歐亞非在左、美洲在右（太平洋在中間）
+      land(c, 880, 100, 90, 80, C.eu, ['#8fd36a', '#f2a0b0']); land(c, 930, 80, 180, 160, C.as, ['#3f9a4a', '#f2a03a', '#8a6ad6']);
+      land(c, 870, 200, 110, 150, C.af, ['#f2a03a', '#8fd36a']); land(c, 1080, 300, 80, 70, C.oc, ['#e8762b']);
+      land(c, 1230, 70, 200, 190, C.na, ['#3f9a4a', '#f2c14e', '#8a6ad6']); land(c, 1330, 280, 100, 170, C.sa, ['#8fd36a', '#f2c14e']); land(c, 1400, 40, 70, 70, C.gl, ['#f2c14e']);
+      label(c, 1240, 200, '北美洲', 'North America', 20); label(c, 1340, 380, '南美洲', 'South America', 20); label(c, 1140, 470, '南極洲', 'Antarctica', 20);
+      c.fillStyle = '#ffffff'; c.fillRect(880, 490, 420, 50);                      // 南極洲的冰（還有企鵝）
+      for (let i = 0; i < 6; i++) { const x = 920 + i * 60; c.fillStyle = '#1d1d1d'; c.beginPath(); c.ellipse(x, 490, 10, 18, 0, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.ellipse(x, 494, 6, 12, 0, 0, 7); c.fill(); }
+      c.fillStyle = '#ffffff'; c.font = '900 16px "Arial Black", sans-serif';
+      c.fillText('PACIFIC OCEAN', 1160, 260); c.fillText('ARCTIC OCEAN', 1140, 60); c.fillText('INDIAN OCEAN', 1010, 330);
+    });
+    const south = photoTex(1640, 540, (c, w, h) => {
+      ocean(c, w, h);
+      land(c, 120, 60, 520, 330, C.na, ['#f2c14e', '#8a6ad6', '#c0392b', '#3f9a4a']); land(c, 560, 30, 260, 180, C.gl, ['#ffffff', '#e8eef2']);
+      land(c, 560, 300, 260, 240, C.sa, ['#8fd36a', '#9b4ad6', '#f2c14e']);
+      label(c, 270, 90, '北美洲', 'NORTH AMERICA', 30); label(c, 560, 470, '南美洲', 'SOUTH AMERICA', 30);
+      // 臺灣（黃綠色、大大的），上面一圈各國語言的「你好」
+      const tw = [[1310, 60], [1400, 40], [1430, 90], [1390, 260], [1330, 420], [1270, 520], [1230, 470], [1180, 330], [1220, 170]];
+      c.beginPath(); tw.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath();
+      c.strokeStyle = '#bfe6fb'; c.lineWidth = 12; c.stroke(); c.fillStyle = '#c9dc4a'; c.fill();
+      label(c, 1160, 40, '臺灣', 'TAIWAN', 30);
+      const hi = [['Apa khabar?', 1300, 60], ['ជំរាបសួរ', 1450, 70], ['こんにちは', 1360, 125], ['Halo', 1190, 140], ['안녕하세요', 1390, 190], ['Mabuhay', 1170, 200],
+        ['สวัสดีครับ', 1300, 230], ['Bonjour', 1140, 285], ['Xin chào', 1320, 290], ['မင်္ဂလာပါ', 1110, 330], ['Hello', 1260, 335], ['Hola', 1150, 400], ['नमस्ते', 1330, 390]];
+      for (const [t, x, y] of hi) {
+        c.font = '700 18px "Noto Sans TC", sans-serif'; const tw2 = c.measureText(t).width + 18;
+        c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(x, y, tw2 / 2, 17, 0, 0, 7); c.fill();
+        c.fillStyle = '#222'; c.textAlign = 'center'; c.fillText(t, x, y + 6);
+      }
+      for (const [x, y, sh] of [[1240, 110, '#e53935'], [1200, 250, '#1e88e5'], [1350, 250, '#fdd835'], [1240, 420, '#43a047'], [1290, 470, '#8e24aa'], [1180, 360, '#fb8c00']]) {   // 小朋友
+        c.fillStyle = '#f5c99a'; c.beginPath(); c.arc(x, y, 11, 0, 7); c.fill(); c.fillStyle = '#3a2a1a'; c.beginPath(); c.arc(x, y - 3, 11, Math.PI, 0); c.fill();
+        c.fillStyle = sh; c.fillRect(x - 8, y + 10, 16, 18); c.fillStyle = '#34495e'; c.fillRect(x - 7, y + 28, 5, 12); c.fillRect(x + 2, y + 28, 5, 12);
+      }
+      c.fillStyle = '#ffffff';
+      for (const [x, y] of [[300, 430], [980, 420]]) { c.beginPath(); c.ellipse(x, y, 60, 22, 0, 0, 7); c.ellipse(x + 40, y + 10, 45, 18, 0, 0, 7); c.fill(); }
+    });
+    const segN = [mz(195), mz(330)], segS = [mz(398), mz(545)];
+    wallPic(f2b, north, xw, f2b.y + 0.1 + H / 2, (segN[0] + segN[1]) / 2, segN[1] - segN[0] - 0.2, H, -Math.PI / 2);
+    wallPic(f2b, south, xw, f2b.y + 0.1 + H / 2, (segS[0] + segS[1]) / 2, segS[1] - segS[0] - 0.2, H, -Math.PI / 2);
+    // 北段上面一排各國時鐘
+    const clockFace = (k) => photoTex(64, 64, (c) => {
+      c.fillStyle = ['#ffffff', '#e8f0ff', '#fff2f2', '#ffffff', '#f2fff2', '#ffffff'][k]; c.beginPath(); c.arc(32, 32, 30, 0, 7); c.fill();
+      c.strokeStyle = '#1d1d1d'; c.lineWidth = 4; c.stroke(); c.lineWidth = 3;
+      c.beginPath(); c.moveTo(32, 32); c.lineTo(32 + Math.cos(k) * 18, 32 + Math.sin(k) * 18); c.moveTo(32, 32); c.lineTo(32 + Math.cos(k * 2.3) * 12, 32 + Math.sin(k * 2.3) * 12); c.stroke();
+    }, { alpha: true });
+    for (let k = 0; k < 6; k++) wallPic(f2b, clockFace(k), xw - 0.03, f2b.y + 2.45, segN[0] + (segN[1] - segN[0]) * (0.48 + k * 0.085), 0.36, 0.36, -Math.PI / 2);
+    // 牆前地上的彩色圓點
+    ['#8e44ad', '#f1c40f', '#27ae60', '#2e5ab0', '#8e44ad'].forEach((col, i) => {
+      const dot = new THREE.Mesh(new THREE.CircleGeometry(0.28, 20), new THREE.MeshLambertMaterial({ color: col }));
+      dot.rotation.x = -Math.PI / 2; dot.position.set(xw - 0.9 - (i % 2) * 0.4, f2b.y + 0.02, segN[0] + 1.2 + i * 1.3); f2b.group.add(dot);
+    });
   }
   // ---- 乙梯往 B1（依照片）：沿著樓梯斜度的黃褐色磨石子腰牆（上面一排黃色圓點）＋灰色飾帶＋扶手，牆上掛一張張彩色海報；
   //   最下面一段（往上那段樓梯底下、放書包的地方）牆上是「行人專心走／馬路如虎口」老虎標語＋斑馬線，牆邊排著書包 ----
