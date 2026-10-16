@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=102';
-import { furnishFloor } from './furniture.js?v=102';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=102';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=102';
-import { buildCampusWall } from './wall.js?v=102';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=102';
+import { PanoViewer } from './pano.js?v=103';
+import { furnishFloor } from './furniture.js?v=103';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=103';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=103';
+import { buildCampusWall } from './wall.js?v=103';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=103';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -628,11 +628,12 @@ Object.assign(sun.shadow.camera, { left: -75, right: 75, top: 90, bottom: -60, n
 scene.add(sun);
 
 // 地面（方塊風：草地方塊，一格一公尺）
-// 往地下室的樓梯（B 道＋平台）那裡要挖洞，不然草地會蓋住樓梯
+// 往地下室的樓梯那裡要挖洞，不然草地會蓋住樓梯（整個樓梯間都挖：B1 那段往下走時，上面那片草地會擋在眼前；
+//   1 樓那層本來就有入口平地、A 道底下的樓板，從上面看不會穿幫）
 const groundShape = new THREE.Shape([[-300, -300], [300, -300], [300, 300], [-300, 300]].map(([x, y]) => new THREE.Vector2(x, y)));
 for (const s of stairs) {
   if (!s.g || !s.floors.includes('1F') || !stairPrev(s, floorById['1F'])) continue;
-  const g = s.g, poly = [[g.s0, g.Wd / 2], [g.f1, g.Wd / 2], [g.f1, 0], [g.L, 0], [g.L, g.Wd], [g.s0, g.Wd]];
+  const g = s.g, poly = [[0, 0], [g.L, 0], [g.L, g.Wd], [0, g.Wd]];
   groundShape.holes.push(new THREE.Path(poly.map(([u, v]) => { const [x, z] = g.toXZ(u, v); return new THREE.Vector2(x, -z); })));
 }
 const groundGeo = new THREE.ShapeGeometry(groundShape);
