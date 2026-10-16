@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=96';
+import { Batch, mat, SPOTS } from './blocks.js?v=97';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -558,7 +558,7 @@ function meetingRoom(put, fr, room) {
   put(screenMat(), 0.02, 1.8, 1.0, 1.65, D * (W / 2 - 1.6), 1.05);
   // U 型會議桌（開口朝前面布幕），桌邊與椅子
   const top = mat('wool', '#ece3d0'), base = mat('wool', '#5a3a2a');
-  const uA = 2.6, uB = L - 2.2, half = Math.min(2.4, W / 2 - 1.2), tw = 0.9;
+  const uA = 2.6, uB = L - 2.2, half = Math.min(2.2, W / 2 - 1.4), tw = 0.9;   // 兩側留得出走道
   for (const s of [-1, 1]) {
     put(base, uB - uA, tw - 0.2, 0.72, (uA + uB) / 2, s * half, 0);
     put(top, uB - uA, tw, 0.05, (uA + uB) / 2, s * half, 0.72);
@@ -569,13 +569,16 @@ function meetingRoom(put, fr, room) {
   for (const s of [-1, 1]) put.geo(top, new THREE.CylinderGeometry(tw / 2, tw / 2, 0.05, 20), uB, s * half, 0.745);
   const chairCols = ['#e8732a', '#2b2d31'];
   let k = 0;
+  // 椅子靠桌子收好，而且不算擋路：外側椅子和牆邊櫃子中間是走道，椅子擋住會卡住走不過去
+  const keep = Batch.collector; Batch.collector = null;
   for (let u = uA + 0.4; u < uB - 0.2; u += 0.85) {
     for (const s of [-1, 1]) {
-      officeChair(put, u, s * (half + tw / 2 + 0.35), 0, -s, chairCols[k++ % 2]);       // 外側
+      officeChair(put, u, s * (half + tw / 2 + 0.25), 0, -s, chairCols[k++ % 2]);       // 外側
       officeChair(put, u, s * (half - tw / 2 - 0.35), 0, s, chairCols[k++ % 2]);        // 內側
     }
   }
   for (let v = -half + 0.4; v <= half - 0.4; v += 0.85) officeChair(put, uB + tw + 0.1, v, -1, 0, chairCols[k++ % 2]);
+  Batch.collector = keep;
   // 後牆：校史牆
   put(historyWallMat(), 0.03, W - 0.6, 1.7, L - 0.02, 0, 0.85, true);
   // 窗邊：抽屜櫃
@@ -587,9 +590,9 @@ function meetingRoom(put, fr, room) {
     put(mat('wool', '#d4a017'), 0.12, 0.12, h, u, v, 0.9);
     put.geo(mat('wool', '#e6b422'), new THREE.CylinderGeometry(0.1, 0.05, 0.16, 10), u, v, 0.9 + h + 0.08);
   }
-  for (let i = 0; i < 3; i++) put(bannerMat(i), 0.04, 0.8, 2.0, 6.2 + i * 0.95, D * (W / 2 - 0.9), 0.05, true);
-  put(mat('planks', '#d9cdb8'), 4.0, 0.6, 0.8, L - 3.0, D * (W / 2 - 0.32), 0);
-  put(mat('glass'), 4.0, 0.6, 0.12, L - 3.0, D * (W / 2 - 0.32), 0.8);
+  for (let i = 0; i < 3; i++) put(bannerMat(i), 0.04, 0.8, 2.0, 6.2 + i * 0.95, D * (W / 2 - 0.3), 0.05, true);   // 易拉展貼著牆，才不會擋住走道
+  put(mat('planks', '#d9cdb8'), 4.0, 0.45, 0.8, L - 3.0, D * (W / 2 - 0.25), 0);
+  put(mat('glass'), 4.0, 0.45, 0.12, L - 3.0, D * (W / 2 - 0.25), 0.8);
   // 時鐘
   put.geo(M.white(), new THREE.CylinderGeometry(0.17, 0.17, 0.04, 24).rotateX(Math.PI / 2), L - 0.05 - 0.6, A * (W / 2 - 0.05), 2.3, fr.alongX ? Math.PI / 2 : 0);
 }
