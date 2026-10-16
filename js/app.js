@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=95';
-import { furnishFloor } from './furniture.js?v=95';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=95';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=95';
-import { buildCampusWall } from './wall.js?v=95';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=95';
+import { PanoViewer } from './pano.js?v=96';
+import { furnishFloor } from './furniture.js?v=96';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=96';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=96';
+import { buildCampusWall } from './wall.js?v=96';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=96';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2193,12 +2193,12 @@ function toast(msg) {
 }
 
 /* ---------------- 背景音樂：溪口校歌（循環播放） ----------------
-   瀏覽器不讓網頁自己出聲，等第一次點擊／按鍵才開始；右上「🎵 校歌」可以開關（記在這台電腦）。
+   瀏覽器不讓網頁自己出聲，等第一次點擊／按鍵才開始；右上（實景導覽左邊）「🎵 校歌」可以開關（記在這台電腦）。
    看 360° 實景（有語音導覽）、玩直笛記憶時先暫停，結束再接著播。 */
 
 const BGM_KEY = 'campus-bgm';
 const bgm = new Audio('audio/bgm/school-song.m4a');
-bgm.loop = true; bgm.volume = 0.35; bgm.preload = 'none';
+bgm.loop = true; bgm.volume = 0.25; bgm.preload = 'none';
 const bgmBtn = document.getElementById('bgmBtn');
 const bgmHolds = new Set();                                             // 暫停的原因（實景、直笛）
 let bgmOn = true, bgmUnlocked = false;
