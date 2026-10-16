@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=97';
-import { furnishFloor } from './furniture.js?v=97';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=97';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=97';
-import { buildCampusWall } from './wall.js?v=97';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=97';
+import { PanoViewer } from './pano.js?v=98';
+import { furnishFloor } from './furniture.js?v=98';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=98';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=98';
+import { buildCampusWall } from './wall.js?v=98';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=98';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -143,6 +143,7 @@ function lighten(hex, amt) {
 
 // 教室、辦公室（每一層）：只有前後（門那面和對面）有窗，左右跟隔壁房間共用的牆是實牆（依使用者說明）
 function sideIsSolid(room, s) {
+  if (room.solidSides?.includes(s)) return true;                // 資料指定的實牆（例如外面有壁畫）
   const doors = room.doors || '';
   const ns = /[NS]/.test(doors), ew = /[EW]/.test(doors);
   if (ns === ew) return false;                                 // 門的方向不明確就照舊
@@ -4791,6 +4792,95 @@ function buildPhotoScenes() {
     wallPic(f2, tiles, x, gy + 0.62, zS - 5.45, 4.1, 1.18, Math.PI / 2);
     const bench = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 2.0), new THREE.MeshLambertMaterial({ color: '#d9bf98' }));
     bench.position.set(x + 0.3, gy + 0.21, zS - 5.9); bench.castShadow = true; f2.group.add(bench);
+  }
+  // ---- 3F「秋天的信」壁畫（依照片）：團輔室東牆、正對潛能教室一和二的門；整面畫到天花板，下面三分之一是馬賽克小磁磚 ----
+  //   左邊秋天的樹（兔子穿紅毛衣靠著樹、松鼠）、中間池塘＋踏腳石＋青蛙、遠方綠色山丘、紅屋頂小屋、柏樹、涼亭、蝴蝶；
+  //   上面是詩（林武憲〈秋天的信〉）：只畫標題和作者，詩句用毛筆字的筆畫表示，不抄全文
+  {
+    const f3 = floorById['3F'], r = rooms.find((x) => x.name === '團輔室' && x.f === f3);
+    const W = r.m.z2 - r.m.z1, H = 2.98;
+    const tex = photoTex(2048, 748, (c, w, h) => {
+      let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+      const sky = c.createLinearGradient(0, 0, 0, h * 0.5); sky.addColorStop(0, '#e6f1ee'); sky.addColorStop(1, '#bfe0ee');
+      c.fillStyle = sky; c.fillRect(0, 0, w, h);
+      c.fillStyle = 'rgba(255,255,255,.7)';
+      for (let i = 0; i < 14; i++) { c.beginPath(); c.ellipse(rnd() * w, 60 + rnd() * 200, 60 + rnd() * 90, 18 + rnd() * 16, 0, 0, 7); c.fill(); }
+      const hill = (pts, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(pts[0], h); for (let i = 0; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.lineTo(pts.at(-2), h); c.closePath(); c.fill(); };
+      // 遠山（右邊淺綠大山坡）、左邊深綠山
+      c.lineJoin = 'round';
+      hill([300, 400, 560, 300, 800, 290, 1000, 330, 1100, 380], '#5f9a62');
+      hill([800, 420, 1100, 340, 1400, 300, 1700, 270, 2048, 250, 2048, 420], '#a8cf7a');
+      c.fillStyle = 'rgba(90,150,70,.35)'; for (let i = 0; i < 500; i++) c.fillRect(1050 + rnd() * 1000, 270 + rnd() * 140, 6, 2);   // 山坡上的草
+      for (const [x, y] of [[1000, 350], [1150, 315], [1450, 290], [1700, 268], [1860, 262]]) for (let k = 0; k < 5; k++) { c.fillStyle = '#3f7a45'; c.beginPath(); c.ellipse(x + k * 12, y - 6, 6, 12, 0, 0, 7); c.fill(); }   // 山稜線的小樹
+      // 中景一排樹＋草地
+      hill([0, 450, 400, 430, 900, 440, 1400, 450, 2048, 440], '#7dbb52');
+      for (let x = 700; x < 1330; x += 22) { c.fillStyle = ['#5d9a3a', '#86b44a', '#c2b23e'][Math.floor(rnd() * 3)]; c.beginPath(); c.arc(x, 425 - rnd() * 8, 16, 0, 7); c.fill(); c.fillStyle = '#5a4020'; c.fillRect(x - 1, 430, 3, 14); }
+      // 紅屋頂小屋、三棵柏樹、一排黃綠小樹、涼亭
+      c.fillStyle = '#e0a347'; c.fillRect(1340, 410, 70, 34); c.fillStyle = '#b32f3a'; c.beginPath(); c.moveTo(1330, 412); c.lineTo(1350, 388); c.lineTo(1420, 388); c.lineTo(1420, 412); c.fill();
+      c.fillStyle = '#6a3a1a'; c.fillRect(1362, 424, 12, 20);
+      for (const x of [1470, 1505, 1540]) { c.fillStyle = '#2f7a3a'; c.beginPath(); c.ellipse(x, 400, 14, 50, 0, 0, 7); c.fill(); }
+      for (let i = 0; i < 6; i++) { const x = 1620 + i * 45; c.fillStyle = '#b8a83e'; c.beginPath(); c.ellipse(x, 410, 10, 28, 0, 0, 7); c.fill(); c.fillStyle = '#6a4a20'; c.fillRect(x - 1, 434, 3, 10); }
+      c.fillStyle = '#a7452a'; c.beginPath(); c.moveTo(1880, 412); c.lineTo(1905, 395); c.lineTo(1935, 412); c.fill(); c.fillRect(1886, 412, 5, 30); c.fillRect(1924, 412, 5, 30);
+      // 前景草地、蜿蜒小路
+      hill([0, 470, 600, 470, 1000, 480, 2048, 470], '#6db04a');
+      c.strokeStyle = '#b07a44'; c.lineWidth = 22; c.lineCap = 'round'; c.beginPath(); c.moveTo(1560, 446); c.bezierCurveTo(1480, 470, 1590, 500, 1470, 545); c.stroke();   // 從小屋往下走到池塘邊
+      // 池塘（左邊到中間、往右下延伸）
+      c.fillStyle = '#9fcbe6'; c.beginPath(); c.moveTo(200, 520); c.bezierCurveTo(600, 490, 900, 500, 1150, 530); c.bezierCurveTo(1400, 560, 1700, 560, 2048, 570); c.lineTo(2048, h); c.lineTo(450, h); c.bezierCurveTo(350, 650, 250, 580, 200, 520); c.fill();
+      c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 3; for (let i = 0; i < 26; i++) { const x = 400 + rnd() * 1600, y = 540 + rnd() * 190; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 50 + rnd() * 60, y); c.stroke(); }
+      c.strokeStyle = '#6a4a2a'; c.lineWidth = 5; c.beginPath(); c.moveTo(560, 505); c.bezierCurveTo(800, 495, 1000, 505, 1150, 530); c.stroke();   // 對岸的土
+      for (const [x, y] of [[700, 620], [760, 655], [850, 640], [920, 670]]) { c.fillStyle = '#9a6a3a'; c.beginPath(); c.ellipse(x, y, 45, 12, 0, 0, 7); c.fill(); }   // 踏腳石
+      for (const [x, s2] of [[1300, 1], [1480, 0.75]]) {                                // 石頭上的青蛙
+        c.fillStyle = '#a99a6a'; c.beginPath(); c.ellipse(x, 720, 110 * s2, 45, 0, Math.PI, 0); c.fill();
+        c.fillStyle = '#2f9a45'; c.beginPath(); c.ellipse(x + 10 * s2, 668, 42 * s2, 30 * s2, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(x - 25 * s2, 650, 22 * s2, 18 * s2, 0, 0, 7); c.fill();
+        c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(x - 30 * s2, 668, 12 * s2, 10 * s2, 0, 0, 7); c.fill();
+        c.fillStyle = '#111'; c.beginPath(); c.arc(x - 26 * s2, 642, 4 * s2, 0, 7); c.fill();
+      }
+      // 左邊：秋天的樹（橘紅樹葉）、靠著樹的兔子（紅毛衣、紫褲子）、穿吊帶褲的松鼠
+      c.fillStyle = '#6db04a'; c.beginPath(); c.moveTo(0, 480); c.lineTo(250, 470); c.bezierCurveTo(320, 560, 420, 640, 520, h); c.lineTo(0, h); c.fill();
+      c.fillStyle = '#7a5434'; c.beginPath(); c.moveTo(150, h); c.lineTo(185, 330); c.lineTo(215, 330); c.lineTo(240, h); c.fill(); c.fillRect(200, 290, 12, 60);
+      c.strokeStyle = '#7a5434'; c.lineWidth = 12; c.beginPath(); c.moveTo(205, 380); c.lineTo(300, 290); c.stroke(); c.beginPath(); c.moveTo(200, 360); c.lineTo(120, 290); c.stroke();
+      for (let i = 0; i < 260; i++) {
+        const a = rnd() * 7, rr = Math.sqrt(rnd()) * 200, x = 220 + Math.cos(a) * rr * 1.2, y = 280 + Math.sin(a) * rr * 0.7;
+        c.fillStyle = ['#c0582a', '#d98a2b', '#a8432a', '#e0a53a', '#8a3a24'][Math.floor(rnd() * 5)]; c.fillRect(x, y, 9, 7);
+      }
+      c.fillStyle = '#8a6a4a'; c.beginPath(); c.ellipse(260, 470, 16, 24, 0, 0, 7); c.fill(); c.fillRect(250, 430, 6, 26); c.fillRect(264, 428, 6, 26);   // 兔子頭、耳朵
+      c.fillStyle = '#b8344a'; c.fillRect(242, 492, 40, 38); c.fillStyle = '#7a6aa8'; c.fillRect(244, 530, 36, 26);
+      c.fillStyle = '#9a6a3a'; c.beginPath(); c.ellipse(420, 600, 16, 18, 0, 0, 7); c.fill(); c.fillRect(410, 574, 6, 14); c.fillRect(424, 574, 6, 14);   // 松鼠
+      c.fillStyle = '#3a5aa8'; c.fillRect(406, 616, 28, 26); c.fillStyle = '#9a6a3a'; c.beginPath(); c.ellipse(385, 625, 22, 10, -0.4, 0, 7); c.fill();
+      c.fillStyle = '#fff'; c.beginPath(); c.ellipse(420, 606, 6, 5, 0, 0, 7); c.fill();
+      // 右邊：高高的樹（貼著牆角）
+      c.fillStyle = '#4f8f4a'; c.beginPath(); c.ellipse(w - 70, 340, 70, 300, 0, 0, 7); c.fill();
+      c.fillStyle = '#6a4a2a'; c.fillRect(w - 76, 560, 12, 190);
+      // 蝴蝶、飛雁、飄落的葉子
+      for (const [x, y, col] of [[1700, 478, '#f2cf3a'], [1820, 500, '#f0a43a']]) { c.fillStyle = col; c.beginPath(); c.ellipse(x - 10, y, 12, 8, 0.5, 0, 7); c.ellipse(x + 10, y, 12, 8, -0.5, 0, 7); c.fill(); }
+      c.strokeStyle = '#333'; c.lineWidth = 3;
+      for (const [x, y] of [[760, 250], [800, 265], [775, 285], [815, 300], [790, 320]]) { c.beginPath(); c.moveTo(x - 12, y); c.quadraticCurveTo(x - 5, y - 8, x, y); c.quadraticCurveTo(x + 5, y - 8, x + 12, y); c.stroke(); }
+      for (let i = 0; i < 18; i++) {
+        const x = 300 + rnd() * 1500, y = 300 + rnd() * 400, a = rnd() * 3;
+        c.save(); c.translate(x, y); c.rotate(a); c.fillStyle = '#c4622a'; c.beginPath(); c.ellipse(0, 0, 18, 10, 0, 0, 7); c.fill(); c.strokeStyle = '#7a3a1a'; c.lineWidth = 2; c.beginPath(); c.moveTo(-18, 0); c.lineTo(18, 0); c.stroke(); c.restore();
+      }
+      // 詩：標題「秋天的信」、作者林武憲；詩句只畫成黑色毛筆字的筆畫
+      c.fillStyle = '#1d1b1a'; c.font = '700 96px "Noto Serif TC", "Noto Sans TC", serif'; c.textBaseline = 'middle';
+      c.fillText('秋 天 的 信', 640, 70);
+      c.font = '700 34px "Noto Sans TC", sans-serif'; c.fillText('林武憲', 1860, 350);
+      const lines = (x0, y0, n, len, size) => {
+        for (let l = 0; l < n; l++) for (let k = 0; k < len[l % len.length]; k++) {
+          const x = x0 + k * size * 1.05, y = y0 + l * size * 1.35;
+          c.fillStyle = '#1d1b1a';
+          for (let q = 0; q < 3; q++) c.fillRect(x + rnd() * size * 0.6, y - size * 0.4 + rnd() * size * 0.7, size * (0.2 + rnd() * 0.4), Math.max(3, size * 0.1));
+          c.fillRect(x + size * 0.4 + rnd() * 4, y - size * 0.4, Math.max(3, size * 0.1), size * 0.8);
+        }
+      };
+      lines(110, 100, 5, [8, 5, 4, 10, 4], 26);        // 左上角那段
+      lines(540, 150, 3, [10, 10, 11], 40);            // 標題下面那段
+      lines(1250, 120, 3, [8, 10, 10], 44);            // 右上那段
+      // 下面三分之一：馬賽克小磁磚的格線
+      c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.5;
+      for (let x = 0; x < w; x += 9) { c.beginPath(); c.moveTo(x, h * 0.66); c.lineTo(x, h); c.stroke(); }
+      for (let y = h * 0.66; y < h; y += 12) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+    });
+    // 牆面朝東（+x），貼在團輔室東牆外側；看的人面向西，左手邊是南（+z）＝畫面左邊
+    wallPic(f3, tex, r.m.x2 + WALL_T / 2 + 0.02, f3.y + H / 2, (r.m.z1 + r.m.z2) / 2, W - 0.1, H, Math.PI / 2);
   }
   // ---- 1F 溪口情廊：「溪口 開學快樂」紙箱人像作品牆（依照片：學生用面紙盒做的方塊人像，疊在矮木台上） ----
   //   照片裡有學生名字，不放照片；人像都用程式重新畫（頭髮、眼睛、嘴巴、衣服隨機組合）

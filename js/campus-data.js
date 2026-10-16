@@ -148,7 +148,7 @@
   R('3F', 'A', [870, 398, 1105, 545], { no: '311', name: '美勞教室', type: 'special', doors: 'NS' });
   R('3F', 'A', [1105, 398, 1345, 545], { no: '310', name: '英語教室二', type: 'special', doors: 'NS' });
   R('3F', 'A', [1345, 398, 1430, 545], { no: '309', name: '諮商室', type: 'office', doors: 'N' });
-  R('3F', 'A', [1430, 398, 1510, 545], { no: '309-1', name: '團輔室', type: 'office', doors: 'N' });
+  R('3F', 'A', [1430, 398, 1510, 545], { no: '309-1', name: '團輔室', type: 'office', doors: 'N', solidSides: 'E' });   // 東牆外面是「秋天的信」壁畫（沒有窗）
   R('3F', 'B', [1555, 400, 1690, 480], { no: '307', name: '潛能教室二', type: 'special', doors: 'W' });
   R('3F', 'B', [1555, 480, 1690, 595], { no: '308', name: '潛能教室一', type: 'special', doors: 'W' });   // 跟輔導室中間不留縫
   R('3F', 'B', [1555, 595, 1690, 750], { no: '327', name: '輔導室', type: 'office', doors: 'W' });
