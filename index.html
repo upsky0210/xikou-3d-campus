@@ -316,7 +316,21 @@
   #flute .fing i.on { background: #234; }
   #flute .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: #777; }
   #flute .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #flute {
+  /* 蜜袋鼯能吃嗎？（邱老師） */
+  #food { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(360px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
+  #food .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #food .item { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 4px 0 2px; }
+  #food .emo { font-size: 40px; line-height: 1; } #food .nm { font-size: 20px; font-weight: 900; color: #6b3a4a; }
+  #food .msg { min-height: 2.8em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; line-height: 1.4; }
+  #food .msg.ok { color: #1b8a3a; } #food .msg.no { color: #c0392b; }
+  #food .btns { display: flex; gap: 6px; justify-content: center; align-items: stretch; }
+  #food .btns button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 22px; padding: 4px 16px; border-radius: 10px; line-height: 1; }
+  #food .btns [data-a="1"] { background: #c8efc0; } #food .btns [data-a="0"] { background: #f8c9c9; }
+  #food .btns button small { font-size: 11px; font-weight: 700; color: #234; line-height: 1.2; }
+  #food .btns button:disabled { opacity: .45; }
+  #food .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; justify-content: center; }
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #flute, body.mc #food {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -501,6 +515,15 @@
   <div class="keys"></div>
   <div class="foot"><span class="best"></span><button class="quit">結束 Esc</button></div>
 </div>
+<div id="food" hidden>
+  <div class="top"><span>🐿️ 蜜袋鼯能吃嗎？</span><span class="round"></span></div>
+  <div class="item"><span class="emo"></span><span class="nm"></span></div>
+  <div class="msg"></div>
+  <div class="btns">
+    <button data-a="1">✅<small>可以吃 1</small></button><button data-a="0">❌<small>不能吃 2</small></button>
+    <button class="quit">結束<br>Esc</button>
+  </div>
+</div>
 <div id="power" hidden><div class="lbl">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
 
 <div id="gallery" hidden>
@@ -645,8 +668,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=92"></script>
-<script src="js/pano-data.js?v=92"></script>
-<script type="module" src="js/app.js?v=92"></script>
+<script src="js/campus-data.js?v=93"></script>
+<script src="js/pano-data.js?v=93"></script>
+<script type="module" src="js/app.js?v=93"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=92';
+import { Batch, mat, SPOTS } from './blocks.js?v=93';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -920,6 +920,69 @@ function restroom(put, fr, room) {
   put(mat('glass'), 0.02, 1.4, 0.8, 0.02, 0, 1.15);                                     // 鏡子
 }
 
+// 1F 白雲班和甲梯中間的廁所（依照片）：牆面整片淺色木紋磚、深灰地磚、輕鋼架天花板＋方形 LED 燈；
+//   進門正對一座木紋磚矮牆（中島），前面是白色長條洗手槽、5 個水龍頭，兩端擺洗手乳；矮牆上貼兩張洗手海報、放抽取式衛生紙；
+//   兩側牆上有白底橘色的緊急求救鈴；矮牆後面是廁所隔間（白色門板）
+// 淺色木紋磚（每塊約 60×20 公分，錯縫貼；貼圖 1 公尺一張、重複貼）
+const woodTileMat = () => once('woodtile', () => {
+  const t = bigTex(256, 256, (c, w, h) => {
+    let sd = 5; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let r = 0; r < 5; r++) for (let k = -1; k < 2; k++) {
+      const x0 = k * 154 + (r % 2) * 77, y0 = r * 51.2, tone = 205 + rnd() * 25;
+      c.fillStyle = `rgb(${tone + 25},${tone + 5},${tone - 30})`; c.fillRect(x0, y0, 154, 51.2);
+      for (let i = 0; i < 9; i++) {                                     // 木紋：細細的深色長條
+        c.fillStyle = `rgba(150,105,60,${0.08 + rnd() * 0.14})`;
+        c.fillRect(x0 + rnd() * 40, y0 + 3 + rnd() * 45, 60 + rnd() * 90, 1 + rnd() * 2);
+      }
+      c.fillStyle = 'rgba(120,95,70,.45)'; c.fillRect(x0, y0, 154, 1.5); c.fillRect(x0, y0, 1.5, 51.2);   // 磚縫
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return new THREE.MeshLambertMaterial({ map: t });
+});
+function restroomWash(put, fr, room) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  const wood = woodTileMat(), white = M.white(), chrome = mat('wool', '#c9ccd0');
+  put(mat('tile', '#7d8186'), L, W, 0.012, L / 2, 0, 0);                         // 深灰地磚
+  // 牆面木紋磚：兩端整面、裡面那面（窗戶上下）
+  for (const u of [0.012, L - 0.012]) put(wood, 0.02, W - 0.1, 2.95, u, 0, 0);
+  for (const [y0, h] of [[0, 1.0], [2.2, 0.75]]) put(wood, L - 0.1, 0.02, h, L / 2, A * (W / 2 - 0.012), y0);
+  // 天花板：方形 LED 燈
+  const led = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#fffbe8', emissiveIntensity: 0.8 });
+  for (let u = 1.2; u < L - 0.5; u += 2.0) for (const v of [-W / 4, W / 4]) put(led, 0.6, 0.6, 0.02, u, v, 2.93);
+  // 中島：木紋磚矮牆，洗手槽朝門那側
+  const IL = Math.min(3.6, L - 3), iv = D * 0.2, face = iv + D * 0.13;
+  put(wood, IL, 0.26, 1.25, L / 2, iv, 0);
+  put(white, IL + 0.04, 0.3, 0.03, L / 2, iv, 1.25);                              // 白色檯面
+  put(wood, IL - 0.3, 0.42, 0.55, L / 2, face + D * 0.21, 0);                      // 洗手槽底座
+  put(white, IL + 0.2, 0.5, 0.06, L / 2, face + D * 0.25, 0.55);                   // 洗手槽：槽底
+  put(white, IL + 0.2, 0.05, 0.25, L / 2, face + D * 0.48, 0.55);                  //         前緣
+  for (const s of [-1, 1]) put(white, 0.05, 0.5, 0.25, L / 2 + s * (IL / 2 + 0.08), face + D * 0.25, 0.55);
+  put(white, IL + 0.2, 0.05, 0.42, L / 2, face + D * 0.02, 0.55);                  //         後面的白色擋水板
+  for (let i = 0; i < 5; i++) {                                                  // 5 個水龍頭
+    const u = L / 2 + (i - 2) * (IL / 5.5);
+    put(chrome, 0.04, 0.12, 0.04, u, face + D * 0.06, 0.92); put(chrome, 0.04, 0.04, 0.1, u, face + D * 0.12, 0.84);
+  }
+  for (const s of [-1, 1]) {                                                     // 兩端：洗手乳、衛生紙；檯面上的抽取式衛生紙
+    put(mat('glass'), 0.08, 0.08, 0.18, L / 2 + s * (IL / 2 - 0.05), face + D * 0.3, 0.61);
+    put(white, 0.22, 0.12, 0.08, L / 2 + s * (IL / 2 - 0.2), iv, 1.28);
+  }
+  for (const [du, col] of [[-0.85, '#bfe3f2'], [0.85, '#d6ecf7']]) {               // 兩張洗手海報
+    put(mat('wool', col), 0.32, 0.01, 0.42, L / 2 + du, face + D * 0.005, 0.9);
+    put(mat('wool', '#3a8fc0'), 0.26, 0.012, 0.06, L / 2 + du, face + D * 0.006, 1.24);
+  }
+  // 兩端牆上的緊急求救鈴（白底橘色按鈕）
+  for (const [u, s] of [[0.03, 1], [L - 0.03, -1]]) { put(white, 0.02, 0.1, 0.14, u, D * 0.6, 1.2); put(mat('wool', '#f08a24'), 0.025, 0.05, 0.05, u + s * 0.01, D * 0.6, 1.24); }
+  // 矮牆後面：廁所隔間（白色門板、灰色隔板）
+  const n = Math.max(2, Math.floor((L - 1.6) / 1.1));
+  for (let i = 0; i < n; i++) {
+    const u = (L - n * 1.1) / 2 + (i + 0.5) * 1.1;
+    put(mat('wool', '#d9d4c8'), 0.05, 1.5, 2.1, u - 0.55, A * (W / 2 - 0.75), 0);
+    put(mat('wool', '#ece8df'), 0.95, 0.04, 2.0, u, A * (W / 2 - 1.5), 0.08);
+  }
+  put(mat('wool', '#d9d4c8'), 0.05, 1.5, 2.1, (L + n * 1.1) / 2, A * (W / 2 - 0.75), 0);
+}
+
 // 1F 電腦教室一（依照片）：兩座長條雙面電腦島（木桌面、深色桌腳、螢幕背對背、白色折疊椅），
 //   前面白板＋教師桌＋投影機、後面綠色布告欄貼滿電腦課海報、門側玻璃書櫃、白色地磚
 const pcPosterMat = () => once('pcposter', () => new THREE.MeshLambertMaterial({ map: bigTex(900, 210, (c, w, h) => {
@@ -1673,6 +1736,7 @@ function furnishRoom(room, fr, put) {
   const n = room.name || '', t = room.type;
   if (n === '穿堂') return entranceHall(put, fr, room);                     // 依照片：主題牆、海報牆、彩色天花板
   if (room.hidden || room.open || t === 'garden') return;
+  if (t === 'wc' && room.floor === '1F' && room.building === 'B') return restroomWash(put, fr, room);   // 1F 白雲班旁：依照片
   if (t === 'wc') return restroom(put, fr, room);                       // 廁所入口屏風、木紋磚、植生牆
   if (t === 'class') return classroom(put, fr, room);
   if (n.includes('圖書館')) return library(put, fr);

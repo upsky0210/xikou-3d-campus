@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=92';
-import { furnishFloor } from './furniture.js?v=92';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=92';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=92';
-import { buildCampusWall } from './wall.js?v=92';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=92';
+import { PanoViewer } from './pano.js?v=93';
+import { furnishFloor } from './furniture.js?v=93';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=93';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=93';
+import { buildCampusWall } from './wall.js?v=93';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=93';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -256,6 +256,10 @@ function galleryWall(room, s) {
   if (room.name === '圖書館' || room.name === '會議室') return { fullGlass: true };
   return { gallery: north ? 1 : -1 };
 }
+// 溪口情廊的白色壁柱：從西端（mx(705)）起每 4.4 公尺一根（buildPhotoScenes 蓋）；布告欄放在柱子之間
+const GALLERY_PIL = 4.4;
+// 「溪口 開學快樂」紙箱人像作品牆：南側牆（電腦教室一外面）第 8～9 根壁柱之間
+const galleryArt = () => ({ x1: mx(705) + GALLERY_PIL * 8, x2: mx(705) + GALLERY_PIL * 9 });
 const galleryWallMat = (() => {
   let m;
   return () => m ||= new THREE.MeshLambertMaterial({ map: (() => {
@@ -1071,11 +1075,18 @@ function buildFloor(f) {
     }
     if (s.gallery && horiz) {                             // 溪口情廊：米白石紋牆、白框布告欄、上方一排氣窗
       piece(galleryWallMat(), 0, 2.45); piece(glass, 2.45, 2.85); piece(mat('wool', '#f1ede4'), 2.85, s.h);
-      const nb = Math.floor((len - 0.5) / 2.4), off = s.gallery * (WALL_T / 2 + 0.035);
-      for (let i = 0; i < nb; i++) {
-        const t = -len / 2 + (len - nb * 2.4) / 2 + 1.2 + i * 2.4, x = cx + t, z = cz + off;
-        batch.box(mat('wool', '#f7f7f4'), 1.95, 1.4, 0.07, x, f.y + 1.6, z);
-        batch.plain(galleryBoardMat((i + Math.round(cx)) % 3), 1.75, 1.2, 0.02, x, f.y + 1.6, z + s.gallery * 0.045);
+      // 布告欄只放在兩根壁柱中間（一格最多兩片），南側作品牆那一格空下來
+      const off = s.gallery * (WALL_T / 2 + 0.035), BW = 1.95, p0 = mx(705), art = galleryArt();
+      const xa = cx - len / 2 + 0.1, xb = cx + len / 2 - 0.1, z = cz + off;
+      for (let k = Math.floor((xa - p0) / GALLERY_PIL); k * GALLERY_PIL + p0 < xb; k++) {
+        const a = Math.max(xa, p0 + k * GALLERY_PIL + 0.2), b = Math.min(xb, p0 + (k + 1) * GALLERY_PIL - 0.2);
+        if (s.gallery < 0 && a < art.x2 && b > art.x1) continue;
+        const nb = Math.min(2, Math.floor((b - a + 0.1) / (BW + 0.1)));
+        for (let i = 0; i < nb; i++) {
+          const x = (a + b) / 2 + (i - (nb - 1) / 2) * (BW + 0.1);
+          batch.box(mat('wool', '#f7f7f4'), BW, 1.4, 0.07, x, f.y + 1.6, z);
+          batch.plain(galleryBoardMat((k * 2 + i) % 3), 1.75, 1.2, 0.02, x, f.y + 1.6, z + s.gallery * 0.045);
+        }
       }
       continue;
     }
@@ -2782,6 +2793,40 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '邱老師', title: '註冊組長', game: 'glider',
+    hello: ['🌱 邱老師：我們來觀察植物！', '🐿️ 邱老師：要愛護小動物唷！', '🐿️ 邱老師：要愛護小動物唷！<br>你知道蜜袋鼯能吃什麼、不能吃什麼嗎？'],
+    // 隨機出現：1 樓教務處（花花、泡泡就是她養的；站在櫃台後面、粉紅椅子那排桌子北邊的走道，面向門口，學生在櫃台外就能跟她玩），
+    //   或 3 樓思科教室前面；兩個地方都可以玩
+    places: [
+      { floor: '1F', where: '教務處', game: true, at: () => { const r = rooms.find((x) => x.name === '教務處'); return [r.cx - 0.1, r.m.z1 + 1.0, -Math.PI / 2]; } },
+      { floor: '3F', where: '思科教室', game: true, at: () => { const r = rooms.find((x) => x.name === '思科教室'); return [r.m.x1 + 1.4, r.cz + 1.2, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深棕黑色長直髮、齊瀏海、溫柔微笑；玫瑰粉紅色翻領短袖洋裝（腰帶、打褶長裙）
+      skin: '#f6d8c6', hair: '#2a1b1b', top: '#b85a6c', pants: '#f0cdb8', shoe: '#5a4038',
+      longHair: true, collar: '#c96d80', skirt: '#b85a6c',
+      pal: { H: '#2a1b1b', h: '#4a2e2c', S: '#f6d8c6', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f2b2b0', N: '#e6b8a2', M: '#b8505a' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHHhHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHhHHHHhHHHhHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMSSSSMSSSHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -3007,6 +3052,7 @@ function updateAct(dt) {
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
     : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
+    : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
     : sp.kind === 'feed' ? '🐢 餵烏龜 <kbd>F</kbd>'
     : `🛝 溜${sp.name} <kbd>F</kbd>`;
@@ -3023,6 +3069,7 @@ function doAction() {
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
   else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
   else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
+  else if (act.spot?.kind === 'glider') startFood(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
   else if (act.spot?.kind === 'feed') feedTurtles();
 }
@@ -3037,7 +3084,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && fluteBox.hidden));   // 單字、著色、猜拳、直笛有自己的結束鈕
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && fluteBox.hidden && foodBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -3644,6 +3691,91 @@ function startFlute(n) {
   msg(`${n.name}：老師先吹，你照順序吹回去喔！`);
   show(); setBtns(false);
   setTimeout(() => { if (!done) teacherPlays(); }, 1200);
+}
+
+/* ---------------- 蜜袋鼯能吃嗎？：遇到邱老師（教務處的花花、泡泡是她養的），判斷每樣東西蜜袋鼯能不能吃 ----------------
+   一次 10 題（能吃、不能吃各 5 題，順序打亂）；點按鈕或按 1（可以吃）／2（不能吃），答完老師會說明原因。 */
+
+const FOOD_KEY = 'campus-glider-food-best';
+const GLIDER_FOOD = [
+  { e: '🍎', n: '蘋果', ok: 1, why: '去皮、去籽、切小塊，是很棒的水果點心。' },
+  { e: '🥭', n: '芒果', ok: 1, why: '去皮去籽、切小塊，香香甜甜牠很愛。' },
+  { e: '🍌', n: '香蕉', ok: 1, why: '可以吃，但是很甜，一次一小塊就好。' },
+  { e: '🫐', n: '藍莓', ok: 1, why: '小小一顆剛好入口，還有很多維生素。' },
+  { e: '🍈', n: '哈密瓜', ok: 1, why: '去皮切小塊，水分多又好吃。' },
+  { e: '🍉', n: '西瓜', ok: 1, why: '把籽挑掉、切小塊，夏天的好點心。' },
+  { e: '🍠', n: '地瓜', ok: 1, why: '要煮熟、不加調味料，切小塊給牠。' },
+  { e: '🌽', n: '玉米', ok: 1, why: '煮熟的玉米粒，不加鹽、不加奶油。' },
+  { e: '🐛', n: '麵包蟲', ok: 1, why: '蜜袋鼯在野外也會吃昆蟲，這是很重要的蛋白質。' },
+  { e: '🦗', n: '蟋蟀', ok: 1, why: '昆蟲是蜜袋鼯天然的食物，補充蛋白質。' },
+  { e: '🥚', n: '水煮蛋', ok: 1, why: '煮熟、不加鹽，一小塊就能補充蛋白質。' },
+  { e: '🥣', n: '蜜袋鼯專用飼料', ok: 1, why: '專用飼料的營養最均衡，是每天的主食。' },
+  { e: '🍫', n: '巧克力', ok: 0, why: '巧克力裡的可可鹼對蜜袋鼯有毒，一點點都不行！' },
+  { e: '🧅', n: '洋蔥', ok: 0, why: '洋蔥會傷害蜜袋鼯的紅血球，讓牠生病。' },
+  { e: '🧄', n: '大蒜', ok: 0, why: '跟洋蔥一樣，會傷害蜜袋鼯的血液。' },
+  { e: '🥑', n: '酪梨', ok: 0, why: '酪梨裡有對很多小動物有毒的成分。' },
+  { e: '☕', n: '咖啡', ok: 0, why: '咖啡因會讓牠心跳太快，非常危險！' },
+  { e: '🧋', n: '珍珠奶茶', ok: 0, why: '有咖啡因、又加了很多糖，人喝都要少喝了！' },
+  { e: '🍬', n: '糖果', ok: 0, why: '太甜了，會蛀牙、變胖，對身體不好。' },
+  { e: '🍟', n: '薯條', ok: 0, why: '又油又鹹，蜜袋鼯的身體負擔不了。' },
+  { e: '🥤', n: '汽水', ok: 0, why: '糖太多又有氣泡，喝了會不舒服。' },
+  { e: '🥛', n: '牛奶', ok: 0, why: '蜜袋鼯消化不了牛奶裡的乳糖，會拉肚子。' },
+];
+const foodBox = document.getElementById('food');
+function startFood(n) {
+  stopAuto();
+  const $ = (sel) => foodBox.querySelector(sel);
+  const btns = [...foodBox.querySelectorAll('[data-a]')];
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const qs = shuffle([...shuffle(GLIDER_FOOD.filter((q) => q.ok)).slice(0, 5), ...shuffle(GLIDER_FOOD.filter((q) => !q.ok)).slice(0, 5)]);
+  let i = 0, score = 0, locked = false, done = false, best = 0;
+  try { best = +localStorage.getItem(FOOD_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const ready = () => {
+    locked = false; btns.forEach((b) => (b.disabled = false));
+    const q = qs[i];
+    $('.round').textContent = `第 ${i + 1}／${qs.length} 題・答對 ${score}`;
+    $('.emo').textContent = q.e; $('.nm').textContent = q.n;
+    msg(`🐿️ 蜜袋鼯可以吃「${q.n}」嗎？`);
+  };
+  const finish = () => {
+    done = true; foodBox.hidden = true;
+    updateVisibility();                                                 // 名牌放回來
+    removeEventListener('keydown', onKey, true);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const answer = (a) => {
+    if (locked || done) return;
+    locked = true; btns.forEach((b) => (b.disabled = true));
+    const q = qs[i], right = a === q.ok;
+    if (right) score++;
+    $('.round').textContent = `第 ${i + 1}／${qs.length} 題・答對 ${score}`;
+    msg(`${right ? '✅ 答對了！' : '❌ 答錯囉！'}${q.ok ? '可以吃：' : '不能吃：'}${q.why}`, right ? 'ok' : 'no');
+    npcFace(n, right ? 'happy' : 'surprised', 1.8);
+    setTimeout(() => {
+      if (done) return;
+      if (++i < qs.length) { ready(); return; }
+      if (score > best) { best = score; try { localStorage.setItem(FOOD_KEY, String(best)); } catch { /* 私密模式 */ } }
+      npcFace(n, score >= 7 ? 'happy' : 'wink', 3);
+      finish();
+      toast(`🐿️ 答對 ${score}／${qs.length} 題！（最佳紀錄：${best} 題）<br>${n.name}：${score === qs.length ? '你是蜜袋鼯小專家！花花和泡泡謝謝你～'
+        : score >= 7 ? '很不錯喔！記住不能吃的東西，就是愛護小動物！' : '沒關係，記住哪些不能吃，就是愛護小動物唷！'}`);
+    }, 2600);
+  };
+  const onKey = (e) => {
+    const k = { Digit1: 1, Digit2: 0, Numpad1: 1, Numpad2: 0 }[e.code];
+    if (k !== undefined) { e.preventDefault(); e.stopPropagation(); answer(k); }
+  };
+  addEventListener('keydown', onKey, true);
+  btns.forEach((b) => (b.onclick = () => answer(+b.dataset.a)));
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`🐿️ 下次再來找${n.name}玩！要愛護小動物唷！`); } };
+  act.busy = { label: '', tick() {} };                                  // 玩的時候不能走動（視窗在下面，橘色提示鈕先收起來）
+  foodBox.hidden = false;
+  ready();
+  msg(`${n.name}：花花和泡泡肚子餓了！哪些東西蜜袋鼯可以吃呢？`);
 }
 
 /* ---------------- 著色小遊戲：在美勞教室遇到哈囉老師，幫動物線稿塗顏色 ----------------
@@ -4625,6 +4757,88 @@ function buildPhotoScenes() {
     const bench = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 2.0), new THREE.MeshLambertMaterial({ color: '#d9bf98' }));
     bench.position.set(x + 0.3, gy + 0.21, zS - 5.9); bench.castShadow = true; f2.group.add(bench);
   }
+  // ---- 1F 溪口情廊：「溪口 開學快樂」紙箱人像作品牆（依照片：學生用面紙盒做的方塊人像，疊在矮木台上） ----
+  //   照片裡有學生名字，不放照片；人像都用程式重新畫（頭髮、眼睛、嘴巴、衣服隨機組合）
+  {
+    const COLS = 15, ROWS = 6, BWd = 0.26, BH = 0.3, BD = 0.22, CW = 112, CH = 128;
+    const art = galleryArt(), xc = (art.x1 + art.x2) / 2, zw = mz(398) - WALL_T / 2, gy = f1.y, benchH = 0.38;
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const pick = (a) => a[Math.floor(rnd() * a.length)];
+    // 頂排：左邊 3 個人像、粉紅「溪」「口」、紅底黃字「開學快樂」、右邊 6 個人像
+    const top = [null, null, null, ['溪', '#f19ab0', '#22325e'], ['口', '#f19ab0', '#22325e'], ['開', '#d4202c', '#f6d32b'], ['學', '#d4202c', '#f6d32b'], ['快', '#d4202c', '#f6d32b'], ['樂', '#d4202c', '#f6d32b']];
+    while (top.length < COLS) top.push(null);
+    const atlas = photoTex(CW * COLS, CH * ROWS, (c) => {
+      const face = (x, y, w, h) => {
+        const skin = pick(['#f2b47c', '#efac72', '#f5c18e', '#eaa66c']);
+        c.fillStyle = skin; c.fillRect(x, y, w, h);
+        c.fillStyle = 'rgba(0,0,0,.12)'; c.fillRect(x + w - 6, y, 6, h);                     // 紙箱側邊的陰影
+        // 衣服（下面 22%）：領口、號碼、籃球、蝴蝶結
+        const sy = y + h * 0.78, shirt = pick(['#ffffff', '#2a5aa8', '#d23a3a', '#7b4bb0', '#f2a7c0', '#1f2d4d', '#f1d14a', '#3aa0c8', '#3b3b3b']);
+        c.fillStyle = shirt; c.fillRect(x, sy, w, h - (sy - y));
+        const deco = rnd();
+        if (deco < 0.25) { c.fillStyle = skin; c.beginPath(); c.moveTo(x + w / 2 - 12, sy); c.lineTo(x + w / 2, sy + 14); c.lineTo(x + w / 2 + 12, sy); c.fill(); }
+        else if (deco < 0.4) { c.fillStyle = shirt === '#ffffff' ? '#d23a3a' : '#ffffff'; c.font = '900 20px sans-serif'; c.textAlign = 'center'; c.fillText(String(10 + Math.floor(rnd() * 25)), x + w / 2, sy + 22); }
+        else if (deco < 0.52) { c.fillStyle = '#e8762b'; c.beginPath(); c.arc(x + w * 0.75, sy + 14, 9, 0, 7); c.fill(); c.strokeStyle = '#5a2a0a'; c.lineWidth = 1.5; c.stroke(); }
+        else if (deco < 0.64) { c.fillStyle = pick(['#d21f3c', '#f2c02c', '#58b368']); c.beginPath(); c.moveTo(x + w / 2, sy + 6); c.lineTo(x + w / 2 - 12, sy); c.lineTo(x + w / 2 - 12, sy + 12); c.closePath(); c.moveTo(x + w / 2, sy + 6); c.lineTo(x + w / 2 + 12, sy); c.lineTo(x + w / 2 + 12, sy + 12); c.closePath(); c.fill(); }
+        // 頭髮：上面一片＋瀏海（平的、刺刺的、旁分），有的有兩側長髮
+        const hair = pick(['#1b1716', '#1b1716', '#1b1716', '#2b1d16', '#5a3a22']), hh = h * (0.18 + rnd() * 0.14);
+        c.fillStyle = hair; c.fillRect(x, y, w, hh);
+        const st = rnd();
+        if (st < 0.35) for (let i = 0; i < 6; i++) { c.beginPath(); c.moveTo(x + i * w / 6, y + hh - 1); c.lineTo(x + (i + 0.5) * w / 6, y + hh + 10 + rnd() * 6); c.lineTo(x + (i + 1) * w / 6, y + hh - 1); c.fill(); }
+        else if (st < 0.6) { c.beginPath(); c.moveTo(x, y + hh); c.lineTo(x + w * 0.65, y + hh); c.lineTo(x, y + hh + 18); c.fill(); }
+        else if (st < 0.75) { c.fillRect(x, y, 12, h * 0.7); c.fillRect(x + w - 12, y, 12, h * 0.7); }
+        // 眼睛：圓點、白眼珠、笑瞇瞇、> <、一條線、大圓眼
+        const ey = y + hh + (h * 0.68 - hh) * 0.42, ex = [x + w * 0.3, x + w * 0.7], et = Math.floor(rnd() * 6);
+        c.fillStyle = '#1b1716'; c.strokeStyle = '#1b1716'; c.lineWidth = 3; c.lineCap = 'round';
+        for (const [k, cx2] of ex.entries()) {
+          if (et === 0) { c.beginPath(); c.arc(cx2, ey, 4, 0, 7); c.fill(); }
+          else if (et === 1) { c.fillStyle = '#fff'; c.beginPath(); c.ellipse(cx2, ey, 8, 10, 0, 0, 7); c.fill(); c.fillStyle = '#1b1716'; c.beginPath(); c.arc(cx2 + (k ? -2 : 2), ey + 2, 4.5, 0, 7); c.fill(); }
+          else if (et === 2) { c.beginPath(); c.arc(cx2, ey + 3, 6, Math.PI * 1.15, Math.PI * 1.85); c.stroke(); }
+          else if (et === 3) { c.beginPath(); const d = k ? -1 : 1; c.moveTo(cx2 - 5 * d, ey - 5); c.lineTo(cx2 + 4 * d, ey); c.lineTo(cx2 - 5 * d, ey + 5); c.stroke(); }
+          else if (et === 4) { c.beginPath(); c.moveTo(cx2 - 7, ey); c.lineTo(cx2 + 7, ey); c.stroke(); }
+          else { c.fillStyle = '#fff'; c.beginPath(); c.arc(cx2, ey, 9, 0, 7); c.fill(); c.fillStyle = '#1b1716'; c.beginPath(); c.arc(cx2, ey, 6, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(cx2 - 2, ey - 2, 2, 0, 7); c.fill(); }
+          c.fillStyle = '#1b1716';
+        }
+        if (rnd() < 0.5) { c.lineWidth = 3; for (const cx2 of ex) { c.beginPath(); c.moveTo(cx2 - 7, ey - 13); c.lineTo(cx2 + 7, ey - 14 + rnd() * 3); c.stroke(); } }   // 眉毛
+        if (rnd() < 0.4) { c.fillStyle = 'rgba(240,110,120,.55)'; for (const cx2 of ex) { c.beginPath(); c.ellipse(cx2 + (cx2 < x + w / 2 ? -4 : 4), ey + 13, 7, 4, 0, 0, 7); c.fill(); } }   // 腮紅
+        // 嘴巴：微笑、張大嘴、小圓嘴、一條線、吐舌頭
+        const my = y + h * 0.66, mt = Math.floor(rnd() * 5);
+        c.strokeStyle = '#8e2a2a'; c.fillStyle = '#c0392b'; c.lineWidth = 3;
+        if (mt === 0) { c.beginPath(); c.arc(x + w / 2, my - 8, 10, Math.PI * 0.2, Math.PI * 0.8); c.stroke(); }
+        else if (mt === 1) { c.beginPath(); c.moveTo(x + w / 2 - 12, my - 6); c.lineTo(x + w / 2 + 12, my - 6); c.arc(x + w / 2, my - 6, 12, 0, Math.PI); c.fill(); }
+        else if (mt === 2) { c.beginPath(); c.ellipse(x + w / 2, my - 4, 4, 5, 0, 0, 7); c.fill(); }
+        else if (mt === 3) { c.beginPath(); c.moveTo(x + w / 2 - 8, my - 4); c.lineTo(x + w / 2 + 8, my - 4); c.stroke(); }
+        else { c.beginPath(); c.arc(x + w / 2, my - 8, 9, Math.PI * 0.15, Math.PI * 0.85); c.stroke(); c.fillStyle = '#f07a8a'; c.fillRect(x + w / 2 - 4, my - 1, 8, 7); }
+      };
+      for (let r = 0; r < ROWS; r++) for (let k = 0; k < COLS; k++) {
+        const x = k * CW, y = r * CH, t = r === 0 && top[k];
+        if (t) {                                                        // 標題字的紙箱
+          c.fillStyle = t[1]; c.fillRect(x, y, CW, CH); c.fillStyle = 'rgba(0,0,0,.12)'; c.fillRect(x + CW - 6, y, 6, CH);
+          c.fillStyle = t[2]; c.font = '900 92px "Noto Sans TC", "Microsoft JhengHei", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+          c.fillText(t[0], x + CW / 2, y + CH / 2 + 4); c.textBaseline = 'alphabetic';
+        } else face(x, y, CW, CH);
+      }
+    });
+    const kraft = new THREE.MeshLambertMaterial({ color: '#d9a066' }), hairTop = new THREE.MeshLambertMaterial({ color: '#1d1918' });
+    const keep = Batch.collector; Batch.collector = f1.boxes;          // 木台和紙箱會擋路
+    const b = new Batch(), fb = new Batch();
+    const W = COLS * BWd;
+    b.box(new THREE.MeshLambertMaterial({ color: '#b98a5a' }), W + 0.2, benchH, BD + 0.14, xc, gy + benchH / 2, zw - (BD + 0.14) / 2 - 0.02);   // 矮木台
+    Batch.collector = keep;
+    for (let r = 0; r < ROWS; r++) for (let k = 0; k < COLS; k++) {
+      const rr = ROWS - 1 - r;                                          // r=0 是最上面那排；k=0 在看的人左手邊（+x）
+      const x = xc + W / 2 - (k + 0.5) * BWd + (rnd() - 0.5) * 0.02, y = gy + benchH + rr * BH + BH / 2;
+      const zc = zw - 0.04 - BD / 2 - rnd() * 0.04;
+      b.box(r === 0 && top[k] ? new THREE.MeshLambertMaterial({ color: top[k][1] }) : kraft, BWd - 0.012, BH - 0.006, BD, x, y, zc);
+      if (r === ROWS - 1 || (r > 0 && rnd() < 0.85)) b.box(hairTop, BWd - 0.02, 0.006, BD - 0.02, x, y + BH / 2, zc);   // 頂面的黑頭髮（看得到的上排才明顯）
+      const g = new THREE.PlaneGeometry(BWd - 0.012, BH - 0.006), uv = g.attributes.uv;
+      for (let i = 0; i < 4; i++) uv.setXY(i, (k + uv.getX(i)) / COLS, 1 - (r + 1 - uv.getY(i)) / ROWS);
+      g.rotateY(Math.PI); g.translate(x, y, zc - BD / 2 - 0.002);
+      fb.add(atlas, g);
+    }
+    b.build(f1.group); fb.build(f1.group, { cast: false });
+    f1.boxes.push({ x1: xc - W / 2, x2: xc + W / 2, z1: zw - BD - 0.1, z2: zw, y1: gy, y2: gy + benchH + ROWS * BH });
+  }
   // ---- 1F 溪口情廊：東端白色歐式門框＋XIKOU GALLERY；裡面木紋地磚、壁柱、黃色拱、軌道燈 ----
   {
     const xg = mx(1507), z1 = mz(330), z2 = mz(398), zc = (z1 + z2) / 2, gy = f1.y, CW = z2 - z1;
@@ -4660,7 +4874,7 @@ function buildPhotoScenes() {
     const lb = new Batch(), beam = new THREE.MeshLambertMaterial({ color: '#8a8478' }), yellow = new THREE.MeshLambertMaterial({ color: '#e8d38a' });
     const rail = new THREE.MeshLambertMaterial({ color: '#2b2b2b' }), lamp = new THREE.MeshLambertMaterial({ color: '#fff3c4', emissive: '#ffd680', emissiveIntensity: 0.9 });
     const top = gy + WALL_H;
-    for (let xx = mx(705) + 4.4; xx < xg - 1; xx += 4.4) {
+    for (let xx = mx(705) + GALLERY_PIL; xx < xg - 1; xx += GALLERY_PIL) {
       lb.box(beam, 0.3, 0.14, CW, xx, top - 0.07, zc);
       if (doorsX.some((dx) => Math.abs(dx - xx) < 1.1)) continue;
       for (const s of [1, -1]) {
