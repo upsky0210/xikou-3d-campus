@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=139';
-import { furnishFloor } from './furniture.js?v=139';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=139';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=139';
-import { buildCampusWall } from './wall.js?v=139';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=139';
+import { PanoViewer } from './pano.js?v=141';
+import { furnishFloor } from './furniture.js?v=141';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=141';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=141';
+import { buildCampusWall } from './wall.js?v=141';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=141';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3263,7 +3263,19 @@ function nearestSpot() {
   return best;
 }
 let actLabel = '';
+// 走近自然教室二的倉鼠飼養箱（大實驗桌靠門那端）時跳一次提示；走開再回來會再跳
+//（竹竹老師就站在旁邊，她打招呼的訊息會先跳；等那則消失再跳倉鼠的）
+let hamsterNear = false, hamsterWait = false;
+function hamsterHint() {
+  const r = rooms.find((x) => x.name === '自然教室二');
+  const near = !act.busy && mode !== 'bird' && player.floor === r.f && Math.hypot(player.x - (r.m.x2 - 1.6), player.z - (r.cz + 1.0)) < 1.4;
+  if (near && !hamsterNear) hamsterWait = performance.now() + 500;     // 稍等一下，讓老師的招呼先跳
+  if (!near) hamsterWait = false;
+  if (hamsterWait && performance.now() > hamsterWait && !document.getElementById('toast').classList.contains('on')) { hamsterWait = false; toast('🐹 這是竹竹老師的倉鼠奶茶'); }
+  hamsterNear = near;
+}
 function updateAct(dt) {
+  hamsterHint();
   if (act.busy) act.busy.tick(dt);
   act.spot = act.busy ? null : badmintonSpot() || pondSpot() || nearestSpot();   // 靠近老師時打羽球優先（活動中心也有籃框）
   const sp = act.spot;
