@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=126';
+import { Batch, mat, SPOTS } from './blocks.js?v=128';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -499,6 +499,62 @@ function artRoom3(put, fr) {
   const led = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#f4fbff', emissiveIntensity: 0.9 });
   for (const v of [-2.6, -0.9, 0.9, 2.6]) put(led, L - 1.0, 0.06, 0.04, L / 2, v, 2.85);
   for (const [u, v] of [[4.0, -1.5], [7.0, 1.5], [10.0, -1.5]]) { put.geo(mat('wool', '#2a5ab0'), new THREE.CylinderGeometry(0.2, 0.2, 0.1, 14).rotateX(Math.PI / 2), u, v, 2.65); put(M.dark(), 0.02, 0.02, 0.9, u, v, 1.75); }
+}
+
+// 2F 自然教室一、二（依照片，兩間一樣）：灰白磨石子地、薄荷綠天花板（長條 LED 燈、吸頂電扇）；
+//   前面（西牆）OSB 粒片板＋四片白板、兩個小喇叭、右邊一扇木門（準備室）；前面一張大實驗桌（灰色桌身、玻璃木紋桌面）＋右邊老師電腦桌；
+//   後面（東牆）薄荷綠牆＋一排六個水龍頭的洗手槽、上面一排自然科海報；北牆整排木色高櫃（中間五張礦物／地球科學海報、上面放紙箱和地球儀）；
+//   南牆窗戶下一排灰木色矮櫃；三列實驗桌（灰色桌身、桌下置物格、玻璃木紋桌面），桌子兩端疊著橘色圓凳
+const natPosterMat = (k) => once('natposter' + k, () => new THREE.MeshLambertMaterial({ map: bigTex(160, 220, (c, w, h) => {
+  const dark = k % 2 === 0;
+  c.fillStyle = dark ? '#1d2230' : '#f4f8f2'; c.fillRect(0, 0, w, h);
+  c.fillStyle = ['#3a8fd0', '#e8762b', '#7cc38a', '#f2c14e', '#9b7ad6'][k % 5]; c.fillRect(10, 10, w - 20, 34);
+  for (let i = 0; i < 6; i++) { c.fillStyle = ['#c9a27a', '#8aa0b8', '#b85a4a', '#d8d0c0', '#6a8a6a', '#a07ac0'][(i + k) % 6]; c.beginPath(); c.ellipse(36 + (i % 2) * 80, 74 + Math.floor(i / 2) * 50, 26, 18, 0, 0, 7); c.fill(); }
+  c.fillStyle = dark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.3)'; for (let i = 0; i < 4; i++) c.fillRect(16, 200 - i * 9, w - 32, 4);
+}) }));
+function natureRoom(put, fr) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;                                 // A：北（櫃子）、D：南（窗戶、門）；u：西（白板）→ 東（洗手槽）
+  const grey = mat('wool', '#a9adb2'), glassTop = mat('wool', '#e8d2a4'), cab = mat('wool', '#e3d4bb'), white = M.white();
+  put(mat('tile', '#cfd0cc'), L, W, 0.012, L / 2, 0, 0);                         // 磨石子地
+  // 西牆：OSB 板、白板、喇叭、準備室木門
+  put(osbMat(), 0.03, W - 0.1, 2.9, 0.016, 0, 0);
+  put(M.grey(), 0.05, 3.4, 1.15, 0.04, A * 0.2, 1.0); put(white, 0.06, 3.3, 1.05, 0.05, A * 0.2, 1.05);
+  for (const dv of [-1.2, 1.2]) put(white, 0.14, 0.28, 0.2, 0.08, A * 0.2 + dv, 2.35);
+  put(mat('planks', '#8a7a68'), 0.06, 0.95, 2.1, 0.04, A * (W / 2 - 1.3), 0);
+  // 前面：大實驗桌（玻璃木紋桌面）、老師電腦桌
+  put(grey, 1.2, 2.6, 0.82, 1.5, D * 0.6, 0); put(glassTop, 1.3, 2.7, 0.05, 1.5, D * 0.6, 0.82);
+  put(mat('planks', '#d8c8ae'), 0.8, 1.7, 0.74, 1.4, A * 1.9, 0); put(mat('planks', '#e6d8c0'), 0.85, 1.8, 0.04, 1.4, A * 1.9, 0.74);
+  put(M.dark(), 0.05, 0.55, 0.36, 1.2, A * 1.9, 0.82); put(screenMat(), 0.02, 0.5, 0.32, 1.23, A * 1.9, 0.84);
+  put(M.dark(), 0.4, 0.2, 0.42, 1.3, A * 1.25, 0.78); put(mat('wool', '#d32f2f'), 0.3, 0.12, 0.3, 1.3, A * 2.55, 0.78);
+  // 東牆：薄荷綠牆、洗手槽（六個水龍頭）、自然科海報、電風扇
+  put(mat('wool', '#8fd3bf'), 0.03, W - 0.1, 2.9, L - 0.016, 0, 0);
+  put(mat('planks', '#dccab0'), 0.6, 4.2, 0.82, L - 0.32, A * 0.4, 0); put(M.grey(), 0.62, 4.2, 0.04, L - 0.32, A * 0.4, 0.82);
+  for (let i = 0; i < 6; i++) { const v = A * 0.4 + (i - 2.5) * 0.68; put(M.grey(), 0.04, 0.04, 0.3, L - 0.55, v, 0.86); put(M.grey(), 0.16, 0.03, 0.03, L - 0.48, v, 1.14); }
+  put(mat('wool', '#43a047'), 0.25, 0.4, 0.12, L - 0.35, A * 0.9, 0.86);
+  for (let k = 0; k < 5; k++) put(natPosterMat(k + 5), 0.02, 0.6, 0.85, L - 0.04, A * 0.4 + (k - 2) * 0.75, 1.55, true);
+  put(natPosterMat(1), 0.02, 0.8, 0.6, L - 0.04, A * 2.8, 1.35, true);
+  put(white, 0.4, 0.4, 0.9, L - 0.5, A * (W / 2 - 0.6), 0);
+  // 北牆：木色高櫃＋五張礦物海報（黑框）、櫃頂紙箱、地球儀
+  put(cab, L - 1.6, 0.55, 2.3, L / 2 - 0.3, A * (W / 2 - 0.3), 0);
+  for (let u = 1.0; u < L - 1.6; u += 0.6) put(mat('wool', '#cbb999'), 0.015, 0.02, 2.2, u, A * (W / 2 - 0.58), 0.05);
+  for (let k = 0; k < 5; k++) put(natPosterMat(k), 0.66, 0.03, 0.9, 1.6 + k * 0.78, A * (W / 2 - 0.59), 1.3, true);
+  for (let k = 0; k < 4; k++) put(mat('wool', '#c9a46a'), 0.6, 0.45, 0.4, L - 4.2 + k * 0.65, A * (W / 2 - 0.3), 2.3);
+  put.geo(mat('wool', '#3a8fd0'), new THREE.SphereGeometry(0.2, 14, 10), 0.7, A * (W / 2 - 0.3), 2.52);
+  // 南牆：窗戶下灰木色矮櫃
+  put(mat('planks', '#8f8272'), L - 3.0, 0.42, 0.8, L / 2, D * (W / 2 - 0.23), 0);
+  // 三列實驗桌（長邊沿 u），兩端疊橘色圓凳
+  const stoolTop = mat('wool', '#f07a4a'), stoolLeg = mat('wool', '#1d1d1d');
+  const stack = (u, v) => { for (let k = 0; k < 3; k++) put(stoolTop, 0.34, 0.34, 0.05, u, v, 0.3 + k * 0.12); for (const d of [-0.13, 0.13]) put(stoolLeg, 0.03, 0.03, 0.62, u + d, v + d, 0); };
+  for (const u of [3.4, 5.8, 8.2]) for (const v of [A * 2.3, 0, D * 2.3]) {
+    put(grey, 1.85, 0.95, 0.75, u, v, 0); put(mat('wool', '#d6d8da'), 1.7, 0.85, 0.3, u, v, 0.3);   // 桌身＋置物格
+    put(glassTop, 2.0, 1.05, 0.05, u, v, 0.75);
+    for (const dv of [-0.22, 0.22]) stack(u + 1.25, v + dv);
+  }
+  // 薄荷綠天花板、長條 LED 燈、吸頂電扇
+  put(mat('wool', '#a7dcc9'), L, W, 0.02, L / 2, 0, 2.93);
+  const led = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#f4fbff', emissiveIntensity: 0.9 });
+  for (const v of [-2.4, -0.8, 0.8, 2.4]) put(led, L - 1.0, 0.06, 0.04, L / 2, v, 2.85);
+  for (const u of [3.0, 6.0, 9.0]) if (u < L - 0.6) put(white, 0.6, 0.6, 0.12, u, A * 1.5, 2.8);
 }
 
 function computerRoom(put, fr) {
@@ -2020,7 +2076,8 @@ function furnishRoom(room, fr, put) {
   if (t === 'class') return classroom(put, fr, room);
   if (n.includes('圖書館')) return library(put, fr);
   if (n === '音樂教室二') return musicRoom2(put, fr);
-  if (n === '美勞教室') return artRoom3(put, fr);                 // 3F 美勞教室，依照片              // 依照片
+  if (n === '美勞教室') return artRoom3(put, fr);
+  if (n === '自然教室一' || n === '自然教室二') return natureRoom(put, fr);   // 2F 兩間自然教室，依照片（一樣的配置）                 // 3F 美勞教室，依照片              // 依照片
   if (n.includes('音樂')) return musicRoom(put, fr);
   if (n.includes('電腦教室一')) return computerRoom1(put, fr);       // 依照片：長條雙面電腦島
   if (n.includes('電腦教室二')) return computerRoomHex(put, fr);   // 依照片：彩色六角電腦島
