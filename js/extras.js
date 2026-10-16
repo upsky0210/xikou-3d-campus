@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=124';
+import { Batch, mat, SPOTS } from './blocks.js?v=126';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）

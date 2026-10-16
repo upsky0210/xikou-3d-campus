@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=124';
+import { Batch, mat, SPOTS } from './blocks.js?v=126';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1956,7 +1956,7 @@ function tableTennisHall(put, fr) {
   // 天花板（B1 上面就是地面，室內高 2.4 公尺）：淺藍色天花板、橘色水管、吊掛日光燈
   put(mat('wool', '#cfe4ec'), L, W, 0.02, L / 2, 0, 2.36);
   const orange = mat('wool', '#e0582a'), lamp = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#fffbe8', emissiveIntensity: 0.9 });
-  for (const u of [3.5, 9.0, 20.5]) put(orange, 0.12, W - 0.6, 0.12, u, 0, 2.2);
+  for (const u of [3.5, 7.2, 20.5]) put(orange, 0.12, W - 0.6, 0.12, u, 0, 2.2);   // 避開桌球比賽那張桌子上方（鏡頭）
   for (const u of [3.0, 8.7, 14.1, 19.6]) for (let v = -22.5; v <= 22.5; v += 4.5) {
     put(M.grey(), 0.02, 0.02, 0.2, u, v - 0.5, 2.16); put(M.grey(), 0.02, 0.02, 0.2, u, v + 0.5, 2.16);
     put(M.grey(), 0.2, 1.3, 0.06, u, v, 2.1); put(lamp, 0.12, 1.2, 0.02, u, v, 2.08);
@@ -1971,6 +1971,7 @@ function tableTennisHall(put, fr) {
   };
   for (let v = -22; v <= 18; v += 4) pingTable(2.9, v);
   for (let v = -21; v <= -5; v += 4) pingTable(8.7, v);
+  pingTable(8.7, 2.5);                                                   // 林老師打桌球用的那張（app.js ppTable）
   const cabort = mat('wool', '#252a78'), chanson = mat('wool', '#2563c9');
   const fence = (u, v, du, dv, k) => put(k % 3 === 1 ? chanson : cabort, du, dv, 0.72, u, v, 0.05);
   for (let v = -23, k = 0; v < 19; v += 2.1, k++) if (k % 4 !== 3) fence(5.3, v + 1, 0.04, 2.0, k);    // 桌球區南邊那排擋板（每隔幾片留一個缺口進出）
