@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=130';
-import { furnishFloor } from './furniture.js?v=130';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=130';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=130';
-import { buildCampusWall } from './wall.js?v=130';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=130';
+import { PanoViewer } from './pano.js?v=132';
+import { furnishFloor } from './furniture.js?v=132';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=132';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=132';
+import { buildCampusWall } from './wall.js?v=132';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=132';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2975,11 +2975,11 @@ const NPCS = [
     },
   },
   {
-    name: '丁丁老師', title: '自然老師',
-    hello: ['🧪 丁丁老師：我們來做實驗吧！', '🤫 丁丁老師：請保持安靜，不要講話。', '🔬 丁丁老師：同學們跟我一起做！'],
+    name: '丁丁老師', title: '自然老師', game: 'float',
+    hello: ['🧪 丁丁老師：我們來做實驗吧！', '🤫 丁丁老師：請保持安靜，不要講話。', '🔬 丁丁老師：同學們跟我一起做！', '🛟 丁丁老師：要不要來做沉浮實驗？'],
     // 2 樓自然教室一（204）前面：站在白板和大實驗桌中間，隔著實驗桌面向學生（東）
     places: [
-      { floor: '2F', where: '自然教室一', at: () => { const r = rooms.find((x) => x.name === '自然教室一'); return [r.m.x1 + 0.75, r.cz + 0.6, -Math.PI / 2]; } },
+      { floor: '2F', where: '自然教室一', game: true, at: () => { const r = rooms.find((x) => x.name === '自然教室一'); return [r.m.x1 + 0.75, r.cz + 0.6, -Math.PI / 2]; } },
     ],
     look: {
       // 依照片：黑色平頭短髮、圓臉、淡淡微笑；灰藍色 Polo 衫（裡面黑色內衣）、黑色長褲
@@ -3246,6 +3246,7 @@ function updateAct(dt) {
     : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
     : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
+    : sp.kind === 'float' ? `🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`
     : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
     : sp.kind === 'feed' ? '🐢 餵烏龜 <kbd>F</kbd>'
@@ -3265,6 +3266,7 @@ function doAction() {
   else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
   else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
   else if (act.spot?.kind === 'glider') startFood(act.spot.npc);
+  else if (act.spot?.kind === 'float') startFood(act.spot.npc, FLOAT_Q);
   else if (act.spot?.kind === 'baseball') startBaseball(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
   else if (act.spot?.kind === 'feed') feedTurtles();
@@ -3954,27 +3956,97 @@ const GLIDER_FOOD = [
   { e: '🥛', n: '牛奶', ok: 0, why: '蜜袋鼯消化不了牛奶裡的乳糖，會拉肚子。' },
 ];
 const foodBox = document.getElementById('food');
-function startFood(n) {
+const GLIDER_Q = { list: GLIDER_FOOD, key: FOOD_KEY, title: '🐿️ 蜜袋鼯能吃嗎？', icon: '🐿️', yes: ['✅', '可以吃'], no: ['❌', '不能吃'],
+  ask: (q) => `🐿️ 蜜袋鼯可以吃「${q.n}」嗎？`, intro: '花花和泡泡肚子餓了！哪些東西蜜袋鼯可以吃呢？',
+  endTalk: (sc, n) => (sc === n ? '你是蜜袋鼯小專家！花花和泡泡謝謝你～' : sc >= 3 ? '很不錯喔！記住不能吃的東西，就是愛護小動物！' : '沒關係，記住哪些不能吃，就是愛護小動物唷！'),
+  quitTalk: (n) => `🐿️ 下次再來找${n.name}玩！要愛護小動物唷！` };
+
+/* ---------------- 沉浮實驗：在自然教室一遇到丁丁老師，猜猜東西放進水裡會浮還是沉 ----------------
+   一回 5 題；答完東西真的掉進實驗桌上的水箱：浮的漂在水面上下晃，沉的慢慢沉到箱底 */
+const FLOAT_KEY = 'campus-float-best';
+const FLOAT_ITEMS = [
+  { e: '🪵', n: '木塊', ok: 1, why: '木頭比水輕（密度比水小），會浮起來。' },
+  { e: '🏓', n: '乒乓球', ok: 1, why: '裡面是空氣，又輕又大，會浮在水面。' },
+  { e: '🍎', n: '蘋果', ok: 1, why: '蘋果裡面有很多小空氣，所以會浮起來！' },
+  { e: '🧊', n: '冰塊', ok: 1, why: '水結冰後體積變大、變輕，所以冰塊會浮。' },
+  { e: '🦆', n: '塑膠小鴨', ok: 1, why: '中間是空心的，裝著空氣，會浮。' },
+  { e: '🍃', n: '樹葉', ok: 1, why: '樹葉又薄又輕，會漂在水面上。' },
+  { e: '🧽', n: '海綿', ok: 1, why: '乾海綿裡有很多空氣，一開始會浮著。' },
+  { e: '🍊', n: '橘子（帶皮）', ok: 1, why: '橘子皮裡有很多小氣室，像救生衣一樣讓它浮起來。' },
+  { e: '🪨', n: '石頭', ok: 0, why: '石頭比水重（密度比水大），會沉下去。' },
+  { e: '🪙', n: '硬幣', ok: 0, why: '金屬很重，小小一枚也會沉到底。' },
+  { e: '🔩', n: '螺絲釘', ok: 0, why: '鐵比水重很多，會沉下去。' },
+  { e: '🔑', n: '鑰匙', ok: 0, why: '鑰匙是金屬做的，會沉下去。' },
+  { e: '📎', n: '迴紋針', ok: 0, why: '鐵做的迴紋針會沉（輕輕平放在水面上，有時候會被表面張力托住喔！）' },
+  { e: '🥄', n: '鐵湯匙', ok: 0, why: '金屬湯匙比水重，會沉下去。' },
+  { e: '🥚', n: '生雞蛋', ok: 0, why: '新鮮的蛋在清水裡會沉（加很多鹽的鹽水裡就會浮起來喔！）' },
+  { e: '🔮', n: '玻璃彈珠', ok: 0, why: '玻璃比水重，彈珠會沉到底。' },
+];
+const floatTank = (() => {                                             // 實驗桌上的水箱（玻璃＋藍色的水）
+  const g = new THREE.Group();
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.6, 0.55), new THREE.MeshLambertMaterial({ color: '#d8f0ff', transparent: true, opacity: 0.25, depthWrite: false }));
+  glass.position.y = 0.3; g.add(glass);
+  const water = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.46, 0.51), new THREE.MeshLambertMaterial({ color: '#4fa8e8', transparent: true, opacity: 0.5, depthWrite: false }));
+  water.position.y = 0.24; g.add(water);
+  g.visible = false; scene.add(g);
+  return g;
+})();
+const floatItem = (() => {                                             // 掉進水裡的東西（emoji 小圖）
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+  sp.scale.set(0.32, 0.32, 1); sp.renderOrder = 5; sp.visible = false; scene.add(sp);
+  sp.userData.set = (e) => { const c = cv.getContext('2d'); c.clearRect(0, 0, 128, 128); c.font = '96px "Segoe UI Emoji", "Apple Color Emoji", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e, 64, 70); tex.needsUpdate = true; };
+  return sp;
+})();
+const FLOAT_Q = { list: FLOAT_ITEMS, key: FLOAT_KEY, title: '🧪 沉浮實驗：浮還是沉？', icon: '🧪', yes: ['🛟', '浮起來'], no: ['⚓', '沉下去'],
+  ask: (q) => `🧪 把「${q.n}」放進水裡，會浮起來還是沉下去？`, intro: '我們來做實驗吧！先猜猜看，再放進水裡看看結果！',
+  endTalk: (sc, n) => (sc === n ? '全部答對！你是小小科學家！' : sc >= 3 ? '很棒喔！同學們跟我一起做，觀察得很仔細！' : '沒關係，實驗就是要多試幾次！'),
+  quitTalk: (n) => `🧪 下次再來找${n.name}做實驗！` };
+// 水箱放在丁丁老師前面的大實驗桌上；東西從上面掉下來
+FLOAT_Q.start = (n) => {
+  const r = rooms.find((x) => x.name === '自然教室一'), f = r.f;
+  floatTank.position.set(r.m.x1 + 1.75, f.y + 0.87, r.cz + 0.6); floatTank.visible = true;
+  FLOAT_Q.anim = null;
+  FLOAT_Q.tick = (dt) => {
+    const a = FLOAT_Q.anim; if (!a) return;
+    a.t += dt;
+    const T = floatTank.position, top = T.y + 0.5, bottom = T.y + 0.14;
+    let y;
+    if (a.t < 0.5) y = T.y + 1.0 - (a.t / 0.5) ** 2 * (1.0 - 0.48);                       // 掉下來
+    else if (a.ok) y = top - 0.02 + Math.sin((a.t - 0.5) * 6) * 0.025 * Math.exp(-(a.t - 0.5));   // 浮在水面晃一晃
+    else y = Math.max(bottom, top - (a.t - 0.5) * 0.25);                                  // 慢慢沉到底
+    floatItem.position.set(T.x, y, T.z);
+  };
+};
+FLOAT_Q.show = (q) => { floatItem.userData.set(q.e); floatItem.visible = true; FLOAT_Q.anim = null; const T = floatTank.position; floatItem.position.set(T.x, T.y + 1.0, T.z); };
+FLOAT_Q.reveal = (q) => { FLOAT_Q.anim = { t: 0, ok: q.ok }; };
+FLOAT_Q.end = () => { floatTank.visible = false; floatItem.visible = false; FLOAT_Q.tick = null; };
+
+function startFood(n, Q = GLIDER_Q) {
   stopAuto();
   const $ = (sel) => foodBox.querySelector(sel);
   const btns = [...foodBox.querySelectorAll('[data-a]')];
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const nOk = Math.random() < 0.5 ? 2 : 3;                               // 一回 5 題：能吃、不能吃各 2～3 題
-  const qs = shuffle([...shuffle(GLIDER_FOOD.filter((q) => q.ok)).slice(0, nOk), ...shuffle(GLIDER_FOOD.filter((q) => !q.ok)).slice(0, 5 - nOk)]);
+  const qs = shuffle([...shuffle(Q.list.filter((q) => q.ok)).slice(0, nOk), ...shuffle(Q.list.filter((q) => !q.ok)).slice(0, 5 - nOk)]);
   let i = 0, score = 0, locked = false, done = false, best = 0;
-  try { best = +localStorage.getItem(FOOD_KEY) || 0; } catch { /* 私密模式 */ }
+  try { best = +localStorage.getItem(Q.key) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
   faceTeacher(n);
+  $('.ttl').textContent = Q.title;
+  btns.forEach((b) => (b.innerHTML = +b.dataset.a ? `${Q.yes[0]}<small>${Q.yes[1]} 1</small>` : `${Q.no[0]}<small>${Q.no[1]} 2</small>`));
+  Q.start?.(n);
   const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
   const ready = () => {
     locked = false; btns.forEach((b) => (b.disabled = false));
     const q = qs[i];
     $('.round').textContent = `第 ${i + 1}／${qs.length} 題・答對 ${score}`;
     $('.emo').textContent = q.e; $('.nm').textContent = q.n;
-    msg(`🐿️ 蜜袋鼯可以吃「${q.n}」嗎？`);
+    msg(Q.ask(q)); Q.show?.(q);
   };
   const finish = () => {
-    done = true; foodBox.hidden = true;
+    done = true; foodBox.hidden = true; Q.end?.();
     updateVisibility();                                                 // 名牌放回來
     removeEventListener('keydown', onKey, true);
     n.playing = false; act.busy = null; duel = null;
@@ -3985,16 +4057,16 @@ function startFood(n) {
     const q = qs[i], right = a === q.ok;
     if (right) score++;
     $('.round').textContent = `第 ${i + 1}／${qs.length} 題・答對 ${score}`;
-    msg(`${right ? '✅ 答對了！' : '❌ 答錯囉！'}${q.ok ? '可以吃：' : '不能吃：'}${q.why}`, right ? 'ok' : 'no');
+    msg(`${right ? '✅ 答對了！' : '❌ 答錯囉！'}${q.ok ? Q.yes[1] : Q.no[1]}：${q.why}`, right ? 'ok' : 'no');
+    Q.reveal?.(q);
     npcFace(n, right ? 'happy' : 'surprised', 1.8);
     setTimeout(() => {
       if (done) return;
       if (++i < qs.length) { ready(); return; }
-      if (score > best) { best = score; try { localStorage.setItem(FOOD_KEY, String(best)); } catch { /* 私密模式 */ } }
+      if (score > best) { best = score; try { localStorage.setItem(Q.key, String(best)); } catch { /* 私密模式 */ } }
       npcFace(n, score >= 4 ? 'happy' : 'wink', 3);
       finish();
-      toast(`🐿️ 答對 ${score}／${qs.length} 題！（最佳紀錄：${best} 題）<br>${n.name}：${score === qs.length ? '你是蜜袋鼯小專家！花花和泡泡謝謝你～'
-        : score >= 3 ? '很不錯喔！記住不能吃的東西，就是愛護小動物！' : '沒關係，記住哪些不能吃，就是愛護小動物唷！'}`);
+      toast(`${Q.icon} 答對 ${score}／${qs.length} 題！（最佳紀錄：${best} 題）<br>${n.name}：${Q.endTalk(score, qs.length)}`);
     }, 2600);
   };
   const onKey = (e) => {
@@ -4004,11 +4076,11 @@ function startFood(n) {
   addEventListener('keydown', onKey, true);
   btns.forEach((b) => (b.onclick = () => answer(+b.dataset.a)));
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(`🐿️ 下次再來找${n.name}玩！要愛護小動物唷！`); } };
-  act.busy = { label: '', tick() {} };                                  // 玩的時候不能走動（視窗在下面，橘色提示鈕先收起來）
+  duel = { quit() { finish(); toast(Q.quitTalk(n)); } };
+  act.busy = { label: '', tick(dt) { Q.tick?.(dt); } };                 // 玩的時候不能走動（視窗在下面，橘色提示鈕先收起來）
   foodBox.hidden = false;
   ready();
-  msg(`${n.name}：花花和泡泡肚子餓了！哪些東西蜜袋鼯可以吃呢？`);
+  msg(`${n.name}：${Q.intro}`);
 }
 
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
