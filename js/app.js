@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=109';
-import { furnishFloor } from './furniture.js?v=109';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=109';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=109';
-import { buildCampusWall } from './wall.js?v=109';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=109';
+import { PanoViewer } from './pano.js?v=110';
+import { furnishFloor } from './furniture.js?v=110';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=110';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=110';
+import { buildCampusWall } from './wall.js?v=110';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=110';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2872,7 +2872,8 @@ const NPCS = [
     // 隨機出現：1 樓穿堂（從正門進來，面向校門迎接小朋友），或操場遊戲場西邊的草地（換上棒球裝，在投手丘上，可以玩樂樂棒球）
     places: [
       { floor: '1F', where: '穿堂', at: () => { const r = rooms.find((x) => x.name === '穿堂'); return [r.cx - 1.2, r.cz + 1.8, Math.PI / 2]; } },
-      { floor: '1F', where: '樂樂棒球場', game: true, outfit: 'baseball', at: () => [BB.mound.x, BB.mound.z, Math.PI] },
+      // 樂樂棒球先保留（使用者測過覺得太難揮棒、學生站姿要改成側對校長）：之後要開放就把這行加回去
+      // { floor: '1F', where: '樂樂棒球場', game: true, outfit: 'baseball', at: () => [BB.mound.x, BB.mound.z, Math.PI] },
     ],
     // 棒球裝：深藍棒球帽、白色球衣（深藍鈕扣）、白色球褲
     outfits: { baseball: { cap: { color: '#1f3a7a', logo: '#ffffff' }, top: '#f6f6f2', pants: '#f0efe8', longSleeve: false, collar: null, tie: null, buttons: '#1f3a7a', shoe: '#1d1d1f' } },
@@ -5334,7 +5335,7 @@ buildPlinth();
 Batch.collector = floors[1].boxes;
 buildOutdoor();
 placeToys();
-buildBaseballField();
+// buildBaseballField();   // 樂樂棒球先保留：校長回穿堂，球場也先不畫
 placeBirds();
 Batch.collector = null;
 setupCollision();

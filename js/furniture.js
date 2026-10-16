@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=109';
+import { Batch, mat, SPOTS } from './blocks.js?v=110';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1951,7 +1951,7 @@ function signTexture(title, sub, kind, en = '') {
 
 function addSign(room, f, group, wallT) {
   // 班牌掛在黑板那一端的門（前門）
-  const door = flipped(room) ? room.doorPts?.at(-1) : room.doorPts?.[0];
+  const door = (room.mainDoor && room.doorPts?.find((d) => d.side === room.mainDoor)) || (flipped(room) ? room.doorPts?.at(-1) : room.doorPts?.[0]);   // mainDoor：主要門口在哪一面
   if (!door) return;
   let title, sub, kind;
   if (room.type === 'class') { title = room.display; sub = room.code; kind = 'class'; }
