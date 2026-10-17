@@ -8,6 +8,20 @@ import * as THREE from 'three';
 
 const MAX_HIRES = 4;          // 同時保留幾張高解析貼圖（每張約 32MB 顯示記憶體）
 
+// 介面文字（中 / 英）
+const T = {
+  zh: {
+    approx: ' · 位置為估計', listen: '🔊 聽介紹', pause: '⏸ 暫停', lang: 'English', locate: '📍 在地圖上', close: '✕ 回到 3D 校園',
+    hint: '拖曳看四周 · 點白色箭頭移動 · 滾輪/雙指縮放', more: '展開 / 收合', prev: '上一個', next: '下一個',
+    loading: '載入中…', failed: '⚠️ 照片載入失敗，點這裡重試', audioFail: '⚠️ 語音無法播放，請檢查網路後再試',
+  },
+  en: {
+    approx: ' · approx. location', listen: '🔊 Listen', pause: '⏸ Pause', lang: '中文', locate: '📍 On map', close: '✕ Back to 3D',
+    hint: 'Drag to look around · Tap arrows to move · Scroll/pinch to zoom', more: 'More / Less', prev: 'Previous', next: 'Next',
+    loading: 'Loading…', failed: '⚠️ Photo failed to load. Tap to retry', audioFail: '⚠️ Audio could not play. Check the network and try again',
+  },
+};
+
 export class PanoViewer {
   constructor(data, { onClose, onLocate } = {}) {
     this.onClose = onClose;
@@ -38,6 +52,7 @@ export class PanoViewer {
     this.$('.lang').onclick = () => this.setLang(this.lang === 'zh' ? 'en' : 'zh');
     this.$('.tabs').onclick = (e) => { const b = e.target.closest('button'); if (b) this.show(b.dataset.img); };
     this.$('.more').onclick = () => this.el.classList.toggle('expanded');
+    this.$('.loading').onclick = () => { if (this.loadState === 'failed') this.loadTexture(this.current); };
     addEventListener('keydown', (e) => {
       if (!this.isOpen) return;
       if (e.code === 'Escape') this.close();
@@ -64,6 +79,7 @@ export class PanoViewer {
     this.scene.add(this.hotspots);
     this.loader = new THREE.TextureLoader();
     this.cache = new Map();          // img -> { tex, hires }
+    this.pending = new Set();        // 正在下載高解析圖的場景（避免重複下載）
     this.view = { yaw: 0, pitch: 0, fov: 75, idle: 0 };
     this.raycaster = new THREE.Raycaster();
     this.bindPointer(host);
@@ -186,29 +202,51 @@ export class PanoViewer {
     if (this.audio.dataset.src !== src) {
       this.audio.pause();
       this.audio.src = src; this.audio.dataset.src = src;
-      if (audioWasPlaying) this.audio.play().catch(() => {});
+      if (audioWasPlaying) this.playAudio();
     }
     this.updateAudioBtn();
     history.replaceState(null, '', `${location.pathname}?pano=${encodeURIComponent(img)}`);
   }
 
+  // 換掉球體貼圖；換下來的若不在快取裡（縮圖），就釋放掉
+  setMap(tex) {
+    const m = this.sphere.material, old = m.map;
+    if (old === tex) return;
+    m.map = tex; m.color.set('#fff'); m.needsUpdate = true;
+    if (old && ![...this.cache.values()].some((c) => c.tex === old)) old.dispose();
+  }
+
+  // 載入狀態：null（隱藏）／'loading'／'failed'（可點一下重試）
+  setLoading(state) {
+    this.loadState = state;
+    const el = this.$('.loading');
+    el.hidden = !state;
+    el.classList.toggle('failed', state === 'failed');
+    if (state) el.textContent = T[this.lang][state];
+  }
+
   loadTexture(s) {
-    const set = (tex) => { if (this.current === s) { this.sphere.material.map = tex; this.sphere.material.color.set('#fff'); this.sphere.material.needsUpdate = true; } };
     const c = this.cache.get(s.img);
-    if (c?.hires) { set(c.tex); this.$('.loading').hidden = true; return; }
-    this.$('.loading').hidden = false;
-    // 先用小縮圖墊底，再換成高解析
+    if (c?.hires) { this.setMap(c.tex); this.setLoading(null); return; }
+    this.setLoading('loading');
+    if (this.pending.has(s.img)) return;     // 已經在下載了，等它下載完
+    this.pending.add(s.img);
+    // 先用小縮圖墊底，再換成高解析（縮圖失敗沒關係，等高解析）
     this.loader.load(`pano/thumb/${s.img}.webp`, (t) => {
+      if (this.current !== s || this.cache.get(s.img)?.hires) { t.dispose(); return; }
       t.colorSpace = THREE.SRGBColorSpace;
-      if (!this.cache.get(s.img)?.hires) set(t);
-    });
+      this.setMap(t);
+    }, undefined, () => {});
     this.loader.load(`pano/${s.img}.webp`, (t) => {
+      this.pending.delete(s.img);
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
       this.cache.set(s.img, { tex: t, hires: true });
       this.trimCache();
-      set(t);
-      if (this.current === s) this.$('.loading').hidden = true;
+      if (this.current === s) { this.setMap(t); this.setLoading(null); }
+    }, undefined, () => {
+      this.pending.delete(s.img);
+      if (this.current === s) this.setLoading('failed');   // 有縮圖的話縮圖留著
     });
   }
 
@@ -223,7 +261,7 @@ export class PanoViewer {
   }
 
   buildHotspots(s) {
-    for (const h of this.hotspots.children) h.material.map.dispose();
+    for (const h of this.hotspots.children) { h.material.map.dispose(); h.material.dispose(); }
     this.hotspots.clear();
     for (const link of s.links || []) {
       const t = this.byImg[link.to];
@@ -239,19 +277,23 @@ export class PanoViewer {
   }
 
   renderInfo() {
-    const s = this.current, spot = s.spot, zh = this.lang === 'zh';
+    const s = this.current, spot = s.spot, zh = this.lang === 'zh', L = T[this.lang];
     this.$('.title b').textContent = zh ? spot.zh : spot.en;
-    this.$('.title small').textContent = `${s.floor}${s.est ? (zh ? ' · 位置為估計' : ' · approx. location') : ''}`;
+    this.$('.title small').textContent = `${s.floor}${s.est ? L.approx : ''}`;
     const tabs = spot.scenes.length > 1
       ? spot.scenes.map((x, i) => `<button data-img="${x.img}" class="${x === s ? 'on' : ''}">${i + 1}</button>`).join('')
       : '';
     this.$('.tabs').innerHTML = tabs;
     const text = (s.text || spot.text);
     this.$('.text').innerHTML = text ? (zh ? text.zh : text.en) : '';
-    this.$('.lang').textContent = zh ? 'English' : '中文';
-    this.$('.locate').textContent = zh ? '📍 在地圖上' : '📍 On map';
-    this.$('.close').textContent = zh ? '✕ 回到 3D 校園' : '✕ Back to 3D';
-    this.$('.hint').textContent = zh ? '拖曳看四周 · 點白色箭頭移動 · 滾輪/雙指縮放' : 'Drag to look around · Tap arrows to move · Scroll/pinch to zoom';
+    this.$('.lang').textContent = L.lang;
+    this.$('.locate').textContent = L.locate;
+    this.$('.close').textContent = L.close;
+    this.$('.hint').textContent = L.hint;
+    this.$('.more').textContent = L.more;
+    this.$('.prev').textContent = `‹ ${L.prev}`; this.$('.prev').setAttribute('aria-label', L.prev);
+    this.$('.next').textContent = `${L.next} ›`; this.$('.next').setAttribute('aria-label', L.next);
+    if (this.loadState) this.setLoading(this.loadState);   // 載入中 / 失敗的文字也跟著換語言
     const i = this.scenes.indexOf(s);
     this.$('.count').textContent = `${i + 1} / ${this.scenes.length}`;
   }
@@ -262,11 +304,23 @@ export class PanoViewer {
   }
   toggleAudio() {
     if (!this.audio.src) return;
-    if (this.audio.paused) this.audio.play().catch(() => {}); else this.audio.pause();
+    if (this.audio.paused) this.playAudio(); else this.audio.pause();
+  }
+  // 播放失敗（網路斷了、檔案載不到）時提示；切換場景打斷的 AbortError 不用提示
+  playAudio() {
+    this.audio.play().catch((err) => {
+      if (err?.name === 'AbortError') return;
+      this.audio.pause();          // 載入失敗時 paused 不會自己變回 true，按鈕才會停在「暫停」
+      this.updateAudioBtn();
+      const n = this.$('.notice');
+      n.textContent = T[this.lang].audioFail; n.hidden = false;
+      clearTimeout(this.noticeTimer);
+      this.noticeTimer = setTimeout(() => { n.hidden = true; }, 3000);
+    });
   }
   updateAudioBtn() {
-    const zh = this.lang === 'zh';
-    this.$('.audio').textContent = this.audio.paused ? (zh ? '🔊 聽介紹' : '🔊 Listen') : (zh ? '⏸ 暫停' : '⏸ Pause');
+    const L = T[this.lang];
+    this.$('.audio').textContent = this.audio.paused ? L.listen : L.pause;
   }
   setLang(l) {
     this.lang = l;
@@ -274,7 +328,7 @@ export class PanoViewer {
     this.audio.pause();
     const src = this.audioSrc(this.current);
     this.audio.src = src; this.audio.dataset.src = src;
-    if (playing) this.audio.play().catch(() => {});
+    if (playing) this.playAudio();
     this.buildHotspots(this.current);
     this.renderInfo();
     this.updateAudioBtn();

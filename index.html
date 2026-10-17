@@ -170,6 +170,8 @@
   #pano .hint { position: absolute; top: 74px; left: 50%; transform: translateX(-50%); font-size: 13px; color: rgba(255,255,255,.75);
     background: rgba(0,0,0,.35); padding: 4px 12px; border-radius: 999px; white-space: nowrap; pointer-events: none; }
   #pano .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,.6); padding: 8px 16px; border-radius: 999px; pointer-events: none; }
+  #pano .loading.failed { pointer-events: auto; cursor: pointer; background: rgba(170,40,40,.85); }
+  #pano .notice { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 44px)); background: rgba(170,40,40,.85); padding: 8px 16px; border-radius: 999px; pointer-events: none; text-align: center; max-width: calc(100vw - 32px); }
   @media (max-width: 640px) {
     #pano .bar { flex-wrap: wrap; }
     #pano .title b { font-size: 15px; }
@@ -612,6 +614,7 @@
   </div>
   <div class="hint"></div>
   <div class="loading" hidden>載入中…</div>
+  <div class="notice" hidden></div>
   <div class="info">
     <div class="text"></div>
     <div class="ctrl">
@@ -691,8 +694,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=143"></script>
-<script src="js/pano-data.js?v=143"></script>
-<script type="module" src="js/app.js?v=143"></script>
+<script src="js/campus-data.js?v=144"></script>
+<script src="js/pano-data.js?v=144"></script>
+<script type="module" src="js/app.js?v=144"></script>
 </body>
 </html>
