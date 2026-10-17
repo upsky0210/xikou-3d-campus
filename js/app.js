@@ -1620,7 +1620,7 @@ function updateNavBar() {
     msg = s ? `先沿黃線走到 <b>${s.id}</b>，再${s.elevator ? '搭電梯' : (r.f.level > player.floor.level ? '走上樓梯' : '走下樓梯')}到 <b>${r.f.id}</b>` : `目的地在 ${r.f.id}`;
   } else {
     const d = Math.hypot(player.x - r.cx, player.z - r.cz);
-    msg = `沿黃線前往 <b>${r.display}</b>（約 ${Math.round(d)} 公尺）`;
+    msg = `沿黃線前往 <b>${r.display}</b>（直線約 ${Math.round(d)} 公尺）`;
   }
   bar.querySelector('.msg').innerHTML = msg;
   bar.hidden = false;
@@ -1805,6 +1805,10 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Escape') { closeSearch(); hideInfo(); closeGallery(); act.busy?.badminton && act.busy.stop(); duel?.quit(); }
 });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
+// 切換分頁、視窗失焦時放開所有按鍵（不然 keyup 收不到，角色會一直走）
+const releaseKeys = () => { for (const k in keys) keys[k] = false; };
+addEventListener('blur', releaseKeys);
+document.addEventListener('visibilitychange', () => { if (document.hidden) releaseKeys(); });
 
 // 拖曳轉視角 / 點擊選取
 let drag = null;
