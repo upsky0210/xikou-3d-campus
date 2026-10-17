@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=144';
-import { furnishFloor } from './furniture.js?v=144';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=144';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=144';
-import { buildCampusWall } from './wall.js?v=144';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=144';
+import { PanoViewer } from './pano.js?v=145';
+import { furnishFloor } from './furniture.js?v=145';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=145';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=145';
+import { buildCampusWall } from './wall.js?v=145';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=145';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1542,6 +1542,18 @@ function findPath(f, sx, sz, tx, tz) {
 /* ---------------- 導航 ---------------- */
 
 const nav = { target: null, legs: [], stair: null };
+
+// 「優先搭電梯」：勾選後跨樓層只走電梯；電梯到不了時才走樓梯，並說明原因
+const ELEV_KEY = 'campus-prefer-elevator';
+let preferElevator = false;
+try { preferElevator = localStorage.getItem(ELEV_KEY) === '1'; } catch { /* 私密模式 */ }
+const elevBox = document.getElementById('preferElevator');
+elevBox.checked = preferElevator;
+elevBox.addEventListener('change', () => {
+  preferElevator = elevBox.checked;
+  try { localStorage.setItem(ELEV_KEY, preferElevator ? '1' : '0'); } catch { /* 私密模式 */ }
+  if (nav.target) navigateTo(nav.target);   // 正在導航：馬上換路線
+});
 const pathMat = new THREE.MeshBasicMaterial({ color: '#ffd400' });
 
 function clearNav() {
@@ -1591,6 +1603,7 @@ function navigateTo(room) {
     const p = findPath(pf, player.x, player.z, room.cx, room.cz);
     if (p) best = { legs: [{ f: pf, p }], len: p.len };
   } else {
+    let bestElev = null;
     for (const s of stairs) {
       if (!s.floors.includes(pf.id) || !s.floors.includes(tf.id)) continue;
       const sx = s.ex ?? s.cx, sz = s.ez ?? s.cz;           // 樓梯：走到入口那段平地
@@ -1598,7 +1611,17 @@ function navigateTo(room) {
       const b = findPath(tf, sx, sz, room.cx, room.cz);
       if (!a || !b) continue;
       const len = a.len + b.len + Math.abs(pf.level - tf.level) * (s.elevator ? 12 : 6);
-      if (!best || len < best.len) best = { legs: [{ f: pf, p: a }, { f: tf, p: b }], len, stair: s };
+      const r = { legs: [{ f: pf, p: a }, { f: tf, p: b }], len, stair: s };
+      if (!best || len < best.len) best = r;
+      if (s.elevator && (!bestElev || len < bestElev.len)) bestElev = r;
+    }
+    if (preferElevator) {
+      if (bestElev) best = bestElev;
+      else if (best) {
+        const ef = stairs.filter((s) => s.elevator).flatMap((s) => s.floors);
+        const why = ef.length ? `電梯只到 ${ef[0]}～${ef.at(-1)}` : '學校沒有電梯';
+        toast(`🛗 ${why}，到 ${tf.id} 這次要走樓梯`);
+      }
     }
   }
   if (!best) { toast('找不到路線 😢'); return; }
@@ -1616,14 +1639,31 @@ function updateNavBar() {
   const r = nav.target;
   let msg;
   if (player.floor !== r.f) {
-    const s = nav.stair;
-    msg = s ? `先沿黃線走到 <b>${s.id}</b>，再${s.elevator ? '搭電梯' : (r.f.level > player.floor.level ? '走上樓梯' : '走下樓梯')}到 <b>${r.f.id}</b>` : `目的地在 ${r.f.id}`;
+    const s = nav.stair, d = remainingLen();
+    msg = s ? `先沿黃線走到 <b>${s.id}</b>${d != null ? `（還有約 ${Math.round(d)} 公尺）` : ''}，再${s.elevator ? '搭電梯' : (r.f.level > player.floor.level ? '走上樓梯' : '走下樓梯')}到 <b>${r.f.id}</b>` : `目的地在 ${r.f.id}`;
   } else {
-    const d = Math.hypot(player.x - r.cx, player.z - r.cz);
-    msg = `沿黃線前往 <b>${r.display}</b>（直線約 ${Math.round(d)} 公尺）`;
+    const d = remainingLen() ?? Math.hypot(player.x - r.cx, player.z - r.cz);
+    msg = `沿黃線前往 <b>${r.display}</b>（還有約 ${Math.round(d)} 公尺）`;
   }
   bar.querySelector('.msg').innerHTML = msg;
   bar.hidden = false;
+}
+
+// 這一層黃線還剩多長：找出角色在黃線上最近的位置，從那裡加到這一段的終點
+function remainingLen() {
+  const pts = nav.legs.find((l) => l.f === player.floor)?.p.pts;
+  if (!pts || pts.length < 2) return null;
+  let bi = 0, bt = 0, bd = Infinity;
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, az] = pts[i - 1], [bx, bz] = pts[i], dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((player.x - ax) * dx + (player.z - az) * dz) / L2));
+    const d = Math.hypot(player.x - (ax + dx * t), player.z - (az + dz * t));
+    if (d < bd) { bd = d; bi = i; bt = t; }
+  }
+  const seg = (i) => Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  let len = bd + seg(bi) * (1 - bt);
+  for (let i = bi + 1; i < pts.length; i++) len += seg(i);
+  return len;
 }
 
 /* ---------------- 模式與可見性 ---------------- */

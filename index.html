@@ -46,6 +46,8 @@
   #search { position: fixed; top: 70px; right: 70px; width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 100px);
     background: #fff; border-radius: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; z-index: 5; }
   #search header { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
+  #search .opt { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); font-size: 14px; cursor: pointer; }
+  #search .opt input { width: 18px; height: 18px; margin: 0; }
   #q { flex: 1; font: inherit; font-size: 16px; padding: 9px 12px; border: 2px solid var(--line); border-radius: 10px; outline: none; -webkit-user-select: text; user-select: text; }
   #q:focus { border-color: var(--accent2); }
   #closeSearch { background: #eef1f4; padding: 0 12px; }
@@ -482,6 +484,7 @@
     <input id="q" type="search" placeholder="輸入班級、教室號碼或名稱，例如 503、健康中心" autocomplete="off">
     <button id="closeSearch">關閉</button>
   </header>
+  <label class="opt"><input type="checkbox" id="preferElevator"> 🛗 優先搭電梯（換樓層不走樓梯）</label>
   <ul id="results"></ul>
 </div>
 
@@ -694,8 +697,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=144"></script>
-<script src="js/pano-data.js?v=144"></script>
-<script type="module" src="js/app.js?v=144"></script>
+<script src="js/campus-data.js?v=145"></script>
+<script src="js/pano-data.js?v=145"></script>
+<script type="module" src="js/app.js?v=145"></script>
 </body>
 </html>
