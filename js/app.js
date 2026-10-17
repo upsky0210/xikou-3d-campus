@@ -1799,8 +1799,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Space' && act.busy?.badminton) { e.preventDefault(); if (!e.repeat) doAction(); return; }   // 打羽球：空白鍵也是揮拍
   if (e.code === 'Space' && mode !== 'bird' && player.jump === 0) { player.vy = 4.2; e.preventDefault(); }
   if (e.code === 'KeyF' && e.repeat) return;
-  if (e.code === 'KeyF' && (act.spot || act.busy)) doAction();                 // 靠近籃框、溜滑梯時 F 是互動
-  else if (e.code === 'Slash' || e.code === 'KeyF') { if (e.code === 'Slash') e.preventDefault(); openSearch(); }
+  if (e.code === 'KeyF' && (act.spot || act.busy)) doAction();                 // F 只負責互動（投籃、溜滑梯、找老師玩…）
+  if (e.code === 'Slash') { e.preventDefault(); openSearch(); }                 // 找教室只用 /
   if (e.code === 'KeyP') openGallery();
   if (e.code === 'Escape') { closeSearch(); hideInfo(); closeGallery(); act.busy?.badminton && act.busy.stop(); duel?.quit(); }
 });
