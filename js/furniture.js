@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=147';
+import { Batch, mat, SPOTS } from './blocks.js?v=149';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -512,6 +512,107 @@ const natPosterMat = (k) => once('natposter' + k, () => new THREE.MeshLambertMat
   for (let i = 0; i < 6; i++) { c.fillStyle = ['#c9a27a', '#8aa0b8', '#b85a4a', '#d8d0c0', '#6a8a6a', '#a07ac0'][(i + k) % 6]; c.beginPath(); c.ellipse(36 + (i % 2) * 80, 74 + Math.floor(i / 2) * 50, 26, 18, 0, 0, 7); c.fill(); }
   c.fillStyle = dark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.3)'; for (let i = 0; i < 4; i++) c.fillRect(16, 200 - i * 9, w - 32, 4);
 }) }));
+// 4F 客語教室（鄉土教室，依 360 照片 24）：紅磚紋壁紙、深灰木紋地板；南牆綠色黑板（兩邊各一塊小綠板）、吊掛投影機；
+//   西牆（走廊）室內窗＋窗下薄荷綠矮櫃、窗前掛蓑衣和小紅燈籠；北牆四塊綠色布告欄（有台灣地圖）＋下面整排木頭小格櫃、橘色高櫃、櫃頂油紙傘；
+//   東牆（外牆）窗戶綠色樹紋捲簾＋窗下矮書櫃（手工藝品）、兩張學生課桌配藍椅；五組深紅色木頭長桌配長板凳；老師電腦桌、黑色辦公椅、橘色講桌櫃
+const hakkaBrickMat = (rx = 10, ry = 5) => once('hakkabrick' + rx + 'x' + ry, () => new THREE.MeshLambertMaterial({ map: (() => {
+  const t = bigTex(128, 128, (c, w, h) => {
+    c.fillStyle = '#efe4dc'; c.fillRect(0, 0, w, h);                              // 白色灰縫
+    for (let r = 0; r < 8; r++) for (let k = -1; k < 4; k++) {
+      c.fillStyle = ['#c98c88', '#d19894', '#c4837f', '#cf928c'][(r * 3 + k + 4) % 4];
+      c.fillRect(k * 40 + (r % 2) * 20 + 2, r * 16 + 2, 36, 12);
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry);           // 一格約 0.73m 寬、0.59m 高（磚塊大小跟真的差不多）
+  return t;
+})() }));
+const hakkaBoardMat = (k) => once('hakkaboard' + k, () => new THREE.MeshLambertMaterial({ map: bigTex(160, 130, (c, w, h) => {
+  c.fillStyle = '#1f6b4a'; c.fillRect(0, 0, w, h);                               // 綠色布告欄
+  if (k === 2) {                                                                  // 台灣地圖海報
+    c.fillStyle = '#cfe6f2'; c.fillRect(30, 8, 100, 114);
+    c.fillStyle = '#7bb86a'; c.beginPath(); [[96, 14], [104, 24], [102, 44], [96, 64], [88, 84], [80, 104], [76, 116], [70, 100], [64, 82], [66, 60], [74, 40], [84, 24]].forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill();   // 台灣（番薯形）
+  } else if (k === 1) {                                                           // 彩色圖片海報
+    c.fillStyle = '#fbf3e4'; c.fillRect(34, 10, 92, 112);
+    for (let i = 0; i < 9; i++) { c.fillStyle = ['#e8a23a', '#d0584a', '#7ab0d8', '#9ac46a'][i % 4]; c.fillRect(42 + (i % 3) * 28, 22 + Math.floor(i / 3) * 32, 22, 24); }
+  } else {                                                                        // 兩張白色學習單
+    for (const x of [22, 88]) { c.fillStyle = '#f7f7f2'; c.fillRect(x, 20, 50, 70); c.fillStyle = '#9aa0a6'; for (let i = 0; i < 6; i++) c.fillRect(x + 6, 30 + i * 9, 38, 3); }
+  }
+  c.strokeStyle = '#c99a5a'; c.lineWidth = 8; c.strokeRect(0, 0, w, h);          // 木框
+}) }));
+const treeBlindMat = () => once('treeblind', () => new THREE.MeshLambertMaterial({ map: bigTex(128, 160, (c, w, h) => {
+  c.fillStyle = '#bfe3cf'; c.fillRect(0, 0, w, h);                               // 淺綠捲簾
+  c.strokeStyle = '#2f4a3a'; c.lineWidth = 6; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(64, 160); c.lineTo(64, 70); c.stroke();                // 樹幹＋捲捲的樹枝
+  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(64, 90); c.quadraticCurveTo(64 + s * 40, 70, 64 + s * 30, 40); c.stroke(); c.beginPath(); c.arc(64 + s * 22, 40, 9, 0, 5); c.stroke(); }
+  c.fillStyle = '#ffffff'; for (let i = 0; i < 12; i++) { c.beginPath(); c.arc(14 + (i * 37) % 100, 14 + (i * 23) % 80, 3, 0, 7); c.fill(); }
+}) }));
+function hakkaRoom(put0, fr, room) {
+  // 門在西牆（走廊）：v 的 A＝東（外牆）、D＝西（走廊）；u 改從南邊（黑板）量
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  const put = (m, du, dv, h, u, v, y, plain) => put0(m, du, dv, h, L - u, v, y, plain);
+  put.geo = (m, g, u, v, y, r) => put0.geo(m, g, L - u, v, y, r);
+  const doorU = (room?.doorPts || []).map((d) => L - fr.toLocal(d.x, d.z)[0]);
+  const runs = (a, b) => { const cuts = doorU.filter((u) => u > a - 0.7 && u < b + 0.7).sort((x, y) => x - y); const out = []; let s0 = a;
+    for (const u of cuts) { if (u - 0.7 > s0 + 0.3) out.push([s0, u - 0.7]); s0 = Math.max(s0, u + 0.7); } if (b > s0 + 0.3) out.push([s0, b]); return out; };
+  const brick = hakkaBrickMat(), red = mat('wool', '#6e1f22'), redTop = mat('wool', '#7c2428'), orange = mat('wool', '#d9822b');
+  const green = mat('wool', '#1f5a3e'), wood = mat('planks', '#c99a5a'), mint = mat('wool', '#a6dccb'), white = M.white();
+  put(mat('planks', '#4a4d52'), L, W, 0.012, L / 2, 0, 0);                        // 深灰木紋地板
+  // 紅磚紋壁紙：南北兩面整面；東西兩面只貼窗戶下面和上面（西牆門口空出來）
+  put(brick, 0.02, W - 0.1, 2.95, 0.012, 0, 0, true); put(brick, 0.02, W - 0.1, 2.95, L - 0.012, 0, 0, true);
+  for (const [y0, h] of [[0, 1.0], [2.2, 0.75]]) {
+    const bm = (len) => hakkaBrickMat(Math.max(1, Math.round(len / 0.73)), Math.round(h / 0.59 * 10) / 10);
+    put(bm(L - 0.1), L - 0.1, 0.02, h, L / 2, A * (W / 2 - 0.012), y0, true);
+    for (const [a, b] of y0 ? [[0.05, L - 0.05]] : runs(0.05, L - 0.05)) put(bm(b - a), b - a, 0.02, h, (a + b) / 2, D * (W / 2 - 0.012), y0, true);
+  }
+  // 南牆：綠色黑板（中間大、兩邊小）、吊掛投影機
+  put(M.grey(), 0.05, 3.8, 1.3, 0.03, 0, 0.85); put(green, 0.06, 3.6, 1.15, 0.04, 0, 0.92);
+  for (const s of [-1, 1]) { put(M.grey(), 0.05, 1.1, 1.0, 0.03, s * 2.65, 0.95); put(green, 0.06, 1.0, 0.9, 0.04, s * 2.65, 1.0); }
+  put(white, 0.4, 0.35, 0.15, 1.6, 0, 2.55); put(M.grey(), 0.04, 0.04, 0.3, 1.6, 0, 2.7);
+  // 老師區（東南角）：電腦桌、螢幕、黑色辦公椅、橘色講桌櫃、小摺疊桌
+  put(mat('planks', '#e6dcc8'), 0.7, 1.3, 0.74, 1.0, A * (W / 2 - 0.8), 0);
+  put(M.dark(), 0.05, 0.5, 0.34, 0.85, A * (W / 2 - 0.8), 0.76); put(screenMat(), 0.02, 0.46, 0.3, 0.88, A * (W / 2 - 0.8), 0.78);
+  put(M.dark(), 0.5, 0.5, 0.45, 1.65, A * (W / 2 - 0.8), 0); put(M.dark(), 0.08, 0.5, 0.55, 1.88, A * (W / 2 - 0.8), 0.45);
+  put(orange, 0.5, 0.7, 1.0, 0.55, A * 1.5, 0); put(mat('wool', '#c06e20'), 0.52, 0.72, 0.04, 0.55, A * 1.5, 1.0);
+  put(mat('planks', '#b5773f'), 0.5, 0.6, 0.7, 2.6, A * (W / 2 - 0.4), 0); put(white, 0.3, 0.4, 0.12, 2.6, A * (W / 2 - 0.4), 0.7);
+  // 北牆：四塊綠色布告欄＋下面整排木頭小格櫃、東邊橘色高櫃、櫃頂兩把油紙傘
+  const bv = D * 0.5;
+  for (let k = 0; k < 4; k++) put(hakkaBoardMat(k), 0.03, 1.15, 0.95, L - 0.04, bv + (k - 1.5) * 1.2, 1.15, true);
+  put(mat('wool', '#d9b27a'), 0.38, 4.8, 0.9, L - 0.21, bv, 0);                    // 小格櫃：8 欄 × 2 層，格子裡面是深色，有幾格放東西
+  const stuff = ['#d0584a', '#e8c22a', '#7ab0d8', '#9ac46a', '#f2a6b0', '#c9a46a'];
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 2; j++) {
+    const cv = bv - 2.1 + i * 0.6, cy = 0.06 + j * 0.42;
+    put(mat('wool', '#5a3e26'), 0.01, 0.52, 0.36, L - 0.405, cv, cy, true);
+    if ((i * 3 + j * 5) % 4 === 0) put(mat('wool', stuff[(i + j) % stuff.length]), 0.12, 0.3, 0.16, L - 0.44, cv, cy);   // 露出格子一點點
+  }
+  put(orange, 0.45, 0.65, 2.15, L - 0.24, bv + 2.75, 0);
+  const umb = (col, v) => put.geo(mat('wool', col), new THREE.ConeGeometry(0.45, 0.22, 16), L - 0.5, v, 2.2);
+  umb('#c0392b', bv - 1.0); umb('#f2a6b0', bv + 0.2);
+  // 西牆（走廊）：窗下薄荷綠矮櫃、蓑衣、小紅燈籠
+  for (const [a, b] of runs(0.9, L - 0.9)) { put(mint, b - a, 0.45, 0.75, (a + b) / 2, D * (W / 2 - 0.25), 0); put(wood, b - a, 0.47, 0.04, (a + b) / 2, D * (W / 2 - 0.25), 0.75); }
+  const straw = mat('wool', '#7a5a3a'), sv = D * (W / 2 - 0.15), su = L * 0.33;
+  put(straw, 0.9, 0.05, 0.25, su, sv, 1.95); put(straw, 0.65, 0.05, 0.75, su, sv, 1.2); put(straw, 0.45, 0.05, 0.25, su, sv, 0.95);
+  for (const u of [L * 0.5, L * 0.6, L * 0.72]) put.geo(mat('wool', '#d32f2f'), new THREE.SphereGeometry(0.09, 10, 8), u, D * (W / 2 - 0.2), 1.75);
+  // 東牆（外牆）：窗戶綠色樹紋捲簾、窗下矮書櫃（手工藝品）、兩張學生課桌＋藍椅
+  for (let k = 0; k < 4; k++) put(treeBlindMat(), 1.3, 0.03, 0.75, L * (0.25 + k * 0.17), A * (W / 2 - 0.05), 1.95, true);
+  put(wood, L * 0.3, 0.35, 0.8, L * 0.78, A * (W / 2 - 0.2), 0);
+  for (let i = 0; i < 6; i++) put(mat('wool', ['#c9a46a', '#d0584a', '#e8c22a', '#8a6a42', '#7ab0d8', '#f2a6b0'][i]), 0.22, 0.2, 0.18, L * 0.66 + i * L * 0.045, A * (W / 2 - 0.22), 0.8);
+  for (const u of [L * 0.7, L * 0.82]) {
+    put(mat('wool', '#e8e8e4'), 0.5, 0.6, 0.04, u, A * (W / 2 - 0.9), 0.7); put(M.grey(), 0.05, 0.5, 0.7, u, A * (W / 2 - 0.9), 0);
+    put(mat('wool', '#2a86c8'), 0.4, 0.4, 0.45, u, A * (W / 2 - 1.5), 0); put(mat('wool', '#2a86c8'), 0.4, 0.05, 0.4, u, A * (W / 2 - 1.7), 0.45);
+  }
+  // 五組深紅色木頭長桌＋兩條長板凳（長邊沿 u）
+  const table = (u, v) => {
+    put(redTop, 1.6, 0.85, 0.05, u, v, 0.7);
+    for (const du of [-0.7, 0.7]) for (const dv of [-0.33, 0.33]) put(red, 0.06, 0.06, 0.7, u + du, v + dv, 0);
+    for (const s of [-1, 1]) { put(redTop, 1.6, 0.28, 0.05, u, v + s * 0.68, 0.4); for (const du of [-0.65, 0.65]) put(red, 0.06, 0.22, 0.4, u + du, v + s * 0.68, 0); }
+  };
+  for (const [u, v] of [[0.3, D * 0.2], [0.58, D * 0.2], [0.3, A * 0.12], [0.55, A * 0.12], [0.84, D * 0.05]]) table(L * u, v * W);
+  // 白色天花板：長條日光燈、吸頂電扇、冷氣（北邊）
+  const tube = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#f4fbff', emissiveIntensity: 0.9 });
+  for (const v of [-W * 0.3, 0, W * 0.3]) for (const u of [L * 0.25, L * 0.5, L * 0.75]) put(tube, 1.2, 0.06, 0.04, u, v, 2.85);
+  for (const u of [L * 0.35, L * 0.7]) put(white, 0.7, 0.7, 0.1, u, 0, 2.85);
+  put(white, 0.25, 0.9, 0.3, L - 0.15, A * 0.6, 2.45);
+}
 // 倉鼠「奶茶」（依照片）：灰色毛、背上深灰條紋、白色肚子和臉頰、粉紅色耳朵、黑眼睛；
 //   透明塑膠飼養箱，裡面鋪木屑和白色紙棉，薄荷綠食盆、不鏽鋼飲水管、透明小屋
 function hamsterCage(put, u, v, y) {
@@ -2119,6 +2220,7 @@ function furnishRoom(room, fr, put) {
   if (n.includes('圖書館')) return library(put, fr);
   if (n === '音樂教室二') return musicRoom2(put, fr);
   if (n === '美勞教室') return artRoom3(put, fr);
+  if (n === '客語教室') return hakkaRoom(put, fr, room);                        // 4F 客語教室（鄉土教室），依 360 照片
   if (n === '自然教室一' || n === '自然教室二') return natureRoom(put, fr, room);   // 2F 兩間自然教室，依照片（一樣的配置）                 // 3F 美勞教室，依照片              // 依照片
   if (n.includes('音樂')) return musicRoom(put, fr);
   if (n.includes('電腦教室一')) return computerRoom1(put, fr);       // 依照片：長條雙面電腦島
