@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=160';
+import { Batch, mat, SPOTS } from './blocks.js?v=162';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -266,20 +266,27 @@ const glassBlockMat = () => once('glassblock', () => new THREE.MeshLambertMateri
     c.fillStyle = g; c.fillRect(x + 2, y + 2, 28, 28);
   }
 }) }));
+// 中庭「豐盈圓滿」壁畫（依 360 照片 10-2）：白牆、上面一道黃藍弧線；中間一圈彩色圓環和跳舞的人；左「豐盈圓滿」、右「大器今生」（紅色書法字）；兩旁玻璃磚窗
 const muralMat = () => once('mural', () => new THREE.MeshLambertMaterial({ map: bigTex(800, 360, (c, w, h) => {
   c.fillStyle = '#f7f5ef'; c.fillRect(0, 0, w, h);
-  // 彩色筆刷
-  const strokes = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60', '#2e86de', '#8e44ad'];
-  c.lineCap = 'round';
-  for (let i = 0; i < 6; i++) { c.strokeStyle = strokes[i]; c.lineWidth = 14; c.beginPath(); c.moveTo(220 + i * 60, 300); c.bezierCurveTo(260 + i * 50, 120, 420 + i * 20, 80, 560, 160 + i * 12); c.stroke(); }
-  // 跳舞的人
-  for (const [x, col] of [[300, '#e74c3c'], [400, '#27ae60'], [500, '#2e86de']]) {
-    c.fillStyle = col; c.beginPath(); c.arc(x, 110, 18, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = col; c.lineWidth = 12;
-    c.beginPath(); c.moveTo(x, 130); c.lineTo(x - 10, 230); c.lineTo(x - 40, 300); c.moveTo(x - 10, 230); c.lineTo(x + 30, 300); c.moveTo(x - 5, 160); c.lineTo(x - 55, 120); c.moveTo(x - 5, 160); c.lineTo(x + 50, 140); c.stroke();
+  // 上面的黃藍弧線
+  for (const [col, r, lw] of [['#f5c518', 520, 22], ['#2e86de', 500, 14]]) { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.ellipse(w / 2, 560, r + 120, r, 0, Math.PI * 1.08, Math.PI * 1.92); c.stroke(); }
+  // 兩旁玻璃磚窗
+  for (const x0 of [8, w - 96]) for (let x = x0; x < x0 + 88; x += 22) for (let y = 120; y < h - 10; y += 22) {
+    const g = c.createLinearGradient(x, y, x + 20, y + 20); g.addColorStop(0, '#d6eef0'); g.addColorStop(1, '#9fcfd2'); c.fillStyle = g; c.fillRect(x + 1, y + 1, 20, 20);
   }
-  c.fillStyle = '#d63031'; c.font = '900 52px "Noto Sans TC", sans-serif';
-  c.textAlign = 'center'; c.fillText('豐盈圓滿', w / 2, 70);
+  // 中間一圈彩色圓環
+  c.lineCap = 'round';
+  ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60', '#2e86de', '#8e44ad'].forEach((col, i) => { c.strokeStyle = col; c.lineWidth = 12; c.beginPath(); c.arc(w / 2, 200, 118 - i * 3, i * 1.05, i * 1.05 + 4.2); c.stroke(); });
+  // 跳舞的人（圓環裡）
+  for (const [x, col] of [[350, '#e74c3c'], [410, '#27ae60'], [470, '#2e86de']]) {
+    c.fillStyle = col; c.beginPath(); c.arc(x, 130, 15, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = col; c.lineWidth = 10;
+    c.beginPath(); c.moveTo(x, 146); c.lineTo(x - 8, 230); c.lineTo(x - 32, 292); c.moveTo(x - 8, 230); c.lineTo(x + 24, 292); c.moveTo(x - 4, 172); c.lineTo(x - 46, 136); c.moveTo(x - 4, 172); c.lineTo(x + 42, 152); c.stroke();
+  }
+  // 紅色書法字：左「豐盈圓滿」、右「大器今生」
+  c.fillStyle = '#d63031'; c.font = '900 50px "DFKai-SB", "BiauKai", "Noto Serif TC", "Noto Sans TC", serif'; c.textAlign = 'center';
+  c.fillText('豐盈圓滿', 205, 196); c.fillText('大器今生', w - 205, 196);
 }) }));
 const posterWallMat = () => once('posterwall', () => new THREE.MeshLambertMaterial({ map: bigTex(800, 200, (c, w, h) => {
   c.fillStyle = '#b5895a'; c.fillRect(0, 0, w, h);
@@ -1126,6 +1133,41 @@ export function decorateCourtyard(m, y0) {
     for (const [rx, rz, rs] of [[x2 - rim - 0.4, z1 + rim + 0.4, 0.35], [x2 - rim - 0.7, z1 + rim + 0.55, 0.25]]) box(mat('wool', '#9a9a95'), rs, rs * 0.7, rs, rx, 0.3, rz);   // 石頭
     // 池邊兩側的盆栽灌木
     for (const z of [z1 - 0.6, z2 + 0.6]) box(mat('leaves'), 0.9, 0.8, 0.9, x1 + 0.6, 0, z);
+  }
+  // ---- 依 360 照片（10-1、10-2）補的：思源樓前的彩繪貓咪大花盆（山蘇）＋蕨類吊盆、生態池前的磚紅色步道、壁畫兩旁兩棵高松樹 ----
+  {
+    const brick = mat('wool', '#c27a5a'), pondZ = (pd ? ((pd[1] + pd[3]) / 2 - P.ORIGIN[1]) / P.PX_PER_M : (m.z1 + m.z2) / 2);
+    const pondX2 = pd ? (pd[2] - P.ORIGIN[0]) / P.PX_PER_M : m.x1 + 3.3;
+    box(brick, 1.4, 0.02, m.z2 - m.z1 - 3, pondX2 + 0.9, 0, (m.z1 + m.z2) / 2);            // 生態池前面南北向的磚紅色步道
+    for (let z = m.z1 + 2; z < m.z2 - 1.5; z += 0.7) box(mat('wool', '#a8654a'), 1.4, 0.022, 0.03, pondX2 + 0.9, 0, z);   // 步道磚縫
+    // 壁畫兩旁的高松樹
+    for (const dz of [-5, 5]) {
+      const px = pondX2 + 3.6, pz = pondZ + dz;
+      box(mat('log', '#ffffff'), 0.5, 12, 0.5, px, 0, pz);
+      for (let k = 0; k < 7; k++) { const wdt = 4.2 - k * 0.5, y = 3 + k * 1.3; box(mat('leaves'), wdt, 0.8, wdt * 0.4, px, y, pz); box(mat('leaves'), wdt * 0.4, 0.8, wdt, px, y, pz); }
+      box(mat('leaves'), 0.7, 1.0, 0.7, px, 12, pz);
+    }
+    // 思源樓前（中庭西側、生態池北邊）：兩個彩繪貓咪大花盆夾著入口，種山蘇
+    const catPot = (x, z, k) => {
+      geo(mat('wool', '#8a8f96'), new THREE.CylinderGeometry(0.42, 0.3, 1.6, 12), x, 0.8, z);
+      geo(mat('wool', '#f2f0ea'), new THREE.CylinderGeometry(0.5, 0.5, 0.06, 12), x, 0.03, z);         // 白色小石子座
+      // 卡通貓（畫在花盆朝東那面）：身體條紋、大眼睛、尖耳朵
+      const cols = k ? ['#f2c14e', '#e74c3c', '#2e86de'] : ['#f7f2e8', '#f39c12', '#8e44ad'];
+      for (let i = 0; i < 5; i++) box(mat('wool', cols[i % 3]), 0.04, 0.12, 0.42, x + 0.39, 0.25 + i * 0.14, z);
+      box(mat('wool', cols[0]), 0.04, 0.34, 0.5, x + 0.4, 1.0, z);
+      for (const s of [-1, 1]) { box(M.white(), 0.03, 0.12, 0.12, x + 0.43, 1.12, z + s * 0.11); box(M.dark(), 0.03, 0.06, 0.06, x + 0.45, 1.12, z + s * 0.11); box(mat('wool', cols[0]), 0.04, 0.14, 0.1, x + 0.38, 1.35, z + s * 0.18); }
+      box(mat('wool', '#f28aa0'), 0.03, 0.05, 0.08, x + 0.45, 1.0, z);
+      // 山蘇（一圈往外翹的寬葉子）
+      for (let i = 0; i < 8; i++) { const lf = new THREE.BoxGeometry(0.9, 0.04, 0.22); lf.translate(0.45, 0, 0); lf.rotateZ(0.7); lf.rotateY(i * Math.PI / 4); geo(mat('wool', '#4f9a3a'), lf, x, 1.55, z); }
+    };
+    const cz0 = pondZ - 6.8;
+    catPot(m.x1 + 2.4, cz0 - 0.9, 0); catPot(m.x1 + 2.4, cz0 + 0.9, 1);             // 放在階梯底下（不擋階梯）
+    // 蕨類吊盆：掛在思源樓一樓走廊外牆（藍綠欄杆下面），一排，生態池那段不掛
+    for (let z = m.z1 + 2.5; z < m.z2 - 2; z += 1.6) {
+      if (Math.abs(z - pondZ) < 4.2 || Math.abs(z - cz0) < 1.6) continue;
+      geo(mat('wool', '#b85a3a'), new THREE.CylinderGeometry(0.16, 0.11, 0.2, 10), m.x1 + 0.18, 1.45, z);
+      for (let i = 0; i < 5; i++) { const lf = new THREE.BoxGeometry(0.45, 0.03, 0.1); lf.translate(0.22, 0, 0); lf.rotateZ(-0.5); lf.rotateY(i * Math.PI * 2 / 5); geo(mat('wool', '#5aa83e'), lf, m.x1 + 0.18, 1.62, z); }
+    }
   }
   return b;
 }
