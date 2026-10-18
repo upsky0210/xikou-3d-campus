@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=168';
-import { furnishFloor } from './furniture.js?v=168';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=168';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=168';
-import { buildCampusWall } from './wall.js?v=168';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=168';
+import { PanoViewer } from './pano.js?v=169';
+import { furnishFloor } from './furniture.js?v=169';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=169';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=169';
+import { buildCampusWall } from './wall.js?v=169';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=169';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -810,11 +810,33 @@ function buildOutdoor() {
     // 正門：兩根白柱子 + 彩虹拱門
     const gx = mx(O.gate.x), z1 = mz(O.gate.y1), z2 = mz(O.gate.y2), zc = (z1 + z2) / 2, half = (z2 - z1) / 2;
     const b = new Batch();
-    for (const z of [z1, z2]) {
-      b.box(mat('wool', '#f7f7f7'), 1.1, 3.4, 1.1, gx, 1.7, z);
-      b.box(mat('wool', '#8e7cc3'), 1.4, 0.4, 1.4, gx, 3.6, z);
-      b.box(mat('wool', '#e8d9a8'), 1.0, 0.9, 0.5, gx, 4.25, z);
-    }
+    // 依 360 照片 01：柱子下段白色、中段包彩色布條（北柱橘藍「Bilingual Xikou」、南柱藍綠「溪口 雙語實驗學校」）、
+    //   上面藍白柱頭＋白色圓滾滾的貓頭鷹造型；北柱內側一根藍綠色高桿，頂上小風車；大門是木條拉門（拉開收在北邊），上面彩色圓點
+    const banner = (k) => photoTex(128, 256, (c, w, h) => {
+      const g2 = c.createLinearGradient(0, 0, 0, h);
+      if (k === 0) { g2.addColorStop(0, '#e8762b'); g2.addColorStop(0.5, '#f2a03a'); g2.addColorStop(1, '#3a8fd0'); } else { g2.addColorStop(0, '#1fa59a'); g2.addColorStop(1, '#2a6ab8'); }
+      c.fillStyle = g2; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#ffffff'; c.textAlign = 'center';
+      if (k === 0) { c.font = '700 18px Arial, sans-serif'; c.fillText('Bilingual', w / 2, 50); c.fillText('Program', w / 2, 72); c.font = '900 30px Arial, sans-serif'; c.fillText('Xikou', w / 2, 110); }
+      else { c.font = '900 40px "Noto Sans TC", sans-serif'; c.fillText('溪口', w / 2, 60); c.font = '700 15px "Noto Sans TC", sans-serif'; c.fillText('雙語實驗學校', w / 2, 90); c.fillStyle = '#e8762b'; c.beginPath(); c.arc(w / 2, 190, 26, 0, 7); c.fill(); }
+    });
+    [z1, z2].forEach((z, k) => {
+      b.box(mat('wool', '#f7f7f7'), 1.1, 0.7, 1.1, gx, 0.35, z);
+      { const m = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.6, 1.0), banner(k)); m.position.set(gx, 2.0, z); g.add(m); }
+      b.box(mat('wool', '#2a7ac8'), 1.3, 0.35, 1.3, gx, 3.45, z); b.box(mat('wool', '#f4f4f0'), 1.4, 0.12, 1.4, gx, 3.68, z);
+      b.box(mat('wool', '#f4f4f0'), 0.9, 0.75, 0.9, gx, 4.12, z);                                         // 白色圓頭造型
+      for (const d of [-0.2, 0.2]) { b.box(mat('wool', '#ffffff'), 0.06, 0.22, 0.22, gx - 0.46, 4.2, z + d); b.box(mat('wool', '#2b2b2b'), 0.05, 0.1, 0.1, gx - 0.49, 4.2, z + d); }
+      for (const d of [-0.3, 0.3]) b.box(mat('wool', '#f4f4f0'), 0.25, 0.25, 0.2, gx, 4.55, z + d);       // 耳朵
+    });
+    // 藍綠色高桿＋小風車（北柱內側）
+    b.box(mat('wool', '#1f9a7a'), 0.4, 6.0, 0.4, gx + 0.9, 3.0, z1 + 1.1);
+    for (const a of [0, Math.PI / 2]) { const g3 = new THREE.BoxGeometry(0.04, 1.1, 0.14); g3.rotateX(a + 0.6); g3.translate(gx + 0.6, 6.15, z1 + 1.1); b.add(mat('wool', '#e8e8f0'), g3); }
+    // 木條拉門（拉開收在北柱外側、沿著圍牆）＋彩色圓點
+    const gl = Math.min(6, z2 - z1 - 1), gz0 = z1 - 0.6 - gl / 2;
+    b.box(mat('wool', '#2b2b2b'), 0.2, 0.3, gl, gx + 0.7, 0.15, gz0);
+    for (let k = 0; k * 0.18 < gl; k++) b.box(mat('planks', '#8a5a3a'), 0.12, 2.1, 0.1, gx + 0.7, 1.35, gz0 - gl / 2 + k * 0.18 + 0.05);
+    b.box(mat('planks', '#8a5a3a'), 0.14, 0.1, gl, gx + 0.7, 2.35, gz0);
+    ['#f2c14e', '#2ab8c8', '#9a6ad0', '#f2c14e', '#2ab8c8', '#9a6ad0'].forEach((col, k) => { const g4 = new THREE.CylinderGeometry(0.22, 0.22, 0.04, 16); g4.rotateZ(Math.PI / 2); g4.translate(gx + 0.6, 1.2 + (k % 2) * 0.3, gz0 - gl / 2 + 0.5 + k * (gl - 1) / 5); b.add(mat('wool', col), g4); });
     const rainbow = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa'];
     rainbow.forEach((col, i) => {
       const r = half - i * 0.16, N = 28;
