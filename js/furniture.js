@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=152';
+import { Batch, mat, SPOTS } from './blocks.js?v=155';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -141,8 +141,8 @@ function placer(batch, fr, y0) {
     batch.add(material, geo);
   };
   // 登記互動設施：(u, v) 的世界座標；dv 是面向球場的方向（沿 v）
-  put.spot = (data, u, v, y, dv = 0) => {
-    const [x, z] = fr.toWorld(u, v), [x2, z2] = fr.toWorld(u, v + dv), d = Math.hypot(x2 - x, z2 - z) || 1;
+  put.spot = (data, u, v, y, dv = 0, du = 0) => {                 // dv／du：籃框朝哪個方向（沿 v 或沿 u）
+    const [x, z] = fr.toWorld(u, v), [x2, z2] = fr.toWorld(u + du, v + dv), d = Math.hypot(x2 - x, z2 - z) || 1;
     SPOTS.push({ ...data, x, y: y0 + y, z, fx: (x2 - x) / d, fz: (z2 - z) / d, floorY: y0 });
   };
   return put;
@@ -1464,24 +1464,86 @@ const gymCourtMat = () => once('gymcourt', () => new THREE.MeshLambertMaterial({
   }
 }) }));
 
-function gym(put, fr) {
-  const W = fr.W, L = fr.L;   // 活動中心門在東西，u 是南北向；這裡改用 v（東西向）擺球場
-  // 籃球場線（28 × 15 公尺）
-  put(gymCourtMat(), Math.min(15, L - 2), Math.min(28, W - 12), 0.01, L / 2, -2.5, 0.015, true);
-  // 舞台：東邊
-  put(M.wood(), L - 0.4, 5, 1.0, L / 2, W / 2 - 2.6, 0);
-  put(mat('wool', '#b3202a'), L - 0.6, 0.15, 3.6, L / 2, W / 2 - 0.2, 1.0);   // 紅色布幕（活動中心挑高兩層）
-  put(mat('wool', '#8a1820'), L - 0.6, 0.3, 0.6, L / 2, W / 2 - 0.3, 4.4);
-  // 兩個籃框（在球場兩端，標準高度 3.05 公尺）
-  const half = Math.min(28, W - 12) / 2;
-  for (const s of [-1, 1]) {
-    const v = -2.5 + s * (half - 1.2);                                   // 籃板位置，柱子在場外
-    put(M.grey(), 0.25, 0.25, 3.5, L / 2, v + s * 1.0, 0);               // 柱子
-    put(M.grey(), 0.12, 1.0, 0.12, L / 2, v + s * 0.5, 3.35);            // 支架
-    put(M.white(), 1.8, 0.06, 1.05, L / 2, v, 2.9);                      // 籃板
-    put(mat('wool', '#e65100'), 0.45, 0.45, 0.03, L / 2, v - s * 0.28, 3.05);  // 籃框（朝球場）
-    put.spot({ kind: 'hoop' }, L / 2, v - s * 0.28, 3.05, -s);                  // 可以投籃
+// 活動中心（依 360 照片 22）：淺色楓木地板＋白線籃球場、藍線（羽球／排球）；東邊舞台：木紋板框、深紅布幕（金色流蘇）、
+//   背板（學校標誌、藍色浪花）、兩顆喇叭、紅色計分板；兩個主籃框從天花板吊下來（藍色護墊）；南北兩面牆各四個掛牆練習籃框；
+//   牆邊靠著摺疊桌椅推車、海報。天花板（米白波浪板、鋼架、圓燈）在 app.js（放在天花板群組，鳥瞰時會拿掉）
+const gymMapleMat = (rx, ry) => once('gymmaple' + rx + 'x' + ry, () => new THREE.MeshLambertMaterial({ map: (() => {
+  const t = bigTex(128, 128, (c, w, h) => {                                       // 淺色楓木地板：一條條窄木條（一格 2 公尺）
+    for (let i = 0; i < 16; i++) { c.fillStyle = ['#ecd2a2', '#e6c993', '#f0d9ad', '#e2c48c'][(i * 5) % 4]; c.fillRect(0, i * 8, w, 8); }
+    c.fillStyle = 'rgba(150,110,60,.25)'; for (let i = 0; i < 16; i++) { c.fillRect(0, i * 8, w, 1); c.fillRect(((i * 37) % 100) + 10, i * 8, 1, 8); }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry);
+  return t;
+})() }));
+const gymBlueMat = () => once('gymblue', () => new THREE.MeshLambertMaterial({ transparent: true, depthWrite: false, map: bigTex(1024, 560, (c, w, h) => {
+  c.clearRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(40,80,200,.9)'; c.lineWidth = 6;
+  for (const x0 of [60, 540]) {                                                   // 兩個橫向的小球場（羽球／排球）
+    c.strokeRect(x0, 40, 420, h - 80);
+    c.beginPath(); c.moveTo(x0 + 210, 40); c.lineTo(x0 + 210, h - 40); c.stroke();
+    for (const dx of [130, 290]) { c.beginPath(); c.moveTo(x0 + dx, 40); c.lineTo(x0 + dx, h - 40); c.stroke(); }
   }
+}) }));
+const stageBackMat = () => once('stageback', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 200, (c, w, h) => {
+  c.fillStyle = '#1c2236'; c.fillRect(0, 0, w, h);                               // 深藍背板
+  c.fillStyle = '#e8762b'; c.beginPath(); c.arc(w * 0.6, 60, 28, 0, 7); c.fill();  // 學校標誌（橘色圓）
+  c.fillStyle = '#f4f4f0'; c.font = 'bold 26px "Noto Sans TC", sans-serif'; c.textAlign = 'center'; c.fillText('溪口國小', w * 0.42, 66);
+  for (let i = 0; i < 3; i++) {                                                   // 藍色浪花
+    c.fillStyle = ['#3a8fd0', '#5fb0e6', '#bfe3f5'][i]; c.beginPath(); c.moveTo(w * 0.2, h);
+    for (let x = w * 0.2; x <= w * 0.8; x += 8) c.lineTo(x, h - 50 + i * 14 + Math.sin(x / 18 + i) * 10);
+    c.lineTo(w * 0.8, h); c.closePath(); c.fill();
+  }
+}) }));
+function gym(put, fr) {
+  const W = fr.W, L = fr.L;   // 活動中心門在東西，u 是南北向（0＝北牆）；這裡改用 v（東西向）擺球場，v 越大越東
+  put(gymMapleMat(Math.round(W / 2), Math.round(L / 2)), L, W, 0.012, L / 2, 0, 0, true);   // 淺色楓木地板
+  // 籃球場線（28 × 15 公尺）＋藍色小球場線
+  const CL = Math.min(28, W - 12), CW = Math.min(15, L - 2), cv = -2.5;
+  put(gymCourtMat(), CW, CL, 0.01, L / 2, cv, 0.015, true);
+  put(gymBlueMat(), CW + 1, CL - 2, 0.01, L / 2, cv, 0.017, true);
+  // 舞台（東邊）：木紋板框（中間是舞台口）、台面前緣深咖啡色
+  const vp = W / 2 - 4.2, ow = 11, oh = 4.0, panel = mat('planks', '#b8673a');
+  put(mat('wool', '#4a2a1e'), 13, 0.6, 1.0, L / 2, vp - 0.3, 0);                 // 台前緣
+  put(M.wood(), 13, W / 2 - vp, 1.0, L / 2, (vp + W / 2) / 2, 0);               // 台面
+  for (const s of [-1, 1]) {
+    const a = L / 2 + s * ow / 2, b = s < 0 ? 0.05 : L - 0.05;
+    put(panel, Math.abs(b - a), 0.3, 6.5, (a + b) / 2, vp, 0);                    // 舞台口兩側的木紋板
+    put(M.dark(), 0.45, 0.4, 0.7, L / 2 + s * 6.3, vp - 0.35, 4.3);              // 喇叭
+  }
+  put(panel, ow, 0.3, 6.5 - 1.0 - oh, L / 2, vp, 1.0 + oh);                      // 舞台口上方
+  put(M.dark(), 9, 0.04, 0.5, L / 2, vp - 0.17, 5.6);                            // 上方的黑色長條
+  put(new THREE.MeshLambertMaterial({ color: '#d32f2f', emissive: '#b01818', emissiveIntensity: 0.6 }), 0.9, 0.05, 0.4, L / 2 - 7.2, vp - 0.17, 2.6);   // 紅色計分板
+  // 布幕：深紅色，兩邊拉開、上面一排帷幔＋金色流蘇；後面是背板
+  const red = mat('wool', '#7a1420');
+  for (const s of [-1, 1]) put(red, 2.4, 0.15, oh, L / 2 + s * (ow / 2 - 1.2), vp + 0.4, 1.0);
+  put(red, ow, 0.15, 0.7, L / 2, vp + 0.3, 1.0 + oh - 0.7);
+  put(mat('wool', '#d9a93a'), ow, 0.16, 0.08, L / 2, vp + 0.3, 1.0 + oh - 0.78);
+  put(stageBackMat(), 8, 0.05, 3.2, L / 2, W / 2 - 0.2, 1.0, true);
+  // 兩個主籃框：從天花板吊下來（吊桿＋玻璃籃板、藍色護墊），標準高度 3.05 公尺
+  const half = CL / 2, blue = mat('wool', '#1f4fb8');
+  for (const s of [-1, 1]) {
+    const v = cv + s * (half - 1.2);
+    for (const du of [-0.7, 0.7]) put(M.dark(), 0.08, 0.08, 6.4 - 3.9, L / 2 + du, v + s * 0.25, 3.9);   // 吊桿
+    put(M.dark(), 1.8, 0.6, 0.1, L / 2, v + s * 0.1, 3.85);                          // 籃板上面的橫架
+    put(mat('glass'), 1.8, 0.04, 1.05, L / 2, v, 2.8);                              // 玻璃籃板
+    put(blue, 1.8, 0.1, 0.16, L / 2, v, 2.72);                                      // 下緣藍色護墊
+    for (const du of [-0.9, 0.9]) put(blue, 0.08, 0.1, 1.05, L / 2 + du, v, 2.8);
+    put(M.white(), 0.6, 0.05, 0.45, L / 2, v - s * 0.03, 2.95);                     // 籃板上的白框
+    put(mat('wool', '#e65100'), 0.45, 0.45, 0.03, L / 2, v - s * 0.28, 3.05);       // 籃框（朝球場）
+    put.spot({ kind: 'hoop' }, L / 2, v - s * 0.28, 3.05, -s);                      // 可以投籃
+  }
+  // 南北兩面牆：各四個掛牆練習籃框（白色籃板），面向球場
+  for (const [u0, s] of [[0.05, 1], [L - 0.05, -1]]) for (const v of [-15, -7, 1, 9]) {
+    put(M.grey(), 0.3, 0.08, 0.08, u0 + s * 0.15, v, 2.7);                          // 支架
+    put(M.white(), 0.05, 1.1, 0.75, u0 + s * 0.32, v, 2.4);                         // 籃板
+    put(mat('wool', '#e65100'), 0.38, 0.38, 0.03, u0 + s * 0.55, v, 2.6);           // 籃框
+    put.spot({ kind: 'hoop' }, u0 + s * 0.55, v, 2.6, 0, s);
+  }
+  // 牆邊：摺疊桌椅推車、海報
+  for (const [u, v] of [[0.45, -19], [0.45, -11], [L - 0.45, -11], [L - 0.45, 5]]) {
+    put(M.grey(), 0.5, 1.6, 1.3, u, v, 0); put(mat('wool', '#5a6068'), 0.52, 1.62, 0.05, u, v, 0.2);
+  }
+  for (const [u, v, k] of [[0.12, -17, 0], [L - 0.12, 13, 1]]) put(mat('wool', ['#9ac46a', '#7ab0d8'][k]), 0.05, 0.9, 1.6, u, v, 0);   // 靠牆立著的海報板（不擋窗）
 }
 
 // 各處室的辦公桌組數（依學校實際）

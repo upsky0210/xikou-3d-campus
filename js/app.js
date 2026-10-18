@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=152';
-import { furnishFloor } from './furniture.js?v=152';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=152';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=152';
-import { buildCampusWall } from './wall.js?v=152';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=152';
+import { PanoViewer } from './pano.js?v=155';
+import { furnishFloor } from './furniture.js?v=155';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=155';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=155';
+import { buildCampusWall } from './wall.js?v=155';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=155';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1026,6 +1026,18 @@ function buildFloor(f) {
     ceilBatch.box(mat('roof', BLOCKY ? (ROOF_COLOR[r.building] || '#d8d8d2') : '#c9c9c9'),
       x2 - x1 + WALL_T, CEIL_T, z2 - z1 + WALL_T, (x1 + x2) / 2, f.y + WALL_H + CEIL_T / 2, (z1 + z2) / 2);
     (f.ceilRects ||= []).push(r.m);
+  }
+  // 挑高空間（活動中心，依照片）自己的天花板：米白色波浪板（一條條高低交錯）、深灰鋼架、圓形燈；
+  //   放在這層的天花板群組，鳥瞰時拿掉才看得到球場
+  for (const r of f.rooms || []) {
+    if (!r.tall) continue;
+    const { x1, z1, x2, z2 } = r.m, top = f.y + FLOOR_H + WALL_H - 0.12, cz = (z1 + z2) / 2;
+    const cream = mat('wool', '#efe6cf'), steel = mat('wool', '#4a4e55');
+    const lamp = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#fffbe8', emissiveIntensity: 1 });
+    const n = Math.round((x2 - x1) / 3), dx = (x2 - x1) / n;
+    for (let i = 0; i < n; i++) ceilBatch.box(cream, dx + 0.02, 0.06, z2 - z1, x1 + (i + 0.5) * dx, top - (i % 2) * 0.35, cz);
+    for (let z = z1 + 2.5; z < z2 - 1; z += 4.8) ceilBatch.box(steel, x2 - x1, 0.3, 0.25, (x1 + x2) / 2, top - 0.75, z);
+    for (let i = 1; i < n; i += 2) for (let z = z1 + 4.9; z < z2 - 2; z += 4.8) ceilBatch.box(lamp, 0.35, 0.08, 0.35, x1 + (i + 0.5) * dx, top - 0.45, z);
   }
   f.ceil = new THREE.Group();
   f.ceilMeshes = ceilBatch.build(f.ceil);
