@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=146';
-import { furnishFloor } from './furniture.js?v=146';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=146';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=146';
-import { buildCampusWall } from './wall.js?v=146';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=146';
+import { PanoViewer } from './pano.js?v=147';
+import { furnishFloor } from './furniture.js?v=147';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=147';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=147';
+import { buildCampusWall } from './wall.js?v=147';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=147';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5164,8 +5164,13 @@ function update(dt) {
   }
 }
 
-function loop() {
+// 每秒最多畫 60 張：高更新率螢幕（120、144、165Hz）不用跟著多畫，CPU / 顯示卡才不會狂轉
+const MAX_FPS = 60, FRAME_MS = 1000 / MAX_FPS;
+let nextFrame = 0;
+function loop(now = performance.now()) {
   requestAnimationFrame(loop);
+  if (now < nextFrame - FRAME_MS * 0.25) return;            // 還沒到下一張的時間（留一點寬容，60Hz 螢幕才不會誤跳）
+  nextFrame = Math.max(nextFrame + FRAME_MS, now);          // 累加排程，平均剛好 60 張；落後太多就從現在重新算
   if (viewer.isOpen) return;          // 看環景時 3D 校園暫停，省電
   const dt = Math.min(0.05, clock.getDelta());
   update(dt);

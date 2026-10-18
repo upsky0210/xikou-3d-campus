@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=146';
+import { Batch, mat, SPOTS } from './blocks.js?v=147';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）

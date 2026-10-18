@@ -163,10 +163,15 @@ export class PanoViewer {
     this.isOpen = true;
     this.resize();
     this.show(img);
-    const loop = () => {
+    // 跟 3D 校園一樣每秒最多畫 60 張（高更新率螢幕不用多畫）
+    const FRAME_MS = 1000 / 60;
+    let next = 0;
+    const loop = (now = performance.now()) => {
       if (!this.isOpen) return;
-      this.tick();
       requestAnimationFrame(loop);
+      if (now < next - FRAME_MS * 0.25) return;
+      next = Math.max(next + FRAME_MS, now);
+      this.tick();
     };
     requestAnimationFrame(loop);
   }
