@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=167';
-import { furnishFloor } from './furniture.js?v=167';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=167';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=167';
-import { buildCampusWall } from './wall.js?v=167';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=167';
+import { PanoViewer } from './pano.js?v=168';
+import { furnishFloor } from './furniture.js?v=168';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=168';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=168';
+import { buildCampusWall } from './wall.js?v=168';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=168';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -895,6 +895,7 @@ function floorMat(type, f, room) {
 }
 // 頂樓菜園：一排排木頭菜箱，上面是土和菜
 function addPlanters(f, m) {
+  if (f.id === '5F') return addRoofPlanters(f, m);
   // 依 2 樓小田園照片（10-15 新照片）：六角形地磚上一格一格的木框菜圃，種小白菜，每格插一支白色名牌
   const b = new Batch();
   const wood = mat('planks', '#a87a4e'), soil = mat('wool', '#4a3322'), leaf = mat('wool', '#6fc23c'), leaf2 = mat('wool', '#8fd456');
@@ -917,6 +918,30 @@ function addPlanters(f, m) {
       b.box(tag, 0.13, 0.17, 0.015, x + 1.05, f.y + 0.82, cz - 0.82);
     }
   }
+  b.build(f.group);
+}
+// 5F 頂樓菜園（依 360 照片 23）：灰色地磚上一格格方形木框菜床（深色土），種洛神花（紅色花萼）、地瓜葉，有幾格剛翻好土；
+//   牆邊兩個橘色大桶，菜床之間灰色澆水管
+function addRoofPlanters(f, m) {
+  const b = new Batch(), y = f.y;
+  const wood = mat('planks', '#8a5a3a'), soil = mat('wool', '#3e2a1c'), leaf = mat('wool', '#3f8a3a'), leaf2 = mat('wool', '#5aa84a');
+  const red = mat('wool', '#a8142a'), stem = mat('wool', '#5a3a2a'), potato = mat('wool', '#6cbf4a'), pipe = mat('wool', '#b8bcc0');
+  let seed = 23; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  let k = 0;
+  for (let x = m.x1 + 1.2; x < m.x2 - 1.0; x += 2.4) for (let z = m.z1 + 1.4; z < m.z2 - 1.0; z += 2.4) {
+    const kind = k++ % 4;                                        // 0、1：洛神花，2：地瓜葉，3：剛翻好的土
+    b.box(wood, 1.5, 0.35, 1.5, x, y + 0.175, z); b.box(soil, 1.3, 0.04, 1.3, x, y + 0.36, z);
+    if (kind < 2) for (let i = 0; i < 4; i++) {                  // 洛神花：一叢叢小灌木，枝上掛紅色花萼
+      const px = x - 0.35 + (i % 2) * 0.7, pz = z - 0.35 + Math.floor(i / 2) * 0.7, h = 0.7 + rnd() * 0.4;
+      b.box(stem, 0.05, h, 0.05, px, y + 0.38 + h / 2, pz);
+      for (let j = 0; j < 3; j++) b.box(j % 2 ? leaf : leaf2, 0.45 - j * 0.1, 0.18, 0.45 - j * 0.1, px, y + 0.5 + h * (0.35 + j * 0.25), pz);
+      for (let j = 0; j < 5; j++) b.box(red, 0.07, 0.09, 0.07, px + (rnd() - 0.5) * 0.4, y + 0.6 + rnd() * h, pz + (rnd() - 0.5) * 0.4);
+    } else if (kind === 2) {                                     // 地瓜葉：低低一片
+      for (let i = 0; i < 9; i++) b.box(i % 2 ? potato : leaf2, 0.36, 0.14, 0.36, x - 0.42 + (i % 3) * 0.42, y + 0.45 + rnd() * 0.08, z - 0.42 + Math.floor(i / 3) * 0.42);
+    }
+    b.box(pipe, 0.05, 0.05, 2.4, x + 0.85, y + 0.03, z);         // 澆水管
+  }
+  for (const dz of [1.2, 2.4]) b.box(mat('wool', '#f07a2a'), 0.7, 0.55, 0.7, m.x2 - 0.6, y + 0.275, m.z1 + dz);   // 橘色大桶
   b.build(f.group);
 }
 // 看台：靠外牆那側三層階梯（越靠牆越高），靠挑空那側留走道
@@ -5851,6 +5876,26 @@ function buildPhotoScenes() {
       for (let xx = LRC_END + 0.6; xx < xg - 0.5; xx += 1.6) { lb.box(rail, 0.08, 0.14, 0.08, xx, top - 0.1, zc + dz); lb.box(lamp, 0.07, 0.02, 0.07, xx, top - 0.18, zc + dz); }
     }
     lb.build(f1.group);
+  }
+  // ---- 2F 溪口小田園（依 360 照片 16）：北面、東面矮牆內側的山水壁畫（山、小溪、樹、房子，旁邊一段詩句和大大的「山」字）、
+  //   牆頂一排花盆（粉紅小花）、東面牆上方深色木條圍籬；菜圃、六角形地磚維持 10-15 新照片的樣子 ----
+  {
+    const f2t = floorById['2F'], gy = f2t.y, x1 = mx(1555), x2 = mx(1690), z1 = mz(150), z2 = mz(330), off = WALL_T / 2 + 0.03;
+    const scenery = (k) => photoTex(512, 128, (c, w, h) => {
+      c.fillStyle = '#f2f4f0'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#9cc8a8'; c.beginPath(); c.moveTo(0, 90); for (let x = 0; x <= w; x += 20) c.lineTo(x, 70 - Math.abs(Math.sin(x / 60 + k)) * 40); c.lineTo(w, h); c.lineTo(0, h); c.fill();   // 山
+      c.fillStyle = '#6aa8d8'; c.beginPath(); c.moveTo(0, 110); c.quadraticCurveTo(w / 2, 80, w, 105); c.lineTo(w, 122); c.quadraticCurveTo(w / 2, 98, 0, 126); c.fill();   // 小溪
+      for (let i = 0; i < 10; i++) { c.fillStyle = ['#2e7d4a', '#4f9a3a', '#3a8a6a'][i % 3]; c.beginPath(); c.arc(30 + i * 50 + (k * 17) % 30, 80 - (i % 3) * 6, 12, 0, 7); c.fill(); }   // 樹
+      if (k === 0) { c.fillStyle = '#2e6a3a'; c.font = '900 40px "DFKai-SB", "Noto Serif TC", serif'; c.fillText('山', 120, 46); c.fillStyle = '#3a3a3a'; for (let i = 0; i < 5; i++) c.fillRect(190, 14 + i * 9, 160 - i * 14, 3); }   // 「山」字＋詩句
+      else { c.fillStyle = '#d8b8a0'; for (let i = 0; i < 4; i++) c.fillRect(300 + i * 34, 60, 26, 22); c.fillStyle = '#3a3a3a'; for (let i = 0; i < 4; i++) c.fillRect(380, 14 + i * 9, 100, 3); }   // 房子＋詩句
+    });
+    wallPic(f2t, scenery(0), (x1 + x2) / 2, gy + 0.55, z1 + off, x2 - x1 - 0.4, 1.0, 0);
+    wallPic(f2t, scenery(1), x2 - off, gy + 0.55, (z1 + z2) / 2, z2 - z1 - 0.4, 1.0, -Math.PI / 2);
+    const b = new Batch(), box = mat('wool', '#3a3430'), soilM = mat('wool', '#4a3322'), pink = mat('wool', '#f28ab0'), lf = mat('wool', '#5aa84a'), slat = mat('planks', '#4a3a30');
+    for (let x = x1 + 0.6; x < x2 - 0.4; x += 1.1) { b.box(box, 0.7, 0.25, 0.3, x, gy + RAIL_H + 0.125, z1 + 0.2); b.box(lf, 0.6, 0.1, 0.22, x, gy + RAIL_H + 0.3, z1 + 0.2); for (const d of [-0.2, 0, 0.2]) b.box(pink, 0.1, 0.08, 0.1, x + d, gy + RAIL_H + 0.38, z1 + 0.2); }
+    for (let k = 0; k < 6; k++) b.box(slat, 0.06, 0.1, z2 - z1 - 0.6, x2 - 0.1, gy + RAIL_H + 0.1 + k * 0.14, (z1 + z2) / 2);   // 東面深色木條圍籬
+    for (let z = z1 + 0.6; z < z2 - 0.3; z += 1.8) b.box(slat, 0.1, 0.9, 0.1, x2 - 0.1, gy + RAIL_H + 0.45, z);
+    b.build(f2t.group);
   }
   // ---- 1F 多元文化走廊（依 360 照片 07-1）：一樓北側走廊（圖書館北邊，封閉的室內走廊）：深色木地板、兩側窗下白色矮櫃＋綠色坐墊、
   //   中間北牆一段架高小舞台＋東南亞（緬甸、泰國、印度）大壁畫、綠色幸運草小凳、白色展示架 ----
