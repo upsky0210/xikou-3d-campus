@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=164';
+import { Batch, mat, SPOTS } from './blocks.js?v=165';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1184,6 +1184,16 @@ function paintBands(put, fr, material) {
 const ballMat = (c) => mat('wool', c);
 function ball(put, u, v, y, r, color) { put.geo(ballMat(color), new THREE.SphereGeometry(r, 10, 8), u, v, y + r); }
 
+const marbleMat = () => once('marble', () => new THREE.MeshLambertMaterial({ map: bigTex(128, 128, (c, w, h) => {
+  c.fillStyle = '#f2f1ee'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(120,120,125,.35)'; c.lineWidth = 2;
+  for (let i = 0; i < 6; i++) { c.beginPath(); c.moveTo(i * 30 - 20, 0); c.bezierCurveTo(i * 30 + 10, 40, i * 30 - 30, 80, i * 30 + 20, h); c.stroke(); }
+}) }));
+const healthPosterMat = () => once('healthposter', () => new THREE.MeshLambertMaterial({ map: bigTex(256, 160, (c, w, h) => {
+  c.fillStyle = '#f7f7f4'; c.fillRect(0, 0, w, h);                              // 白板＋衛教海報
+  for (let i = 0; i < 6; i++) { const x = 10 + (i % 3) * 82, y = 12 + Math.floor(i / 3) * 74; c.fillStyle = ['#fde2b8', '#cfe8f6', '#f7d0d8', '#d8f0c8', '#fff4b0', '#e8d8f6'][i]; c.fillRect(x, y, 72, 64); c.fillStyle = ['#e8762b', '#2e86de', '#d63a5a', '#27ae60', '#c9a400', '#8e44ad'][i]; c.fillRect(x + 6, y + 6, 60, 10); c.fillStyle = 'rgba(0,0,0,.25)'; for (let k = 0; k < 4; k++) c.fillRect(x + 6, y + 24 + k * 9, 52, 4); }
+  c.strokeStyle = '#b8bcc0'; c.lineWidth = 6; c.strokeRect(0, 0, w, h);
+}) }));
 // 1F 健康中心（依照片）：淺綠色牆、牙科診療椅、病床＋綠色隔簾、藍桌面＋木椅、身高體重計、紅色屏風、接待櫃台、白色櫃子
 function healthCenter2(put, fr) {
   const W = fr.W, L = fr.L, A = fr.away, D = -A;
@@ -1207,7 +1217,7 @@ function healthCenter2(put, fr) {
   put(M.white(), 0.5, 0.25, 0.12, du0 - 0.3, dv0 + 0.3, 1.5);
   // 藍桌面工作桌＋木椅
   for (const k of [0, 1]) {
-    const u = 1.2 + k * 1.6, v = A * (W / 2 - 0.6);
+    const u = 1.2 + k * 1.6, v = A * (W / 2 - 1.05);                    // 窗下有矮櫃，桌子往裡面一點
     put(mat('wool', '#3a7bd5'), 1.2, 0.7, 0.05, u, v, 0.72); put(M.metal(), 1.1, 0.6, 0.72, u, v, 0);
     chairAt(put, u, v - A * 0.6);
   }
@@ -1222,13 +1232,39 @@ function healthCenter2(put, fr) {
   put(mat('wool', '#b8433a'), 0.05, 1.3, 1.5, L * 0.42, 0, 0.25);
   // 接待櫃台（木紋＋白檯面）＋電腦＋辦公椅
   put(mat('planks', '#d8c4a0'), 0.6, 1.8, 0.95, 1.4, D * (W / 2 - 1.6), 0);
-  put(M.white(), 0.7, 1.9, 0.04, 1.4, D * (W / 2 - 1.6), 0.95);
+  put(marbleMat(), 0.04, 1.8, 0.9, 1.72, D * (W / 2 - 1.6), 0.02);                 // 正面大理石（依 360 照片）
+  put(marbleMat(), 0.7, 1.9, 0.04, 1.4, D * (W / 2 - 1.6), 0.95);
   put(M.dark(), 0.05, 0.5, 0.32, 1.25, D * (W / 2 - 1.6), 1.0); put(screenMat(), 0.02, 0.46, 0.28, 1.275, D * (W / 2 - 1.6), 1.02);
   chairAt(put, 0.7, D * (W / 2 - 1.6), false);
   // 白色高櫃、水槽檯面、藥櫃紅十字
   put(M.white(), 0.5, 1.8, 2.1, 0.27, A * (W / 2 - 1.0), 0);
   put(M.red(), 0.02, 0.3, 0.1, 0.53, A * (W / 2 - 1.0), 1.6); put(M.red(), 0.02, 0.1, 0.3, 0.53, A * (W / 2 - 1.0), 1.5);
   put(M.white(), 1.6, 0.55, 0.88, L - 3.0, D * (W / 2 - 0.3), 0);
+  // ---- 依 360 照片 11 補的 ----
+  // 東牆：灰色冰箱、白板（衛教海報）、玻璃門書櫃
+  put(mat('wool', '#8a8f96'), 0.65, 0.6, 1.6, L - 0.35, 0, 0);
+  put(healthPosterMat(), 0.03, 1.4, 0.9, L - 0.03, D * 1.4, 1.0, true);
+  const bkv = D * 2.7;
+  put(mat('planks', '#d8c4a0'), 0.4, 1.0, 2.0, L - 0.22, bkv, 0);
+  for (let i = 0; i < 4; i++) put(mat('wool', ['#2e86de', '#e74c3c', '#27ae60', '#f39c12'][i]), 0.05, 0.8, 0.28, L - 0.43, bkv, 0.3 + i * 0.45);   // 書本
+  put(mat('glass'), 0.02, 0.96, 1.9, L - 0.43, bkv, 0.05);
+  // 西牆：白色高衣櫃、長沙發椅
+  put(M.white(), 0.55, 1.2, 2.2, 0.3, 0, 0);
+  put(M.grey(), 0.02, 0.02, 1.9, 0.58, -0.02, 0.15);
+  put(mat('wool', '#d8c4a0'), 0.6, 1.15, 0.4, 0.35, A * 1.22, 0); put(mat('wool', '#5a6068'), 0.58, 1.12, 0.1, 0.35, A * 1.22, 0.4);
+  put(mat('wool', '#d8c4a0'), 0.1, 1.15, 0.45, 0.08, A * 1.22, 0.4);
+  // 南牆（窗下）一整排矮櫃
+  put(mat('wool', '#ece6da'), L - 3.4, 0.45, 0.85, (L - 2.6) / 2 + 0.4, A * (W / 2 - 0.23), 0);
+  put(mat('planks', '#c9a87a'), L - 3.4, 0.47, 0.04, (L - 2.6) / 2 + 0.4, A * (W / 2 - 0.23), 0.85);
+  // 指針式體重計（紅色底座）
+  const ds = 5.4, dsv = D * (W / 2 - 0.5);
+  put(M.red(), 0.5, 0.4, 0.1, ds, dsv, 0); put(M.grey(), 0.08, 0.08, 1.0, ds, dsv + A * 0.12, 0.1);
+  put.geo(M.white(), new THREE.CylinderGeometry(0.2, 0.2, 0.08, 20).rotateX(Math.PI / 2), ds, dsv + A * 0.12, 1.2);
+  // 推車（藥品用品）
+  const cu = L - 4.6, cv = A * (W / 2 - 0.8);
+  for (const y of [0.15, 0.55, 0.9]) put(M.metal(), 0.5, 0.4, 0.03, cu, cv, y);
+  for (const [a, c] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(M.metal(), 0.03, 0.03, 0.9, cu + a * 0.23, cv + c * 0.18, 0.05);
+  for (let i = 0; i < 4; i++) put(mat('wool', ['#ffffff', '#7ab0d8', '#e74c3c', '#f2c81e'][i]), 0.1, 0.08, 0.14, cu - 0.15 + i * 0.1, cv, 0.93);
 }
 
 // 1F 油印室（依照片）：大型油印機、鋪桌布的工作桌、辦公桌＋電腦＋鐵櫃、電風扇、紙箱
