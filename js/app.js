@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=155';
-import { furnishFloor } from './furniture.js?v=155';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=155';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=155';
-import { buildCampusWall } from './wall.js?v=155';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=155';
+import { PanoViewer } from './pano.js?v=158';
+import { furnishFloor } from './furniture.js?v=158';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=158';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=158';
+import { buildCampusWall } from './wall.js?v=158';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=158';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5847,6 +5847,116 @@ function buildPhotoScenes() {
       for (let xx = mx(705) + 1.2; xx < xg - 0.5; xx += 1.6) { lb.box(rail, 0.08, 0.14, 0.08, xx, top - 0.1, zc + dz); lb.box(lamp, 0.07, 0.02, 0.07, xx, top - 0.18, zc + dz); }
     }
     lb.build(f1.group);
+  }
+  // ---- 3F 溪口光廊（依 360 照片 20-1～3）：西端綠色門框「Xi-Kou Optics Hallway」＋創作大師／自造基地、門口白色斑馬紋；
+  //   門框外兩面牆：北邊藍色彩虹看板、南邊橘色看板（地上彩色圓點）；進去是五道紫色拱門隧道（兩側銀灰色鏡牆、腳架）；
+  //   再往東是長走廊：天花板黃色燈槽和藍色發光板交錯、北牆「生活的藝術」＋馬賽克畫作、滅火器；南牆木紋波浪板＋大電視、小展示框；
+  //   地上中間一條紅褐色磨石子直線；東端圓形色塊 ----
+  {
+    const f3 = floorById['3F'], gy = f3.y, xa = mx(705), xe = mx(1510), z1 = mz(330), z2 = mz(398), zc = (z1 + z2) / 2, CW = z2 - z1;
+    const zn = z1 + WALL_T / 2 + 0.03, zs = z2 - WALL_T / 2 - 0.03, top = gy + WALL_H;
+    const doorsX = (side) => rooms.filter((r) => r.f === f3).flatMap((r) => (r.doorPts || []).filter((d) => Math.abs(d.z - (side < 0 ? z1 : z2)) < 0.4).map((d) => d.x));
+    const freeAt = (side, x, half) => doorsX(side).every((d) => Math.abs(d - x) > half + 0.7);
+    const L = (c) => new THREE.MeshLambertMaterial({ color: c });
+    const glow = (c, e, k = 0.8) => new THREE.MeshLambertMaterial({ color: c, emissive: e, emissiveIntensity: k });
+    const b = new Batch();
+    // 地上：中間紅褐色磨石子直線、門口白色斑馬紋
+    b.box(L('#a8705a'), xe - xa, 0.01, 0.3, (xa + xe) / 2, gy + 0.018, zc);
+    for (let k = 0; k < 5; k++) b.box(L('#f4f4f0'), 0.5, 0.012, 0.4, xa + 0.6, gy + 0.02, z1 + 0.5 + k * (CW - 1) / 4);
+    // 門框外（A_west 走廊）南邊地上的彩色圓點
+    for (let k = 0; k < 10; k++) b.box(L(['#e53935', '#1e88e5', '#fdd835', '#43a047'][k % 4]), 0.18, 0.01, 0.18, xa - 0.4 - (k % 3) * 0.55, gy + 0.02, z2 + 0.6 + Math.floor(k / 3) * 0.7);
+    // 綠色門框：兩根柱子＋上面厚厚的橫楣
+    const green = L('#1f9a6a');
+    for (const zz of [z1 + 0.3, z2 - 0.3]) b.box(green, 0.45, WALL_H, 0.6, xa + 0.22, gy + WALL_H / 2, zz);
+    b.box(green, 0.45, 0.6, CW, xa + 0.22, top - 0.3, zc);
+    // 紫色拱門隧道：五道，兩側銀灰色鏡牆、腳架
+    const tunnel0 = xa + 1.6, tunnel1 = xa + 5.4;
+    const mirror = L('#c3c8cf');
+    for (const [side, zw] of [[-1, zn], [1, zs]]) {
+      if (freeAt(side, (tunnel0 + tunnel1) / 2, (tunnel1 - tunnel0) / 2 - 0.6)) b.box(mirror, tunnel1 - tunnel0, 2.2, 0.03, (tunnel0 + tunnel1) / 2, gy + 0.35 + 1.1, zw - side * 0.02);
+      const tx = tunnel0 + 1.0, tz = zw - side * 0.5;
+      b.box(L('#222222'), 0.03, 1.3, 0.03, tx, gy + 0.65, tz); b.box(L('#222222'), 0.12, 0.1, 0.1, tx, gy + 1.35, tz);
+      for (const [dx, dz] of [[-0.18, 0], [0.12, 0.14], [0.12, -0.14]]) b.box(L('#222222'), 0.02, 0.02, 0.02, tx + dx, gy + 0.01, tz + dz);
+    }
+    b.build(f3.group);
+    const archGeo = (w, h, ow, oh) => {
+      const s = new THREE.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(w / 2, h); s.lineTo(-w / 2, h); s.closePath();
+      const hole = new THREE.Path(); hole.moveTo(-ow / 2, 0); hole.lineTo(-ow / 2, oh - ow / 2); hole.absarc(0, oh - ow / 2, ow / 2, Math.PI, 0, true); hole.lineTo(ow / 2, 0); hole.closePath();
+      s.holes.push(hole);
+      const g = new THREE.ExtrudeGeometry(s, { depth: 0.22, bevelEnabled: false }); g.rotateY(Math.PI / 2);
+      return g;
+    };
+    for (let k = 0; k < 5; k++) {
+      const t = k / 4, m = L(['#b7a9e0', '#a99ad6', '#9d8ccc', '#a99ad6', '#b7a9e0'][k]);
+      const a = new THREE.Mesh(archGeo(CW - 0.25, WALL_H - 0.05, 2.1 - Math.abs(t - 0.5) * 0.4, 2.6 - Math.abs(t - 0.5) * 0.3), m);
+      a.position.set(tunnel0 + t * (tunnel1 - tunnel0) - 0.11, gy, zc); a.castShadow = true; f3.group.add(a);
+    }
+    // 長走廊天花板：黃色燈槽和藍色發光板交錯
+    const lb = new Batch(), yel = glow('#ffd84a', '#f2c200', 0.7), blu = glow('#2fa8e8', '#1a8fd8', 0.8);
+    for (let x = tunnel1 + 0.4; x < xe - 1.2; x += 2.4) {
+      lb.box(yel, 0.6, 0.1, CW - 0.2, x + 0.3, top - 0.06, zc);
+      lb.box(blu, 1.7, 0.04, CW - 1.4, x + 1.5, top - 0.03, zc);
+      lb.box(yel, 1.7, 0.18, 0.5, x + 1.5, top - 0.1, z1 + 0.35); lb.box(yel, 1.7, 0.18, 0.5, x + 1.5, top - 0.1, z2 - 0.35);
+    }
+    // 北牆滅火器
+    const fx = tunnel1 + 1.0;
+    lb.box(L('#d32f2f'), 0.16, 0.45, 0.16, fx, gy + 0.32, zn + 0.1); lb.box(L('#c62828'), 0.3, 0.1, 0.3, fx, gy + 0.05, zn + 0.16);
+    lb.build(f3.group);
+    // 門框招牌：綠底金色英文草寫字；兩根柱子的直式字
+    const sign = photoTex(1024, 160, (c, w, h) => {
+      c.fillStyle = '#1f9a6a'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#f2c94c'; c.font = 'italic 700 74px "Brush Script MT", "Segoe Script", cursive'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('Xi-Kou Optics Hallway', w / 2, h / 2 + 4);
+    });
+    wallPic(f3, sign, xa - 0.005, top - 0.3, zc, CW, 0.6, -Math.PI / 2);
+    const vert = (txt, col, bg) => photoTex(128, 512, (c, w, h) => {
+      c.fillStyle = bg; c.fillRect(0, 0, w, h);
+      c.fillStyle = col; c.font = '900 96px "Noto Sans TC", "Microsoft JhengHei", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      [...txt].forEach((ch, i) => c.fillText(ch, w / 2, 64 + i * 122));
+    });
+    wallPic(f3, vert('創作大師', '#e8344a', '#1f9a6a'), xa - 0.005, gy + 1.7, z1 + 0.3, 0.5, 2.0, -Math.PI / 2);
+    wallPic(f3, vert('自造基地', '#2a3a8a', '#ffffff'), xa + 0.7, gy + 1.6, zs, 0.45, 1.8, Math.PI);
+    // 門框外兩面牆的看板（面向西）
+    const rainbow = photoTex(512, 160, (c, w, h) => {
+      c.fillStyle = '#3aa0d8'; c.fillRect(0, 0, w, h);
+      ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa'].forEach((col, i) => { c.strokeStyle = col; c.lineWidth = 8; c.beginPath(); c.moveTo(20, 120 - i * 9); c.quadraticCurveTo(w / 2, 10 - i * 4, w - 20, 60 - i * 9); c.stroke(); });
+      for (let i = 0; i < 10; i++) { c.fillStyle = '#ffffff'; c.beginPath(); c.arc(40 + i * 48, 128, 14, 0, 7); c.fill(); }
+    });
+    wallPic(f3, rainbow, xa - WALL_T / 2 - 0.03, gy + 1.7, z1 - 1.9, 3.2, 1.0, -Math.PI / 2);
+    const orange = photoTex(512, 200, (c, w, h) => {
+      const g = c.createLinearGradient(0, 0, w, 0); g.addColorStop(0, '#f39c12'); g.addColorStop(0.6, '#f5d020'); g.addColorStop(1, '#6abf69'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 6; i++) { c.fillStyle = '#fffdf6'; c.beginPath(); c.arc(70 + i * 75, 100 + (i % 2) * 30, 30, 0, 7); c.fill(); c.fillStyle = ['#e57373', '#81c784', '#ffb74d'][i % 3]; c.fillRect(56 + i * 75, 88 + (i % 2) * 30, 28, 22); }
+    });
+    wallPic(f3, orange, xa - WALL_T / 2 - 0.03, gy + 1.6, z2 + 1.9, 3.2, 1.25, -Math.PI / 2);
+    // 北牆：「生活的藝術」＋一排學生的馬賽克畫作（避開門口）
+    const art = photoTex(512, 128, (c, w, h) => { c.fillStyle = '#4a3a6a'; c.font = '900 92px "Noto Sans TC", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('生活的藝術', w / 2, h / 2); }, { alpha: true });
+    const mosaic = (k) => photoTex(128, 160, (c, w, h) => {
+      for (let y = 0; y < h; y += 16) for (let x = 0; x < w; x += 16) { c.fillStyle = ['#f4d03f', '#e67e22', '#3498db', '#27ae60', '#e74c3c', '#9b59b6', '#ecf0f1'][(x * 7 + y * 3 + k * 5 + ((x * y) >> 5)) % 7]; c.fillRect(x + 1, y + 1, 14, 14); }
+    });
+    let ax = tunnel1 + 2.0;
+    // 窗戶下面那段牆（窗台以下）才貼得下
+    if (freeAt(-1, ax + 0.8, 0.9)) wallPic(f3, art, ax + 0.8, gy + 0.72, zn, 1.8, 0.45, 0);
+    for (let k = 0, x = ax + 2.3; k < 8 && x < xe - 1; x += 0.95) { if (!freeAt(-1, x, 0.4)) continue; wallPic(f3, mosaic(k), x, gy + 0.62, zn, 0.6, 0.6, 0); k++; }
+    // 南牆：木紋波浪板（避開門口一段段）＋大電視、小展示框
+    const wave = photoTex(512, 160, (c, w, h) => {
+      c.fillStyle = '#b8743a'; c.beginPath(); c.moveTo(0, 30); for (let x = 0; x <= w; x += 16) c.lineTo(x, 18 + Math.sin(x / 120) * 7);
+      for (let x = w; x >= 0; x -= 16) c.lineTo(x, 142 + Math.sin(x / 120 + 1) * 7); c.closePath(); c.fill();
+      c.fillStyle = 'rgba(90,50,20,.18)'; for (let y = 30; y < 140; y += 6) c.fillRect(0, y, w, 1);
+    }, { alpha: true });
+    const segs = [], dz = doorsX(1).sort((p, q) => p - q);
+    let s0 = tunnel1 + 1.0;
+    for (const d of dz) { if (d < s0 - 0.8) continue; if (d - 0.9 > s0 + 1.5) segs.push([s0, d - 0.9]); s0 = Math.max(s0, d + 0.9); }
+    if (xe - 0.8 > s0 + 1.5) segs.push([s0, xe - 0.8]);
+    const tb = new Batch();
+    segs.forEach(([a, c2], i) => {
+      wallPic(f3, wave, (a + c2) / 2, gy + 1.5, zs, c2 - a, 1.6, Math.PI);
+      if (i === 0) { const tx = a + Math.min(2.2, (c2 - a) / 2); tb.box(L('#111111'), 1.9, 1.1, 0.08, tx, gy + 1.45, zs - 0.05); tb.box(glow('#1d2a3a', '#0a1420', 0.3), 1.8, 1.0, 0.01, tx, gy + 1.45, zs - 0.095); }
+      for (let x = a + 0.6; x < c2 - 0.4; x += 2.6) if (i > 0 || x > a + 3.6) tb.box(L('#f4f4f0'), 0.4, 0.5, 0.03, x, gy + 1.5, zs - 0.03);
+    });
+    tb.build(f3.group);
+    // 東端：圓形色塊（看不清楚是什麼，先做色塊；那裡沒有牆，用兩條細線吊在天花板下）
+    { const wb = new Batch(); for (const d of [-0.25, 0.25]) wb.box(L('#555555'), 0.01, 0.3, 0.01, xe - 0.3, top - 0.15, zc + d); wb.build(f3.group); }
+    wallPic(f3, photoTex(128, 128, (c, w, h) => { c.fillStyle = '#7fb8a8'; c.beginPath(); c.arc(64, 64, 60, 0, 7); c.fill(); c.fillStyle = '#c8e6dc'; c.beginPath(); c.arc(64, 64, 40, 0, 7); c.fill(); }, { alpha: true }), xe - 0.3, top - 0.7, zc, 0.8, 0.8, -Math.PI / 2);
   }
 }
 for (const f of floors) buildFloor(f);
