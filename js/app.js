@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=145';
-import { furnishFloor } from './furniture.js?v=145';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=145';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=145';
-import { buildCampusWall } from './wall.js?v=145';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=145';
+import { PanoViewer } from './pano.js?v=146';
+import { furnishFloor } from './furniture.js?v=146';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=146';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=146';
+import { buildCampusWall } from './wall.js?v=146';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=146';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1675,7 +1675,7 @@ function setMode(m) {
   mode = m;
   orbit.enabled = m === 'bird';
   avatar.visible = m !== 'first';
-  document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+  document.querySelectorAll('[data-mode]').forEach((b) => { b.classList.toggle('on', b.dataset.mode === m); b.setAttribute('aria-pressed', String(b.dataset.mode === m)); });
   document.body.classList.toggle('walking', m !== 'bird');
   document.getElementById('stairPanel').hidden = true;
   currentStair = undefined; stairPanelKey = '';
@@ -2163,14 +2163,14 @@ function renderResults() {
       <img src="pano/thumb/${sp.scenes[0].img}.webp" alt="">
       <span class="n">📷 ${sp.zh}</span>
       <span class="s">360° 實景 · ${sp.scenes[0].floor}</span>
-      <button>看實景</button>
+      <button aria-label="看實景：${sp.zh}">看實景</button>
     </li>`).join('');
   results.innerHTML = spotHtml + (list.length ? list.map((r) => `
     <li data-id="${r.id}">
       <span class="dot" style="background:${TYPE_COLORS[r.type]}"></span>
       <span class="n">${r.display}</span>
       <span class="s">${r.f.id} · ${r.building ? D.buildings[r.building].name : ''}${r.no ? ' · ' + r.no : ''}</span>
-      <button data-act="go">帶我去</button>
+      <button data-act="go" aria-label="帶我去：${r.display}（${r.f.id}）">帶我去</button>
     </li>`).join('') : (spots.length ? '' : '<li class="empty">找不到，換個關鍵字試試（例如：503、健康中心、音樂）</li>'));
 }
 function openSearch() { panel.hidden = false; input.focus(); input.select(); renderResults(); }
