@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=158';
-import { furnishFloor } from './furniture.js?v=158';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=158';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=158';
-import { buildCampusWall } from './wall.js?v=158';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=158';
+import { PanoViewer } from './pano.js?v=159';
+import { furnishFloor } from './furniture.js?v=159';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=159';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=159';
+import { buildCampusWall } from './wall.js?v=159';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=159';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5847,6 +5847,120 @@ function buildPhotoScenes() {
       for (let xx = mx(705) + 1.2; xx < xg - 0.5; xx += 1.6) { lb.box(rail, 0.08, 0.14, 0.08, xx, top - 0.1, zc + dz); lb.box(lamp, 0.07, 0.02, 0.07, xx, top - 0.18, zc + dz); }
     }
     lb.build(f1.group);
+  }
+  // ---- 2F 溪仔口捷運站（依 360 照片 15-1～3）：西端綠色站名牌「溪仔口站 XIZAIKOU STATION」（大眼睛標誌、黃色 2）；
+  //   牆下半米黃小磁磚、窗戶上方淺綠；前半段窗下兩條長壁畫（北：河邊風景紅拱橋帆船、南：捷運路線圖）；
+  //   東半段像捷運車廂：兩邊整排淺木色長椅、椅背上一格格圓角「車窗」畫框，北牆「文山區」地圖、南牆「臺北市捷運地圖」大壁畫、滅火器；
+  //   天花板藍綠／黃綠拱形色帶、兩排軌道燈；地上中間紅褐色磨石子直線 ----
+  {
+    const f2 = floorById['2F'], gy = f2.y, xa = mx(705), xe = mx(1510), xm = (xa + xe) / 2, z1 = mz(330), z2 = mz(398), zc = (z1 + z2) / 2, CW = z2 - z1;
+    const zn = z1 + WALL_T / 2 + 0.03, zs = z2 - WALL_T / 2 - 0.03, top = gy + WALL_H;
+    const doorsX = (side) => rooms.filter((r) => r.f === f2).flatMap((r) => (r.doorPts || []).filter((d) => Math.abs(d.z - (side < 0 ? z1 : z2)) < 0.4).map((d) => d.x)).sort((p, q) => p - q);
+    // [a, b] 這一段牆扣掉門口（門兩邊各留 g 公尺），回傳一段段
+    const runs = (side, a, b, g = 0.85, min = 0.8) => { const out = []; let s0 = a;
+      for (const d of doorsX(side)) { if (d < a - g || d > b + g) continue; if (d - g > s0 + min) out.push([s0, d - g]); s0 = Math.max(s0, d + g); }
+      if (b > s0 + min) out.push([s0, b]); return out; };
+    const L = (c) => new THREE.MeshLambertMaterial({ color: c });
+    const b = new Batch();
+    b.box(L('#a8705a'), xe - xa, 0.01, 0.3, (xa + xe) / 2, gy + 0.018, zc);                      // 地上紅褐色磨石子直線
+    // 牆下半米黃小磁磚（貼在兩面牆上，門口空出來）
+    const tile = photoTex(64, 64, (c, w, h) => tileGrid(c, w, h, '#e9d9a6', '#d2c08a', 8), { repeat: [1, 1] });
+    for (const [side, zw, rot] of [[-1, zn, 0], [1, zs, Math.PI]]) for (const [a, c2] of runs(side, xa + 0.5, xe - 0.3, 0.6, 0.3)) {
+      const m = tile.clone(); m.map = tile.map.clone(); m.map.repeat.set((c2 - a) / 0.5, 0.7 / 0.5); m.map.needsUpdate = true;
+      wallPic(f2, m, (a + c2) / 2, gy + 0.35, zw, c2 - a, 0.7, rot);
+    }
+    // 天花板：藍綠／黃綠拱形色帶（橫過天花板、兩邊往下一小段）＋兩排軌道燈
+    const teal = L('#3fb8b0'), lime = L('#c8dc5a'), rail = L('#e8e8e4'), lamp = new THREE.MeshLambertMaterial({ color: '#fff3c4', emissive: '#ffd680', emissiveIntensity: 0.9 });
+    for (let x = xa + 1.5, k = 0; x < xe - 0.5; x += 3.2, k++) {
+      const m = x > xm ? (k % 2 ? teal : lime) : lime;
+      b.box(m, 0.35, 0.05, CW - 0.2, x, top - 0.03, zc);
+      for (const zz of [zn + 0.03, zs - 0.03]) b.box(m, 0.35, 0.45, 0.04, x, top - 0.25, zz);
+    }
+    for (const dz of [-0.8, 0.8]) {
+      b.box(rail, xe - xa - 1, 0.03, 0.04, (xa + xe) / 2, top - 0.02, zc + dz);
+      for (let x = xa + 1.2; x < xe - 0.5; x += 2.2) { b.box(rail, 0.08, 0.14, 0.08, x, top - 0.1, zc + dz); b.box(lamp, 0.07, 0.02, 0.07, x, top - 0.18, zc + dz); }
+    }
+    // 東半段：兩邊整排淺木色長椅（避開門口）、椅背上的圓角車窗畫框
+    const wood = L('#e9cf98'), woodDk = L('#d4b47a');
+    const windowsTex = (k) => photoTex(512, 128, (c, w, h) => {
+      c.fillStyle = '#efdcae'; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 4; i++) {
+        const x = 12 + i * 125, kk = (i + k) % 6;
+        c.fillStyle = '#5a4a3a'; c.beginPath(); c.roundRect(x, 12, 110, 100, 16); c.fill();
+        const g = c.createLinearGradient(0, 18, 0, 106); g.addColorStop(0, ['#8fd3f4', '#a8e0ff', '#bfe3c0', '#9fd0f0', '#ffe2a8', '#c8e6c9'][kk]); g.addColorStop(1, ['#7cc36a', '#e8c070', '#5a9a4a', '#4a8ac0', '#d8885a', '#7a9a6a'][kk]);
+        c.fillStyle = g; c.beginPath(); c.roundRect(x + 6, 18, 98, 88, 12); c.fill();
+        if (kk % 3 === 0) { for (const dx of [30, 70]) { c.fillStyle = '#f2c79a'; c.beginPath(); c.arc(x + dx, 60, 13, 0, 7); c.fill(); c.fillStyle = '#4a2a1a'; c.fillRect(x + dx - 13, 44, 26, 8); c.fillStyle = ['#e74c3c', '#3498db'][dx > 50 ? 1 : 0]; c.fillRect(x + dx - 11, 74, 22, 26); } }   // 卡通小朋友
+        else if (kk % 3 === 1) { c.fillStyle = '#c0392b'; c.fillRect(x + 30, 50, 50, 40); c.fillStyle = '#7a2a1a'; c.beginPath(); c.moveTo(x + 24, 52); c.lineTo(x + 55, 30); c.lineTo(x + 86, 52); c.fill(); }   // 廟／建築
+        else { c.fillStyle = '#6a8a5a'; c.beginPath(); c.moveTo(x + 6, 100); c.lineTo(x + 40, 40); c.lineTo(x + 70, 80); c.lineTo(x + 104, 50); c.lineTo(x + 104, 106); c.lineTo(x + 6, 106); c.fill(); }   // 山
+      }
+    });
+    const keepC = Batch.collector; Batch.collector = f2.boxes;                 // 長椅、滅火器會擋路
+    let wk = 0;
+    for (const [side, zw] of [[-1, zn], [1, zs]]) for (const [a, c2] of runs(side, xm + 1.2, xe - 1.0)) {
+      const zb = zw - side * 0.25, len = c2 - a;
+      b.box(wood, len, 0.06, 0.5, (a + c2) / 2, gy + 0.42, zb - side * 0.05);                    // 座位
+      b.box(woodDk, len, 0.4, 0.04, (a + c2) / 2, gy + 0.2, zb - side * 0.28);                   // 座位前緣
+      for (let x = a + 0.05; x <= c2 - 0.04; x += Math.max(0.6, len / Math.ceil(len / 1.5))) b.box(woodDk, 0.04, 0.4, 0.5, x, gy + 0.2, zb - side * 0.05);   // 隔板
+      b.box(wood, len, 0.75, 0.06, (a + c2) / 2, gy + 0.8, zw - side * 0.04);                    // 椅背
+      for (let x = a; x < c2 - 0.5; x += 2.0) { const w = Math.min(2.0, c2 - x); wallPic(f2, windowsTex(wk++), x + w / 2, gy + 0.82, zw - side * 0.08, w - 0.05, 0.5, side < 0 ? 0 : Math.PI); }
+    }
+    // 滅火器（北牆，長椅開始的地方）
+    b.box(L('#c62828'), 0.5, 0.12, 0.25, xm + 0.7, gy + 0.06, zn + 0.15);
+    for (const dx of [-0.1, 0.1]) b.box(L('#d32f2f'), 0.15, 0.5, 0.15, xm + 0.7 + dx, gy + 0.37, zn + 0.15);
+    Batch.collector = keepC;
+    b.build(f2.group);
+    // 前半段窗下的兩條長壁畫（北：河邊風景、南：捷運路線圖），門口斷開
+    const river = photoTex(1024, 96, (c, w, h) => {
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#bfe6fb'); g.addColorStop(0.55, '#e8f6ff'); g.addColorStop(0.56, '#4aa8de'); g.addColorStop(1, '#2a86c4'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#7cc36a'; for (let x = 0; x < w; x += 140) { c.beginPath(); c.ellipse(x + 60, 54, 70, 22, 0, Math.PI, 0); c.fill(); }
+      c.strokeStyle = '#d32f2f'; c.lineWidth = 6; for (const x0 of [200, 700]) { c.beginPath(); c.arc(x0, 70, 50, Math.PI, 0); c.stroke(); for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(x0 + i * 20, 70); c.lineTo(x0 + i * 20, 70 - Math.sqrt(2500 - (i * 20) ** 2)); c.stroke(); } }
+      c.fillStyle = '#ffffff'; for (const x0 of [420, 880]) { c.beginPath(); c.moveTo(x0, 70); c.lineTo(x0, 30); c.lineTo(x0 + 22, 70); c.fill(); c.fillStyle = '#e8762b'; c.fillRect(x0 - 14, 70, 40, 8); c.fillStyle = '#ffffff'; }
+    });
+    const route = photoTex(1024, 96, (c, w, h) => {
+      c.fillStyle = '#f7f7f2'; c.fillRect(0, 0, w, h);
+      const cols = ['#e3002c', '#008659', '#f8b61c', '#0070bd', '#c48c31'];
+      for (let i = 0; i < 3; i++) { c.fillStyle = cols[i]; c.fillRect(0, 34 + i * 10, w, 6); }
+      for (let x = 30; x < w; x += 70) { c.fillStyle = '#ffffff'; c.strokeStyle = '#555'; c.lineWidth = 3; c.beginPath(); c.arc(x, 46, 9, 0, 7); c.fill(); c.stroke(); c.fillStyle = cols[(x / 70 | 0) % 5]; c.fillRect(x - 24, 12, 48, 14); c.fillStyle = '#7cc36a'; c.fillRect(x - 30, 76, 60, 10); }
+    });
+    for (const [side, zw, rot, m] of [[-1, zn, 0, river], [1, zs, Math.PI, route]]) for (const [a, c2] of runs(side, xa + 1.0, xm - 0.5)) wallPic(f2, m, (a + c2) / 2, gy + 0.88, zw - side * 0.005, c2 - a, 0.32, rot);
+    // 東半段兩大面壁畫：北牆「文山區」（動物園、捷運列車）、南牆「臺北市捷運地圖」
+    const wenshan = photoTex(640, 256, (c, w, h) => {
+      c.fillStyle = '#9fd36a'; c.fillRect(0, 0, w, h); c.fillStyle = '#d8eef8'; c.fillRect(0, 0, w, 60);
+      c.fillStyle = '#5fb04a'; c.beginPath(); c.moveTo(60, 230); c.quadraticCurveTo(160, 40, 360, 70); c.quadraticCurveTo(560, 90, 600, 230); c.fill();
+      c.fillStyle = '#e74c3c'; c.font = '900 34px "Noto Sans TC", sans-serif'; c.fillText('文山區', 20, 44);
+      c.fillStyle = '#f2c14e'; c.fillRect(400, 60, 16, 70); c.beginPath(); c.ellipse(430, 140, 40, 22, 0, 0, 7); c.fill();   // 長頸鹿
+      c.fillStyle = '#9aa0a8'; c.beginPath(); c.ellipse(510, 150, 50, 32, 0, 0, 7); c.fill();                       // 大象
+      c.fillStyle = '#ffffff'; c.beginPath(); c.arc(330, 120, 22, 0, 7); c.fill(); c.fillStyle = '#222'; c.beginPath(); c.arc(320, 114, 6, 0, 7); c.arc(340, 114, 6, 0, 7); c.fill();   // 熊貓
+      c.fillStyle = '#d8a040'; c.beginPath(); c.arc(560, 200, 26, 0, 7); c.fill();                                // 獅子
+      c.fillStyle = '#f4f4f0'; c.fillRect(30, 180, 140, 46); c.fillStyle = '#2a6ab8'; c.fillRect(30, 196, 140, 8); c.fillStyle = '#5a6a7a'; for (let i = 0; i < 4; i++) c.fillRect(42 + i * 32, 184, 22, 10);   // 捷運列車
+      c.fillStyle = '#f7a8c0'; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(220 + i * 18, 225 - (i % 2) * 10, 9, 0, 7); c.fill(); }   // 櫻花
+    });
+    const taipei = photoTex(640, 256, (c, w, h) => {
+      c.fillStyle = '#e8f4d8'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#9fd36a'; c.beginPath(); c.moveTo(0, h); c.quadraticCurveTo(200, 150, 640, 210); c.lineTo(640, h); c.fill();
+      c.fillStyle = '#c0392b'; c.font = '900 32px "Noto Sans TC", sans-serif'; c.fillText('臺北市', 20, 40); c.fillText('捷運地圖', 20, 78);
+      c.strokeStyle = '#4aa8de'; c.lineWidth = 16; c.beginPath(); c.moveTo(200, 0); c.quadraticCurveTo(260, 120, 200, 256); c.stroke();   // 河
+      const lines = [['#e3002c', [[220, 40], [330, 110], [460, 120], [600, 60]]], ['#008659', [[260, 230], [340, 140], [470, 90], [560, 20]]], ['#f8b61c', [[300, 20], [380, 130], [420, 240]]], ['#0070bd', [[230, 130], [400, 160], [620, 150]]], ['#c48c31', [[330, 60], [430, 60], [500, 200]]]];
+      for (const [col, pts] of lines) { c.strokeStyle = col; c.lineWidth = 6; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke(); }
+      c.fillStyle = '#5a6a7a'; c.fillRect(540, 70, 14, 110); c.fillStyle = '#3a8a5a'; for (let i = 0; i < 6; i++) c.fillRect(536, 70 + i * 18, 22, 6);   // 101
+      c.fillStyle = '#ffffff'; c.fillRect(80, 170, 60, 40); c.fillStyle = '#2a4aa8'; c.beginPath(); c.moveTo(70, 172); c.lineTo(110, 140); c.lineTo(150, 172); c.fill();   // 中正紀念堂
+      c.fillStyle = '#e8344a'; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(30 + i * 30, 230, 12, 0, 7); c.fill(); }   // 花
+    });
+    for (const [side, zw, rot, m] of [[-1, zn, 0, wenshan], [1, zs, Math.PI, taipei]]) {
+      const seg = runs(side, xm - 3.6, xm + 1.0, 0.9, 2.0)[0];
+      if (seg) wallPic(f2, m, (seg[0] + seg[1]) / 2, gy + 1.7, zw - side * 0.006, Math.min(3.6, seg[1] - seg[0]), 1.45, rot);
+    }
+    // 西端站名牌（面向西）：綠底「溪仔口站 XIZAIKOU STATION」＋大眼睛標誌＋右上黃色「2」
+    const sign = photoTex(1024, 200, (c, w, h) => {
+      c.fillStyle = '#1f7a5a'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#f5d020'; c.beginPath(); c.moveTo(w - 170, 0); c.lineTo(w, 0); c.lineTo(w, h); c.closePath(); c.fill();
+      c.fillStyle = '#1f3a2a'; c.font = '900 120px Arial, sans-serif'; c.textAlign = 'center'; c.fillText('2', w - 60, h - 30);
+      c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(150, 100, 70, 56, 0, 0, 7); c.fill(); c.fillStyle = '#e8762b'; c.beginPath(); c.arc(170, 100, 34, 0, 7); c.fill(); c.fillStyle = '#1d1d1d'; c.beginPath(); c.arc(176, 100, 18, 0, 7); c.fill();   // 大眼睛
+      c.fillStyle = '#ffffff'; c.font = '900 92px "Noto Sans TC", "Microsoft JhengHei", sans-serif'; c.fillText('溪仔口站', 500, 108);
+      c.font = '700 36px Arial, sans-serif'; c.fillText('XIZAIKOU STATION', 500, 165);
+    });
+    wallPic(f2, sign, xa - 0.05, top - 0.38, zc, CW, 0.72, -Math.PI / 2);
+    { const sb = new Batch(); sb.box(L('#1f7a5a'), 0.06, 0.72, CW, xa - 0.01, top - 0.38, zc); sb.build(f2.group); }   // 站名牌背面
   }
   // ---- 3F 溪口光廊（依 360 照片 20-1～3）：西端綠色門框「Xi-Kou Optics Hallway」＋創作大師／自造基地、門口白色斑馬紋；
   //   門框外兩面牆：北邊藍色彩虹看板、南邊橘色看板（地上彩色圓點）；進去是五道紫色拱門隧道（兩側銀灰色鏡牆、腳架）；
