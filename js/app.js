@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=162';
-import { furnishFloor } from './furniture.js?v=162';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=162';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=162';
-import { buildCampusWall } from './wall.js?v=162';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=162';
+import { PanoViewer } from './pano.js?v=164';
+import { furnishFloor } from './furniture.js?v=164';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=164';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=164';
+import { buildCampusWall } from './wall.js?v=164';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=164';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5847,6 +5847,74 @@ function buildPhotoScenes() {
       for (let xx = mx(705) + 1.2; xx < xg - 0.5; xx += 1.6) { lb.box(rail, 0.08, 0.14, 0.08, xx, top - 0.1, zc + dz); lb.box(lamp, 0.07, 0.02, 0.07, xx, top - 0.18, zc + dz); }
     }
     lb.build(f1.group);
+  }
+  // ---- 階梯畫廊（依 360 照片 18、19）：乙梯、丁梯 1～4 樓，沿著樓梯斜度掛學生畫作（有框）；
+  //   乙梯：米黃牆＋細橫線、灰色磨石子腰帶、不鏽鋼扶手、平台牆上圓形鐵花窗；
+  //   丁梯：白牆＋黑色細橫線、粉紫色下半牆、平台牆兩邊玻璃磚窗 ----
+  {
+    const drawing = (k) => photoTex(160, 120, (c, w, h) => {                                   // 學生畫作（每張不一樣）
+      let sd = k * 97 + 13; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+      c.fillStyle = ['#fdfaf0', '#e8f4fb', '#fff4d8', '#f2f7e8'][k % 4]; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 9; i++) { c.fillStyle = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60', '#2e86de', '#8e44ad', '#e67e22', '#16a085'][(i + k) % 8]; c.beginPath(); c.ellipse(rnd() * w, rnd() * h, 10 + rnd() * 26, 8 + rnd() * 18, rnd() * 3, 0, 7); c.fill(); }
+      c.strokeStyle = '#333'; c.lineWidth = 3; c.beginPath(); c.arc(w * (0.3 + rnd() * 0.4), h * 0.5, 14, 0, 7); c.stroke();
+      c.strokeStyle = ['#5a3a1a', '#2a2a2a', '#7a8a6a'][k % 3]; c.lineWidth = 8; c.strokeRect(0, 0, w, h);   // 畫框
+    });
+    const glassBlockTex = () => photoTex(128, 96, (c, w, h) => {                              // 玻璃磚
+      c.fillStyle = '#e8f2f2'; c.fillRect(0, 0, w, h);
+      for (let x = 0; x < w; x += 16) for (let y = 0; y < h; y += 16) { const gr = c.createLinearGradient(x, y, x + 14, y + 14); gr.addColorStop(0, '#d6eef0'); gr.addColorStop(1, '#8fc7c9'); c.fillStyle = gr; c.fillRect(x + 1, y + 1, 14, 14); }
+    });
+    let dk = 0;
+    for (const [sid, style] of [['乙梯', 'A'], ['丁梯', 'D']]) {
+      const s = stairs.find((x) => x.id === sid); if (!s?.g) continue;
+      const g = s.g, run = g.f1 - g.s0, half = FLOOR_H / 2;
+      const upper = style === 'A' ? '#efe2b8' : '#f6f4ee', line = style === 'A' ? '#8a7a5a' : '#222222', dado = style === 'A' ? '#9a9a96' : '#b8a0a8';
+      const L = (c) => new THREE.MeshLambertMaterial({ color: c });
+      const mUp = L(upper), mLine = L(line), mDado = L(dado), steel = L('#c9cdd2');
+      // 在樓梯座標 (u, v) 放一個貼牆的小方塊：du 沿 u 的長度、h 高、t 厚（沿 v）
+      const wb = (b, m, u, v, y, du, h, t) => { const [x, z] = g.toXZ(u, v); b.box(m, g.alongX ? du : t, h, g.alongX ? t : du, x, y, z); };
+      const wbEnd = (b, m, u, v, y, dv, h, t) => { const [x, z] = g.toXZ(u, v); b.box(m, g.alongX ? t : dv, h, g.alongX ? dv : t, x, y, z); };
+      const rotSide = (sv) => (g.alongX ? (sv > 0 ? 0 : Math.PI) : (sv > 0 ? Math.PI / 2 : -Math.PI / 2));           // 面向 +v／-v
+      const rotEnd = g.alongX ? (g.dir > 0 ? -Math.PI / 2 : Math.PI / 2) : (g.dir > 0 ? Math.PI : 0);               // 平台牆面向 -u
+      for (const fid of s.floors) {
+        const f = floorById[fid]; if (!f || f.level < 1 || !stairNext(s, f) || fid === '5F') continue;
+        const b = new Batch(), gy = f.y;
+        // 兩道樓梯旁的牆：A 道（v=0）從 0 升到半層，B 道（v=Wd）從半層升到一層
+        const wo = WALL_T / 2 + 0.03;                                                          // 牆面（牆有厚度）
+        for (const [vw, sv, h0, up] of [[wo, 1, 0, 1], [g.Wd - wo, -1, half, -1]]) {
+          const rise = (u) => h0 + (up > 0 ? (u - g.s0) : (g.f1 - u)) / run * half;
+          const n = Math.ceil(run / 0.3), du = run / n;
+          for (let i = 0; i < n; i++) {
+            const u = g.s0 + (i + 0.5) * du, y = gy + rise(u);
+            wb(b, mDado, u, vw, y + 0.45, du + 0.01, 0.9, 0.04);                                  // 下半牆（腰帶）
+            wb(b, steel, u, vw + sv * 0.05, y + 0.9, du + 0.01, 0.04, 0.04);                       // 扶手
+            wb(b, mUp, u, vw, y + 2.0, du + 0.01, 1.9, 0.03);                                      // 上半牆
+            for (let k = 0; k < 6; k++) wb(b, mLine, u, vw + sv * 0.02, y + 1.15 + k * 0.32, du + 0.01, 0.025, 0.02);   // 細橫線
+          }
+          for (let u = g.s0 + 0.6; u < g.f1 - 0.3; u += 1.05) wallPic(f, drawing(dk++), ...(([x, z]) => [x, gy + rise(u) + 1.55, z])(g.toXZ(u, vw + sv * 0.04)), 0.62, 0.48, rotSide(sv));
+        }
+        // 平台（f1～L，半層高）：最裡面那道牆
+        const ly = gy + half, ue = g.L - wo;
+        wbEnd(b, mDado, ue, g.Wd / 2, ly + 0.45, g.Wd - 0.1, 0.9, 0.04);
+        wbEnd(b, mUp, ue, g.Wd / 2, ly + 2.0, g.Wd - 0.1, 1.9, 0.03);
+        for (let k = 0; k < 6; k++) wbEnd(b, mLine, ue - 0.02, g.Wd / 2, ly + 1.15 + k * 0.32, g.Wd - 0.1, 0.025, 0.02);
+        if (style === 'A') {
+          // 圓形鐵花窗（平台牆正中間）
+          const [x, z] = g.toXZ(ue - 0.03, g.Wd / 2);
+          wallPic(f, photoTex(128, 128, (c, w, h) => {
+            c.fillStyle = '#bfe6f2'; c.beginPath(); c.arc(64, 64, 60, 0, 7); c.fill();
+            c.strokeStyle = '#2a2a2a'; c.lineWidth = 6; c.beginPath(); c.arc(64, 64, 60, 0, 7); c.stroke();
+            c.lineWidth = 4; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(64 + Math.cos(i * Math.PI / 2) * 24, 64 + Math.sin(i * Math.PI / 2) * 24, 20, 0, 7); c.stroke(); }
+            c.beginPath(); c.moveTo(4, 64); c.lineTo(124, 64); c.moveTo(64, 4); c.lineTo(64, 124); c.stroke();
+          }, { alpha: true }), x, ly + 0.75, z, 0.9, 0.9, rotEnd);
+          for (const dv of [-1.1, 1.1]) { const [px, pz] = g.toXZ(ue - 0.04, g.Wd / 2 + dv); wallPic(f, drawing(dk++), px, ly + 1.55, pz, 0.62, 0.48, rotEnd); }
+        } else {
+          // 平台牆兩邊玻璃磚窗（下半）＋上面一張畫
+          for (const vv of [g.Wd * 0.25, g.Wd * 0.75]) { const [px, pz] = g.toXZ(ue - 0.05, vv); wallPic(f, glassBlockTex(), px, ly + 0.55, pz, Math.min(1.5, g.Wd * 0.4), 0.85, rotEnd); }
+          const [px, pz] = g.toXZ(ue - 0.04, g.Wd / 2); wallPic(f, drawing(dk++), px, ly + 1.6, pz, 0.7, 0.52, rotEnd);
+        }
+        b.build(f.group);
+      }
+    }
   }
   // ---- 2F 溪仔口捷運站（依 360 照片 15-1～3）：西端綠色站名牌「溪仔口站 XIZAIKOU STATION」（大眼睛標誌、黃色 2）；
   //   牆下半米黃小磁磚、窗戶上方淺綠；前半段窗下兩條長壁畫（北：河邊風景紅拱橋帆船、南：捷運路線圖）；
