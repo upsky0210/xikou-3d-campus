@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=165';
-import { furnishFloor } from './furniture.js?v=165';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=165';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=165';
-import { buildCampusWall } from './wall.js?v=165';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=165';
+import { PanoViewer } from './pano.js?v=167';
+import { furnishFloor } from './furniture.js?v=167';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=167';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=167';
+import { buildCampusWall } from './wall.js?v=167';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=167';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -259,6 +259,8 @@ function galleryWall(room, s) {
 }
 // 溪口情廊的白色壁柱：從西端（mx(705)）起每 4.4 公尺一根（buildPhotoScenes 蓋）；布告欄放在柱子之間
 const GALLERY_PIL = 4.4;
+// 學習資源中心（溪口情廊西段，第一根壁柱以西）：藍天白雲天花板、人字拼地板（依 360 照片 07-3）
+const LRC_END = mx(705) + GALLERY_PIL - 0.25;
 // 「溪口 開學快樂」紙箱人像作品牆：南側牆（電腦教室一外面）第 8～9 根壁柱之間
 const galleryArt = () => ({ x1: mx(705) + GALLERY_PIL * 8, x2: mx(705) + GALLERY_PIL * 9 });
 const galleryWallMat = (() => {
@@ -468,6 +470,8 @@ for (const s of stairs) {
   }
 }
 for (const f of floors) addRailings(f);
+// 1F 北側走廊（多元文化走廊，依使用者說明）：封閉的室內走廊，北邊是有窗的外牆（不通戶外）
+{ const f1n = floorById['1F'], zN = mz(150); f1n.segs.push({ ax: mx(645), az: zN, bx: mx(1555), bz: zN, h: WALL_H, color: lighten(D.buildings.A.color, 0.35), kind: 'wall', bld: 'A' }); }
 // 1 樓戶外墊高的地方（司令臺、花台）：{ x1, x2, z1, z2, h }，h 是離地面的高度
 const raised = [];
 // 一樓「室內」（建築裡：走廊、教室、穿堂、樓梯間）；中庭花園不算
@@ -5822,9 +5826,9 @@ function buildPhotoScenes() {
     const plank = photoTex(256, 256, (c, w, h) => {
       const cs = ['#8b7d6b', '#a49582', '#7a6d5e', '#958775', '#6f6354'];
       for (let r = 0; r < 16; r++) for (let k = -1; k < 3; k++) { c.fillStyle = cs[(r * 3 + k + 5) % cs.length]; c.fillRect(k * 128 + (r % 2) * 64, r * 16, 126, 15); }
-    }, { repeat: [(xg - mx(705)) / 4, CW / 4] });
-    const fp = new THREE.Mesh(new THREE.PlaneGeometry(xg - mx(705), CW), plank);
-    fp.rotation.x = -Math.PI / 2; fp.position.set((mx(705) + xg) / 2, gy + 0.016, zc); fp.receiveShadow = true; f1.group.add(fp);
+    }, { repeat: [(xg - LRC_END) / 4, CW / 4] });
+    const fp = new THREE.Mesh(new THREE.PlaneGeometry(xg - LRC_END, CW), plank);
+    fp.rotation.x = -Math.PI / 2; fp.position.set((LRC_END + xg) / 2, gy + 0.016, zc); fp.receiveShadow = true; f1.group.add(fp);
     // 壁柱＋天花板橫樑＋黃色拱（避開門口）、兩排軌道燈
     const doorsX = rooms.filter((r) => r.f === f1).flatMap((r) => (r.doorPts || []).filter((d) => d.z > z1 - 0.3 && d.z < z2 + 0.3).map((d) => d.x));
     const lb = new Batch(), beam = new THREE.MeshLambertMaterial({ color: '#8a8478' }), yellow = new THREE.MeshLambertMaterial({ color: '#e8d38a' });
@@ -5843,10 +5847,69 @@ function buildPhotoScenes() {
       }
     }
     for (const dz of [-0.85, 0.85]) {
-      lb.box(rail, xg - mx(705) - 1, 0.03, 0.04, (mx(705) + xg) / 2, top - 0.02, zc + dz);
-      for (let xx = mx(705) + 1.2; xx < xg - 0.5; xx += 1.6) { lb.box(rail, 0.08, 0.14, 0.08, xx, top - 0.1, zc + dz); lb.box(lamp, 0.07, 0.02, 0.07, xx, top - 0.18, zc + dz); }
+      lb.box(rail, xg - LRC_END - 0.5, 0.03, 0.04, (LRC_END + xg) / 2, top - 0.02, zc + dz);
+      for (let xx = LRC_END + 0.6; xx < xg - 0.5; xx += 1.6) { lb.box(rail, 0.08, 0.14, 0.08, xx, top - 0.1, zc + dz); lb.box(lamp, 0.07, 0.02, 0.07, xx, top - 0.18, zc + dz); }
     }
     lb.build(f1.group);
+  }
+  // ---- 1F 多元文化走廊（依 360 照片 07-1）：一樓北側走廊（圖書館北邊，封閉的室內走廊）：深色木地板、兩側窗下白色矮櫃＋綠色坐墊、
+  //   中間北牆一段架高小舞台＋東南亞（緬甸、泰國、印度）大壁畫、綠色幸運草小凳、白色展示架 ----
+  {
+    const f1b = floorById['1F'], gy = f1b.y, xa = mx(705), xe = mx(1505), z1 = mz(150), z2 = mz(195), zc = (z1 + z2) / 2;
+    const zn = z1 + WALL_T / 2 + 0.03, zs = z2 - WALL_T / 2 - 0.03;
+    const L = (c) => new THREE.MeshLambertMaterial({ color: c });
+    const keepC = Batch.collector; Batch.collector = f1b.boxes;
+    const b = new Batch();
+    const floor = photoTex(128, 128, (c, w, h) => { for (let i = 0; i < 8; i++) { c.fillStyle = ['#6a2e1e', '#7a3622', '#5e2818', '#743220'][i % 4]; c.fillRect(0, i * 16, w, 16); c.fillStyle = 'rgba(0,0,0,.2)'; c.fillRect((i * 47) % 100, i * 16, 2, 16); } }, { repeat: [(xe - xa) / 2, 1] });
+    const fp = new THREE.Mesh(new THREE.PlaneGeometry(xe - xa, z2 - z1), floor); fp.rotation.x = -Math.PI / 2; fp.position.set((xa + xe) / 2, gy + 0.016, zc); f1b.group.add(fp);
+    // 中間的小舞台（北牆前）＋壁畫
+    const sx = mx(1100), sw = 6.0;
+    b.box(L('#6a4a32'), sw, 0.22, 0.9, sx, gy + 0.11, zn + 0.45);
+    // 兩側窗下白色矮櫃＋綠色坐墊（舞台那段、門口不放）
+    const doorsS = rooms.filter((r) => r.f === f1b).flatMap((r) => (r.doorPts || []).filter((d) => Math.abs(d.z - z2) < 0.4).map((d) => d.x));
+    for (const [zw, s] of [[zn, 1], [zs, -1]]) for (let x = xa + 1.5; x < xe - 1.5; x += 2.2) {
+      if (s > 0 && Math.abs(x - sx) < sw / 2 + 1.2) continue;
+      if (doorsS.some((d) => Math.abs(d - x) < 1.6)) continue;
+      b.box(L('#f2efe6'), 1.8, 0.4, 0.42, x, gy + 0.2, zw + s * 0.21);
+      b.box(L('#1f9a7a'), 1.8, 0.08, 0.44, x, gy + 0.44, zw + s * 0.21);
+    }
+    // 綠色幸運草小凳、白色展示架（舞台旁邊）
+    for (const [dx, dz] of [[-0.22, 0], [0.22, 0], [0, -0.22], [0, 0.22]]) { const g = new THREE.CylinderGeometry(0.24, 0.24, 0.4, 14); g.translate(sx + sw / 2 + 1.0 + dx, gy + 0.2, zs - 0.6 + dz); b.add(L('#3fb36a'), g); }
+    for (const [a, c2] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) b.box(L('#f4f4f0'), 0.04, 1.6, 0.04, sx - sw / 2 - 1.2 + a * 0.45, gy + 0.8, zs - 0.6 + c2 * 0.3);
+    b.box(L('#f4f4f0'), 0.94, 0.04, 0.64, sx - sw / 2 - 1.2, gy + 0.6, zs - 0.6); b.box(L('#f2d06a'), 0.8, 0.12, 0.5, sx - sw / 2 - 1.2, gy + 0.68, zs - 0.6);
+    b.build(f1b.group);
+    Batch.collector = keepC;
+    // 東南亞壁畫（三塊：緬甸佛塔、泰國大象、印度河岸）
+    const mural = (k) => photoTex(256, 200, (c, w, h) => {
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, ['#f4e8c8', '#bfe3f2', '#f2dcc0'][k]); g.addColorStop(1, ['#d8c098', '#4aa0d0', '#c89a6a'][k]); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      if (k === 0) { c.fillStyle = '#e8b820'; c.beginPath(); c.moveTo(128, 20); c.lineTo(170, 130); c.lineTo(86, 130); c.fill(); c.fillRect(70, 128, 116, 20); }   // 金色佛塔
+      if (k === 1) { c.fillStyle = '#8a8f96'; c.beginPath(); c.ellipse(120, 110, 60, 40, 0, 0, 7); c.fill(); c.fillRect(60, 110, 20, 60); c.fillRect(150, 110, 20, 60); c.beginPath(); c.moveTo(70, 100); c.quadraticCurveTo(40, 140, 52, 170); c.lineWidth = 12; c.strokeStyle = '#8a8f96'; c.stroke(); }   // 大象
+      if (k === 2) { c.fillStyle = '#b84a2a'; for (let i = 0; i < 5; i++) c.fillRect(20 + i * 46, 70 - (i % 2) * 20, 36, 70 + (i % 2) * 20); c.fillStyle = '#4a80b0'; c.fillRect(0, 150, w, 50); }   // 印度河岸
+      c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(14, h - 54, 90, 44); c.fillStyle = 'rgba(0,0,0,.35)'; for (let i = 0; i < 4; i++) c.fillRect(20, h - 48 + i * 9, 76, 4);
+      const flags = [['#fecb00', '#34b233', '#ea2839'], ['#a51931', '#f4f5f8', '#2d2a4a'], ['#ff9933', '#ffffff', '#138808']][k];
+      flags.forEach((col, i) => { c.fillStyle = col; c.fillRect(w - 60, 14 + i * 10, 44, 10); });
+    });
+    for (let k = 0; k < 3; k++) wallPic(f1b, mural(k), sx + (k - 1) * 2.0, gy + 1.45, zn, 1.95, 1.9, 0);
+  }
+  // ---- 1F 學習資源中心（依 360 照片 07-3）：溪口情廊西段——藍天白雲天花板＋燈條、  //   灰＋淺木色人字拼地板；兩面牆（SDGs 地球、世界地標＋泡泡展示板）以前依新照片做在幸運方塘南牆、油印室北牆；再往東就是溪口情廊 ----
+  {
+    const f1c = floorById['1F'], gy = f1c.y, xa = mx(705), xb = LRC_END, z1 = mz(330), z2 = mz(398), zc = (z1 + z2) / 2, CW = z2 - z1;
+    const zn = z1 + WALL_T / 2 + 0.03, zs = z2 - WALL_T / 2 - 0.03, top = gy + WALL_H;
+    const herring = photoTex(128, 128, (c, w, h) => {
+      c.fillStyle = '#c8bca8'; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { c.fillStyle = ['#b8b4aa', '#d8c4a0', '#9aa0a0', '#e2d2b0'][(i * 3 + j * 5) % 4]; c.save(); c.translate(i * 16 + 8, j * 16 + 8); c.rotate((i + j) % 2 ? 0.785 : -0.785); c.fillRect(-11, -3, 22, 6); c.restore(); }
+    }, { repeat: [(xb - xa) / 2, CW / 2] });
+    const fp = new THREE.Mesh(new THREE.PlaneGeometry(xb - xa, CW), herring); fp.rotation.x = -Math.PI / 2; fp.position.set((xa + xb) / 2, gy + 0.017, zc); f1c.group.add(fp);
+    // 天花板：中間藍天白雲＋燈條，兩邊白色格子
+    const sky = photoTex(256, 128, (c, w, h) => {
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#5ab4e8'); g.addColorStop(1, '#9fd4f2'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      c.fillStyle = 'rgba(255,255,255,.85)'; for (let i = 0; i < 9; i++) { c.beginPath(); c.ellipse((i * 61) % w, 20 + (i * 37) % 90, 26, 10, 0, 0, 7); c.fill(); }
+    }, { repeat: [(xb - xa) / 6, 1] });
+    const sp = new THREE.Mesh(new THREE.PlaneGeometry(xb - xa, CW * 0.45), sky); sp.rotation.x = Math.PI / 2; sp.position.set((xa + xb) / 2, top - 0.02, zc); f1c.group.add(sp);
+    const lb = new Batch(), lamp = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.9 }), grid = new THREE.MeshLambertMaterial({ color: '#e8eef2' });
+    for (let x = xa + 0.8; x < xb - 0.3; x += 1.4) lb.box(lamp, 0.12, 0.03, CW * 0.42, x, top - 0.05, zc);
+    for (const zz of [z1 + CW * 0.14, z2 - CW * 0.14]) for (let x = xa + 0.6; x < xb; x += 0.6) lb.box(grid, 0.04, 0.04, CW * 0.26, x, top - 0.04, zz);
+    lb.build(f1c.group);
   }
   // ---- 階梯畫廊（依 360 照片 18、19）：乙梯、丁梯 1～4 樓，沿著樓梯斜度掛學生畫作（有框）；
   //   乙梯：米黃牆＋細橫線、灰色磨石子腰帶、不鏽鋼扶手、平台牆上圓形鐵花窗；
