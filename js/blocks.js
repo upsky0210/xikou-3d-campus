@@ -507,6 +507,14 @@ export function makeBlockNPC(look) {
     box(g, 0.3, 0.13, 0.015, cloth(look.pocket || '#a8161f'), 0, 0.8, -0.137);
   }
   if (look.zip) box(g, 0.02, 0.5, 0.01, cloth(look.zip), 0, 1.0, -0.135);          // 外套拉鍊
+  if (look.print) {                                         // T 恤上的黑色線條圖案（一片長長的花瓣：外框＋中間葉脈＋花莖，在右下）
+    const pm = cloth(look.print), P = (w, h, x, y) => box(g, w, h, 0.01, pm, x, y, -0.135);
+    P(0.012, 0.16, 0.04, 0.98); P(0.012, 0.16, 0.14, 0.98);
+    P(0.06, 0.012, 0.09, 1.08); P(0.012, 0.012, 0.053, 1.068); P(0.012, 0.012, 0.127, 1.068);
+    P(0.06, 0.012, 0.09, 0.89); P(0.012, 0.012, 0.053, 0.902); P(0.012, 0.012, 0.127, 0.902);
+    P(0.008, 0.14, 0.09, 0.98);
+    P(0.012, 0.13, 0.09, 0.82);
+  }
   if (look.lanyard) {                                       // 識別證：掛繩斜斜到胸前、白色卡片
     for (const sd of [-1, 1]) { const b = box(g, 0.03, 0.3, 0.012, cloth(look.lanyard), sd * 0.075, 1.15, -0.136); b.rotation.z = sd * 0.25; }
     box(g, 0.14, 0.17, 0.014, new THREE.MeshLambertMaterial({ color: '#ffffff' }), 0, 0.93, -0.14);
@@ -570,6 +578,17 @@ export function makeBlockNPC(look) {
       box(rg, 0.035, 0.07, 0.035, M('#e53935'), 0, 0.31, 0);
     } else if (kind === 'shuttle') {                        // 羽毛球（球頭朝上）
       rg.position.set(0, -0.7, -0.08); rg.add(makeShuttle());
+    } else if (kind === 'bouquet') {                        // 花束：粉白包裝紙、紅玫瑰＋粉色洋桔梗、小雛菊、紅緞帶（抱在胸前斜斜往上）
+      rg.position.set(0.16, -0.42, -0.24); rg.rotation.set(-0.45, 0, -0.35);
+      box(rg, 0.16, 0.3, 0.16, M('#f3dcd6'), 0, 0.02, 0);
+      box(rg, 0.32, 0.14, 0.3, M('#f7ece8'), 0, 0.22, 0);
+      box(rg, 0.17, 0.06, 0.17, M('#c62828'), 0, -0.08, 0);
+      const flowers = [['#c62828', -0.08, -0.07], ['#c62828', 0.08, 0.06], ['#f4b6c8', 0.08, -0.07], ['#f4b6c8', -0.08, 0.07], ['#c62828', 0, 0]];
+      for (const [c, x, z] of flowers) box(rg, 0.11, 0.1, 0.11, M(c), x, 0.33, z);
+      for (const [x, z] of [[-0.14, 0], [0.14, 0.01], [0, -0.14], [0.01, 0.14]]) {
+        box(rg, 0.06, 0.02, 0.06, M('#ffffff'), x, 0.34, z);
+        box(rg, 0.025, 0.025, 0.025, M('#f2c400'), x, 0.355, z);
+      }
     }
   };
   if (look.holdL) holdItem(armL, look.holdL);

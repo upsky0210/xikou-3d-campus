@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=191';
-import { furnishFloor } from './furniture.js?v=191';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=191';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=191';
-import { buildCampusWall } from './wall.js?v=191';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=191';
+import { PanoViewer } from './pano.js?v=193';
+import { furnishFloor } from './furniture.js?v=193';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=193';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=193';
+import { buildCampusWall } from './wall.js?v=193';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=193';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3188,6 +3188,38 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '杜老師', title: '三年四班導師', game: 'ooxx',
+    hello: ['📖 杜老師：小朋友要專心上課唷！', '✏️ 杜老師：大家跟我一起念：專心寫、小心檢查！', '⭕ 杜老師：要不要跟老師玩 OOXX？'],
+    // 3 樓三年四班（326 室）教室前面（至善樓教室前後對調，黑板在南），面向學生
+    places: [
+      { floor: '3F', where: '三年四班', game: true, at: () => { const r = rooms.find((x) => x.code === '304'); return [r.cx - 0.6, r.m.z2 - 1.6, 0]; } },
+    ],
+    look: {
+      // 依照片：黑色長直髮（旁分、沒有瀏海）、燦爛笑容露牙；白色短袖 T 恤（黑色線條花朵圖案）、抱著紅玫瑰粉色花束
+      skin: '#f6d8c6', hair: '#1a1514', top: '#f2f1ee', pants: '#4a4d55', shoe: '#3a3a3a',
+      longHair: true, print: '#3a3a3a', holdL: 'bouquet',
+      pal: { H: '#1a1514', h: '#2e2422', S: '#f6d8c6', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f2b2b0', N: '#e6b8a2', M: '#c0505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHHHHHH',
+        'HHHHHSSSSSHHHHHH',
+        'HHHHSSSSSSSSHHHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -3438,6 +3470,7 @@ function updateAct(dt) {
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
     : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
+    : sp.kind === 'ooxx' ? `⭕ 跟${sp.npc.name}玩 OOXX <kbd>F</kbd>`
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
     : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
     : sp.kind === 'heat' ? `🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`
@@ -3460,6 +3493,7 @@ function doAction() {
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
   else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
+  else if (act.spot?.kind === 'ooxx') startOoxx(act.spot.npc);
   else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
   else if (act.spot?.kind === 'glider') startFood(act.spot.npc);
   else if (act.spot?.kind === 'float') startFood(act.spot.npc, FLOAT_Q);
@@ -3480,7 +3514,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && ooxxBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -3977,6 +4011,88 @@ function startRps(n) {
   rpsBox.hidden = false;
   msg(`${n.name}：${n.rpsTalk?.start ?? '來猜拳吧！先贏兩局的人獲勝！'}`);
   ready();
+}
+
+/* ---------------- OOXX（井字遊戲）：在三年四班遇到杜老師，你畫 ⭕ 先下、老師畫 ❌ ----------------
+   點格子或按 1～9（跟格子上的數字一樣）；先連成一條線（橫、直、斜）就贏。簡易版：老師有時候會忘記擋你。 */
+
+const OOXX_KEY = 'campus-ooxx-wins';
+const OOXX_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+const ooxxBox = document.getElementById('ooxx');
+function startOoxx(n) {
+  stopAuto();
+  const $ = (sel) => ooxxBox.querySelector(sel);
+  const cells = [...ooxxBox.querySelectorAll('.cell')];
+  const b = Array(9).fill('');
+  let locked = false, done = false, wins = 0;
+  try { wins = +localStorage.getItem(OOXX_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const nL = n.g.userData.limbs;
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const draw = (line) => cells.forEach((c, i) => {
+    c.textContent = b[i] === 'O' ? '⭕' : b[i] === 'X' ? '❌' : '';
+    c.dataset.k = i + 1;
+    c.disabled = locked || !!b[i];
+    c.classList.toggle('win', !!line?.includes(i));
+  });
+  const lineOf = (who) => OOXX_LINES.find((L) => L.every((i) => b[i] === who));
+  // 下在哪一格可以連成一條線（自己贏，或擋住對方）
+  const finishing = (who) => { for (const L of OOXX_LINES) { const e = L.filter((i) => !b[i]); if (e.length === 1 && L.filter((i) => b[i] === who).length === 2) return e[0]; } return -1; };
+  const teacherPick = () => {
+    let k = finishing('X');
+    if (k < 0 && Math.random() < 0.65) k = finishing('O');                // 簡易版：35% 的時候會忘記擋
+    if (k < 0 && !b[4] && Math.random() < 0.5) k = 4;
+    if (k < 0) { const free = b.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0); k = free[Math.random() * free.length | 0]; }
+    return k;
+  };
+  const finish = () => {
+    done = true; ooxxBox.hidden = true;
+    updateVisibility();                                                 // 名牌放回來
+    removeEventListener('keydown', onKey, true);
+    for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const end = (text, cls, face, toastText, line) => {
+    locked = true; draw(line); msg(text, cls); npcFace(n, face, 3);
+    setTimeout(() => { if (done) return; finish(); toast(toastText); }, 1800);
+  };
+  const choose = (i) => {
+    if (locked || done || b[i]) return;
+    b[i] = 'O';
+    let L = lineOf('O');
+    if (L) {
+      wins++; try { localStorage.setItem(OOXX_KEY, String(wins)); } catch { /* 私密模式 */ }
+      return end('✅ 連成一條線！你贏了！', 'ok', 'surprised', `🏆 你贏了杜老師！（已經贏 ${wins} 次）<br>${n.name}：好厲害！上課也要這麼專心唷！`, L);
+    }
+    if (b.every(Boolean)) return end('🤝 格子下滿了，平手！', '', 'happy', `🤝 跟${n.name}平手！<br>${n.name}：專心寫、小心檢查，下次一定贏！`);
+    locked = true; draw();
+    msg(`${n.name}想一想…`);
+    nL.armR.rotation.x = 1.4;                                           // 老師舉手準備畫
+    setTimeout(() => {
+      if (done) return;
+      const k = teacherPick(); b[k] = 'X';
+      nL.armR.rotation.x = 0;
+      L = lineOf('X');
+      if (L) return end(`❌ ${n.name}連成一條線了！`, 'no', 'tongue', `😝 ${n.name}贏了！<br>${n.name}：沒關係，下次要小心檢查喔！`, L);
+      if (b.every(Boolean)) return end('🤝 格子下滿了，平手！', '', 'happy', `🤝 跟${n.name}平手！<br>${n.name}：專心寫、小心檢查，下次一定贏！`);
+      locked = false; draw();
+      msg('換你了！點一格（或按 1～9）');
+    }, 800);
+  };
+  const onKey = (e) => {
+    const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
+    if (m) { e.preventDefault(); e.stopPropagation(); choose(+m[1] - 1); }
+  };
+  addEventListener('keydown', onKey, true);
+  cells.forEach((c, i) => (c.onclick = () => choose(i)));
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`⭕ 下次再來找${n.name}玩 OOXX！`); } };
+  act.busy = { label: '⭕ OOXX 比賽中…', tick() {} };                 // 比賽時不能走動
+  $('.who').textContent = n.name;
+  ooxxBox.hidden = false;
+  draw();
+  msg(`${n.name}：你是 ⭕ 先下，連成一條線就贏！`);
 }
 
 /* ---------------- 直笛記憶：在音樂教室二遇到小瑜老師，老師吹一段，你照順序吹回去（每過一關多一個音） ----------------

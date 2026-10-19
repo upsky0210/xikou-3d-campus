@@ -247,7 +247,7 @@
   body.mc button:hover { filter: brightness(1.12); }
   body.mc button:disabled { background: #555; color: #999; text-shadow: none; filter: none; }
   /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
-  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #flute button, body.mc #food button, body.mc #bb button { text-shadow: none; }
+  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #flute button, body.mc #food button, body.mc #bb button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
   body.mc .iconbtn.primary, body.mc #info .acts [data-act=go], body.mc #results button, body.mc #pano .ctrl .audio {
@@ -300,8 +300,19 @@
   #rps .btns button small { font-size: 11px; font-weight: 700; color: #234; line-height: 1.2; }
   #rps .btns button:disabled { opacity: .45; }
   #rps .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; justify-content: center; }
-  /* 直笛記憶（小瑜老師）：一樣放在畫面下方 */
-  #flute { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
+  /* OOXX（杜老師）：一樣放在畫面下方 */
+  #ooxx { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(260px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
+  #ooxx .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #ooxx .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 168px; margin: 4px auto; }
+  #ooxx .cell { position: relative; height: 52px; font-size: 28px; line-height: 1; border-radius: 8px; background: #f3efe4; padding: 0; }
+  #ooxx .cell:empty::after { content: attr(data-k); color: #bbb; font-size: 13px; font-weight: 700; }
+  #ooxx .cell:not(:disabled):hover { background: #fde9b8; }
+  #ooxx .cell.win { background: #ffe066; }
+  #ooxx .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; }
+  #ooxx .msg.ok { color: #1b8a3a; } #ooxx .msg.no { color: #c0392b; }
+  #ooxx .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
+  /* 直笛記憶（小瑜老師）：一樣放在畫面下方 */  #flute { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 10px 8px; text-align: center; }
   #flute .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
   #flute .top b { color: #6e5233; }
@@ -349,7 +360,7 @@
   #bb .btns { display: flex; gap: 6px; justify-content: center; }
   #bb .btns button { padding: 7px 16px; font-weight: 700; border-radius: 10px; background: #1f3a7a; color: #fff; font-size: 15px; }
   #bb .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #flute, body.mc #food, body.mc #bb {
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #flute, body.mc #food, body.mc #bb {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -529,8 +540,13 @@
     <button class="quit">結束<br>Esc</button>
   </div>
 </div>
-<div id="flute" hidden>
-  <div class="top"><span>🎵 直笛記憶・<b class="lv"></b></span><span class="lives"></span></div>
+<div id="ooxx" hidden>
+  <div class="top"><span>⭕ OOXX・你 ⭕ vs <b class="who"></b> ❌</span></div>
+  <div class="board"><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button></div>
+  <div class="msg"></div>
+  <button class="quit">結束 Esc</button>
+</div>
+<div id="flute" hidden>  <div class="top"><span>🎵 直笛記憶・<b class="lv"></b></span><span class="lives"></span></div>
   <div class="prog"></div>
   <div class="msg"></div>
   <div class="keys"></div>
@@ -697,8 +713,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=191"></script>
-<script src="js/pano-data.js?v=191"></script>
-<script type="module" src="js/app.js?v=191"></script>
+<script src="js/campus-data.js?v=193"></script>
+<script src="js/pano-data.js?v=193"></script>
+<script type="module" src="js/app.js?v=193"></script>
 </body>
 </html>
