@@ -114,7 +114,7 @@
       { img: '06', floor: '1F', at: [742, 262] },           // 1F 幸運方塘（105）：溪口情廊西端、圖書館西邊
     ] },
     { id: 'culture', zh: '多元文化走廊', en: 'Multi-culture Hallway', text: T.culture, audio: '7_2', scenes: [
-      { img: '07-1', floor: '1F', at: [1480, 364], est: true },
+      { img: '07-1', floor: '1F', at: [1060, 172] },          // 多元文化走廊（圖書館北邊）
     ] },
     { id: 'gallery', zh: '溪口情廊', en: 'Xikou Gallery', text: T.gallery, audio: '8-9', scenes: [
       { img: '08', floor: '1F', at: [1330, 364], links: [{ to: '07-1', pos: [-12, 2, 3] }, { to: '09', pos: [13, 1, -0.5] }] },

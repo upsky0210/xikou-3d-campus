@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=187';
+import { Batch, mat, SPOTS } from './blocks.js?v=191';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1629,28 +1629,24 @@ function library(put, fr, room) {
     if (i % 3 === 1) { const g2 = new THREE.BoxGeometry(0.35, 0.45, 0.02); g2.rotateY(fr.alongX ? -ang : Math.PI / 2 - ang); g2.translate(0, 0, 0.22); ds(g2, mat('wool', ['#e74c3c', '#2a4a8a', '#3fa36a', '#f2c14e'][i % 4]), (ua + ub) / 2, (va + vb) / 2, 0.55); }
   }
   // 南牆高書櫃（入口那段空出來）
-  for (let u = 0.9; u < z2 - 0.6; u += 1.2) if (freeAt(u, 0.6, 'S') && !(u < 3.2)) tallShelf(u, D * (W / 2 - 0.2), true, 1.18);
+  for (let u = 0.9; u < z1 - 0.2; u += 1.2) if (freeAt(u, 0.6, 'S') && !(u < 3.2)) tallShelf(u, D * (W / 2 - 0.2), true, 1.18);   // 只到前段（中段圓筒小屋旁邊要留走道）
   /* ---- 中段：彩色圓筒閱讀小屋＋圓形座椅 ---- */
-  const bu = 12.0, bv = A * 0.2;
+  const bu = 12.0, bv = D * 0.3;
   ds(new THREE.CylinderGeometry(1.05, 1.05, 0.4, 24), booksMat(), bu, bv, 0.2);
   ds(new THREE.CylinderGeometry(1.08, 1.08, 0.08, 24), mat('wool', '#1fa59a'), bu, bv, 0.44);
   ds(new THREE.CylinderGeometry(0.45, 0.45, 0.4, 16), mat('wool', '#d8e070'), bu, bv, 0.68);
   for (let i = 0; i < 9; i++) { const a = i * 0.7, g = new THREE.CylinderGeometry(0.015, 0.015, 1.4, 4); g.rotateZ(Math.sin(a) * 0.25); g.rotateX(Math.cos(a) * 0.25); ds(g, mat('wool', '#b8642a'), bu, bv, 1.5); }
   for (let i = 0; i < 3; i++) ds(new THREE.SphereGeometry(0.11, 8, 6), mat('wool', '#c0182a'), bu + (i - 1) * 0.12, bv, 1.15 + i * 0.12);
-  // 圓形座椅前面（西邊）兩道弧形白色展示台，上面學生紙盒作品
-  for (const s of [-1, 1]) {
-    const g = new THREE.CylinderGeometry(2.4, 2.4, 1.05, 20, 1, true, Math.PI * (s < 0 ? 1.1 : 1.55), Math.PI * 0.32);
-    ds(g, dbl('#f6f4ee'), bu, bv, 0.525);
-    for (let k = 0; k < 2; k++) { const a = Math.PI * (s < 0 ? 1.2 : 1.65) + k * 0.4; put(mat('wool', ['#2a6ad0', '#d32f2f', '#f2c14e'][(k + (s > 0 ? 1 : 0)) % 3]), 0.4, 0.3, 0.35, bu + Math.sin(a) * 2.4, bv + Math.cos(a) * 2.4, 1.05); }
-  }
-  for (const [u, v, col, seat] of [[9.6, A * 2.0, '#f2df6a', '#b8162a'], [14.3, A * 2.0, '#f6b8cc', '#6a3a8a'], [9.9, D * 1.9, '#8fd0ec', '#6a3a8a'], [14.1, D * 1.8, '#bfe07a', '#b8162a'], [12.0, A * 2.3, '#c9b4e6', '#6a3a8a']]) {
+  // 圓形座椅西邊一座白色展示台，上面學生紙盒作品（四周留走道）
+  put(shelfW, 0.5, 1.3, 1.05, 9.3, D * 0.3, 0);
+  for (let k = 0; k < 3; k++) put(mat('wool', ['#2a6ad0', '#d32f2f', '#f2c14e'][k]), 0.4, 0.36, 0.35, 9.3, D * 0.3 + (k - 1) * 0.42, 1.05);
+  for (const [u, v, col, seat] of [[9.6, A * 2.4, '#f2df6a', '#b8162a'], [14.4, A * 2.4, '#f6b8cc', '#6a3a8a'], [9.3, D * 2.6, '#8fd0ec', '#6a3a8a'], [14.8, D * 2.6, '#bfe07a', '#b8162a'], [12.0, A * 2.7, '#c9b4e6', '#6a3a8a']]) {
     const face = Math.atan2(bv - v, bu - u), g = new THREE.CylinderGeometry(0.8, 0.8, 2.3, 24, 1, true, 0, Math.PI * 1.55);
     g.rotateY(-face - Math.PI * 0.775 + Math.PI / 2);
     ds(g, dbl(col), u, v, 1.15);
     ds(new THREE.CylinderGeometry(0.72, 0.72, 0.4, 20), mat('wool', '#f4f0e6'), u, v, 0.2);
     ds(new THREE.CylinderGeometry(0.7, 0.7, 0.06, 20), mat('wool', seat), u, v, 0.43);
   }
-  for (let u = z1 + 1.4; u < z2 - 0.4; u += 1.2) if (freeAt(u, 0.6, 'N')) tallShelf(u, A * (W / 2 - 0.2), true, 1.18);   // 北牆高書櫃
   // 天花板：彎彎的彩虹帶＋白色圓形造型板
   const rb = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa'];
   for (let i = 0; i < 40; i++) {
@@ -1925,11 +1921,11 @@ function principalOffice(put, fr, room) {
   put(glassBoardMat(), 2.0, 0.03, 1.0, 7.0, A * (W / 2 - 0.03), 1.0, true);
   put(mat('wool', '#3a2a1a'), 0.6, 0.04, 0.5, 6.7, A * (W / 2 - 0.03), 2.15); put(mat('wool', '#f4f0e6'), 0.45, 0.05, 0.36, 6.7, A * (W / 2 - 0.05), 2.22);   // 框裱書法
   // 會議桌＋8 張灰色網椅
-  const mu = 2.9, mv = A * 1.1;
-  put(mat('wool', '#e6ddcc'), 2.6, 1.2, 0.05, mu, mv, 0.74);
-  for (const du of [-1.15, 1.15]) put(black, 0.06, 1.0, 0.74, mu + du, mv, 0);
-  for (const du of [-0.85, 0, 0.85]) for (const s of [-1, 1]) officeChair(put, mu + du, mv + s * 0.95, 0, -s, '#55595e');
-  for (const s of [-1, 1]) officeChair(put, mu + s * 1.65, mv, -s, 0, '#55595e');
+  const mu = 2.9, mv = A * 0.9;                                                     // 會議桌長邊南北向（依使用者更正：轉 90 度）
+  put(mat('wool', '#e6ddcc'), 1.2, 2.6, 0.05, mu, mv, 0.74);
+  for (const dv of [-1.15, 1.15]) put(black, 1.0, 0.06, 0.74, mu, mv + dv, 0);
+  for (const dv of [-0.85, 0, 0.85]) for (const s of [-1, 1]) officeChair(put, mu + s * 0.95, mv + dv, -s, 0, '#55595e');
+  for (const s of [-1, 1]) officeChair(put, mu, mv + s * 1.65, 0, -s, '#55595e');
   // 南牆窗下：米色沙發組＋白色桌巾茶几、電風扇、立燈（避開門）
   const su = 2.3, sv = D * (W / 2 - 0.5);
   put(beige, 2.0, 0.8, 0.42, su, sv, 0); put(beige, 2.0, 0.2, 0.42, su, sv + D * 0.3, 0.42);
