@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=176';
-import { furnishFloor } from './furniture.js?v=176';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=176';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=176';
-import { buildCampusWall } from './wall.js?v=176';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=176';
+import { PanoViewer } from './pano.js?v=187';
+import { furnishFloor } from './furniture.js?v=187';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=187';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=187';
+import { buildCampusWall } from './wall.js?v=187';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=187';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1533,7 +1533,32 @@ function getGrid(f) {
     const j0 = Math.max(0, Math.ceil((o.z1 - P - minz) / CELL - 0.5)), j1 = Math.min(H - 1, Math.floor((o.z2 + P - minz) / CELL - 0.5));
     for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) free[j * W + i] = 0;
   }
-  return (f.grid = { minx, minz, W, H, free });
+  // 每一格離家具多近（clr）：找路時靠太近的格子比較貴，會盡量走在走道中間、不去擦家具的角
+  const clr = new Float32Array(W * H).fill(9), NP = 0.6;
+  for (const o of f.obs || []) {
+    const i0 = Math.max(0, Math.floor((o.x1 - NP - minx) / CELL)), i1 = Math.min(W - 1, Math.floor((o.x2 + NP - minx) / CELL));
+    const j0 = Math.max(0, Math.floor((o.z1 - NP - minz) / CELL)), j1 = Math.min(H - 1, Math.floor((o.z2 + NP - minz) / CELL));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const x = minx + (i + 0.5) * CELL, z = minz + (j + 0.5) * CELL;
+      const d = Math.hypot(Math.max(o.x1 - x, 0, x - o.x2), Math.max(o.z1 - z, 0, z - o.z2));
+      if (d < clr[j * W + i]) clr[j * W + i] = d;
+    }
+  }
+  // （不直接擋格子：教室課桌之間格子都很靠近桌椅，擋了會整片走不進去；改用成本讓路線盡量遠離家具）
+  const near = Float32Array.from(clr);                                            // 只算家具（成本用）
+  // 牆也算進去（離牆面多遠）：拉直路線斜穿門口時才會檢查到門框（不拿來擋格子，窄門才不會被堵死）
+  for (const q of f.segs) {
+    if (q.overhead) continue;
+    const i0 = Math.max(0, Math.floor((Math.min(q.ax, q.bx) - NP - minx) / CELL)), i1 = Math.min(W - 1, Math.floor((Math.max(q.ax, q.bx) + NP - minx) / CELL));
+    const j0 = Math.max(0, Math.floor((Math.min(q.az, q.bz) - NP - minz) / CELL)), j1 = Math.min(H - 1, Math.floor((Math.max(q.az, q.bz) + NP - minz) / CELL));
+    const dx = q.bx - q.ax, dz = q.bz - q.az, L2 = dx * dx + dz * dz || 1;
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const x = minx + (i + 0.5) * CELL, z = minz + (j + 0.5) * CELL, t = Math.max(0, Math.min(1, ((x - q.ax) * dx + (z - q.az) * dz) / L2));
+      const d = Math.hypot(x - q.ax - dx * t, z - q.az - dz * t) - WALL_T / 2;
+      if (d < clr[j * W + i]) clr[j * W + i] = d;
+    }
+  }
+  return (f.grid = { minx, minz, W, H, free, clr, near });
 }
 
 function nearestFree(g, i, j) {
@@ -1571,7 +1596,7 @@ function findPath(f, sx, sz, tx, tz) {
       const m = b * g.W + a;
       if (!g.free[m] || closed[m]) continue;
       if (di && dj && (!g.free[j * g.W + a] || !g.free[b * g.W + i])) continue;
-      const ng = gs[n] + c;
+      const ng = gs[n] + c + (g.near[m] < 0.55 ? (0.55 - g.near[m]) * 5 : 0);   // 靠家具太近的格子比較貴
       if (ng < gs[m]) { gs[m] = ng; from[m] = n; push(m, ng + hfn(m)); }
     }
   }
@@ -1580,13 +1605,29 @@ function findPath(f, sx, sz, tx, tz) {
   for (let n = ti; n >= 0; n = from[n]) { cells.push(n); if (n === si) break; }
   cells.reverse();
   const pts = cells.map((n) => [g.minx + (n % g.W + 0.5) * CELL, g.minz + (((n / g.W) | 0) + 0.5) * CELL]);
-  // 拉直路徑（視線檢查）
+  // 拉直路徑（視線檢查）：直線經過的地方要真的走得過去——離家具、牆至少一個人的寬度（不然會擦到桌角卡住）
+  const roomy = (x, z) => {
+    const cell = cellAt(f, x, z), py = f.level === 0 ? groundAt(f, x, z) : 0;
+    for (const o of cell.obs) {
+      const y1 = o.y1 - f.y, y2 = o.y2 - f.y;
+      if (y2 < py + 0.25 || y1 > py + 1.4) continue;
+      if (Math.hypot(Math.max(o.x1 - x, 0, x - o.x2), Math.max(o.z1 - z, 0, z - o.z2)) < PLAYER_R + 0.06) return false;
+    }
+    for (const q of cell.segs) {
+      if (q.overhead) continue;
+      const dx = q.bx - q.ax, dz = q.bz - q.az, L2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((x - q.ax) * dx + (z - q.az) * dz) / L2));
+      if (Math.hypot(x - q.ax - dx * t, z - q.az - dz * t) < PLAYER_R + WALL_T / 2 + 0.03) return false;
+    }
+    return true;
+  };
   const los = (a, b) => {
     const d = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(d / (CELL * 0.4));
     for (let k = 1; k < n; k++) {
       const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n;
       const ci = Math.floor((x - g.minx) / CELL), cj = Math.floor((z - g.minz) / CELL);
       if (!g.free[cj * g.W + ci]) return false;
+      if (g.clr[cj * g.W + ci] < 0.9 && !roomy(x, z)) return false;     // 附近有家具才細算
     }
     return true;
   };
@@ -1594,7 +1635,7 @@ function findPath(f, sx, sz, tx, tz) {
   let k = 0;
   while (k < pts.length - 1) {
     let best = k + 1;
-    for (let m = pts.length - 1; m > k + 1; m--) if (los(pts[k], pts[m])) { best = m; break; }
+    for (let m = Math.min(pts.length - 1, k + 60); m > k + 1; m--) if (los(pts[k], pts[m])) { best = m; break; }
     out.push(pts[best]); k = best;
   }
   let len = 0;
