@@ -152,9 +152,9 @@
       { img: '19', floor: '2F', at: [1620, 1100], est: true },
     ] },
     { id: 'light', zh: '溪口光廊', en: 'Xikou Light Gallery', text: T.light, audio: '20', scenes: [
-      { img: '20-1', floor: '3F', at: [850, 364], links: [{ to: '20-2', pos: [0.4, 2, -12] }] },
-      { img: '20-2', floor: '3F', at: [1100, 364], links: [{ to: '20-1', pos: [-12, 2, -0.2] }, { to: '20-3', pos: [12, 2, 0] }] },
-      { img: '20-3', floor: '3F', at: [1350, 364], links: [{ to: '20-2', pos: [-12, 2, -0.3] }] },
+      { img: '20-1', floor: '3F', at: [740, 364], links: [{ to: '20-2', pos: [0.4, 2, -12] }] },
+      { img: '20-2', floor: '3F', at: [860, 364], links: [{ to: '20-1', pos: [-12, 2, -0.2] }, { to: '20-3', pos: [12, 2, 0] }] },
+      { img: '20-3', floor: '3F', at: [1000, 364], links: [{ to: '20-2', pos: [-12, 2, -0.3] }] },
     ] },
     { id: 'phalanx', zh: '方陣教室（科學情境教室）', en: 'Phalanx Classroom', text: T.phalanx, audio: '21', scenes: [
       { img: '21', floor: '3F', at: [580, 665] },

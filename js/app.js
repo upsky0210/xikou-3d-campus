@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=169';
-import { furnishFloor } from './furniture.js?v=169';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=169';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=169';
-import { buildCampusWall } from './wall.js?v=169';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=169';
+import { PanoViewer } from './pano.js?v=172';
+import { furnishFloor } from './furniture.js?v=172';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=172';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=172';
+import { buildCampusWall } from './wall.js?v=172';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=172';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3398,6 +3398,7 @@ function updateAct(dt) {
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
     : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
     : sp.kind === 'heat' ? `🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`
+    : sp.kind === 'blocks' ? '🧩 玩電子積木 <kbd>F</kbd>'
     : sp.kind === 'float' ? `🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`
     : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
     : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
@@ -3420,6 +3421,7 @@ function doAction() {
   else if (act.spot?.kind === 'glider') startFood(act.spot.npc);
   else if (act.spot?.kind === 'float') startFood(act.spot.npc, FLOAT_Q);
   else if (act.spot?.kind === 'heat') startFood(act.spot.npc, HEAT_Q);
+  else if (act.spot?.kind === 'blocks') startFood({ name: '電子積木' }, BLOCKS_Q);
   else if (act.spot?.kind === 'baseball') startBaseball(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
   else if (act.spot?.kind === 'feed') feedTurtles();
@@ -4232,6 +4234,75 @@ HEAT_Q.show = (q) => {
 HEAT_Q.reveal = (q) => { HEAT_Q.anim = { t: 0, ok: q.ok }; };
 HEAT_Q.end = () => { heatItem.visible = false; heatFire.visible = false; HEAT_Q.tick = null; };
 
+/* ---------------- 電子積木：方陣教室地板上的積木板，看電路接法猜「燈泡會不會亮」 ----------------
+   一回 5 題；答完板子上的燈泡真的亮起來（或不亮）。不用老師，走到積木板旁邊按 F 就能玩 */
+const BLOCKS_KEY = 'campus-blocks-best';
+// 每一題的電路：parts 從左上順時針排在一個方框上：bat 電池、bat- 電池接反、wire 導線、gap 斷掉、sw0 開關沒按、sw1 開關按下、
+//   bulb 燈泡、led LED（正接）、led- LED 接反、plastic 塑膠片、nail 鐵釘、foil 鋁箔、rubber 橡皮筋、short 導線直接接電池兩極
+const BLOCKS_ITEMS = [
+  { e: '💡', n: '電池＋導線＋燈泡，接成一整圈', parts: ['bat', 'wire', 'bulb', 'wire'], ok: 1, why: '電流從電池出發，繞一圈回到電池，形成「通路」，燈泡就亮了！' },
+  { e: '✂️', n: '其中一段導線沒有接上', parts: ['bat', 'gap', 'bulb', 'wire'], ok: 0, why: '中間斷掉就是「斷路」，電流過不去，燈泡不會亮。' },
+  { e: '🔘', n: '接了開關，但是開關沒有按下去', parts: ['bat', 'sw0', 'bulb', 'wire'], ok: 0, why: '開關打開時電路是斷的，燈泡不會亮。' },
+  { e: '👆', n: '接了開關，開關按下去了', parts: ['bat', 'sw1', 'bulb', 'wire'], ok: 1, why: '開關按下去，電路就接通了，燈泡會亮。' },
+  { e: '🔴', n: 'LED 長腳接正極、短腳接負極', parts: ['bat', 'wire', 'led', 'wire'], ok: 1, why: 'LED 有方向性，正接就會亮。' },
+  { e: '🔃', n: 'LED 接反了（長腳接負極）', parts: ['bat', 'wire', 'led-', 'wire'], ok: 0, why: 'LED 只讓電流往一個方向走，接反了就不會亮。' },
+  { e: '🧲', n: '電路中間接一根鐵釘', parts: ['bat', 'nail', 'bulb', 'wire'], ok: 1, why: '鐵是導體，電可以通過，燈泡會亮。' },
+  { e: '🥫', n: '電路中間接一段鋁箔紙', parts: ['bat', 'foil', 'bulb', 'wire'], ok: 1, why: '鋁箔是金屬，是導體，燈泡會亮。' },
+  { e: '🧴', n: '電路中間接一片塑膠尺', parts: ['bat', 'plastic', 'bulb', 'wire'], ok: 0, why: '塑膠是絕緣體，電通不過去，燈泡不會亮。' },
+  { e: '🎗️', n: '電路中間接一條橡皮筋', parts: ['bat', 'rubber', 'bulb', 'wire'], ok: 0, why: '橡膠是絕緣體，燈泡不會亮。' },
+  { e: '⚠️', n: '導線直接把電池正負極接起來，燈泡接在旁邊', parts: ['short', 'wire', 'bulb', 'wire'], ok: 0, why: '這是「短路」，電流不經過燈泡，燈泡不亮，電池還會發燙，很危險！' },
+  { e: '🔋', n: '沒有電池，只有導線和燈泡', parts: ['wire', 'wire', 'bulb', 'wire'], ok: 0, why: '沒有電池就沒有電，燈泡不會亮。' },
+];
+const blocksBoard = (() => {                                            // 地上的積木板（白色底板＋格點），電路畫在貼圖上
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 384;
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 1.8), new THREE.MeshLambertMaterial({ map: tex }));
+  m.userData.draw = (parts, lit) => {
+    const c = cv.getContext('2d'), w = 512, h = 384;
+    c.fillStyle = '#f4f4f0'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#c9cdd2'; for (let x = 16; x < w; x += 32) for (let y = 16; y < h; y += 32) { c.beginPath(); c.arc(x, y, 3, 0, 7); c.fill(); }   // 底板格點
+    if (!parts) return void (tex.needsUpdate = true);
+    // 四個邊：上、右、下、左（順時針），每一邊放一個零件
+    const P = [[96, 96], [416, 96], [416, 288], [96, 288]];
+    const blk = (x, y, ww, hh, col, label, tcol = '#fff') => { c.fillStyle = col; c.fillRect(x - ww / 2, y - hh / 2, ww, hh); c.fillStyle = tcol; c.font = 'bold 22px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(label, x, y); };
+    for (let i = 0; i < 4; i++) {
+      const [ax, ay] = P[i], [bx, by] = P[(i + 1) % 4], mx2 = (ax + bx) / 2, my2 = (ay + by) / 2, kind = parts[i];
+      c.strokeStyle = '#2a6ad0'; c.lineWidth = 14;
+      if (kind !== 'gap' && kind !== 'sw0') { c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke(); }
+      else { c.beginPath(); c.moveTo(ax, ay); c.lineTo(mx2 - (bx - ax) * 0.18, my2 - (by - ay) * 0.18); c.moveTo(mx2 + (bx - ax) * 0.18, my2 + (by - ay) * 0.18); c.lineTo(bx, by); c.stroke(); }
+      if (kind === 'bat' || kind === 'short') blk(mx2, my2, 120, 56, '#2b2b2b', '− 電池 +');
+      if (kind === 'short') { c.strokeStyle = '#e53935'; c.lineWidth = 8; c.beginPath(); c.moveTo(mx2 - 60, my2 - 30); c.quadraticCurveTo(mx2, my2 - 80, mx2 + 60, my2 - 30); c.stroke(); }
+      if (kind === 'sw0') { c.strokeStyle = '#555'; c.lineWidth = 8; c.beginPath(); c.moveTo(mx2 - 34, my2); c.lineTo(mx2 + 26, my2 - 34); c.stroke(); }
+      if (kind === 'sw1') blk(mx2, my2, 90, 50, '#7a8088', '開關');
+      if (kind === 'bulb') { c.fillStyle = lit ? '#ffe14a' : '#e8e8e0'; c.beginPath(); c.arc(mx2, my2, 38, 0, 7); c.fill(); c.strokeStyle = '#888'; c.lineWidth = 4; c.stroke(); if (lit) { c.strokeStyle = 'rgba(255,200,0,.7)'; c.lineWidth = 6; for (let a = 0; a < 8; a++) { c.beginPath(); c.moveTo(mx2 + Math.cos(a * 0.785) * 48, my2 + Math.sin(a * 0.785) * 48); c.lineTo(mx2 + Math.cos(a * 0.785) * 66, my2 + Math.sin(a * 0.785) * 66); c.stroke(); } } }
+      if (kind === 'led' || kind === 'led-') { c.fillStyle = lit ? '#ff3a3a' : '#a83a3a'; c.beginPath(); c.arc(mx2, my2, 26, 0, 7); c.fill(); c.fillStyle = '#222'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center'; c.fillText(kind === 'led' ? '+ LED −' : '− LED +', mx2, my2 + 50); }
+      if (kind === 'nail') blk(mx2, my2, 120, 20, '#8a8f96', '');
+      if (kind === 'foil') blk(mx2, my2, 110, 40, '#d8dce0', '鋁箔', '#555');
+      if (kind === 'plastic') blk(mx2, my2, 120, 34, '#7ad0f0', '塑膠尺', '#1d3a5a');
+      if (kind === 'rubber') { c.strokeStyle = '#e8a030'; c.lineWidth = 10; c.beginPath(); c.ellipse(mx2, my2, 50, 18, 0, 0, 7); c.stroke(); }
+    }
+    tex.needsUpdate = true;
+  };
+  m.userData.draw(null);
+  m.visible = false; scene.add(m);
+  return m;
+})();
+const BLOCKS_Q = { list: BLOCKS_ITEMS, key: BLOCKS_KEY, title: '🧩 電子積木：燈泡會亮嗎？', icon: '🧩', yes: ['💡', '會亮'], no: ['⚫', '不會亮'],
+  ask: (q) => `🧩「${q.n}」，燈泡會亮嗎？`, intro: '看看積木板上的電路，猜猜看燈泡會不會亮！',
+  endTalk: (sc, n) => (sc === n ? '全部答對！你是電路小專家！' : sc >= 3 ? '很棒喔！記得：要接成一整圈「通路」燈才會亮！' : '沒關係，再試一次，看清楚電路有沒有接成一圈！'),
+  quitTalk: () => '🧩 下次再來玩電子積木！' };
+// 開始時站到積木板南邊、低頭看板子（不要站在板子上）
+BLOCKS_Q.start = () => { const r = rooms.find((x) => x.name === '方陣教室'); placeAt(r.f, r.cx, r.cz + 2.0, 0); avatar.rotation.y = 0; player.yaw = 0; player.pitch = -0.75; };
+BLOCKS_Q.show = (q) => blocksBoard.userData.draw(q.parts, false);
+BLOCKS_Q.reveal = (q) => blocksBoard.userData.draw(q.parts, !!q.ok);
+BLOCKS_Q.end = () => blocksBoard.userData.draw(null);
+// 放在方陣教室地板中間（一直擺著，平常是空的積木板），旁邊可以玩
+function placeBlocksBoard() {
+  const r = rooms.find((x) => x.name === '方陣教室'); if (!r) return;
+  r.f.group.add(blocksBoard); blocksBoard.position.set(r.cx, r.f.y + 0.03, r.cz); blocksBoard.visible = true;
+  SPOTS.push({ kind: 'blocks', name: '電子積木', x: r.cx, z: r.cz, r: 1.9, floorY: r.f.y });
+}
+
 function startFood(n, Q = GLIDER_Q) {
   stopAuto();
   const $ = (sel) => foodBox.querySelector(sel);
@@ -4242,7 +4313,7 @@ function startFood(n, Q = GLIDER_Q) {
   let i = 0, score = 0, locked = false, done = false, best = 0;
   try { best = +localStorage.getItem(Q.key) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
-  faceTeacher(n);
+  if (n.g) faceTeacher(n);                                            // 電子積木沒有老師
   $('.ttl').textContent = Q.title;
   btns.forEach((b) => (b.innerHTML = +b.dataset.a ? `${Q.yes[0]}<small>${Q.yes[1]} 1</small>` : `${Q.no[0]}<small>${Q.no[1]} 2</small>`));
   Q.start?.(n);
@@ -4268,12 +4339,12 @@ function startFood(n, Q = GLIDER_Q) {
     $('.round').textContent = `第 ${i + 1}／${qs.length} 題・答對 ${score}`;
     msg(`${right ? '✅ 答對了！' : '❌ 答錯囉！'}${q.ok ? Q.yes[1] : Q.no[1]}：${q.why}`, right ? 'ok' : 'no');
     Q.reveal?.(q);
-    npcFace(n, right ? 'happy' : 'surprised', 1.8);
+    if (n.g) npcFace(n, right ? 'happy' : 'surprised', 1.8);
     setTimeout(() => {
       if (done) return;
       if (++i < qs.length) { ready(); return; }
       if (score > best) { best = score; try { localStorage.setItem(Q.key, String(best)); } catch { /* 私密模式 */ } }
-      npcFace(n, score >= 4 ? 'happy' : 'wink', 3);
+      if (n.g) npcFace(n, score >= 4 ? 'happy' : 'wink', 3);
       finish();
       toast(`${Q.icon} 答對 ${score}／${qs.length} 題！（最佳紀錄：${best} 題）<br>${n.name}：${Q.endTalk(score, qs.length)}`);
     }, 2600);
@@ -5994,7 +6065,7 @@ function buildPhotoScenes() {
       for (let x = 0; x < w; x += 16) for (let y = 0; y < h; y += 16) { const gr = c.createLinearGradient(x, y, x + 14, y + 14); gr.addColorStop(0, '#d6eef0'); gr.addColorStop(1, '#8fc7c9'); c.fillStyle = gr; c.fillRect(x + 1, y + 1, 14, 14); }
     });
     let dk = 0;
-    for (const [sid, style] of [['乙梯', 'A'], ['丁梯', 'D']]) {
+    for (const [sid, style] of [['乙梯', 'A'], ['丁梯', 'A']]) {                       // 丁梯也做成跟乙梯一樣（依使用者說明）
       const s = stairs.find((x) => x.id === sid); if (!s?.g) continue;
       const g = s.g, run = g.f1 - g.s0, half = FLOOR_H / 2;
       const upper = style === 'A' ? '#efe2b8' : '#f6f4ee', line = style === 'A' ? '#8a7a5a' : '#222222', dado = style === 'A' ? '#9a9a96' : '#b8a0a8';
@@ -6165,7 +6236,7 @@ function buildPhotoScenes() {
   //   再往東是長走廊：天花板黃色燈槽和藍色發光板交錯、北牆「生活的藝術」＋馬賽克畫作、滅火器；南牆木紋波浪板＋大電視、小展示框；
   //   地上中間一條紅褐色磨石子直線；東端圓形色塊 ----
   {
-    const f3 = floorById['3F'], gy = f3.y, xa = mx(705), xe = mx(1510), z1 = mz(330), z2 = mz(398), zc = (z1 + z2) / 2, CW = z2 - z1;
+    const f3 = floorById['3F'], gy = f3.y, xa = mx(705), xe = mx(1105) - WALL_T / 2, z1 = mz(330), z2 = mz(398), zc = (z1 + z2) / 2, CW = z2 - z1;
     const zn = z1 + WALL_T / 2 + 0.03, zs = z2 - WALL_T / 2 - 0.03, top = gy + WALL_H;
     const doorsX = (side) => rooms.filter((r) => r.f === f3).flatMap((r) => (r.doorPts || []).filter((d) => Math.abs(d.z - (side < 0 ? z1 : z2)) < 0.4).map((d) => d.x));
     const freeAt = (side, x, half) => doorsX(side).every((d) => Math.abs(d - x) > half + 0.7);
@@ -6266,9 +6337,8 @@ function buildPhotoScenes() {
       for (let x = a + 0.6; x < c2 - 0.4; x += 2.6) if (i > 0 || x > a + 3.6) tb.box(L('#f4f4f0'), 0.4, 0.5, 0.03, x, gy + 1.5, zs - 0.03);
     });
     tb.build(f3.group);
-    // 東端：圓形色塊（看不清楚是什麼，先做色塊；那裡沒有牆，用兩條細線吊在天花板下）
-    { const wb = new Batch(); for (const d of [-0.25, 0.25]) wb.box(L('#555555'), 0.01, 0.3, 0.01, xe - 0.3, top - 0.15, zc + d); wb.build(f3.group); }
-    wallPic(f3, photoTex(128, 128, (c, w, h) => { c.fillStyle = '#7fb8a8'; c.beginPath(); c.arc(64, 64, 60, 0, 7); c.fill(); c.fillStyle = '#c8e6dc'; c.beginPath(); c.arc(64, 64, 40, 0, 7); c.fill(); }, { alpha: true }), xe - 0.3, top - 0.7, zc, 0.8, 0.8, -Math.PI / 2);
+    // 東端（光廊封住的那道牆）：圓形色塊（看不清楚是什麼，先做色塊）
+    wallPic(f3, photoTex(128, 128, (c, w, h) => { c.fillStyle = '#7fb8a8'; c.beginPath(); c.arc(64, 64, 60, 0, 7); c.fill(); c.fillStyle = '#c8e6dc'; c.beginPath(); c.arc(64, 64, 40, 0, 7); c.fill(); }, { alpha: true }), xe - 0.03, gy + 1.9, zc, 0.9, 0.9, -Math.PI / 2);
   }
 }
 for (const f of floors) buildFloor(f);
@@ -6277,6 +6347,7 @@ buildPlinth();
 Batch.collector = floors[1].boxes;
 buildOutdoor();
 placeToys();
+placeBlocksBoard();
 // buildBaseballField();   // 樂樂棒球先保留：校長回穿堂，球場也先不畫
 placeBirds();
 Batch.collector = null;

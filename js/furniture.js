@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=169';
+import { Batch, mat, SPOTS } from './blocks.js?v=172';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1723,23 +1723,25 @@ function gym(put, fr) {
   put(gymCourtMat(), CW, CL, 0.01, L / 2, cv, 0.015, true);
   put(gymBlueMat(), CW + 1, CL - 2, 0.01, L / 2, cv, 0.017, true);
   // 舞台（東邊）：木紋板框（中間是舞台口）、台面前緣深咖啡色
-  const vp = W / 2 - 4.2, ow = 11, oh = 4.0, panel = mat('planks', '#b8673a');
-  put(mat('wool', '#4a2a1e'), 13, 0.6, 1.0, L / 2, vp - 0.3, 0);                 // 台前緣
-  put(M.wood(), 13, W / 2 - vp, 1.0, L / 2, (vp + W / 2) / 2, 0);               // 台面
+  // 舞台縮小（依使用者說明）：舞台口兩側木紋板只到舞台邊，南北兩頭留通道，從東邊兩扇門可以走到甲梯
+  const vp = W / 2 - 4.2, ow = 9, oh = 4.0, sw = 11, panel = mat('planks', '#b8673a');
+  put(mat('wool', '#4a2a1e'), sw, 0.6, 1.0, L / 2, vp - 0.3, 0);                 // 台前緣
+  put(M.wood(), sw, W / 2 - vp, 1.0, L / 2, (vp + W / 2) / 2, 0);               // 台面
   for (const s of [-1, 1]) {
-    const a = L / 2 + s * ow / 2, b = s < 0 ? 0.05 : L - 0.05;
+    const a = L / 2 + s * ow / 2, b = L / 2 + s * (sw / 2 + 0.3);
     put(panel, Math.abs(b - a), 0.3, 6.5, (a + b) / 2, vp, 0);                    // 舞台口兩側的木紋板
-    put(M.dark(), 0.45, 0.4, 0.7, L / 2 + s * 6.3, vp - 0.35, 4.3);              // 喇叭
+    put(M.dark(), 0.45, 0.4, 0.7, L / 2 + s * (ow / 2 + 0.8), vp - 0.35, 4.3);              // 喇叭
   }
   put(panel, ow, 0.3, 6.5 - 1.0 - oh, L / 2, vp, 1.0 + oh);                      // 舞台口上方
-  put(M.dark(), 9, 0.04, 0.5, L / 2, vp - 0.17, 5.6);                            // 上方的黑色長條
-  put(new THREE.MeshLambertMaterial({ color: '#d32f2f', emissive: '#b01818', emissiveIntensity: 0.6 }), 0.9, 0.05, 0.4, L / 2 - 7.2, vp - 0.17, 2.6);   // 紅色計分板
+  put(M.dark(), ow - 1, 0.04, 0.5, L / 2, vp - 0.17, 5.6);                            // 上方的黑色長條
+  put(new THREE.MeshLambertMaterial({ color: '#d32f2f', emissive: '#b01818', emissiveIntensity: 0.6 }), 0.9, 0.05, 0.4, L / 2 - (ow / 2 + 0.95), vp - 0.17, 2.6);   // 紅色計分板
   // 布幕：深紅色，兩邊拉開、上面一排帷幔＋金色流蘇；後面是背板
   const red = mat('wool', '#7a1420');
   for (const s of [-1, 1]) put(red, 2.4, 0.15, oh, L / 2 + s * (ow / 2 - 1.2), vp + 0.4, 1.0);
   put(red, ow, 0.15, 0.7, L / 2, vp + 0.3, 1.0 + oh - 0.7);
   put(mat('wool', '#d9a93a'), ow, 0.16, 0.08, L / 2, vp + 0.3, 1.0 + oh - 0.78);
-  put(stageBackMat(), 8, 0.05, 3.2, L / 2, W / 2 - 0.2, 1.0, true);
+  put(stageBackMat(), ow - 1, 0.05, 3.2, L / 2, W / 2 - 0.2, 1.0, true);
+  for (const s of [-1, 1]) put(panel, 0.3, W / 2 - vp, 6.5, L / 2 + s * (sw / 2 + 0.15), (vp + W / 2) / 2, 0);   // 舞台兩側的牆（後台和通道隔開）
   // 兩個主籃框：從天花板吊下來（吊桿＋玻璃籃板、藍色護墊），標準高度 3.05 公尺
   const half = CL / 2, blue = mat('wool', '#1f4fb8');
   for (const s of [-1, 1]) {

@@ -56,7 +56,8 @@
     B1: [],
     '1F': [C.A_north, C.A_mid, C.A_south, C.A_west, C.D, C.C, [1505, 150, 1548, 1060], C.lobby],
     '2F': [C.A_north, C.A_mid, C.A_south, C.A_west, C.D, C.C, C.B, C.lobby],
-    '3F': [C.A_north, C.A_mid, C.A_south, C.A_west, C.D, C.C, C.B, C.lobby],
+    // 3F：溪口光廊（A_mid）只到音樂教室二和電腦教室二中間就封住（依使用者說明）；電腦教室二往南吃掉原本光廊那一段；潛能教室三、四外面那段走廊還在
+    '3F': [C.A_north, [705, 330, 1105, 398], [1345, 330, 1555, 398], C.A_south, C.A_west, C.D, C.C, C.B, C.lobby],
     '4F': [[645, 150, 705, 585], C.D, C.C, C.B, C.lobby],
     // 5F：活動中心看台（環繞中間挑空），西邊接乙梯
     //   noCeil：沒有自己的天花板（活動中心整個是挑高兩層，屋頂另外蓋）
@@ -144,12 +145,12 @@
   // 3F
   R('3F', 'A', [705, 195, 945, 330], { no: '303', name: '音樂教室一', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.15] } });
   R('3F', 'A', [945, 195, 1105, 330], { no: '304', name: '音樂教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { S: [0.3], N: [0.3] } });
-  R('3F', 'A', [1105, 195, 1345, 330], { no: '305', name: '電腦教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.52] } });
+  R('3F', 'A', [1105, 195, 1345, 398], { no: '305', name: '電腦教室二', type: 'special', doors: 'N', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.52] } });   // 往南擴大到原本的光廊；光廊那邊沒有門
   R('3F', 'A', [1345, 195, 1425, 330], { no: '306', name: '潛能教室四', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
   R('3F', 'A', [1425, 195, 1510, 330], { no: '306', name: '潛能教室三', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
   R('3F', 'A', [705, 398, 870, 545], { no: '312', name: '思科教室', alias: '自然教室三', type: 'special', doors: 'NS', mainDoor: 'S' });
   R('3F', 'A', [870, 398, 1105, 545], { no: '311', name: '美勞教室', type: 'special', doors: 'NS', mainDoor: 'S' });
-  R('3F', 'A', [1105, 398, 1345, 545], { no: '310', name: '英語教室二', type: 'special', doors: 'NS', mainDoor: 'S' });
+  R('3F', 'A', [1105, 398, 1345, 545], { no: '310', name: '英語教室二', type: 'special', doors: 'S', mainDoor: 'S' });   // 北邊是電腦教室二（光廊封住了），只剩中庭那側的門
   R('3F', 'A', [1345, 398, 1430, 545], { no: '309', name: '諮商室', type: 'office', doors: 'N' });
   R('3F', 'A', [1430, 398, 1510, 545], { no: '309-1', name: '團輔室', type: 'office', doors: 'N', solidSides: 'E' });   // 東牆外面是「秋天的信」壁畫（沒有窗）
   R('3F', 'B', [1555, 400, 1690, 480], { no: '307', name: '潛能教室二', type: 'special', doors: 'W' });
