@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=172';
-import { furnishFloor } from './furniture.js?v=172';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=172';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=172';
-import { buildCampusWall } from './wall.js?v=172';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=172';
+import { PanoViewer } from './pano.js?v=176';
+import { furnishFloor } from './furniture.js?v=176';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=176';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=176';
+import { buildCampusWall } from './wall.js?v=176';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=176';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -471,7 +471,7 @@ for (const s of stairs) {
 }
 for (const f of floors) addRailings(f);
 // 1F 北側走廊（多元文化走廊，依使用者說明）：封閉的室內走廊，北邊是有窗的外牆（不通戶外）
-{ const f1n = floorById['1F'], zN = mz(150); f1n.segs.push({ ax: mx(645), az: zN, bx: mx(1555), bz: zN, h: WALL_H, color: lighten(D.buildings.A.color, 0.35), kind: 'wall', bld: 'A' }); }
+{ const f1n = floorById['1F'], zN = mz(150); f1n.segs.push({ ax: mx(865), az: zN, bx: mx(1555), bz: zN, h: WALL_H, color: lighten(D.buildings.A.color, 0.35), kind: 'wall', bld: 'A' }); }
 // 1 樓戶外墊高的地方（司令臺、花台）：{ x1, x2, z1, z2, h }，h 是離地面的高度
 const raised = [];
 // 一樓「室內」（建築裡：走廊、教室、穿堂、樓梯間）；中庭花園不算
@@ -5993,7 +5993,7 @@ function buildPhotoScenes() {
   // ---- 1F 多元文化走廊（依 360 照片 07-1）：一樓北側走廊（圖書館北邊，封閉的室內走廊）：深色木地板、兩側窗下白色矮櫃＋綠色坐墊、
   //   中間北牆一段架高小舞台＋東南亞（緬甸、泰國、印度）大壁畫、綠色幸運草小凳、白色展示架 ----
   {
-    const f1b = floorById['1F'], gy = f1b.y, xa = mx(705), xe = mx(1505), z1 = mz(150), z2 = mz(195), zc = (z1 + z2) / 2;
+    const f1b = floorById['1F'], gy = f1b.y, xa = mx(865), xe = mx(1505), z1 = mz(150), z2 = mz(195), zc = (z1 + z2) / 2;
     const zn = z1 + WALL_T / 2 + 0.03, zs = z2 - WALL_T / 2 - 0.03;
     const L = (c) => new THREE.MeshLambertMaterial({ color: c });
     const keepC = Batch.collector; Batch.collector = f1b.boxes;
