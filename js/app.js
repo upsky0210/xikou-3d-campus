@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=194';
-import { furnishFloor } from './furniture.js?v=194';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=194';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=194';
-import { buildCampusWall } from './wall.js?v=194';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=194';
+import { PanoViewer } from './pano.js?v=196';
+import { furnishFloor } from './furniture.js?v=196';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=196';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=196';
+import { buildCampusWall } from './wall.js?v=196';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=196';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3220,6 +3220,38 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '高老師', title: '訓育組長', game: 'history',
+    hello: ['📚 高老師：要認真學習唷！', '⚠️ 高老師：出去玩要注意安全！', '🗺️ 高老師：要不要來挑戰「臺灣史地大考驗」？'],
+    // 1 樓學務處：西邊那扇北門進來，站在門和白板中間（辦公座位西邊），面向門口（北）
+    places: [
+      { floor: '1F', where: '學務處', game: true, at: () => { const r = rooms.find((x) => x.name === '學務處'); return [r.m.x1 + 1.2, r.m.z1 + 2.8, 0]; } },
+    ],
+    look: {
+      // 依照片：黑色齊下巴短鮑伯頭（旁分瀏海）、黑框方眼鏡、開心笑容；淡藍紫色 V 領襯衫（長袖捲起）、黑色短裙，手上拿一本雜誌
+      skin: '#f6d8c6', hair: '#1c1616', top: '#8fa3d8', pants: '#f2d0bc', shoe: '#2a2a2a',
+      bob: true, longSleeve: true, collar: '#8fa3d8', shortSkirt: '#1d1d20', holdL: 'magazine',
+      pal: { H: '#1c1616', h: '#33282a', S: '#f6d8c6', K: '#1a1a1a', E: '#2a1610', W: '#ffffff', B: '#f2b2b0', N: '#e6b8a2', M: '#c0505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHSSSHH',
+        'HHHHHHHHSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHKKKKKSSKKKKKHH',
+        'HHKEEWKKKKEEWKHH',
+        'HHKKKKKSSKKKKKHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHSSSSMMMMSSSSHH',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -3475,6 +3507,7 @@ function updateAct(dt) {
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
     : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
     : sp.kind === 'heat' ? `🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`
+    : sp.kind === 'history' ? `🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`
     : sp.kind === 'blocks' ? '🧩 玩電子積木 <kbd>F</kbd>'
     : sp.kind === 'float' ? `🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`
     : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
@@ -3500,6 +3533,7 @@ function doAction() {
   else if (act.spot?.kind === 'glider') startFood(act.spot.npc);
   else if (act.spot?.kind === 'float') startFood(act.spot.npc, FLOAT_Q);
   else if (act.spot?.kind === 'heat') startFood(act.spot.npc, HEAT_Q);
+  else if (act.spot?.kind === 'history') startFood(act.spot.npc, HISTORY_Q);
   else if (act.spot?.kind === 'blocks') startFood({ name: '電子積木' }, BLOCKS_Q);
   else if (act.spot?.kind === 'baseball') startBaseball(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
@@ -4394,6 +4428,33 @@ HEAT_Q.show = (q) => {
 };
 HEAT_Q.reveal = (q) => { HEAT_Q.anim = { t: 0, ok: q.ok }; };
 HEAT_Q.end = () => { heatItem.visible = false; heatFire.visible = false; HEAT_Q.tick = null; };
+
+/* ---------------- 臺灣史地大考驗：在學務處遇到高老師，是非題一回 5 題（對、錯各 2～3 題） ---------------- */
+const HISTORY_KEY = 'campus-history-best';
+const HISTORY_ITEMS = [
+  { e: '⛰️', n: '臺灣最高的山是玉山', ok: 1, why: '玉山大約 3952 公尺，是臺灣第一高峰，也是東北亞最高的山。' },
+  { e: '🏞️', n: '臺灣最長的河流是濁水溪', ok: 1, why: '濁水溪大約 187 公里，是臺灣最長的河流。' },
+  { e: '🌊', n: '日月潭是臺灣最大的天然湖泊', ok: 1, why: '日月潭在南投縣，是臺灣最大的天然湖泊。' },
+  { e: '🏝️', n: '澎湖是由很多小島組成的群島', ok: 1, why: '澎湖群島有九十多個大大小小的島嶼。' },
+  { e: '☀️', n: '北回歸線有經過嘉義和花蓮', ok: 1, why: '嘉義水上、花蓮瑞穗都有北回歸線標誌。' },
+  { e: '🏰', n: '安平古堡（熱蘭遮城）是荷蘭人蓋的', ok: 1, why: '荷蘭人在臺南安平蓋了熱蘭遮城，就是現在的安平古堡。' },
+  { e: '⚓', n: '鄭成功打敗荷蘭人，荷蘭人離開臺灣', ok: 1, why: '1662 年鄭成功打敗荷蘭人，荷蘭人離開了臺灣。' },
+  { e: '🚂', n: '劉銘傳在臺灣蓋了鐵路', ok: 1, why: '臺灣建省後第一任巡撫劉銘傳，蓋了基隆到新竹的鐵路。' },
+  { e: '🛶', n: '蘭嶼的達悟族會划拼板舟', ok: 1, why: '達悟族住在蘭嶼，拼板舟是他們重要的文化。' },
+  { e: '🏫', n: '溪口國小在臺北市文山區', ok: 1, why: '我們溪口國小就在臺北市文山區！' },
+  { e: '⛰️', n: '臺灣最高的山是阿里山', ok: 0, why: '臺灣最高的山是玉山；阿里山以日出、雲海、森林鐵路有名。' },
+  { e: '🏞️', n: '臺灣最長的河流是淡水河', ok: 0, why: '最長的是濁水溪；淡水河流過臺北，是北部最重要的河流。' },
+  { e: '🌊', n: '日月潭在花蓮縣', ok: 0, why: '日月潭在南投縣，南投是臺灣唯一不靠海的縣。' },
+  { e: '🏖️', n: '墾丁在臺灣的最北邊', ok: 0, why: '墾丁在屏東縣，是臺灣的最南端。' },
+  { e: '🧭', n: '臺灣的東邊是臺灣海峽', ok: 0, why: '臺灣東邊是太平洋，西邊才是臺灣海峽。' },
+  { e: '🏙️', n: '臺北 101 在高雄市', ok: 0, why: '臺北 101 在臺北市信義區。' },
+  { e: '🪨', n: '太魯閣國家公園在臺南市', ok: 0, why: '太魯閣國家公園在花蓮縣，有很壯觀的峽谷。' },
+  { e: '🏰', n: '安平古堡是日本人蓋的', ok: 0, why: '安平古堡（熱蘭遮城）是荷蘭人蓋的。' },
+];
+const HISTORY_Q = { list: HISTORY_ITEMS, key: HISTORY_KEY, title: '🗺️ 臺灣史地大考驗', icon: '🗺️', yes: ['⭕', '對'], no: ['❌', '錯'],
+  ask: (q) => `🗺️ 「${q.n}」，對還是錯？`, intro: '要認真學習唷！我們來考考臺灣的歷史和地理，看你知道多少！',
+  endTalk: (sc, n) => (sc === n ? '全部答對！你是臺灣史地小博士！' : sc >= 3 ? '很棒喔！要認真學習，出去玩也要注意安全唷！' : '沒關係，多看書、多出去走走，就會越來越認識臺灣！'),
+  quitTalk: (n) => `🗺️ 下次再來找${n.name}挑戰！出去玩要注意安全唷！` };
 
 /* ---------------- 電子積木：方陣教室地板上的積木板，看電路接法猜「燈泡會不會亮」 ----------------
    一回 5 題；答完板子上的燈泡真的亮起來（或不亮）。不用老師，走到積木板旁邊按 F 就能玩 */

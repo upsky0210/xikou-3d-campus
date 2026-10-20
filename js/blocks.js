@@ -485,6 +485,11 @@ export function makeBlockNPC(look) {
     box(g, 0.1, 0.5, 0.06, hair, -0.19, 1.14, -0.16);       // 披到胸前的兩撮
     box(g, 0.1, 0.42, 0.06, hair, 0.19, 1.18, -0.16);
   }
+  if (look.bob) {                                           // 齊下巴的短鮑伯頭：後面、兩側蓋到下巴
+    box(g, 0.5, 0.44, 0.08, hair, 0, 1.56, 0.25);
+    box(g, 0.07, 0.4, 0.44, hair, -0.255, 1.56, 0.02);
+    box(g, 0.07, 0.4, 0.44, hair, 0.255, 1.56, 0.02);
+  }
   if (look.bun) {                                           // 往後綁的低髮髻＋臉旁兩撮
     box(g, 0.22, 0.2, 0.14, hair, 0, 1.42, 0.29);
     box(g, 0.14, 0.12, 0.06, hair, 0, 1.43, 0.38);
@@ -537,6 +542,7 @@ export function makeBlockNPC(look) {
     box(g, 0.22, 0.17, 0.09, cloth(look.bag), -0.2, 0.76, -0.12);
   }
   if (look.skirt) box(g, 0.5, 0.62, 0.3, cloth(look.skirt), 0, 0.42, 0);   // 長裙（蓋到腳踝）
+  if (look.shortSkirt) box(g, 0.5, 0.4, 0.3, cloth(look.shortSkirt), 0, 0.6, 0);   // 膝上短裙
   if (look.whistle) {
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), 0.06, 1.2, -0.135);
@@ -578,6 +584,12 @@ export function makeBlockNPC(look) {
       box(rg, 0.035, 0.07, 0.035, M('#e53935'), 0, 0.31, 0);
     } else if (kind === 'shuttle') {                        // 羽毛球（球頭朝上）
       rg.position.set(0, -0.7, -0.08); rg.add(makeShuttle());
+    } else if (kind === 'magazine') {                       // 雜誌（彩色封面朝前，斜斜拿在手上）
+      rg.position.set(0.02, -0.62, -0.2); rg.rotation.set(0, 0, -0.35);
+      box(rg, 0.3, 0.4, 0.02, M('#eef3f6'), 0, 0.12, 0);
+      box(rg, 0.26, 0.24, 0.005, M('#e8823a'), 0.0, 0.17, -0.012);
+      box(rg, 0.1, 0.12, 0.006, M('#c0392b'), 0.07, 0.2, -0.014);
+      box(rg, 0.26, 0.04, 0.005, M('#3a8fd0'), 0, 0.3, -0.012);
     } else if (kind === 'bouquet') {                        // 花束：粉白包裝紙、紅玫瑰＋粉色洋桔梗、小雛菊、紅緞帶（抱在胸前斜斜往上）
       rg.position.set(0.16, -0.42, -0.24); rg.rotation.set(-0.45, 0, -0.35);
       box(rg, 0.16, 0.3, 0.16, M('#f3dcd6'), 0, 0.02, 0);
