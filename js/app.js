@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=193';
-import { furnishFloor } from './furniture.js?v=193';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=193';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=193';
-import { buildCampusWall } from './wall.js?v=193';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=193';
+import { PanoViewer } from './pano.js?v=194';
+import { furnishFloor } from './furniture.js?v=194';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=194';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=194';
+import { buildCampusWall } from './wall.js?v=194';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=194';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3465,6 +3465,7 @@ function updateAct(dt) {
     : !sp ? ''
     : sp.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>'
     : sp.kind === 'toy' ? `${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`
+    : sp.kind === 'sand' ? '🏖️ 玩沙・堆沙堡 <kbd>F</kbd>'
     : sp.kind === 'badminton' ? `🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`
     : sp.kind === 'pingpong' ? `🏓 好啊！跟${sp.npc.name}去地下室打桌球 <kbd>F</kbd>`
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
@@ -3488,6 +3489,7 @@ function doAction() {
   if (act.spot?.kind === 'hoop') startShot(act.spot);
   else if (act.spot?.kind === 'slide') startSlide(act.spot);
   else if (act.spot?.kind === 'toy') startToy(act.spot);
+  else if (act.spot?.kind === 'sand') startSand(act.spot);
   else if (act.spot?.kind === 'badminton') startBadminton(act.spot.npc);
   else if (act.spot?.kind === 'pingpong') startPingpong(act.spot.npc);
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
@@ -5151,6 +5153,97 @@ function startToy(sp) {
       },
     };
   }
+}
+
+/* ---------------- 沙坑（中庭、電腦教室前）：堆沙堡 ----------------
+   每按一次 F 挖一鏟，沙堡長高一層；8 鏟蓋好（插上小旗子），有時候還會挖到小寶物。蓋好再按 F 推平重來，走開就停（沙堡留在原地） */
+
+const SAND_KEY = 'campus-sand-castles';
+const SAND_FINDS = ['🐚 一個貝殼', '🔮 一顆彈珠', '🦖 一隻恐龍小玩具', '🪨 一顆亮亮的小石頭', '🦀 一隻螃蟹沙模'];
+const sandM = new THREE.MeshLambertMaterial({ color: '#e3cf9a' }), sandDk = new THREE.MeshLambertMaterial({ color: '#c9b07a' });
+// 每一層：[寬, 高, 深, x, y, z, 材質]（y 是方塊底部的高度）
+const SAND_STAGES = (() => {
+  const S = [], c4 = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+  S.push([[0.45, 0.1, 0.45, 0, 0, 0]]);                                                     // 一小堆沙
+  S.push([[0.8, 0.18, 0.8, 0, 0, 0]]);                                                      // 方形底座
+  S.push([[0.8, 0.18, 0.08, 0, 0.18, -0.36], [0.8, 0.18, 0.08, 0, 0.18, 0.36], [0.08, 0.18, 0.64, -0.36, 0.18, 0], [0.08, 0.18, 0.64, 0.36, 0.18, 0]]);   // 城牆
+  S.push(c4.map(([a, b]) => [0.18, 0.42, 0.18, a * 0.36, 0.18, b * 0.36]));                // 四個角的塔
+  S.push([[0.34, 0.5, 0.34, 0, 0.18, 0]]);                                                  // 中間的城堡
+  S.push(c4.map(([a, b]) => [0.08, 0.08, 0.08, a * 0.13, 0.68, b * 0.13]));                // 城垛
+  S.push([...c4.map(([a, b]) => [0.22, 0.06, 0.22, a * 0.36, 0.6, b * 0.36]),
+    [0.08, 0.12, 0.01, 0, 0.42, -0.175, 'dk'], [0.12, 0.16, 0.01, 0, 0.18, -0.405, 'dk']]);   // 塔頂、窗戶、城門
+  S.push([[0.02, 0.3, 0.02, 0, 0.68, 0, 'stick'], [0.16, 0.1, 0.01, 0.09, 0.86, 0, 'flag'], [0.08, 0.05, 0.06, 0.3, 0, -0.5, 'shell']]);   // 小旗子、貝殼裝飾
+  return S;
+})();
+const sandMats = { dk: sandDk, stick: new THREE.MeshLambertMaterial({ color: '#8b5a2b' }), flag: new THREE.MeshLambertMaterial({ color: '#e53935' }), shell: new THREE.MeshLambertMaterial({ color: '#f6d6d0' }) };
+const sandCastle = new THREE.Group(); sandCastle.visible = false; scene.add(sandCastle);
+const sandBucket = new THREE.Group();                                       // 紅色小水桶（放在沙堡旁邊）
+{
+  const red = new THREE.MeshLambertMaterial({ color: '#e53935' });
+  const o = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.09, 0.2, 12), red); o.position.y = 0.1; sandBucket.add(o);
+  const s = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.01, 12), sandM); s.position.y = 0.19; sandBucket.add(s);
+  sandBucket.position.set(-0.6, 0, 0.2); sandCastle.add(sandBucket);
+}
+const sandShovel = new THREE.Group();                                        // 藍色小鏟子（拿在右手）
+{
+  const blue = new THREE.MeshLambertMaterial({ color: '#2e7bd6' });
+  const h = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.3, 0.03), blue); h.position.y = 0.05; sandShovel.add(h);
+  const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.13, 0.02), blue); p.position.y = -0.16; sandShovel.add(p);
+  sandShovel.position.set(0, -0.62, -0.08); sandShovel.rotation.x = -0.6;
+}
+let sandParts = [];
+function startSand(sp) {
+  stopAuto();
+  const L = limbs();
+  const done = () => sandParts.length === SAND_STAGES.length;
+  // 第一次（或沙堡已經推平）：在面前、沙坑範圍內找個地方開始蓋
+  if (!sandCastle.visible || done()) {
+    for (const o of sandParts) sandCastle.remove(o);
+    sandParts = [];
+    const yaw = avatar.rotation.y;
+    const x = Math.min(sp.x + sp.w / 2 - 0.7, Math.max(sp.x - sp.w / 2 + 0.7, player.x - Math.sin(yaw) * 0.9));
+    const z = Math.min(sp.z + sp.d / 2 - 0.7, Math.max(sp.z - sp.d / 2 + 0.7, player.z - Math.cos(yaw) * 0.9));
+    sandCastle.position.set(x, sp.y, z); sandCastle.visible = true;
+  }
+  if (L) L.armR.add(sandShovel);
+  avatar.rotation.y = Math.atan2(-(sandCastle.position.x - player.x), -(sandCastle.position.z - player.z));   // 面向沙堡
+  let dig = -1, grow = null, growT = 0;
+  const addStage = () => {
+    const g = new THREE.Group();
+    for (const [w, h, d, x, y, z, m] of SAND_STAGES[sandParts.length]) {
+      const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m ? sandMats[m] : sandM);
+      o.position.set(x, y + h / 2, z); o.castShadow = true; g.add(o);
+    }
+    sandCastle.add(g); sandParts.push(g);
+    grow = g; growT = 0; g.scale.set(1, 0.01, 1);
+    if (done()) {
+      let n = 0; try { n = (+localStorage.getItem(SAND_KEY) || 0) + 1; localStorage.setItem(SAND_KEY, String(n)); } catch { /* 私密模式 */ }
+      const find = Math.random() < 0.5 ? `<br>✨ 挖沙的時候還挖到${SAND_FINDS[Math.random() * SAND_FINDS.length | 0]}！` : '';
+      toast(`🏰 沙堡蓋好了！${n ? `（已經蓋了 ${n} 座）` : ''}${find}`);
+    }
+  };
+  act.busy = {
+    toy: 'sand',
+    get label() { return done() ? '🏰 推平再蓋一座 <kbd>F</kbd>　（走開就停）' : `🏖️ 挖一鏟 <kbd>F</kbd>　沙堡 ${sandParts.length}／${SAND_STAGES.length}`; },
+    tick(dt) {
+      if (dig >= 0) {                                                      // 鏟子往下挖、再往前把沙倒在沙堡上
+        dig += dt;
+        const k = Math.min(1, dig / 0.45);
+        if (L) L.armR.rotation.x = -0.4 - Math.sin(Math.PI * k) * 0.9;
+        if (k >= 1) { dig = -1; addStage(); }
+      } else if (L) L.armR.rotation.x = -0.4;
+      if (L) { L.armL.rotation.x = -0.25; L.legL.rotation.x = L.legR.rotation.x = 0; }
+      if (grow) { growT += dt; grow.scale.y = Math.min(1, growT / 0.25); if (growT > 0.25) grow = null; }
+    },
+    press() {
+      if (dig >= 0) return;
+      if (done()) { this.stop(); startSand(sp); return; }                 // 推平重來
+      dig = 0;
+    },
+    stop() { sandShovel.removeFromParent(); resetPose(); act.busy = null; },
+  };
+  if (!sandParts.length) toast('🏖️ 來堆沙堡！按 F 挖一鏟，8 鏟蓋好一座');
+  if (!done()) act.busy.press();                                        // 一開始就先挖第一鏟
 }
 
 // 籃球：橘色、黑色線

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=193';
+import { Batch, mat, SPOTS } from './blocks.js?v=194';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1619,10 +1619,10 @@ function library(put, fr, room) {
   put(white(), 0.5, 0.4, 0.6, nu + 2.9, A * (W / 2 - 0.3), 0.85);                   // 紫外線殺菌櫃
   for (let k = 0; k < 3; k++) { put(M.dark(), 0.45, 0.05, 0.36, nu + 3.8 + k * 0.75, A * (W / 2 - 0.35), 0.88); put(screenMat(), 0.42, 0.02, 0.32, nu + 3.8 + k * 0.75, A * (W / 2 - 0.38), 0.9); }
   for (let k = 0; k < 3; k++) put.geo(mat('wool', '#c9cdd2'), new THREE.ConeGeometry(0.16, 0.35, 12), nu + 3.6 + k * 1.2, A * (W / 2 - 0.5), 2.3);   // 吊燈
-  // S 形白色矮書櫃（正面展示新書、蝴蝶）
-  const N = 12, sx0 = 3.4, sx1 = 8.2;
+  // S 形白色矮書櫃（正面展示新書、蝴蝶）：南北向、短一點（使用者 10-20：原本東西向橫在中間擋路）
+  const N = 8, sv0 = D * 1.7, sv1 = A * 1.3, su = 6.0;
   for (let i = 0; i < N; i++) {
-    const t0 = i / N, t1 = (i + 1) / N, f = (t) => [sx0 + (sx1 - sx0) * t, Math.sin(t * Math.PI * 1.6) * 0.9 + D * 0.2];
+    const t0 = i / N, t1 = (i + 1) / N, f = (t) => [su + Math.sin(t * Math.PI * 1.6) * 0.45, sv0 + (sv1 - sv0) * t];
     const [ua, va] = f(t0), [ub, vb] = f(t1), len = Math.hypot(ub - ua, vb - va), ang = Math.atan2(vb - va, ub - ua);
     const g = new THREE.BoxGeometry(len + 0.04, 1.0, 0.42); g.rotateY(fr.alongX ? -ang : Math.PI / 2 - ang);
     ds(g, shelfW, (ua + ub) / 2, (va + vb) / 2, 0.5);

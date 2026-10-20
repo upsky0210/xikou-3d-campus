@@ -120,14 +120,15 @@
   // 2F
   // 敬業樓 2、3 樓南排（靠中庭）的教室：主要門口在中庭那側（mainDoor：門牌掛在那邊）；
   //   北排（靠圍牆）的教室：靠圍牆那側的走廊也有門，門牌掛那邊（frameDoors：家具方向照原本只有南門時排）
+  // 2F 溪仔口捷運站那條走廊（z 330～398）只有律動教室、幼兒多功能活動室一開門，其他教室那一側都是牆（使用者 10-20 說明）
   R('2F', 'A', [705, 195, 865, 330], { no: '203', name: '律動教室', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
-  R('2F', 'A', [865, 195, 1055, 330], { no: '204', name: '自然教室一', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', signEnd: 'E' });
-  R('2F', 'A', [1055, 195, 1160, 330], { name: '（準備室）', type: 'storage', doors: 'S', hidden: true });
-  R('2F', 'A', [1160, 195, 1350, 330], { no: '205', name: '自然教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', signEnd: 'E' });
-  R('2F', 'A', [1350, 195, 1510, 330], { no: '206', name: '舞蹈教室', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S' });
+  R('2F', 'A', [865, 195, 1055, 330], { no: '204', name: '自然教室一', type: 'special', doors: 'N', mainDoor: 'N', frameDoors: 'S', signEnd: 'E' });
+  R('2F', 'A', [1055, 195, 1160, 330], { name: '（準備室）', type: 'storage', doors: '', hidden: true });
+  R('2F', 'A', [1160, 195, 1350, 330], { no: '205', name: '自然教室二', type: 'special', doors: 'N', mainDoor: 'N', frameDoors: 'S', signEnd: 'E' });
+  R('2F', 'A', [1350, 195, 1510, 330], { no: '206', name: '舞蹈教室', type: 'special', doors: 'N', mainDoor: 'N', frameDoors: 'S' });
   R('2F', 'A', [705, 398, 865, 545], { no: '212', name: '教師會辦公室', type: 'office', doors: 'S', mainDoor: 'S', solidSides: 'S' });   // 門都開在中庭那側；外牆是彩色文化石「樂學方堂」（沒有窗）
-  R('2F', 'A', [865, 398, 1190, 545], { no: '211', name: '視聽教室', type: 'special', doors: 'NS', mainDoor: 'S' });
-  R('2F', 'A', [1190, 398, 1350, 545], { no: '210', name: '英語教室一', type: 'special', doors: 'NS', mainDoor: 'S' });
+  R('2F', 'A', [865, 398, 1190, 545], { no: '211', name: '視聽教室', type: 'special', doors: 'S', mainDoor: 'S', frameDoors: 'NS' });
+  R('2F', 'A', [1190, 398, 1350, 545], { no: '210', name: '英語教室一', type: 'special', doors: 'S', mainDoor: 'S', frameDoors: 'NS' });
   R('2F', 'A', [1350, 398, 1510, 545], { no: '209', name: '幼兒多功能活動室一', type: 'kinder', doors: 'NS', mainDoor: 'S' });
   R('2F', 'B', [1555, 150, 1690, 330], { name: '露臺（小田園）', type: 'garden', open: true, farm: true });
   R('2F', 'B', [1555, 400, 1690, 480], { name: '廁所', type: 'wc', doors: 'W' });

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=193';
+import { Batch, mat, SPOTS } from './blocks.js?v=194';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -474,6 +474,7 @@ export function buildCourtyard(group, m, FH, base = 0) {
   // 電腦教室前的沙坑：灰色遮陽篷（扇形邊）、藍色柱子、波浪磨石子邊框、彩色橡膠地墊
   const kx = 12.6, kz = m.z1 + 2.9, kw = 5.6, kd = 3.0;
   b.box(mat('wool', '#d8c9a6'), kw, 0.05, kd, kx, 0.03, kz);
+  SPOTS.push({ kind: 'sand', name: '沙坑', x: kx, z: kz, w: kw, d: kd, y: 0.055, r: 2.6, floorY: 0 });   // 可以玩沙（堆沙堡）
   const terr = mat('wool', '#b9b6ae');
   for (let i = 0; i <= 14; i++) {
     const x = kx - kw / 2 + (i / 14) * kw, h = 0.35 + Math.abs(Math.sin(i * 0.9)) * 0.35;
