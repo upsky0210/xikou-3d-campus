@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=202';
-import { furnishFloor } from './furniture.js?v=202';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=202';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=202';
-import { buildCampusWall } from './wall.js?v=202';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=202';
+import { PanoViewer } from './pano.js?v=203';
+import { furnishFloor } from './furniture.js?v=203';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=203';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=203';
+import { buildCampusWall } from './wall.js?v=203';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=203';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3428,9 +3428,9 @@ const NPCS = [
       { floor: '2F', where: '一年三班', game: true, at: () => { const r = rooms.find((x) => x.code === '103'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
     ],
     look: {
-      // 依照片：黑色短髮（旁分、蓋住耳朵）、親切笑容；米白色短袖連身洋裝（打褶長裙到小腿），手提紅色紙袋
+      // 依照片：黑色短髮（旁分、蓋住耳朵）、親切笑容；米白色短袖連身洋裝（打褶長裙到小腿），空手（照片裡的紅色紙袋不放）
       skin: '#f2d2bc', hair: '#1c1616', top: '#f3ead3', pants: '#f3ead3', shoe: '#e8dcc8',
-      bob: true, skirt: '#f3ead3', holdL: 'paperbag',
+      bob: true, skirt: '#f3ead3',
       pal: { H: '#1c1616', h: '#33282a', S: '#f2d2bc', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
       face: [
         'HHHHHHHHHHHHHHHH',
