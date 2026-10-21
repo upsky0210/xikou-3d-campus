@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=199';
-import { furnishFloor } from './furniture.js?v=199';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=199';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=199';
-import { buildCampusWall } from './wall.js?v=199';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=199';
+import { PanoViewer } from './pano.js?v=202';
+import { furnishFloor } from './furniture.js?v=202';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=202';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=202';
+import { buildCampusWall } from './wall.js?v=202';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=202';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3386,6 +3386,72 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '林老師', title: '一年一班導師', game: 'zhuyin',
+    hello: ['🎒 林老師：小朋友早安！今天也要乖乖上課喔！', '✋ 林老師：要發言先舉手，老師叫到再說話！', '🧼 林老師：吃飯前要記得洗手喔！',
+      '🔤 林老師：ㄅㄆㄇ都學會了嗎？來玩「注音符號大闖關」！'],
+    // 2 樓勤學樓一年一班（220 室）：黑板在西邊，老師站講台旁、面向東邊的學生
+    places: [
+      { floor: '2F', where: '一年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '101'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深棕色及肩短髮（旁分瀏海）、溫柔笑容；黑色無袖娃娃裝上衣、領口掛太陽眼鏡、斜背小包（酒紅背帶）、寬版牛仔褲、白球鞋
+      skin: '#f4d4bf', hair: '#3a2a22', top: '#1c1c20', pants: '#5f7fae', shoe: '#f2f2ee',
+      bob: true, sleeveless: true, shades: true, bag: '#5a2232',
+      pal: { H: '#3a2a22', h: '#54402f', S: '#f4d4bf', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f0b0a8', N: '#e2b296', M: '#c0505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHSSSSHH',
+        'HHHHHHHSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '闕老師', title: '一年三班導師', game: 'life',
+    hello: ['😊 闕老師：小朋友好！見到人要記得打招呼喔！', '🚶 闕老師：走廊上要慢慢走，不要奔跑！', '🦷 闕老師：吃完東西記得刷牙、漱口！',
+      '🏠 闕老師：要不要來挑戰「生活大考驗」？看看你是不是生活小達人！'],
+    // 2 樓勤學樓一年三班（222 室）：黑板在西邊，老師站講台旁、面向東邊的學生
+    places: [
+      { floor: '2F', where: '一年三班', game: true, at: () => { const r = rooms.find((x) => x.code === '103'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色短髮（旁分、蓋住耳朵）、親切笑容；米白色短袖連身洋裝（打褶長裙到小腿），手提紅色紙袋
+      skin: '#f2d2bc', hair: '#1c1616', top: '#f3ead3', pants: '#f3ead3', shoe: '#e8dcc8',
+      bob: true, skirt: '#f3ead3', holdL: 'paperbag',
+      pal: { H: '#1c1616', h: '#33282a', S: '#f2d2bc', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSSSSHH',
+        'HHHHHHSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -3645,6 +3711,8 @@ function updateAct(dt) {
     : sp.kind === 'fraction' ? `🧮 幫${sp.npc.name}檢查分數計算 <kbd>F</kbd>`
     : sp.kind === 'blackjack' ? `🃏 跟${sp.npc.name}玩 21 點 <kbd>F</kbd>`
     : sp.kind === 'colors' ? `🎨 跟${sp.npc.name}玩顏色對對碰 <kbd>F</kbd>`
+    : sp.kind === 'zhuyin' ? `🔤 跟${sp.npc.name}玩注音符號大闖關 <kbd>F</kbd>`
+    : sp.kind === 'life' ? `🏠 跟${sp.npc.name}玩生活大考驗 <kbd>F</kbd>`
     : sp.kind === 'blocks' ? '🧩 玩電子積木 <kbd>F</kbd>'
     : sp.kind === 'float' ? `🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`
     : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
@@ -3674,6 +3742,8 @@ function doAction() {
   else if (act.spot?.kind === 'fraction') startFood(act.spot.npc, FRACTION_Q);
   else if (act.spot?.kind === 'blackjack') startBlackjack(act.spot.npc);
   else if (act.spot?.kind === 'colors') startColors(act.spot.npc);
+  else if (act.spot?.kind === 'zhuyin') startZhuyin(act.spot.npc);
+  else if (act.spot?.kind === 'life') startFood(act.spot.npc, LIFE_Q);
   else if (act.spot?.kind === 'blocks') startFood({ name: '電子積木' }, BLOCKS_Q);
   else if (act.spot?.kind === 'baseball') startBaseball(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
@@ -3690,7 +3760,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && ooxxBox.hidden && bjBox.hidden && cmBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && ooxxBox.hidden && bjBox.hidden && cmBox.hidden && zyBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -4187,6 +4257,115 @@ function startRps(n) {
   rpsBox.hidden = false;
   msg(`${n.name}：${n.rpsTalk?.start ?? '來猜拳吧！先贏兩局的人獲勝！'}`);
   ready();
+}
+
+/* ---------------- 注音符號大闖關：在一年一班遇到林老師，三關、每關 4 題、三顆愛心 ----------------
+   第一關「找聲母」：這個字是哪個注音開頭？　第二關「拼拼看」：哪一個是正確的拼音？　第三關「第幾聲」。
+   三個選項（點按鈕或按 1／2／3），答錯扣一顆愛心，愛心用完就結束；記錄最多闖到第幾關。 */
+const ZHUYIN_KEY = 'campus-zhuyin-best';
+// 單字：圖、字、注音（不含聲調）、聲調 1～4；i 是聲母（沒有聲母的字不出第一關）
+const ZY_WORDS = [
+  ['🐱', '貓', 'ㄇㄠ', 1], ['🐶', '狗', 'ㄍㄡ', 3], ['🐮', '牛', 'ㄋㄧㄡ', 2], ['🐦', '鳥', 'ㄋㄧㄠ', 3], ['🐷', '豬', 'ㄓㄨ', 1],
+  ['🐔', '雞', 'ㄐㄧ', 1], ['📖', '書', 'ㄕㄨ', 1], ['🌸', '花', 'ㄏㄨㄚ', 1], ['🐻', '熊', 'ㄒㄩㄥ', 2], ['🍬', '糖', 'ㄊㄤ', 2],
+  ['🌳', '樹', 'ㄕㄨ', 4], ['🥚', '蛋', 'ㄉㄢ', 4], ['🍵', '茶', 'ㄔㄚ', 2], ['🚗', '車', 'ㄔㄜ', 1], ['🐑', '羊', 'ㄧㄤ', 2],
+  ['🐟', '魚', 'ㄩ', 2], ['🐴', '馬', 'ㄇㄚ', 3], ['🍚', '米', 'ㄇㄧ', 3], ['⛰️', '山', 'ㄕㄢ', 1], ['🚪', '門', 'ㄇㄣ', 2],
+  ['💧', '水', 'ㄕㄨㄟ', 3], ['🔥', '火', 'ㄏㄨㄛ', 3], ['🌧️', '雨', 'ㄩ', 3], ['⚽', '球', 'ㄑㄧㄡ', 2], ['⛵', '船', 'ㄔㄨㄢ', 2],
+  ['✏️', '筆', 'ㄅㄧ', 3], ['🦐', '蝦', 'ㄒㄧㄚ', 1], ['💡', '燈', 'ㄉㄥ', 1], ['🧊', '冰', 'ㄅㄧㄥ', 1], ['🎒', '包', 'ㄅㄠ', 1],
+].map(([e, w, py, t]) => ({ e, w, py, t, i: 'ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ'.includes(py[0]) ? py[0] : '' }));
+// 容易搞混的聲母（同一組）、韻母
+const ZY_INIT = ['ㄅㄆㄇㄈ', 'ㄉㄊㄋㄌ', 'ㄍㄎㄏ', 'ㄐㄑㄒ', 'ㄓㄔㄕㄖ', 'ㄗㄘㄙ'];
+const ZY_FINAL = { 'ㄠ': 'ㄡ', 'ㄡ': 'ㄠ', 'ㄢ': 'ㄤ', 'ㄤ': 'ㄢ', 'ㄣ': 'ㄥ', 'ㄥ': 'ㄣ', 'ㄞ': 'ㄟ', 'ㄟ': 'ㄞ', 'ㄛ': 'ㄜ', 'ㄜ': 'ㄛ', 'ㄚ': 'ㄛ', 'ㄧ': 'ㄩ', 'ㄩ': 'ㄧ', 'ㄨ': 'ㄛ' };
+const ZY_TONE = ['', '', 'ˊ', 'ˇ', 'ˋ'], ZY_TONE_NAME = ['', '一聲', '二聲', '三聲', '四聲'];
+const zyText = (py, t) => py + ZY_TONE[t];
+function makeZhuyinLevel(lv) {
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pool = shuffle(ZY_WORDS.filter((w) => lv !== 1 || w.i)).slice(0, 4);
+  return pool.map((w) => {
+    let ans, opts;
+    if (lv === 1) {                                                    // 找聲母：同一組裡挑兩個當干擾
+      const grp = ZY_INIT.find((g) => g.includes(w.i));
+      ans = w.i; opts = [ans, ...shuffle([...grp].filter((c) => c !== ans)).slice(0, 2)];
+      return { w, ask: `「${w.w}」是哪個注音開頭？`, ans, opts: shuffle(opts), why: `${w.w}：${zyText(w.py, w.t)}，開頭是「${w.i}」` };
+    }
+    if (lv === 2) {                                                    // 拼拼看：換一個聲母、換一個韻母
+      ans = zyText(w.py, w.t);
+      const set = new Set([ans]);
+      if (w.i) { const grp = ZY_INIT.find((g) => g.includes(w.i)), o = shuffle([...grp].filter((c) => c !== w.i))[0]; set.add(zyText(o + w.py.slice(1), w.t)); }
+      const last = w.py.at(-1);
+      if (ZY_FINAL[last]) set.add(zyText(w.py.slice(0, -1) + ZY_FINAL[last], w.t));
+      for (const t of shuffle([1, 2, 3, 4])) { if (set.size >= 3) break; set.add(zyText(w.py, t)); }   // 不夠三個就換聲調
+      opts = shuffle([...set].slice(0, 3));
+      return { w, ask: `「${w.w}」要怎麼拼？`, ans, opts, why: `${w.w}：${ans}` };
+    }
+    ans = ZY_TONE_NAME[w.t];                                           // 第幾聲
+    opts = shuffle([ans, ...shuffle([1, 2, 3, 4].filter((t) => t !== w.t)).slice(0, 2).map((t) => ZY_TONE_NAME[t])]);
+    return { w, ask: `「${w.w}」${w.py} 是第幾聲？`, ans, opts, why: `${w.w}：${zyText(w.py, w.t)}，是${ans}` };
+  });
+}
+const zyBox = document.getElementById('zy');
+function startZhuyin(n) {
+  stopAuto();
+  const $ = (sel) => zyBox.querySelector(sel);
+  const btns = [...zyBox.querySelectorAll('[data-k]')];
+  const LV = ['', '找聲母', '拼拼看', '第幾聲'];
+  let lv = 1, qs = makeZhuyinLevel(1), i = 0, hearts = 3, best = 0, locked = false, done = false;
+  try { best = +localStorage.getItem(ZHUYIN_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const save = (v) => { if (v > best) { best = v; try { localStorage.setItem(ZHUYIN_KEY, String(best)); } catch { /* 私密模式 */ } } };
+  const ready = () => {
+    locked = false;
+    const q = qs[i];
+    $('.lv').textContent = `第 ${lv} 關・${LV[lv]}（${i + 1}／${qs.length}）`;
+    $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
+    $('.emo').textContent = q.w.e; $('.word').textContent = q.w.w;
+    $('.ask').textContent = q.ask;
+    btns.forEach((b, k) => { b.disabled = false; b.className = ''; b.innerHTML = `${q.opts[k]}<small>${k + 1}</small>`; });
+  };
+  const finish = () => {
+    done = true; zyBox.hidden = true;
+    updateVisibility();
+    removeEventListener('keydown', onKey, true);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const answer = (k) => {
+    if (locked || done) return;
+    locked = true; btns.forEach((b) => (b.disabled = true));
+    const q = qs[i], right = q.opts[k] === q.ans;
+    btns[q.opts.indexOf(q.ans)].className = 'right';
+    if (!right) { btns[k].className = 'wrong'; hearts--; }
+    $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
+    msg(`${right ? '✅ 答對了！' : '❌ 答錯囉！'}${q.why}`, right ? 'ok' : 'no');
+    npcFace(n, right ? 'happy' : 'surprised', 1.5);
+    setTimeout(() => {
+      if (done) return;
+      if (!hearts) {
+        save(lv - 1); npcFace(n, 'wink', 3); finish();
+        toast(`🔤 闖到第 ${lv} 關，愛心用完了！（最好紀錄：過了 ${best} 關）<br>${n.name}：沒關係，多念幾次就會記住了！`); return;
+      }
+      if (++i < qs.length) { ready(); return; }
+      if (lv === 3) {
+        save(3); npcFace(n, 'happy', 3); finish();
+        toast(`🏅 三關全部過關！你是注音小達人！<br>${n.name}：好棒！給你一個大大的讚！`); return;
+      }
+      save(lv); lv++; qs = makeZhuyinLevel(lv); i = 0;
+      msg(`🎉 過關了！接下來第 ${lv} 關：${LV[lv]}`, 'ok');
+      setTimeout(() => { if (!done) ready(); }, 1200);
+    }, 1800);
+  };
+  const onKey = (e) => {
+    const k = { Digit1: 0, Digit2: 1, Digit3: 2, Numpad1: 0, Numpad2: 1, Numpad3: 2 }[e.code];
+    if (k !== undefined) { e.preventDefault(); e.stopPropagation(); answer(k); }
+  };
+  addEventListener('keydown', onKey, true);
+  btns.forEach((b, k) => (b.onclick = () => answer(k)));
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`🔤 下次再來找${n.name}闖關！`); } };
+  act.busy = { label: '🔤 注音闖關中…', tick() {} };
+  zyBox.hidden = false;
+  ready();
+  msg(`${n.name}：一共三關，答錯會少一顆愛心，加油！`);
 }
 
 /* ---------------- 顏色對對碰：在六年五班遇到丁老師，翻牌配對（混色） ----------------
@@ -4811,6 +4990,33 @@ const FRACTION_Q = { get list() { return makeFractionItems(); }, key: FRACTION_K
   ask: () => '🧮 黃老師在黑板上算了這一題，算對還是算錯？', intro: '老師在黑板上算了幾題分數，幫我檢查看看！算的時候要專心，一次做好一件事！',
   endTalk: (sc, n) => (sc === n ? '全部答對！分數難不倒你，六年一班最棒！' : sc >= 3 ? '很不錯喔！記得先通分、再計算，最後約分！' : '沒關係，分數就像切壽司，慢慢想就會懂！'),
   quitTalk: (n) => `🧮 下次再來找${n.name}算分數！` };
+
+/* ---------------- 生活大考驗（低年級）：在一年三班遇到闕老師，「這樣做對不對？」一回 5 題 ---------------- */
+const LIFE_KEY = 'campus-life-best';
+const LIFE_ITEMS = [
+  { e: '🧼', n: '吃飯前先用肥皂洗手', ok: 1, why: '用肥皂把手洗乾淨，細菌就不會跑進肚子裡。' },
+  { e: '🚦', n: '過馬路走斑馬線，看清楚紅綠燈', ok: 1, why: '綠燈亮了、左右看看沒有車，再走斑馬線過馬路。' },
+  { e: '🙋', n: '上課想說話，先舉手', ok: 1, why: '先舉手，老師叫到再說，大家才聽得清楚。' },
+  { e: '♻️', n: '喝完的寶特瓶沖乾淨，再拿去資源回收', ok: 1, why: '沖乾淨再回收，垃圾變資源，地球會更乾淨！' },
+  { e: '🦷', n: '睡覺前刷牙', ok: 1, why: '睡前刷牙，牙齒才不會蛀掉。' },
+  { e: '🙏', n: '別人幫忙我的時候，說「謝謝」', ok: 1, why: '說謝謝是有禮貌的好孩子！' },
+  { e: '🤧', n: '打噴嚏的時候，用衛生紙或手肘遮住', ok: 1, why: '遮住口鼻，病菌才不會傳給別人。' },
+  { e: '💧', n: '口渴的時候喝白開水', ok: 1, why: '白開水最健康，身體最需要水。' },
+  { e: '🧹', n: '輪到打掃的時候，認真把地掃乾淨', ok: 1, why: '大家一起打掃，教室乾乾淨淨好舒服。' },
+  { e: '🏃', n: '下課在走廊上奔跑、追來追去', ok: 0, why: '在走廊跑很容易撞到人、跌倒，要慢慢走。' },
+  { e: '🍬', n: '不認識的人給我糖果，就跟他走', ok: 0, why: '不可以跟陌生人走！要馬上告訴老師或爸爸媽媽。' },
+  { e: '🔌', n: '手濕濕的去摸插頭', ok: 0, why: '水會導電，濕手摸插頭會觸電，很危險！' },
+  { e: '🍱', n: '吃完的便當盒丟在地上', ok: 0, why: '垃圾要丟進垃圾桶，或做好分類回收。' },
+  { e: '🧃', n: '每天都用含糖飲料代替喝水', ok: 0, why: '含糖飲料喝太多會蛀牙、變胖，口渴要喝白開水。' },
+  { e: '📱', n: '玩手機玩到很晚才睡覺', ok: 0, why: '早睡早起身體好，眼睛也要休息。' },
+  { e: '🪑', n: '站在椅子上搖來搖去', ok: 0, why: '椅子會倒下來，很容易受傷！' },
+  { e: '🚰', n: '洗完手，水龍頭開著不關', ok: 0, why: '要隨手關緊水龍頭，節約用水。' },
+  { e: '🗣️', n: '別人在說話時，一直插嘴', ok: 0, why: '要等別人說完再說，這是好禮貌。' },
+];
+const LIFE_Q = { list: LIFE_ITEMS, key: LIFE_KEY, title: '🏠 生活大考驗：這樣做對不對？', icon: '🏠', yes: ['⭕', '對'], no: ['❌', '不對'],
+  ask: (q) => `🏠 「${q.n}」，這樣做對不對？`, intro: '我們來看看，你是不是生活小達人！想一想，這樣做對不對？',
+  endTalk: (sc, n) => (sc === n ? '全部答對！你是生活小達人！' : sc >= 3 ? '很棒喔！在家裡、在學校都要記得這樣做！' : '沒關係，記住老師說的，下次一定會更好！'),
+  quitTalk: (n) => `🏠 下次再來找${n.name}挑戰喔！` };
 
 /* ---------------- 電子積木：方陣教室地板上的積木板，看電路接法猜「燈泡會不會亮」 ----------------
    一回 5 題；答完板子上的燈泡真的亮起來（或不亮）。不用老師，走到積木板旁邊按 F 就能玩 */

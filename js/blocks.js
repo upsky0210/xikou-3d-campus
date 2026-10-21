@@ -531,6 +531,11 @@ export function makeBlockNPC(look) {
     P(0.04, 0.04, '#222222', -0.03, 0.89);
     P(0.06, 0.035, '#f6d24a', -0.0, 0.85);
   }
+  if (look.shades) {                                        // 掛在領口的太陽眼鏡
+    const sm = cloth('#1c1c22');
+    for (const s of [-1, 1]) box(g, 0.07, 0.05, 0.012, sm, 0.04 + s * 0.045, 1.2, -0.14);
+    box(g, 0.03, 0.012, 0.012, sm, 0.04, 1.215, -0.14);
+  }
   if (look.camera) {                                        // 脖子上掛的相機：兩條米灰色背帶（咖啡色皮扣）垂到肚子前、黑色小相機
     const sm = cloth('#b8b0a0'), lm = cloth('#8a5a3a');
     for (const s of [-1, 1]) { box(g, 0.05, 0.42, 0.012, sm, s * 0.12, 1.08, -0.138); box(g, 0.055, 0.06, 0.014, lm, s * 0.12, 0.92, -0.139); }
@@ -615,6 +620,11 @@ export function makeBlockNPC(look) {
       box(rg, 0.035, 0.07, 0.035, M('#e53935'), 0, 0.31, 0);
     } else if (kind === 'shuttle') {                        // 羽毛球（球頭朝上）
       rg.position.set(0, -0.7, -0.08); rg.add(makeShuttle());
+    } else if (kind === 'paperbag') {                       // 紅色紙提袋（白字），提在手上垂下來
+      rg.position.set(0, -0.72, 0);
+      box(rg, 0.012, 0.12, 0.012, M('#b71c1c'), 0, -0.02, -0.03); box(rg, 0.012, 0.12, 0.012, M('#b71c1c'), 0, -0.02, 0.03);
+      box(rg, 0.1, 0.36, 0.26, M('#e53935'), 0, -0.26, 0);
+      box(rg, 0.105, 0.2, 0.03, M('#fbe9e7'), 0, -0.26, -0.06);
     } else if (kind === 'magazine') {                       // 雜誌（彩色封面朝前，斜斜拿在手上）
       rg.position.set(0.02, -0.62, -0.2); rg.rotation.set(0, 0, -0.35);
       box(rg, 0.3, 0.4, 0.02, M('#eef3f6'), 0, 0.12, 0);
