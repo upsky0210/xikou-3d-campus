@@ -247,7 +247,7 @@
   body.mc button:hover { filter: brightness(1.12); }
   body.mc button:disabled { background: #555; color: #999; text-shadow: none; filter: none; }
   /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
-  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #flute button, body.mc #food button, body.mc #bb button { text-shadow: none; }
+  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #flute button, body.mc #food button, body.mc #bb button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
   body.mc .iconbtn.primary, body.mc #info .acts [data-act=go], body.mc #results button, body.mc #pano .ctrl .audio {
@@ -312,7 +312,39 @@
   #ooxx .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; }
   #ooxx .msg.ok { color: #1b8a3a; } #ooxx .msg.no { color: #c0392b; }
   #ooxx .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
-  /* 直笛記憶（小瑜老師）：一樣放在畫面下方 */  #flute { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
+  /* 顏色對對碰（丁老師）：4×3 翻牌 */
+  #cm { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(360px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
+  #cm .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #cm .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 6px 0; }
+  #cm .cc { height: 62px; border-radius: 9px; background: #6c5ce7; color: #fff; padding: 2px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px; line-height: 1; }
+  #cm .cc .q { font-size: 24px; }
+  #cm .cc.up { background: #fbf7ee; color: #333; }
+  #cm .cc.ok { background: #e6f6dc; box-shadow: inset 0 0 0 2px #6abf4b; }
+  #cm .cc i { display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 1px solid #999; }
+  #cm .cc i.big { width: 30px; height: 30px; }
+  #cm .cc b { font-size: 12px; }
+  #cm .cc small { flex-basis: 100%; font-size: 11px; font-weight: 700; }
+  #cm .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; }
+  #cm .msg.ok { color: #1b8a3a; } #cm .msg.no { color: #c0392b; }
+  #cm .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
+  /* 21 點（蔡老師）：一樣放在畫面下方 */
+  #bj { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(340px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
+  #bj .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #bj .hand { display: flex; align-items: center; gap: 8px; margin: 4px 0; text-align: left; }
+  #bj .hand small { width: 44px; flex: none; color: #777; font-size: 11px; font-weight: 700; }
+  #bj .cards { flex: 1; display: flex; flex-wrap: wrap; gap: 3px; min-height: 34px; }
+  #bj .card { display: inline-block; min-width: 30px; padding: 4px 3px; border: 1px solid #ccc; border-radius: 5px; background: #fffef8; font-size: 15px; font-weight: 800; text-align: center; }
+  #bj .card.back { background: #3b5bab; color: #fff; }
+  #bj .pt { width: 58px; flex: none; font-size: 13px; font-weight: 900; text-align: right; }
+  #bj .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; }
+  #bj .msg.ok { color: #1b8a3a; } #bj .msg.no { color: #c0392b; }
+  #bj .btns { display: flex; gap: 6px; justify-content: center; }
+  #bj .btns button { font-size: 14px; font-weight: 800; padding: 6px 12px; border-radius: 10px; background: #8fdc2c; }
+  #bj .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; }
+  /* 直笛記憶（小瑜老師）：一樣放在畫面下方 */
+  #flute { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 10px 8px; text-align: center; }
   #flute .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
   #flute .top b { color: #6e5233; }
@@ -360,7 +392,7 @@
   #bb .btns { display: flex; gap: 6px; justify-content: center; }
   #bb .btns button { padding: 7px 16px; font-weight: 700; border-radius: 10px; background: #1f3a7a; color: #fff; font-size: 15px; }
   #bb .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #flute, body.mc #food, body.mc #bb {
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #bj, body.mc #cm, body.mc #flute, body.mc #food, body.mc #bb {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -546,7 +578,21 @@
   <div class="msg"></div>
   <button class="quit">結束 Esc</button>
 </div>
-<div id="flute" hidden>  <div class="top"><span>🎵 直笛記憶・<b class="lv"></b></span><span class="lives"></span></div>
+<div id="cm" hidden>
+  <div class="top"><span>🎨 顏色對對碰・<b class="who"></b></span><span class="flips"></span></div>
+  <div class="grid"></div>
+  <div class="msg"></div>
+  <button class="quit">結束 Esc</button>
+</div>
+<div id="bj" hidden>
+  <div class="top"><span>🃏 21 點・最接近 21 的贏</span><span class="wins"></span></div>
+  <div class="hand them"><small class="who"></small><div class="cards"></div><span class="pt"></span></div>
+  <div class="hand me"><small>你</small><div class="cards"></div><span class="pt"></span></div>
+  <div class="msg"></div>
+  <div class="btns"><button class="hit">要牌 1</button><button class="stand">停牌 2</button><button class="again" hidden>再玩一局 1</button><button class="quit">結束 Esc</button></div>
+</div>
+<div id="flute" hidden>
+  <div class="top"><span>🎵 直笛記憶・<b class="lv"></b></span><span class="lives"></span></div>
   <div class="prog"></div>
   <div class="msg"></div>
   <div class="keys"></div>
@@ -713,8 +759,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=196"></script>
-<script src="js/pano-data.js?v=196"></script>
-<script type="module" src="js/app.js?v=196"></script>
+<script src="js/campus-data.js?v=199"></script>
+<script src="js/pano-data.js?v=199"></script>
+<script type="module" src="js/app.js?v=199"></script>
 </body>
 </html>

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=196';
-import { furnishFloor } from './furniture.js?v=196';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=196';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=196';
-import { buildCampusWall } from './wall.js?v=196';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=196';
+import { PanoViewer } from './pano.js?v=199';
+import { furnishFloor } from './furniture.js?v=199';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=199';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=199';
+import { buildCampusWall } from './wall.js?v=199';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=199';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2674,6 +2674,8 @@ function updateTurtles(t, dt) {
 // 樂樂棒球場（操場遊戲場西邊草地）：本壘在南、投手丘在北（打出去的球往操場飛）；校長的位置會用到，要先宣告
 const BB = { home: { x: -28, z: 77 }, mound: { x: -28, z: 70.5 }, side: 7 };
 // Teacher Angela 在科任教師辦公室站的地方
+// 思源樓（D）教室門在東、教室前後對調：黑板在南，老師站在黑板前面、面向學生（北）
+const D_CLASS_FRONT = (r) => [r.cx - 0.6, r.m.z2 - 1.6, 0];
 const ANGELA_OFFICE = { x: (r) => r.cx + 1.2, z: (r) => r.cz + 2.6 };   // 靠門口那片空地（辦公桌之間太窄，猜拳時學生站不下）
 const NPCS = [
   {
@@ -3252,6 +3254,138 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '黃老師', title: '六年一班導師', game: 'fraction',
+    hello: ['☝️ 黃老師：做事情要專心，一次做好一件事！', '🍣 黃老師：分數就像切壽司，切得越多塊，每一塊就越小喔！', '💪 黃老師：六年一班，加油！',
+      '🧮 黃老師：老師在黑板上算了幾題分數，要不要來幫我檢查？'],
+    // 4 樓思源樓六年一班（406 室）教室前面，面向學生
+    places: [
+      { floor: '4F', where: '六年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '601'); return D_CLASS_FRONT(r); } },
+    ],
+    look: {
+      // 依照片：黑色短髮、橘色頭巾綁額頭、紅色變形蟲領巾；黃色短袖 T 恤套紫色長袖、胸前不織布壽司拼貼，比「一」的手勢
+      skin: '#eac2a0', hair: '#1c1816', top: '#f6b81e', pants: '#2a2a30', shoe: '#2a2a2a',
+      shortHair: true, longSleeve: true, sleeve: '#5b4f9e', headband: '#f39a6b', neckerchief: '#d8262e', sushi: true,
+      pal: { H: '#1c1816', h: '#2e2622', S: '#eac2a0', B: '#2a2018', E: '#1e130d', N: '#d4a684', M: '#9c4a3e' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HSSSSSSSSSSSSSSH',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSBBBSSSSSSBBBSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSEESSSSSSEESSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSMMMMSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
+    name: '蔡老師', title: '六年二班導師', game: 'blackjack',
+    hello: ['✌️ 蔡老師：今天也要開開心心的喔！', '📝 蔡老師：作業寫完要記得檢查，再交給老師！', '🧸 蔡老師：同學之間要互相幫忙！',
+      '🃏 蔡老師：要不要跟老師玩一局撲克牌 21 點？順便練習加法！'],
+    // 4 樓思源樓六年二班（407 室）教室前面，面向學生
+    places: [
+      { floor: '4F', where: '六年二班', game: true, at: () => { const r = rooms.find((x) => x.code === '602'); return D_CLASS_FRONT(r); } },
+    ],
+    look: {
+      // 依照片：黑色長直髮、齊瀏海、紅色變形蟲頭巾、燦爛笑容；白色高領長袖外面套深灰色短袖 T 恤（咖啡色小熊圖案）、黑色長褲
+      skin: '#f6d8c6', hair: '#1a1515', top: '#64676c', pants: '#1d1d20', shoe: '#2a2a2a',
+      longHair: true, longSleeve: true, sleeve: '#f4f4f2', collar: '#f4f4f2', headband: '#d8262e', bear: true,
+      pal: { H: '#1a1515', h: '#2e2424', S: '#f6d8c6', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f2b2b0', N: '#e6b8a2', M: '#c0505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHhHHHHhHHHhHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '戴老師', title: '六年四班導師', game: 'pingpong', ppBack: '流完汗記得喝水，休息一下再上課！',
+    hello: ['📸 戴老師：笑一個！老師幫你拍張照～', '🏃 戴老師：下課多出去走走，運動流汗身體好！', '🙌 戴老師：六年四班，一起加油！',
+      '🏓 戴老師：要不要一起去地下室打桌球？'],
+    // 4 樓勤學樓六年四班（411 室）：跟五年一班一樣黑板在西邊，老師站講台旁、面向東邊的學生
+    places: [
+      { floor: '4F', where: '六年四班', game: true, at: () => { const r = rooms.find((x) => x.code === '604'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色短髮（往上抓）、燦爛笑容；藍綠色短袖 T 恤、紅色變形蟲領巾、脖子掛著黑色相機（米灰色背帶）
+      skin: '#eec7a6', hair: '#1a1614', top: '#1f9a96', pants: '#2a2a30', shoe: '#2a2a2a',
+      shortHair: true, neckerchief: '#d8262e', camera: true,
+      pal: { H: '#1a1614', h: '#2e2622', S: '#eec7a6', B: '#1a1614', E: '#1e130d', N: '#d8ac8a', M: '#9c3b34', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHhHHHHHHhHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HSSHHHHHHHHHSSSH',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSBBBSSSSSSBBBSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSEESSSSSSEESSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSMMMMMMMMMMSSS',
+        'SSSMTTTTTTTTMSSS',
+        'SSSSMMMMMMMMSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
+    name: '丁老師', title: '六年五班導師', game: 'colors',
+    hello: ['🖐️ 丁老師：嗨！給老師一個擊掌！', '🌈 丁老師：每個人都有自己的顏色，都很棒喔！', '📖 丁老師：上課前，先把課本準備好！',
+      '🎨 丁老師：要不要來玩「顏色對對碰」？猜猜看兩種顏色混在一起會變成什麼！'],
+    // 4 樓勤學樓六年五班（412 室）：黑板在西邊，老師站講台旁、面向東邊的學生
+    places: [
+      { floor: '4F', where: '六年五班', game: true, at: () => { const r = rooms.find((x) => x.code === '605'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色長直髮（旁分、沒有瀏海）、溫柔笑容；深藍黑色短袖 T 恤套深藍紫長袖、紅色變形蟲領巾
+      skin: '#f4d4bf', hair: '#1a1515', top: '#1e2130', pants: '#1e2130', shoe: '#2a2a2a',
+      longHair: true, longSleeve: true, sleeve: '#2c2c5e', neckerchief: '#d8262e',
+      pal: { H: '#1a1515', h: '#2e2424', S: '#f4d4bf', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#f0b0a8', N: '#e2b296', M: '#c0505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHHHHHH',
+        'HHHHHHSSSSHHHHHH',
+        'HHHHHSSSSSSSHHHH',
+        'HHHHSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -3508,6 +3642,9 @@ function updateAct(dt) {
     : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
     : sp.kind === 'heat' ? `🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`
     : sp.kind === 'history' ? `🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`
+    : sp.kind === 'fraction' ? `🧮 幫${sp.npc.name}檢查分數計算 <kbd>F</kbd>`
+    : sp.kind === 'blackjack' ? `🃏 跟${sp.npc.name}玩 21 點 <kbd>F</kbd>`
+    : sp.kind === 'colors' ? `🎨 跟${sp.npc.name}玩顏色對對碰 <kbd>F</kbd>`
     : sp.kind === 'blocks' ? '🧩 玩電子積木 <kbd>F</kbd>'
     : sp.kind === 'float' ? `🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`
     : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
@@ -3534,6 +3671,9 @@ function doAction() {
   else if (act.spot?.kind === 'float') startFood(act.spot.npc, FLOAT_Q);
   else if (act.spot?.kind === 'heat') startFood(act.spot.npc, HEAT_Q);
   else if (act.spot?.kind === 'history') startFood(act.spot.npc, HISTORY_Q);
+  else if (act.spot?.kind === 'fraction') startFood(act.spot.npc, FRACTION_Q);
+  else if (act.spot?.kind === 'blackjack') startBlackjack(act.spot.npc);
+  else if (act.spot?.kind === 'colors') startColors(act.spot.npc);
   else if (act.spot?.kind === 'blocks') startFood({ name: '電子積木' }, BLOCKS_Q);
   else if (act.spot?.kind === 'baseball') startBaseball(act.spot.npc);
   else if (act.spot?.kind === 'paint') startPaint(act.spot.npc);
@@ -3550,7 +3690,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && ooxxBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && ooxxBox.hidden && bjBox.hidden && cmBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -3626,7 +3766,7 @@ function startPingpong(n) {
       setTimeout(() => {                                               // 打完：一起回教室
         placeNPC(n, home.f, home.pos.x, home.pos.z, home.yaw); n.label.visible = true;
         placeAt(home.f, home.px, home.pz, home.pyaw);
-        toast(`🏓 回到教室囉！${n.name}：請保持安靜～`);
+        toast(`🏓 回到教室囉！${n.name}：${n.ppBack ?? '請保持安靜～'}`);
       }, 400);
     } });
 }
@@ -4049,6 +4189,164 @@ function startRps(n) {
   ready();
 }
 
+/* ---------------- 顏色對對碰：在六年五班遇到丁老師，翻牌配對（混色） ----------------
+   12 張牌蓋著：6 張是「兩種顏色混在一起」，6 張是混出來的顏色。一次翻兩張，混色和結果配成一對就留著；
+   全部配完看翻了幾次，記錄最少次數。 */
+const COLOR_KEY = 'campus-colors-best';
+const COLOR_MIX = [
+  { a: ['#e53935', '紅'], b: ['#fdd835', '黃'], c: ['#fb8c00', '橙色'] },
+  { a: ['#fdd835', '黃'], b: ['#1e88e5', '藍'], c: ['#43a047', '綠色'] },
+  { a: ['#e53935', '紅'], b: ['#1e88e5', '藍'], c: ['#8e24aa', '紫色'] },
+  { a: ['#e53935', '紅'], b: ['#ffffff', '白'], c: ['#f8a5c2', '粉紅色'] },
+  { a: ['#1e88e5', '藍'], b: ['#ffffff', '白'], c: ['#8ecdf5', '淺藍色'] },
+  { a: ['#212121', '黑'], b: ['#ffffff', '白'], c: ['#9e9e9e', '灰色'] },
+];
+const cmBox = document.getElementById('cm');
+function startColors(n) {
+  stopAuto();
+  const $ = (sel) => cmBox.querySelector(sel);
+  const grid = $('.grid');
+  let best = 0, flips = 0, matched = 0, open = [], lock = false, done = false;
+  try { best = +localStorage.getItem(COLOR_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const dot = (c) => `<i style="background:${c[0]}"></i>`;
+  const cards = COLOR_MIX.flatMap((m, k) => [
+    { k, html: `${dot(m.a)}<b>＋</b>${dot(m.b)}<small>${m.a[1]}＋${m.b[1]}</small>` },
+    { k, html: `<i class="big" style="background:${m.c[0]}"></i><small>${m.c[1]}</small>` },
+  ]);
+  for (let i = cards.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [cards[i], cards[j]] = [cards[j], cards[i]]; }
+  grid.innerHTML = '';
+  cards.forEach((cd) => {
+    const b = document.createElement('button'); b.className = 'cc'; b.innerHTML = '<span class="q">🎨</span>';
+    b.onclick = () => flip(cd, b); grid.appendChild(b);
+  });
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const show = () => { $('.flips').textContent = `翻了 ${flips} 次${best ? `・最少 ${best} 次` : ''}`; };
+  const finish = () => {
+    done = true; cmBox.hidden = true;
+    updateVisibility();
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const flip = (cd, b) => {
+    if (lock || done || b.classList.contains('up')) return;
+    b.classList.add('up'); b.innerHTML = cd.html;
+    open.push([cd, b]);
+    if (open.length < 2) return;
+    flips++; show();
+    const [[c1, b1], [c2, b2]] = open; open = [];
+    if (c1.k === c2.k) {
+      matched++; b1.classList.add('ok'); b2.classList.add('ok');
+      const m = COLOR_MIX[c1.k];
+      msg(`✅ 答對了！${m.a[1]}色＋${m.b[1]}色＝${m.c[1]}`, 'ok'); npcFace(n, 'happy', 1.5);
+      if (matched === COLOR_MIX.length) {
+        if (!best || flips < best) { best = flips; try { localStorage.setItem(COLOR_KEY, String(best)); } catch { /* 私密模式 */ } }
+        npcFace(n, 'surprised', 3);
+        setTimeout(() => { if (done) return; finish(); toast(`🎨 全部配對完成！翻了 ${flips} 次（最少紀錄：${best} 次）<br>${n.name}：${flips <= 8 ? '哇！你是調色小天才！' : '好棒！下次記住每張牌的位置，會更快喔！'}`); }, 1500);
+      }
+    } else {
+      lock = true; msg('❌ 不是一對，記住它們的位置！', 'no'); npcFace(n, 'wink', 1.2);
+      setTimeout(() => { if (done) return; for (const x of [b1, b2]) { x.classList.remove('up'); x.innerHTML = '<span class="q">🎨</span>'; } lock = false; msg('再翻兩張看看！'); }, 1100);
+    }
+  };
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`🎨 下次再來找${n.name}玩顏色對對碰！`); } };
+  act.busy = { label: '🎨 顏色對對碰中…', tick() {} };
+  $('.who').textContent = n.name;
+  cmBox.hidden = false;
+  show();
+  msg(`${n.name}：翻兩張牌，找出「混色」和「混出來的顏色」配成一對！`);
+}
+
+/* ---------------- 撲克牌 21 點：在六年二班遇到蔡老師，老師當莊家 ----------------
+   你和老師各發兩張牌（老師一張蓋著）；按「要牌」（1）多拿一張、「停牌」（2）就換老師。點數加起來最接近 21 的贏，超過 21 就爆掉。
+   A 算 1 或 11、J Q K 算 10；老師不到 17 點一定要再拿牌。 */
+const BJ_KEY = 'campus-blackjack-wins';
+const bjBox = document.getElementById('bj');
+function startBlackjack(n) {
+  stopAuto();
+  const $ = (sel) => bjBox.querySelector(sel);
+  let wins = 0, deck = [], me = [], them = [], phase = 'play', done = false, timer = 0;
+  try { wins = +localStorage.getItem(BJ_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const SUITS = [['♠', '#222'], ['♥', '#d32f2f'], ['♦', '#d32f2f'], ['♣', '#222']], RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  const newDeck = () => { deck = SUITS.flatMap((s) => RANKS.map((r) => ({ r, s }))); for (let i = deck.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [deck[i], deck[j]] = [deck[j], deck[i]]; } };
+  const val = (r) => (r === 'A' ? 1 : 'JQK'.includes(r) ? 10 : +r);
+  const total = (h) => { let t = h.reduce((s, c) => s + val(c.r), 0); if (h.some((c) => c.r === 'A') && t + 10 <= 21) t += 10; return t; };
+  const cardHtml = (c, hide) => (hide ? '<span class="card back">🂠</span>' : `<span class="card" style="color:${c.s[1]}">${c.s[0]}${c.r}</span>`);
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const draw = () => {
+    const hide = phase === 'play';
+    $('.them .cards').innerHTML = them.map((c, i) => cardHtml(c, hide && i === 1)).join('');
+    $('.them .pt').textContent = hide ? `${val(them[0].r) === 1 ? 'A' : val(them[0].r)} ＋ ？` : `${total(them)} 點`;
+    $('.me .cards').innerHTML = me.map((c) => cardHtml(c)).join('');
+    $('.me .pt').textContent = `${total(me)} 點`;
+    $('.wins').textContent = `贏老師 ${wins} 次`;
+    $('.hit').hidden = $('.stand').hidden = phase !== 'play';
+    $('.again').hidden = phase !== 'over';
+  };
+  const finish = () => {
+    done = true; clearTimeout(timer); bjBox.hidden = true;
+    updateVisibility();
+    removeEventListener('keydown', onKey, true);
+    for (const k of ['armL', 'armR']) n.g.userData.limbs[k].rotation.set(0, 0, 0);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const over = (text, cls, face, win) => {
+    phase = 'over';
+    if (win) { wins++; try { localStorage.setItem(BJ_KEY, String(wins)); } catch { /* 私密模式 */ } }
+    draw(); msg(text, cls); npcFace(n, face, 2.5);
+  };
+  const settle = () => {
+    const a = total(me), b = total(them);
+    if (b > 21) over(`🎉 ${n.name} ${b} 點爆掉了！你贏了！`, 'ok', 'surprised', true);
+    else if (a > b) over(`🎉 你 ${a} 點、${n.name} ${b} 點，你贏了！`, 'ok', 'sad', true);
+    else if (a < b) over(`😝 你 ${a} 點、${n.name} ${b} 點，老師贏了！`, 'no', 'tongue');
+    else over(`🤝 都是 ${a} 點，平手！`, '', 'wink');
+  };
+  // 老師翻牌，不到 17 點就一張一張拿
+  const dealerTurn = () => {
+    phase = 'dealer'; draw(); msg(`${n.name}翻牌：${total(them)} 點`);
+    const step = () => {
+      if (done) return;
+      if (total(them) < 17) {
+        them.push(deck.pop()); n.g.userData.limbs.armR.rotation.x = 1.2; draw(); msg(`${n.name}再拿一張…${total(them)} 點`);
+        timer = setTimeout(() => { n.g.userData.limbs.armR.rotation.x = 0; step(); }, 800);
+      } else settle();
+    };
+    timer = setTimeout(step, 800);
+  };
+  const deal = () => {
+    newDeck(); me = [deck.pop(), deck.pop()]; them = [deck.pop(), deck.pop()]; phase = 'play';
+    draw();
+    if (total(me) === 21) { phase = 'dealer'; draw(); if (total(them) === 21) over('🤝 兩個人都是 21 點，平手！', '', 'surprised'); else over('🌟 一拿到就是 21 點！你贏了！', 'ok', 'surprised', true); return; }
+    msg('要再拿一張牌（要牌），還是不拿了（停牌）？');
+  };
+  const hit = () => {
+    if (phase !== 'play') return;
+    me.push(deck.pop()); draw();
+    const t = total(me);
+    if (t > 21) over(`💥 ${t} 點，超過 21 點爆掉了！老師贏了`, 'no', 'tongue');
+    else if (t === 21) dealerTurn();
+    else msg(`你現在 ${t} 點，要牌還是停牌？`);
+  };
+  const stand = () => { if (phase === 'play') dealerTurn(); };
+  const onKey = (e) => {
+    if (e.code === 'Digit1' || e.code === 'Numpad1') { e.preventDefault(); e.stopPropagation(); phase === 'over' ? deal() : hit(); }
+    else if (e.code === 'Digit2' || e.code === 'Numpad2') { e.preventDefault(); e.stopPropagation(); stand(); }
+  };
+  addEventListener('keydown', onKey, true);
+  $('.hit').onclick = hit; $('.stand').onclick = stand; $('.again').onclick = deal;
+  $('.quit').onclick = () => duel?.quit();
+  duel = { quit() { finish(); toast(`🃏 下次再來找${n.name}玩 21 點！（已經贏老師 ${wins} 次）`); } };
+  act.busy = { label: '🃏 21 點進行中…', tick() {} };
+  $('.who').textContent = n.name;
+  bjBox.hidden = false;
+  deal();
+  if (phase === 'play') msg(`${n.name}：比比看誰最接近 21 點，超過就爆掉喔！要牌還是停牌？`);
+}
+
 /* ---------------- OOXX（井字遊戲）：在三年四班遇到杜老師，你畫 ⭕ 先下、老師畫 ❌ ----------------
    點格子或按 1～9（跟格子上的數字一樣）；先連成一條線（橫、直、斜）就贏。簡易版：老師有時候會忘記擋你。 */
 
@@ -4455,6 +4753,64 @@ const HISTORY_Q = { list: HISTORY_ITEMS, key: HISTORY_KEY, title: '🗺️ 臺�
   ask: (q) => `🗺️ 「${q.n}」，對還是錯？`, intro: '要認真學習唷！我們來考考臺灣的歷史和地理，看你知道多少！',
   endTalk: (sc, n) => (sc === n ? '全部答對！你是臺灣史地小博士！' : sc >= 3 ? '很棒喔！要認真學習，出去玩也要注意安全唷！' : '沒關係，多看書、多出去走走，就會越來越認識臺灣！'),
   quitTalk: (n) => `🗺️ 下次再來找${n.name}挑戰！出去玩要注意安全唷！` };
+
+/* ---------------- 分數計算：在六年一班遇到黃老師，老師在黑板上算了一題，幫老師檢查「算對還是算錯」 ----------------
+   每次隨機出題（異分母加減、分數乘法、分數除法、整數乘分數）；算錯的題目是常見的錯法（分子加分子、分母加分母、除法忘了倒過來…） */
+const FRACTION_KEY = 'campus-fraction-best';
+const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
+// 約分後寫成「a/b」、「整數」或「帶分數（1又1/6）」
+function fracText(n, d) {
+  const g = gcd(n, d); n /= g; d /= g;
+  if (d === 1) return `${n}`;
+  return n > d ? `${Math.floor(n / d)}又${n % d}/${d}` : `${n}/${d}`;
+}
+// 算式最後一步：先寫沒約分的結果，能約分或化成帶分數才再接「＝…」
+const fracTail = (n, d) => { const t = fracText(n, d); return t === `${n}/${d}` ? `${n}/${d}` : `${n}/${d}＝${t}`; };
+function makeFractionItems() {
+  const ri = (a, b) => a + (Math.random() * (b - a + 1) | 0);
+  const pick = (a) => a[Math.random() * a.length | 0];
+  const frac = (dens) => { for (;;) { const d = pick(dens), n = ri(1, d - 1); if (gcd(n, d) === 1) return [n, d]; } };
+  const same = (a, b) => a[0] * b[1] === b[0] * a[1];
+  const one = (want) => {
+    for (;;) {
+      const kind = pick(['add', 'sub', 'mul', 'div', 'whole']);
+      let [n1, d1] = frac([2, 3, 4, 5, 6, 8]), [n2, d2] = frac([2, 3, 4, 5, 6, 8]);
+      let ans, wrong, show, why, e;
+      if (kind === 'add' || kind === 'sub') {
+        if (d1 === d2) continue;
+        if (kind === 'sub' && n1 * d2 <= n2 * d1) [n1, d1, n2, d2] = [n2, d2, n1, d1];
+        if (kind === 'sub' && n1 * d2 === n2 * d1) continue;
+        const L = d1 * d2 / gcd(d1, d2), a = n1 * L / d1, b = n2 * L / d2, s = kind === 'add' ? 1 : -1;
+        ans = [a + s * b, L];
+        wrong = kind === 'add' ? [n1 + n2, d1 + d2] : [a + s * b + pick([1, -1]), L];       // 分子加分子、分母加分母；或通分後算錯一點
+        e = kind === 'add' ? '➕' : '➖';
+        show = `${n1}/${d1} ${kind === 'add' ? '＋' : '－'} ${n2}/${d2}`;
+        why = `先通分：${n1}/${d1}＝${a}/${L}、${n2}/${d2}＝${b}/${L}，${a}/${L} ${kind === 'add' ? '＋' : '－'} ${b}/${L}＝${fracTail(...ans)}`;
+      } else if (kind === 'mul') {
+        ans = [n1 * n2, d1 * d2]; wrong = [n1 * n2, d1 + d2]; e = '✖️';
+        show = `${n1}/${d1} × ${n2}/${d2}`;
+        why = `分子乘分子、分母乘分母：${fracTail(...ans)}`;
+      } else if (kind === 'div') {
+        ans = [n1 * d2, d1 * n2]; wrong = [n1 * n2, d1 * d2]; e = '➗';                    // 忘了倒過來
+        show = `${n1}/${d1} ÷ ${n2}/${d2}`;
+        why = `除以一個分數，就是乘它的倒數：${n1}/${d1} × ${d2}/${n2}＝${fracTail(...ans)}`;
+      } else {
+        const k = ri(2, 5);
+        ans = [k * n1, d1]; wrong = [k * n1, k * d1]; e = '✖️';                              // 分子分母都乘了
+        show = `${k} × ${n1}/${d1}`;
+        why = `整數只乘分子：${k} × ${n1}/${d1}＝${fracTail(...ans)}`;
+      }
+      if (wrong[0] <= 0 || same(ans, wrong)) continue;
+      const res = want ? ans : wrong;
+      return { e, n: `${show} ＝ ${fracText(...res)}`, ok: want ? 1 : 0, why: want ? why : `正確答案是 ${fracText(...ans)}。${why}` };
+    }
+  };
+  return [0, 1, 2, 3, 4, 5].flatMap(() => [one(1), one(0)]);
+}
+const FRACTION_Q = { get list() { return makeFractionItems(); }, key: FRACTION_KEY, title: '🧮 分數計算：老師算對了嗎？', icon: '🧮', yes: ['⭕', '算對了'], no: ['❌', '算錯了'],
+  ask: () => '🧮 黃老師在黑板上算了這一題，算對還是算錯？', intro: '老師在黑板上算了幾題分數，幫我檢查看看！算的時候要專心，一次做好一件事！',
+  endTalk: (sc, n) => (sc === n ? '全部答對！分數難不倒你，六年一班最棒！' : sc >= 3 ? '很不錯喔！記得先通分、再計算，最後約分！' : '沒關係，分數就像切壽司，慢慢想就會懂！'),
+  quitTalk: (n) => `🧮 下次再來找${n.name}算分數！` };
 
 /* ---------------- 電子積木：方陣教室地板上的積木板，看電路接法猜「燈泡會不會亮」 ----------------
    一回 5 題；答完板子上的燈泡真的亮起來（或不亮）。不用老師，走到積木板旁邊按 F 就能玩 */
