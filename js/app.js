@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=205';
-import { furnishFloor } from './furniture.js?v=205';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=205';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=205';
-import { buildCampusWall } from './wall.js?v=205';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=205';
+import { PanoViewer } from './pano.js?v=206';
+import { furnishFloor } from './furniture.js?v=206';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=206';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=206';
+import { buildCampusWall } from './wall.js?v=206';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=206';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1560,8 +1560,24 @@ function getGrid(f) {
       if (d < clr[j * W + i]) clr[j * W + i] = d;
     }
   }
-  return (f.grid = { minx, minz, W, H, free, clr, near });
+  // 每一格在哪個「別人的房間」裡（f.rooms 索引 + 1；0 = 公共空間）。穿堂、中庭這類開放空間、大型空間不算；
+  //   走廊、樓梯跟房間重疊的格子也算公共空間。找路時只有起點、目的地所在的房間可以穿過，其他房間很貴（盡量繞走廊）
+  const roomAt = new Int16Array(W * H);
+  f.rooms.forEach((r, k) => {
+    if (isPublicRoom(r)) return;
+    const i0 = Math.max(0, Math.floor((r.m.x1 - minx) / CELL)), i1 = Math.min(W - 1, Math.floor((r.m.x2 - minx) / CELL));
+    const j0 = Math.max(0, Math.floor((r.m.z1 - minz) / CELL)), j1 = Math.min(H - 1, Math.floor((r.m.z2 - minz) / CELL));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const x = minx + (i + 0.5) * CELL, z = minz + (j + 0.5) * CELL;
+      if (!inRect(r.m, x, z, 0)) continue;
+      if (f.walk.some((w) => (w.kind === 'corridor' || w.kind === 'stair') && inRect(w.m, x, z, 0))) continue;
+      roomAt[j * W + i] = k + 1;
+    }
+  });
+  return (f.grid = { minx, minz, W, H, free, clr, near, roomAt });
 }
+function isPublicRoom(r) { return r.open || r.type === 'hall' || r.type === 'garden'; }
+const ROOM_COST = 40;     // 穿過別人的房間每一格多算 40 格的距離：有走廊可以繞就一定繞，真的沒路才穿過
 
 function nearestFree(g, i, j) {
   if (i >= 0 && j >= 0 && i < g.W && j < g.H && g.free[j * g.W + i]) return [i, j];
@@ -1580,6 +1596,13 @@ function findPath(f, sx, sz, tx, tz) {
   const N = g.W * g.H, gs = new Float32Array(N).fill(Infinity), from = new Int32Array(N).fill(-1);
   const closed = new Uint8Array(N);
   const si = s[1] * g.W + s[0], ti = t[1] * g.W + t[0];
+  // 起點、目的地所在的房間可以自由穿過（點的位置和實際起訖格子都算，免得站在門邊被當成房間外）
+  const okRoom = new Set([0, g.roomAt[si], g.roomAt[ti]]);
+  for (const [x, z] of [[sx, sz], [tx, tz]]) {
+    const [ci, cj] = toCell(x, z);
+    if (ci >= 0 && cj >= 0 && ci < g.W && cj < g.H) okRoom.add(g.roomAt[cj * g.W + ci]);
+  }
+  const blocked = (n) => !okRoom.has(g.roomAt[n]);
   const heap = [];
   const push = (n, fv) => { heap.push([fv, n]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
   const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
@@ -1598,7 +1621,8 @@ function findPath(f, sx, sz, tx, tz) {
       const m = b * g.W + a;
       if (!g.free[m] || closed[m]) continue;
       if (di && dj && (!g.free[j * g.W + a] || !g.free[b * g.W + i])) continue;
-      const ng = gs[n] + c + (g.near[m] < 0.55 ? (0.55 - g.near[m]) * 5 : 0);   // 靠家具太近的格子比較貴
+      const ng = gs[n] + c + (g.near[m] < 0.55 ? (0.55 - g.near[m]) * 5 : 0)   // 靠家具太近的格子比較貴
+        + (blocked(m) ? c * ROOM_COST : 0);                                     // 別人的房間非常貴
       if (ng < gs[m]) { gs[m] = ng; from[m] = n; push(m, ng + hfn(m)); }
     }
   }
@@ -1607,6 +1631,7 @@ function findPath(f, sx, sz, tx, tz) {
   for (let n = ti; n >= 0; n = from[n]) { cells.push(n); if (n === si) break; }
   cells.reverse();
   const pts = cells.map((n) => [g.minx + (n % g.W + 0.5) * CELL, g.minz + (((n / g.W) | 0) + 0.5) * CELL]);
+  const thru = new Set(cells.map((n) => g.roomAt[n]));   // 真的沒路、A* 不得不穿過的房間，拉直時才可以經過
   // 拉直路徑（視線檢查）：直線經過的地方要真的走得過去——離家具、牆至少一個人的寬度（不然會擦到桌角卡住）
   const roomy = (x, z) => {
     const cell = cellAt(f, x, z), py = f.level === 0 ? groundAt(f, x, z) : 0;
@@ -1629,6 +1654,7 @@ function findPath(f, sx, sz, tx, tz) {
       const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n;
       const ci = Math.floor((x - g.minx) / CELL), cj = Math.floor((z - g.minz) / CELL);
       if (!g.free[cj * g.W + ci]) return false;
+      if (blocked(cj * g.W + ci) && !thru.has(g.roomAt[cj * g.W + ci])) return false;   // 拉直時不能抄捷徑切進別人的房間
       if (g.clr[cj * g.W + ci] < 0.9 && !roomy(x, z)) return false;     // 附近有家具才細算
     }
     return true;
