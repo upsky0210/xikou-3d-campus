@@ -231,6 +231,53 @@ export class Batch {
 }
 Batch.collector = null;
 
+// 合併靜止的物件（效能）：同一層樓、同一區（40 公尺一格）、外觀設定一樣（只有顏色不同）的方塊合成一個，
+//   顏色改存在每個頂點上，看起來完全一樣；一張畫面要下的繪圖指令從上千次降到幾百次，學校的內顯電腦才跑得順。
+//   分區合併是為了保留「畫面外的不畫」：整層樓黏成一大塊的話，轉頭背對的東西也會每張都畫。
+//   呼叫的人負責挑「放著就不會再動」的物件（會動、可以點、半透明、有 userData 標記的都不要傳進來）。
+const MERGED_MATS = new Map();
+export function mergeStatic(meshes, target, cell = 40) {
+  const bins = new Map(), bb = new THREE.Box3(), c = new THREE.Vector3();
+  for (const o of meshes) {
+    const m = o.material, g = o.geometry;
+    o.updateMatrix();
+    if (!g.boundingBox) g.computeBoundingBox();
+    bb.copy(g.boundingBox).applyMatrix4(o.matrix).getCenter(c);
+    const look = [m.map?.uuid ?? '-', m.side, m.alphaTest, m.emissive.getHex(), m.emissiveMap?.uuid ?? '-', m.fog, m.flatShading,
+      m.polygonOffset, m.polygonOffsetFactor, m.polygonOffsetUnits, m.depthTest, m.depthWrite, o.castShadow, o.receiveShadow, o.renderOrder].join('|');
+    const key = `${look}|${Math.floor(c.x / cell)},${Math.floor(c.z / cell)}`;
+    if (!bins.has(key)) bins.set(key, { look, list: [] });
+    bins.get(key).list.push(o);
+  }
+  let made = 0, removed = 0;
+  for (const { look, list } of bins.values()) {
+    if (list.length < 2) continue;
+    const geos = list.map((o) => {
+      const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+      for (const name of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(name)) g.deleteAttribute(name);
+      g.clearGroups(); g.morphAttributes = {};
+      g.applyMatrix4(o.matrix);
+      const n = g.attributes.position.count;
+      if (!g.attributes.normal) g.computeVertexNormals();
+      if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(n * 2), 2));
+      const col = new Float32Array(n * 3), { r, g: gr, b } = o.material.color;   // 材質顏色（線性色彩空間）直接搬到頂點
+      for (let i = 0; i < n; i++) { col[i * 3] = r; col[i * 3 + 1] = gr; col[i * 3 + 2] = b; }
+      g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      return g;
+    });
+    const merged = mergeGeometries(geos, false);
+    geos.forEach((g) => g.dispose());
+    if (!merged) continue;                                    // 頂點資料格式對不上就維持原樣
+    let mat = MERGED_MATS.get(look);
+    if (!mat) { mat = list[0].material.clone(); mat.color.set('#ffffff'); mat.vertexColors = true; MERGED_MATS.set(look, mat); }
+    const mesh = new THREE.Mesh(merged, mat);
+    mesh.castShadow = list[0].castShadow; mesh.receiveShadow = list[0].receiveShadow; mesh.renderOrder = list[0].renderOrder;
+    target.add(mesh); made++;
+    for (const o of list) { o.removeFromParent(); removed++; }
+  }
+  return { made, removed };
+}
+
 /** 可以互動的設施（籃框、溜滑梯）：蓋場景時登記，app.js 再做互動。座標都是世界座標（公尺） */
 export const SPOTS = [];
 
@@ -687,6 +734,13 @@ export function makeBlockNPC(look) {
 
   g.userData.limbs = { armL, armR, legL, legR };
   g.userData.setFace = (ex) => { const m = faceTex(NPC_FACES.includes(ex) ? ex : 'normal'); if (faceMat.map !== m) faceMat.map = m; };
+  // 合併每個部位裡的小方塊（效能）：身體、頭、手、腳、尾巴、手上拿的東西各自合成幾塊，關節照樣可以擺動作；
+  //   頭（六面不同材質）不合併，換表情照常。全校幾十位老師，一張畫面可以少下幾百次繪圖指令
+  const groups = []; g.traverse((o) => { if (o.isGroup) groups.push(o); });
+  for (const grp of groups) {
+    mergeStatic(grp.children.filter((o) => o.isMesh && !o.children.length && !Array.isArray(o.material)
+      && o.material.isMeshLambertMaterial && !o.material.transparent), grp, 1000);
+  }
   return g;
 }
 

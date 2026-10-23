@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=204';
+import { Batch, mat, SPOTS } from './blocks.js?v=205';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2723,13 +2723,17 @@ function addSign(room, f, group, wallT) {
 
 /** 幫一整層樓擺家具、掛門牌 */
 export function furnishFloor(f, wallT) {
-  const batch = new Batch();
+  // 室內的家具不投射太陽的陰影（屋頂、牆壁本來就擋住太陽，每張畫面再畫一次影子是白工，學校的內顯電腦會很吃力）；
+  //   中庭、露臺、穿堂這種露天的地方照舊有影子
+  const batch = new Batch(), outdoor = new Batch();
   for (const room of f.rooms) {
     const fr = frameOf(room, wallT, flipped(room));
-    furnishRoom(room, fr, placer(batch, fr, room.ground ? 0 : f.y));   // 警衛室在地面高度
+    const b = room.open || room.type === 'garden' ? outdoor : batch;
+    furnishRoom(room, fr, placer(b, fr, room.ground ? 0 : f.y));   // 警衛室在地面高度
   }
   const g = new THREE.Group();
-  batch.build(g);
+  batch.build(g, { cast: false });
+  outdoor.build(g);
   // 中庭：遊樂器材、南洋杉、樹籬
   const court = f.rooms.find((r) => r.name === '中庭');
   if (court) decorateCourtyard(court.m, f.level === 0 ? 0 : f.y).build(g);   // 中庭在地面（建築一樓有墊高）

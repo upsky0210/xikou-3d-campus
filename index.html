@@ -328,6 +328,11 @@
   #cm .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; }
   #cm .msg.ok { color: #1b8a3a; } #cm .msg.no { color: #c0392b; }
   #cm .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
+  /* 效能資訊（?perf 或 ` 鍵） */
+  #perf { position: fixed; right: 8px; bottom: 8px; z-index: 30; background: rgba(20, 24, 30, 0.82); color: #e8eef5; font: 12px/1.6 ui-monospace, Consolas, monospace;
+    padding: 6px 10px; border-radius: 8px; max-width: min(360px, calc(100vw - 16px)); pointer-events: auto; }
+  #perf b { font-size: 15px; } #perf .ok { color: #7ee08a; } #perf .mid { color: #ffd166; } #perf .bad { color: #ff7b72; }
+  #perf button { margin-top: 3px; font: inherit; font-size: 11px; padding: 1px 8px; border-radius: 6px; background: #3a4452; color: #fff; }
   /* 英文聽力「聽聽看，是哪一個？」（Joanne 老師） */
   #listen { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
@@ -805,8 +810,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=204"></script>
-<script src="js/pano-data.js?v=204"></script>
-<script type="module" src="js/app.js?v=204"></script>
+<script src="js/campus-data.js?v=205"></script>
+<script src="js/pano-data.js?v=205"></script>
+<script type="module" src="js/app.js?v=205"></script>
 </body>
 </html>

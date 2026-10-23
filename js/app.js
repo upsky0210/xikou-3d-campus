@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=204';
-import { furnishFloor } from './furniture.js?v=204';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=204';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=204';
-import { buildCampusWall } from './wall.js?v=204';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=204';
+import { PanoViewer } from './pano.js?v=205';
+import { furnishFloor } from './furniture.js?v=205';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=205';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=205';
+import { buildCampusWall } from './wall.js?v=205';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=205';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -627,7 +627,7 @@ scene.add(new THREE.AmbientLight('#ffffff', 0.45));
 const sun = new THREE.DirectionalLight('#fff6e0', 1.6);
 sun.position.set(-40, 80, 30);
 sun.castShadow = true;
-sun.shadow.mapSize.set(4096, 4096);
+sun.shadow.mapSize.set(2048, 2048);   // 4096 對學校的內顯太重；方塊風的影子用 2048 看不出差別
 sun.shadow.bias = -0.0004;
 sun.shadow.normalBias = 0.03;
 Object.assign(sun.shadow.camera, { left: -75, right: 75, top: 90, bottom: -60, near: 1, far: 260 });
@@ -6324,11 +6324,78 @@ function loop(now = performance.now()) {
   if (now < nextFrame - FRAME_MS * 0.25) return;            // 還沒到下一張的時間（留一點寬容，60Hz 螢幕才不會誤跳）
   nextFrame = Math.max(nextFrame + FRAME_MS, now);          // 累加排程，平均剛好 60 張；落後太多就從現在重新算
   if (viewer.isOpen) return;          // 看環景時 3D 校園暫停，省電
-  const dt = Math.min(0.05, clock.getDelta());
+  const dt = Math.min(0.05, clock.getDelta()), t0 = performance.now();
   update(dt);
   drawMinimap();
   renderer.render(scene, camera);
+  qualityFrame(now);
+  if (!perfBox.hidden) perfFrame(now, performance.now() - t0);
 }
+
+/* ---------------- 自動畫質：電腦太吃力（每秒不到 40 張）就自動降一級，記在這台電腦上，下次直接用 ----------------
+   0 全開；1 關陰影；2 關陰影＋解析度降到 75%。只會往下降不會自己升回去（升回去又卡會一直跳），
+   想恢復可以在效能資訊（?perf 或 ` 鍵）按「畫質」切換。剛載入、換樓層時的頓一下（編譯材質）不算：要連續兩段都太慢才降。 */
+const QUALITY_KEY = 'campus-quality';
+const BASE_RATIO = Math.min(devicePixelRatio, 2);
+const quality = { level: 0, n: 0, since: 0, last: 0, bad: 0, wait: 0 };
+const QUALITY_NAME = ['全開', '關陰影', '關陰影＋降解析度'];
+function setShadows(on) {
+  if (renderer.shadowMap.enabled === on) return;
+  renderer.shadowMap.enabled = on;
+  scene.traverse((o) => { if (o.material) for (const m of [].concat(o.material)) m.needsUpdate = true; });   // 換陰影開關要重新編譯材質
+}
+function applyQuality(lv, save = true) {
+  quality.level = lv;
+  setShadows(!IS_TOUCH && lv < 1);
+  renderer.setPixelRatio(lv >= 2 ? Math.max(0.6, BASE_RATIO * 0.75) : BASE_RATIO);
+  renderer.setSize(innerWidth, innerHeight);
+  if (save) try { localStorage.setItem(QUALITY_KEY, String(lv)); } catch { /* 私密模式 */ }
+  quality.n = 0; quality.bad = 0; quality.since = 0; quality.wait = performance.now() + 4000;
+}
+try { const lv = +localStorage.getItem(QUALITY_KEY) || 0; if (lv) applyQuality(Math.min(2, lv), false); } catch { /* 私密模式 */ }
+function qualityFrame(now) {
+  if (quality.level >= 2 || now < quality.wait || document.hidden) { quality.last = now; return; }
+  if (now - quality.last > 250) { quality.n = 0; quality.since = now; }   // 中間停過（切分頁、看環景）就重新算
+  quality.last = now; quality.n++;
+  if (now - quality.since < 3000) return;
+  const fps = quality.n * 1000 / (now - quality.since);
+  quality.n = 0; quality.since = now;
+  quality.bad = fps < 40 ? quality.bad + 1 : 0;
+  if (quality.bad < 2) return;
+  const lv = IS_TOUCH && quality.level === 0 ? 2 : quality.level + 1;     // 手機本來就沒有陰影，直接降解析度
+  applyQuality(lv);
+  toast(lv === 1 ? '🐢 這台電腦跑得比較吃力，已經自動關掉陰影，畫面會比較順～'
+    : '🐢 這台電腦跑得比較吃力，已經自動降低畫面解析度，畫面會比較順～');
+}
+
+/* ---------------- 效能資訊（網址加 ?perf，或按 ` 鍵開關）：帶去學校電腦看跑得順不順 ----------------
+   每秒張數、每張花多少毫秒（程式＋送繪圖指令）、繪圖指令數、三角形數、顯示卡名稱；可以直接切換畫質比較差多少。 */
+const perfBox = Object.assign(document.createElement('div'), { id: 'perf', hidden: true });
+document.body.appendChild(perfBox);
+const perfGpu = (() => {
+  try {
+    const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info');
+    return String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER))
+      .replace(/^ANGLE \((.*)\)$/, '$1').replace(/Direct3D.*$|, D3D.*$|\(0x[0-9A-F]+\)/gi, '').replace(/,\s*$/, '').trim();
+  } catch { return '（讀不到）'; }
+})();
+const perf = { n: 0, ms: 0, worst: 0, since: performance.now() };
+function perfFrame(now, ms) {
+  perf.n++; perf.ms += ms; perf.worst = Math.max(perf.worst, ms);
+  if (now - perf.since < 500) return;
+  const fps = perf.n * 1000 / (now - perf.since), avg = perf.ms / perf.n, R = renderer.info.render;
+  const tone = fps >= 50 ? 'ok' : fps >= 30 ? 'mid' : 'bad';
+  perfBox.innerHTML = `<b class="${tone}">${fps.toFixed(0)} 張/秒</b>　每張 ${avg.toFixed(1)} ms（最慢 ${perf.worst.toFixed(0)}）<br>`
+    + `繪圖指令 ${R.calls}　三角形 ${(R.triangles / 1000).toFixed(0)}k<br>`
+    + `${innerWidth}×${innerHeight} ×${renderer.getPixelRatio()}　${perfGpu}<br>`
+    + `<button>畫質：${QUALITY_NAME[quality.level]}（點一下切換）</button>`;
+  perf.n = 0; perf.ms = 0; perf.worst = 0; perf.since = now;
+}
+perfBox.addEventListener('pointerdown', (e) => e.stopPropagation());
+perfBox.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') applyQuality((quality.level + 1) % 3); });
+function togglePerf(on = perfBox.hidden) { perfBox.hidden = !on; perf.n = 0; perf.ms = 0; perf.worst = 0; perf.since = performance.now(); if (on) perfBox.textContent = '量測中…'; }
+if (new URLSearchParams(location.search).has('perf')) togglePerf(true);
+addEventListener('keydown', (e) => { if (e.code === 'Backquote' && e.target.tagName !== 'INPUT') togglePerf(); });
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
@@ -7372,6 +7439,22 @@ Batch.collector = null;
 setupCollision();
 buildPanoMarkers();
 
+// 合併靜止物件（效能）：每層樓直接擺著的方塊、家具，依外觀和區域合併（blocks.js mergeStatic）。
+//   不動：可以點的（pickables）、有 userData 標記的（老師、貓、球框…）、半透明的、天花板（會整片切換顯示）、
+//   名牌和導航線、有位移的群組（車子、樹、會動的東西都包在自己的群組裡）
+{
+  const keep = new Set(pickables);
+  const plain = (o) => o.position.lengthSq() === 0 && o.rotation.x === 0 && o.rotation.y === 0 && o.rotation.z === 0 && o.scale.x === 1 && o.scale.y === 1 && o.scale.z === 1;
+  const ok = (o) => o.isMesh && !o.isInstancedMesh && !o.children.length && !Object.keys(o.userData).length && !keep.has(o) && o.visible
+    && !Array.isArray(o.material) && o.material.isMeshLambertMaterial && !o.material.transparent && !o.material.vertexColors
+    && o.material.blending === THREE.NormalBlending && !o.geometry.morphAttributes?.position;
+  for (const f of floors) {
+    const skip = new Set([f.ceil, f.labels, f.navGroup, f.stairSigns]);
+    const parents = [f.group, ...f.group.children.filter((c) => c.isGroup && !skip.has(c) && plain(c) && !Object.keys(c.userData).length && c.visible)];
+    for (const p of parents) mergeStatic(p.children.filter(ok), f.group);
+  }
+}
+
 // 起點：正門外面，面向校門（往東）
 const G = D.outdoor.gate;
 placeAt(floorById['1F'], mx(G.x - 50), mz((G.y1 + G.y2) / 2), -Math.PI / 2);
@@ -7500,5 +7583,5 @@ if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { NPCS, movePlacesNPC, isWalkable, startListen, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
+window.__campus = { THREE, NPCS, movePlacesNPC, isWalkable, startListen, renderer, scene, togglePerf, applyQuality, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
