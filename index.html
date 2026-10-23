@@ -161,9 +161,9 @@
   #pano .tabs button { padding: 9px 13px; }
   #pano .tabs button.on { background: #9d4edd; }
   #pano .spacer { flex: 1; }
-  #pano .info { position: absolute; left: 12px; bottom: 12px; width: min(480px, calc(100vw - 24px)); background: rgba(0,0,0,.6);
+  #pano .info { position: absolute; left: 12px; bottom: 12px; width: min(560px, calc(100vw - 24px)); background: rgba(0,0,0,.6);
     border-radius: 16px; padding: 12px 14px; backdrop-filter: blur(8px); }
-  #pano .text { font-size: 14px; line-height: 1.65; max-height: 4.9em; overflow: hidden; position: relative; }
+  #pano .text { font-size: 17px; line-height: 1.65; max-height: 4.9em; overflow: hidden; position: relative; }
   #pano.expanded .text { max-height: 45vh; overflow: auto; }
   #pano .ctrl { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   #pano .ctrl .audio { background: #ffd400; color: #1d2733; }
@@ -178,7 +178,7 @@
     #pano .bar { flex-wrap: wrap; }
     #pano .title b { font-size: 15px; }
     #pano .info { bottom: 64px; }
-    #pano .text { max-height: 3.3em; font-size: 13px; }
+    #pano .text { max-height: 3.3em; font-size: 15px; }
     #pano .hint { display: none; }
     #panoPrompt { bottom: 160px; font-size: 13px; }
     #actPrompt { bottom: 205px; font-size: 14px; }
@@ -810,8 +810,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=206"></script>
-<script src="js/pano-data.js?v=206"></script>
-<script type="module" src="js/app.js?v=206"></script>
+<script src="js/campus-data.js?v=207"></script>
+<script src="js/pano-data.js?v=207"></script>
+<script type="module" src="js/app.js?v=207"></script>
 </body>
 </html>

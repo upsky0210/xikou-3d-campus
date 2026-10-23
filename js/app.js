@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=206';
-import { furnishFloor } from './furniture.js?v=206';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=206';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=206';
-import { buildCampusWall } from './wall.js?v=206';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=206';
+import { PanoViewer } from './pano.js?v=207';
+import { furnishFloor } from './furniture.js?v=207';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=207';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=207';
+import { buildCampusWall } from './wall.js?v=207';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=207';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2084,7 +2084,8 @@ function stepAuto(dt) {
   tryMove(dx / d * step, dz / d * step);
   const moved = Math.hypot(player.x - ox, player.z - oz);
   const want = Math.atan2(-dx, -dz);
-  avatar.rotation.y = want;
+  const turn = ((want - avatar.rotation.y) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI;
+  avatar.rotation.y += turn * Math.min(1, dt * 10);              // 轉彎時角色也是轉過去（不會一下子跳 90 度）
   const diff = ((want - player.yaw) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI;
   player.yaw += diff * Math.min(1, dt * 3);                     // 鏡頭慢慢轉到前進方向
   auto.stuck = moved < step * 0.2 ? auto.stuck + dt : 0;
