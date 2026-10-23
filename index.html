@@ -247,7 +247,7 @@
   body.mc button:hover { filter: brightness(1.12); }
   body.mc button:disabled { background: #555; color: #999; text-shadow: none; filter: none; }
   /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
-  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #flute button, body.mc #food button, body.mc #bb button { text-shadow: none; }
+  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #flute button, body.mc #food button, body.mc #bb button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
   body.mc .iconbtn.primary, body.mc #info .acts [data-act=go], body.mc #results button, body.mc #pano .ctrl .audio {
@@ -328,6 +328,21 @@
   #cm .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 2px 0 6px; }
   #cm .msg.ok { color: #1b8a3a; } #cm .msg.no { color: #c0392b; }
   #cm .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
+  /* 英文聽力「聽聽看，是哪一個？」（Joanne 老師） */
+  #listen { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
+  #listen .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #listen .prog { font-size: 12px; color: #888; margin-top: 2px; }
+  #listen .word { font-size: 28px; font-weight: 900; letter-spacing: 1px; margin: 2px 0 4px; color: #2b4a8a; }
+  #listen .tools { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
+  #listen .tools button { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 10px; background: #dfe9ff; color: #233; }
+  #listen .btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  #listen .btns button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 32px; padding: 6px 2px; border-radius: 10px; background: #ffe08a; line-height: 1.1; }
+  #listen .btns button small { font-size: 11px; color: #555; }
+  #listen .btns button.right { background: #b9eaa0; } #listen .btns button.wrong { background: #f6b3ab; }
+  #listen .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 6px 0; }
+  #listen .msg.ok { color: #1b8a3a; } #listen .msg.no { color: #c0392b; }
+  #listen .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
   /* 注音符號大闖關（一年一班林老師） */
   #zy { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(340px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
@@ -600,6 +615,15 @@
   <div class="msg"></div>
   <button class="quit">結束 Esc</button>
 </div>
+<div id="listen" hidden>
+  <div class="top"><span>🎧 聽聽看，是哪一個？・<b class="who"></b></span><span class="hearts"></span></div>
+  <div class="prog"></div>
+  <div class="word"></div>
+  <div class="tools"><button class="again">🔊 重聽 R</button><button class="slow">🐢 慢慢唸 S</button><button class="peek">👀 看字</button></div>
+  <div class="btns"><button data-k="0"></button><button data-k="1"></button><button data-k="2"></button><button data-k="3"></button></div>
+  <div class="msg"></div>
+  <button class="quit">結束 Esc</button>
+</div>
 <div id="cm" hidden>
   <div class="top"><span>🎨 顏色對對碰・<b class="who"></b></span><span class="flips"></span></div>
   <div class="grid"></div>
@@ -781,8 +805,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=203"></script>
-<script src="js/pano-data.js?v=203"></script>
-<script type="module" src="js/app.js?v=203"></script>
+<script src="js/campus-data.js?v=204"></script>
+<script src="js/pano-data.js?v=204"></script>
+<script type="module" src="js/app.js?v=204"></script>
 </body>
 </html>

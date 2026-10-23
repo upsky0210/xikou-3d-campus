@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=203';
-import { furnishFloor } from './furniture.js?v=203';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=203';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=203';
-import { buildCampusWall } from './wall.js?v=203';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=203';
+import { PanoViewer } from './pano.js?v=204';
+import { furnishFloor } from './furniture.js?v=204';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=204';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=204';
+import { buildCampusWall } from './wall.js?v=204';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=204';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3094,6 +3094,40 @@ const NPCS = [
     },
   },
   {
+    name: 'Joanne 老師', title: '英文老師', game: 'listen',
+    hello: ["👋 Joanne 老師：Hello! I'm Teacher Joanne. 一起來練英文聽力吧！", '👂 Joanne 老師：Listen carefully! 仔細聽，你一定聽得懂！',
+      "😊 Joanne 老師：How are you today? 回答 I'm fine, thank you! 就對了～", "💧 Joanne 老師：Don't forget to drink water! 下課記得喝水喔！"],
+    // 隨機出現：3 樓英語教室二（310）前面講台旁，或 2 樓科任教師辦公室（Teacher Angela 也會出現在那裡，Joanne 站在她北邊）；兩個地方都可以玩聽力
+    places: [
+      { floor: '3F', where: '英語教室二', game: true, at: () => { const r = rooms.find((x) => x.name === '英語教室二'); return [r.m.x1 + 1.3, r.cz - 0.4, -Math.PI / 2]; } },
+      { floor: '2F', where: '科任教師辦公室', game: true, at: () => { const r = rooms.find((x) => x.name === '科任教師辦公室'); return [ANGELA_OFFICE.x(r), ANGELA_OFFICE.z(r) - 2.8, Math.PI / 2]; } },   // 離 Angela 2.8 公尺，兩人名牌才不會黏在一起
+    ],
+    look: {
+      // 依照片：淺咖啡色頭髮往後綁（臉旁兩撮）、笑開露牙；白色短袖 T 恤＋灰色細格紋吊帶洋裝（前面一排扣子、黑色細皮帶）、拿著深藍色水壺
+      skin: '#f3d2bc', hair: '#7a5236', top: '#8f8b84', pants: '#f3d2bc', shoe: '#e9e4dc',
+      bun: true, tee: '#f7f7f4', collar: '#f7f7f4', buttonRow: '#5e5a54', belt: '#1a1a1a', shortSkirt: '#8f8b84', holdR: 'bottle',
+      pal: { H: '#7a5236', h: '#9a6c48', S: '#f3d2bc', E: '#2a1810', W: '#ffffff', B: '#f2aaa2', N: '#e3b39c', M: '#c0605a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHhHHHHHHHHH',
+        'HHHHHSSSHHHHHHHH',
+        'HHHSSSSSSSHHHHHH',
+        'HHSSSSSSSSSSSHHH',
+        'HSSSSSSSSSSSSSSH',
+        'HSSEEESSSSEEESSH',
+        'HSSEWESSSSEWESSH',
+        'HSSSSSSSSSSSSSSH',
+        'HSSSSSSNNSSSSSSH',
+        'HSBBSSSSSSSSBBSH',
+        'HSSSMMMMMMMMSSSH',
+        'HSSSSMTTTTMSSSSH',
+        'HSSSSSMMMMSSSSSH',
+        'HSSSSSSSSSSSSSSH',
+      ],
+    },
+  },
+  {
     name: '林老師', title: '三年五班導師', game: 'pingpong',
     hello: ['🤫 林老師：請保持安靜～', '🤣 林老師：我昨天又夢到我在上數學課了🤣', '⛰️ 林老師：爬山很快樂喔！一起來爬山',
       '🏓 林老師：要不要一起去地下室打桌球？'],
@@ -3702,6 +3736,7 @@ function updateAct(dt) {
     : sp.kind === 'pingpong' ? `🏓 好啊！跟${sp.npc.name}去地下室打桌球 <kbd>F</kbd>`
     : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
     : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
+    : sp.kind === 'listen' ? `🎧 跟${sp.npc.name}玩英文聽力 <kbd>F</kbd>`
     : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
     : sp.kind === 'ooxx' ? `⭕ 跟${sp.npc.name}玩 OOXX <kbd>F</kbd>`
     : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
@@ -3732,6 +3767,7 @@ function doAction() {
   else if (act.spot?.kind === 'pingpong') startPingpong(act.spot.npc);
   else if (act.spot?.kind === 'shootout') startShootout(act.spot.npc);
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
+  else if (act.spot?.kind === 'listen') startListen(act.spot.npc);
   else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
   else if (act.spot?.kind === 'ooxx') startOoxx(act.spot.npc);
   else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
@@ -3760,7 +3796,7 @@ quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 quitBtn.addEventListener('click', quitGame);
 // 放在橘色按鈕右邊；右邊擠不下（手機）就放在它上面
 function placeQuit() {
-  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && ooxxBox.hidden && bjBox.hidden && cmBox.hidden && zyBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
+  const show = !!(act.busy?.badminton || (duel && quizBox.hidden && paintBox.hidden && rpsBox.hidden && ooxxBox.hidden && bjBox.hidden && cmBox.hidden && zyBox.hidden && listenBox.hidden && fluteBox.hidden && foodBox.hidden && bbBox.hidden));   // 單字、聽力、著色、猜拳、直笛、蜜袋鼯、棒球有自己的結束鈕
   if (quitBtn.hidden === show) quitBtn.hidden = !show;
   if (!show) return;
   const r = actBtn.getBoundingClientRect(), q = quitBtn.getBoundingClientRect();
@@ -4154,6 +4190,113 @@ function startWords(n) {
   quizBox.hidden = false;
   $('.tip').textContent = `${n.name}：Let's practice！看中文打出英文單字 🔊 答完會唸出發音`;
   ask();
+}
+
+/* ---------------- 英文聽力「聽聽看，是哪一個？」：遇到 Joanne 老師（3F 英語教室二、2F 科任教師辦公室） ----------------
+   老師唸一個英文單字，從 4 個圖示選出來（點按鈕或按 1～4）；一回 5 題、3 顆愛心，記錄最多答對幾題。
+   🔊 重聽（R）、🐢 慢慢唸（S）、👀 看字。題目跟 Ashley 老師的單字測驗（顏色、動物、文具）錯開，練的是「聽」。
+   瀏覽器不能唸英文（沒有語音）時，直接把單字顯示出來，變成看字選圖。 */
+const LISTEN_KEY = 'campus-listen-best';
+const LISTEN_BANK = {
+  水果食物: [['apple', '蘋果', '🍎'], ['banana', '香蕉', '🍌'], ['grapes', '葡萄', '🍇'], ['watermelon', '西瓜', '🍉'], ['strawberry', '草莓', '🍓'],
+    ['bread', '麵包', '🍞'], ['egg', '蛋', '🥚'], ['milk', '牛奶', '🥛'], ['cake', '蛋糕', '🍰'], ['pizza', '披薩', '🍕'], ['rice', '飯', '🍚'], ['ice cream', '冰淇淋', '🍦']],
+  天氣: [['sunny', '晴天', '☀️'], ['rainy', '下雨', '🌧️'], ['cloudy', '多雲', '☁️'], ['snowy', '下雪', '❄️'], ['windy', '颳風', '🌬️'], ['rainbow', '彩虹', '🌈']],
+  身體: [['eye', '眼睛', '👁️'], ['ear', '耳朵', '👂'], ['nose', '鼻子', '👃'], ['mouth', '嘴巴', '👄'], ['hand', '手', '✋'], ['foot', '腳', '🦶'], ['tooth', '牙齒', '🦷']],
+  交通工具: [['bus', '公車', '🚌'], ['car', '汽車', '🚗'], ['bike', '腳踏車', '🚲'], ['train', '火車', '🚆'], ['airplane', '飛機', '✈️'], ['boat', '船', '⛵'],
+    ['taxi', '計程車', '🚕'], ['MRT', '捷運', '🚇'], ['scooter', '機車', '🛵']],
+};
+const listenBox = document.getElementById('listen');
+// 這台電腦能不能唸英文（語音清單還沒載入時先當作可以，唸不出來學生可以按「看字」）
+const canSpeakEnglish = () => {
+  if (!window.speechSynthesis) return false;
+  const vs = speechSynthesis.getVoices();
+  return !vs.length || vs.some((v) => /^en/i.test(v.lang));
+};
+function speakListen(word, slow) {
+  try {
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = slow ? 0.55 : 0.85;
+    speechSynthesis.speak(u);
+  } catch { /* 不支援就算了 */ }
+}
+function startListen(n) {
+  stopAuto(); bgmHold('listen', true);                                  // 聽英文時校歌先停
+  const $ = (sel) => listenBox.querySelector(sel);
+  const btns = [...listenBox.querySelectorAll('[data-k]')];
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  // 5 題：每題從同一類挑 3 個當干擾選項（同類比較像，才是真的在聽）
+  const all = Object.entries(LISTEN_BANK).flatMap(([cat, list]) => list.map(([en, zh, emo]) => ({ en, zh, emo, cat })));
+  const qs = shuffle(all.slice()).slice(0, 5).map((w) => {
+    const others = shuffle(all.filter((o) => o.cat === w.cat && o.en !== w.en)).slice(0, 3);
+    return { w, opts: shuffle([w, ...others]) };
+  });
+  const voice = canSpeakEnglish();
+  let i = 0, hearts = 3, right = 0, best = 0, locked = false, done = false, peek = !voice;
+  try { best = +localStorage.getItem(LISTEN_KEY) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
+  const showWord = () => { $('.word').textContent = peek ? qs[i].w.en : '？？？'; };
+  const say = (slow) => { if (!done && !locked) { speakListen(qs[i].w.en, slow); npcFace(n, 'happy', 0.8); } };
+  const ready = () => {
+    locked = false;
+    const q = qs[i];
+    peek = !voice;
+    $('.prog').textContent = `第 ${i + 1} / ${qs.length} 題・${q.w.cat}`;
+    $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
+    showWord();
+    btns.forEach((b, k) => { b.disabled = false; b.className = ''; b.innerHTML = `${q.opts[k].emo}<small>${k + 1}</small>`; });
+    msg(voice ? '👂 仔細聽，是哪一個？' : '這台電腦不能唸英文，看單字選選看！');
+    setTimeout(() => say(false), 350);
+  };
+  const finish = () => {
+    done = true; listenBox.hidden = true;
+    try { speechSynthesis?.cancel(); } catch { /* 不支援就算了 */ }
+    updateVisibility(); bgmHold('listen', false);
+    removeEventListener('keydown', onKey, true);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const answer = (k) => {
+    if (locked || done) return;
+    locked = true; btns.forEach((b) => (b.disabled = true));
+    const q = qs[i], ok = q.opts[k] === q.w;
+    btns[q.opts.indexOf(q.w)].className = 'right';
+    if (ok) right++; else { btns[k].className = 'wrong'; hearts--; }
+    peek = true; showWord();
+    $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
+    msg(ok ? `✅ Great! <b>${q.w.en}</b> = ${q.w.emo} ${q.w.zh}` : `❌ 是 <b>${q.w.en}</b> ${q.w.emo}（${q.w.zh}），再聽一次記起來！`, ok ? 'ok' : 'no');
+    npcFace(n, ok ? 'happy' : 'surprised', 1.5);
+    speakListen(q.w.en, false);
+    setTimeout(() => {
+      if (done) return;
+      if (hearts && ++i < qs.length) { ready(); return; }
+      if (right > best) { best = right; try { localStorage.setItem(LISTEN_KEY, String(best)); } catch { /* 私密模式 */ } }
+      npcFace(n, right === qs.length ? 'happy' : 'wink', 3);
+      finish();
+      toast(right === qs.length ? `🌟 5 題全對！你的耳朵超厲害！<br>${n.name}：Excellent! You're a great listener!`
+        : !hearts ? `🎧 愛心用完了，答對 ${right} 題（最好紀錄 ${best} 題）<br>${n.name}：Good try! 多聽幾次就會越來越熟喔！`
+        : `🎧 答對 ${right} / ${qs.length} 題（最好紀錄 ${best} 題）<br>${n.name}：Nice job! 下次再來挑戰全對！`);
+    }, ok ? 1500 : 2300);
+  };
+  const onKey = (e) => {
+    const k = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Numpad1: 0, Numpad2: 1, Numpad3: 2, Numpad4: 3 }[e.code];
+    if (k !== undefined) { e.preventDefault(); e.stopPropagation(); answer(k); return; }
+    if (e.code === 'KeyR') { e.preventDefault(); e.stopPropagation(); say(false); }
+    else if (e.code === 'KeyS') { e.preventDefault(); e.stopPropagation(); say(true); }
+    else if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); duel?.quit(); }
+  };
+  addEventListener('keydown', onKey, true);
+  btns.forEach((b, k) => (b.onclick = () => answer(k)));
+  $('.again').onclick = () => say(false);
+  $('.slow').onclick = () => say(true);
+  $('.peek').onclick = () => { if (!locked) { peek = true; showWord(); } };
+  $('.quit').onclick = () => duel?.quit();
+  $('.who').textContent = n.name;
+  duel = { quit() { finish(); toast(`🎧 下次再來找${n.name}練聽力喔！`); } };
+  act.busy = { label: '🎧 英文聽力中…', tick() {} };                  // 玩的時候不能走動
+  listenBox.hidden = false;
+  ready();
 }
 
 /* ---------------- 剪刀石頭布：在五年一班遇到 Poyen 老師，可以猜拳（三戰兩勝，平手重來） ----------------
@@ -7357,5 +7500,5 @@ if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { NPCS, movePlacesNPC, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
+window.__campus = { NPCS, movePlacesNPC, isWalkable, startListen, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };

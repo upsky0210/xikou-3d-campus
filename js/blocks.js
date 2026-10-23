@@ -512,6 +512,19 @@ export function makeBlockNPC(look) {
   box(g, 0.46, 0.6, 0.26, top, 0, 1.0, 0);                  // 上衣
   box(g, 0.2, 0.05, 0.27, cloth(look.collar || look.top), 0, 1.3, 0);   // 領子
   if (look.collar) box(g, 0.1, 0.12, 0.02, cloth(look.collar), 0, 1.24, -0.13);   // 領口露出的襯衫
+  if (look.tee) {                                           // 吊帶洋裝：上胸露出底下的 T 恤，兩條吊帶繞過肩膀
+    box(g, 0.47, 0.16, 0.27, cloth(look.tee), 0, 1.22, 0);
+    for (const s of [-1, 1]) box(g, 0.06, 0.17, 0.275, top, s * 0.13, 1.22, 0);
+  }
+  if (look.buttonRow) {                                     // 洋裝前面一整排扣子（上衣到裙子）
+    const bm = new THREE.MeshLambertMaterial({ color: look.buttonRow });
+    for (const y of [1.06, 0.95, 0.84]) box(g, 0.035, 0.035, 0.012, bm, 0, y, -0.136);
+    if (look.shortSkirt || look.skirt) for (const y of [0.68, 0.56, 0.44]) box(g, 0.035, 0.035, 0.012, bm, 0, y, -0.156);
+  }
+  if (look.belt) {                                          // 細皮帶＋銀色皮帶扣
+    box(g, 0.48, 0.045, 0.28, cloth(look.belt), 0, 0.82, 0);
+    box(g, 0.07, 0.045, 0.012, new THREE.MeshLambertMaterial({ color: '#c9cdd1', emissive: '#333' }), 0, 0.82, -0.145);
+  }
   if (look.tie) {                                           // 領帶
     box(g, 0.07, 0.06, 0.02, cloth(look.tie), 0, 1.22, -0.14);
     box(g, 0.06, 0.24, 0.015, cloth(look.tie), 0, 1.07, -0.137);
@@ -593,7 +606,7 @@ export function makeBlockNPC(look) {
     } else {
       if (look.sleeveless) box(p, 0.17, 0.68, 0.18, skin, 0, -0.34, 0);   // 無袖：整條手臂
       else {
-        box(p, 0.2, 0.22, 0.22, top, 0, -0.11, 0);
+        box(p, 0.2, 0.22, 0.22, look.tee ? cloth(look.tee) : top, 0, -0.11, 0);   // 吊帶洋裝：短袖是底下 T 恤的顏色
         box(p, 0.16, 0.46, 0.18, skin, 0, -0.45, 0);
       }
     }
@@ -625,6 +638,12 @@ export function makeBlockNPC(look) {
       box(rg, 0.012, 0.12, 0.012, M('#b71c1c'), 0, -0.02, -0.03); box(rg, 0.012, 0.12, 0.012, M('#b71c1c'), 0, -0.02, 0.03);
       box(rg, 0.1, 0.36, 0.26, M('#e53935'), 0, -0.26, 0);
       box(rg, 0.105, 0.2, 0.03, M('#fbe9e7'), 0, -0.26, -0.06);
+    } else if (kind === 'bottle') {                         // 深藍色水壺（握著上面的提把，壺身垂在手下面）
+      rg.position.set(0, -0.7, 0);
+      box(rg, 0.03, 0.08, 0.1, M('#1c1c1e'), 0, -0.02, 0);                 // 提把
+      box(rg, 0.13, 0.06, 0.13, M('#1c1c1e'), 0, -0.09, 0);                // 瓶蓋
+      box(rg, 0.12, 0.34, 0.12, M('#3b4c66'), 0, -0.29, 0);                // 壺身
+      box(rg, 0.122, 0.04, 0.122, M('#8fa3bf'), 0, -0.36, 0);             // 刻度那圈淺色
     } else if (kind === 'magazine') {                       // 雜誌（彩色封面朝前，斜斜拿在手上）
       rg.position.set(0.02, -0.62, -0.2); rg.rotation.set(0, 0, -0.35);
       box(rg, 0.3, 0.4, 0.02, M('#eef3f6'), 0, 0.12, 0);
