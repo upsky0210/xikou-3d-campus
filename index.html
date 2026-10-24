@@ -105,6 +105,9 @@
   #help h3 { margin: 16px 0 6px; font-size: 15px; color: var(--accent2); }
   #help table { border-collapse: collapse; width: 100%; font-size: 14px; }
   #help td { padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  /* 中英文切換按鈕 */
+  .langBtn { font-weight: 800; letter-spacing: .5px; min-width: 44px; }
+  #cover .coverLang { position: absolute; top: 14px; right: 14px; z-index: 3; background: #fbf6ea; border: 3px solid #2b2b2b; border-radius: 10px; padding: 6px 12px; font-size: 14px; color: #2b2b2b; cursor: pointer; }
   /* 溪口校園護照 */
   #passport { position: fixed; inset: 0; background: rgba(10,20,30,.45); display: grid; place-items: center; z-index: 10; padding: 16px; }
   #passport .card { background: #fbf6ea; border: 3px solid #2b2b2b; border-radius: 18px; padding: 20px 22px; width: min(620px, 100%); max-height: 90vh; overflow: auto; position: relative; color: #2b2b2b; }
@@ -516,6 +519,7 @@
   #cover .intro { position: absolute; left: 4vw; top: 13vh; max-width: 36vw; }
   #cover .kicker { color: #c0392b; letter-spacing: 4px; font-weight: 700; font-size: 12px; }
   #cover h1 { font-size: clamp(44px, 7vw, 100px); margin: 6px 0 2px; font-weight: 900; line-height: 1; }
+  html[lang="en"] #cover h1 { font-size: clamp(34px, 4.2vw, 64px); }   /* 英文校名比較長，字小一點才不會壓到右邊的校園圖 */
   #cover .sub { margin: 0 0 14px; font-weight: 700; color: #6b6458; }
   #cover .lead { font-size: 18px; line-height: 1.7; margin: 0 0 16px; }
   #cover .btns button { padding: 10px 18px; margin: 0 8px 8px 0; font-weight: 900; font-size: 16px; border: 3px solid #2b2b2b; border-radius: 0;
@@ -543,6 +547,8 @@
   @media (max-width: 760px), (max-aspect-ratio: 23/20) {
     #cover .intro { left: 16px; right: 16px; top: 18px; max-width: none; }
     #cover h1 { font-size: 46px; }
+    html[lang="en"] #cover h1 { font-size: 34px; }
+    #cover .kicker { padding-right: 60px; }   /* 右上角的語言按鈕不要壓到字 */
     #cover .lead { display: none; }
     #cover .guide { left: 16px; bottom: 88px; }
     #cover .credit { left: 16px; right: 16px; bottom: 12px; padding: 4px 10px; font-size: 11px; line-height: 1.45; transform: none; box-shadow: 4px 4px 0 rgba(0,0,0,.25); }
@@ -562,52 +568,53 @@
 <div id="scene"></div>
 
 <div id="top">
-  <div class="brand"><b>溪口國小 3D 校園</b><small>115 學年度 · 目前：<span id="floorName">全校</span></small></div>
-  <div class="seg" role="group" aria-label="視角">
-    <button data-mode="bird">🛰️ 鳥瞰</button>
-    <button data-mode="third">🧍 第三人稱</button>
-    <button data-mode="first">👀 第一人稱</button>
+  <div class="brand"><b data-en="Xikou 3D Campus">溪口國小 3D 校園</b><small><span data-en="Year 115 · Now: ">115 學年度 · 目前：</span><span id="floorName">全校</span></small></div>
+  <div class="seg" role="group" aria-label="視角" data-en-aria="View">
+    <button data-mode="bird" data-en="🛰️ Bird's-eye">🛰️ 鳥瞰</button>
+    <button data-mode="third" data-en="🧍 Third">🧍 第三人稱</button>
+    <button data-mode="first" data-en="👀 First">👀 第一人稱</button>
   </div>
-  <button class="iconbtn" id="avatarBtn" aria-label="選擇角色">👕 角色</button>
-  <button class="iconbtn" id="passBtn" aria-label="校園護照">📒<span> 護照</span></button>
+  <button class="iconbtn" id="avatarBtn" aria-label="選擇角色" data-en-aria="Choose character" data-en="👕 Avatar">👕 角色</button>
+  <button class="iconbtn" id="passBtn" aria-label="校園護照" data-en-aria="Campus passport">📒<span data-en=" Passport"> 護照</span></button>
   <div class="spacer"></div>
-  <button class="iconbtn" id="bgmBtn" aria-label="背景音樂：校歌" aria-pressed="true"><i>🎵</i><span> 校歌</span></button>
-  <button class="iconbtn" id="openGallery" style="background:#7b2cbf;color:#fff">📷 實景導覽</button>
-  <button class="iconbtn primary" id="openSearch">🔍 找教室</button>
-  <button class="iconbtn" id="helpBtn" aria-label="說明">❔</button>
+  <button class="iconbtn" id="bgmBtn" aria-label="背景音樂：校歌" data-en-aria="Background music: school song" aria-pressed="true"><i>🎵</i><span data-en=" Song"> 校歌</span></button>
+  <button class="iconbtn" id="openGallery" style="background:#7b2cbf;color:#fff" data-en="📷 360° Tour">📷 實景導覽</button>
+  <button class="iconbtn primary" id="openSearch" data-en="🔍 Find a room">🔍 找教室</button>
+  <button class="iconbtn langBtn" id="langBtn" aria-label="切換中文／English" title="切換中文／English">EN</button>
+  <button class="iconbtn" id="helpBtn" aria-label="說明" data-en-aria="Help">❔</button>
 </div>
 
 <div id="floors"></div>
 <div id="where"><i>📍</i><span>校園</span></div>
-<div id="minimap"><canvas width="300" height="300"></canvas><b class="n">北</b><b class="fl">1F</b></div>
+<div id="minimap"><canvas width="300" height="300"></canvas><b class="n" data-en="N">北</b><b class="fl">1F</b></div>
 
 <div id="search" hidden>
   <header>
-    <input id="q" type="search" placeholder="輸入班級、教室號碼或名稱，例如 503、健康中心" autocomplete="off">
-    <button id="closeSearch">關閉</button>
+    <input id="q" type="search" placeholder="輸入班級、教室號碼或名稱，例如 503、健康中心" data-en-ph="Class, room number or name, e.g. 503, Library" autocomplete="off">
+    <button id="closeSearch" data-en="Close">關閉</button>
   </header>
-  <label class="opt"><input type="checkbox" id="preferElevator"> 🛗 優先搭電梯（換樓層不走樓梯）</label>
-  <label class="opt"><input type="checkbox" id="navChallenge"> 🧭 挑戰尋路（不畫黃線，只給線索和小地圖）</label>
+  <label class="opt"><input type="checkbox" id="preferElevator"> <span data-en="🛗 Prefer the elevator (no stairs between floors)">🛗 優先搭電梯（換樓層不走樓梯）</span></label>
+  <label class="opt"><input type="checkbox" id="navChallenge"> <span data-en="🧭 Wayfinding challenge (no yellow line, only clues and the minimap)">🧭 挑戰尋路（不畫黃線，只給線索和小地圖）</span></label>
   <ul id="results"></ul>
 </div>
 
 <div id="info" hidden>
-  <button class="x" data-act="close" aria-label="關閉">✕</button>
+  <button class="x" data-act="close" aria-label="關閉" data-en-aria="Close">✕</button>
   <div class="title"></div>
   <div class="meta"></div>
   <div class="acts">
-    <button data-act="go">🧭 帶我去</button>
-    <button data-act="tp">✨ 傳送</button>
-    <button data-act="share">🔗 分享</button>
+    <button data-act="go" data-en="🧭 Take me there">🧭 帶我去</button>
+    <button data-act="tp" data-en="✨ Teleport">✨ 傳送</button>
+    <button data-act="share" data-en="🔗 Share">🔗 分享</button>
   </div>
 </div>
 
-<div id="navbar" hidden><span class="msg"></span><button>結束導航</button><button id="revealNav" hidden>顯示路線</button></div>
+<div id="navbar" hidden><span class="msg"></span><button data-en="End">結束導航</button><button id="revealNav" hidden data-en="Show route">顯示路線</button></div>
 <div id="stairPanel" hidden></div>
 <div id="joy"><div class="knob"></div></div>
 <div id="panoPrompt" hidden></div>
 <button id="actPrompt" hidden></button>
-<button id="quitGame" hidden>✖ 結束比賽</button>
+<button id="quitGame" hidden data-en="✖ End game">✖ 結束比賽</button>
 <div id="quiz" hidden>
   <div class="top"><span class="cat"></span><span class="prog"></span></div>
   <div class="emo"></div><div class="q"></div><div class="hint"></div>
@@ -694,54 +701,55 @@
 
 <div id="gallery" hidden>
   <div class="card-wrap">
-    <header><b>📷 360° 實景導覽</b><button class="close">關閉</button></header>
+    <header><b data-en="📷 360° Virtual Tour">📷 360° 實景導覽</b><button class="close" data-en="Close">關閉</button></header>
     <div class="list"></div>
   </div>
 </div>
 
 <div id="cover" hidden>
-  <img alt="溪口國小 3D 校園全景">
+  <button class="langBtn coverLang" aria-label="切換中文／English">EN</button>
+  <img alt="溪口國小 3D 校園全景" data-en-alt="Xikou Elementary 3D campus overview">
   <div class="tags"></div>
   <div class="intro">
     <div class="kicker">XIKOU ELEMENTARY · 3D CAMPUS</div>
-    <h1>溪口國小</h1>
-    <p class="sub">3D 校園 · 115 學年度</p>
-    <p class="lead">走進溪口國小，<br>找教室、跟著黃線帶路、<br>看 360° 實景。</p>
-    <div class="btns"><button class="primary" data-act="walk">走進校園</button><button data-act="bird">先看鳥瞰</button></div>
+    <h1 data-en="Xikou<br>Elementary">溪口國小</h1>
+    <p class="sub" data-en="3D Campus · School Year 115">3D 校園 · 115 學年度</p>
+    <p class="lead" data-en="Walk into Xikou Elementary,<br>find any room, follow the yellow line,<br>and explore 360° views.">走進溪口國小，<br>找教室、跟著黃線帶路、<br>看 360° 實景。</p>
+    <div class="btns"><button class="primary" data-act="walk" data-en="Walk in">走進校園</button><button data-act="bird" data-en="Bird's-eye view">先看鳥瞰</button></div>
   </div>
   <div class="guide">
-    <div class="hd">FIELD GUIDE · 校園導覽</div>
-    <h3>歡迎來到溪口國小</h3>
-    <p>點一棟建築或地點看介紹，再點一次就直接過去。</p>
+    <div class="hd" data-en="FIELD GUIDE · Campus Guide">FIELD GUIDE · 校園導覽</div>
+    <h3 data-en="Welcome to Xikou Elementary">歡迎來到溪口國小</h3>
+    <p data-en="Tap a building or place to read about it, then tap again to go there.">點一棟建築或地點看介紹，再點一次就直接過去。</p>
     <div class="list"></div>
-    <button class="go" hidden>帶我過去 ↗</button>
+    <button class="go" hidden data-en="Take me there ↗">帶我過去 ↗</button>
   </div>
   <div class="credit">
-    <div class="hd">CREDITS · 製作資訊</div>
+    <div class="hd" data-en="CREDITS">CREDITS · 製作資訊</div>
     <dl>
-      <dt>設計者：</dt><dd>Upsky（阿喵老師）</dd>
-      <dt>發想：</dt><dd>FB 瓦特／<a href="https://3dtypsmap.vercel.app/" target="_blank" rel="noopener">大勇國小</a></dd>
-      <dt>使用工具：</dt><dd>Claude Code、Muse AI</dd>
-      <dt>特別感謝：</dt><dd>溪口國小全體師生</dd>
+      <dt data-en="Designer:">設計者：</dt><dd data-en="Upsky (Teacher Amiao)">Upsky（阿喵老師）</dd>
+      <dt data-en="Inspired by:">發想：</dt><dd data-en="Watt (Facebook) / <a href=&quot;https://3dtypsmap.vercel.app/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;>Dayong Elementary</a>">FB 瓦特／<a href="https://3dtypsmap.vercel.app/" target="_blank" rel="noopener">大勇國小</a></dd>
+      <dt data-en="Tools:">使用工具：</dt><dd>Claude Code、Muse AI</dd>
+      <dt data-en="Thanks to:">特別感謝：</dt><dd data-en="All teachers and students of Xikou Elementary">溪口國小全體師生</dd>
     </dl>
   </div>
 </div>
 
 <div id="chooser" hidden>
   <div class="card-wrap">
-    <div class="guide">FIELD GUIDE · <b>溪口國小校園導覽</b></div>
-    <h2>選擇你的角色</h2>
-    <p>穿上溪口國小的制服，一起逛校園！</p>
+    <div class="guide" data-en="FIELD GUIDE · <b>Xikou Campus Guide</b>">FIELD GUIDE · <b>溪口國小校園導覽</b></div>
+    <h2 data-en="Choose your character">選擇你的角色</h2>
+    <p data-en="Put on the Xikou uniform and explore the campus!">穿上溪口國小的制服，一起逛校園！</p>
     <div class="choices">
-      <button data-gender="boy"><img alt="男學生"><b>男學生</b></button>
-      <button data-gender="girl"><img alt="女學生"><b>女學生</b></button>
+      <button data-gender="boy"><img alt="男學生" data-en-alt="Boy"><b data-en="Boy">男學生</b></button>
+      <button data-gender="girl"><img alt="女學生" data-en-alt="Girl"><b data-en="Girl">女學生</b></button>
     </div>
-    <div class="keys">
+    <div class="keys" data-en="Tap the ground or minimap: walk there　<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk (<kbd>Shift</kbd> run, <kbd>Space</kbd> jump)<br>Drag: look around　<kbd>M</kbd> bird's-eye　<kbd>V</kbd> first/third person　<kbd>C</kbd> change character　<kbd>/</kbd> find a room　<kbd>F</kbd> interact">
       點地面或小地圖：自動走過去　<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 走路（<kbd>Shift</kbd> 跑、<kbd>空白</kbd> 跳）<br>
       拖曳畫面：轉頭　<kbd>M</kbd> 鳥瞰　<kbd>V</kbd> 第一／第三人稱　<kbd>C</kbd> 換角色　<kbd>/</kbd> 找教室　<kbd>F</kbd> 互動
     </div>
-    <button class="bird" data-act="bird">🛰️ 先看鳥瞰</button><br>
-    <small>之後可以按上方「👕 角色」或 C 鍵換角色</small>
+    <button class="bird" data-act="bird" data-en="🛰️ Bird's-eye view first">🛰️ 先看鳥瞰</button><br>
+    <small data-en="You can change later with &quot;👕 Avatar&quot; at the top or the C key">之後可以按上方「👕 角色」或 C 鍵換角色</small>
   </div>
 </div>
 
@@ -774,61 +782,69 @@
 <div id="toast"></div>
 <div id="fade"></div>
 
-<div id="passport" hidden><div class="card"><button class="close" aria-label="關閉護照">✕</button><div class="body"></div></div></div>
+<div id="passport" hidden><div class="card"><button class="close" aria-label="關閉護照" data-en-aria="Close passport">✕</button><div class="body"></div></div></div>
 <div id="help" hidden>
   <div class="card">
     <button class="close">✕</button>
-    <h2>怎麼玩？</h2>
-    <h3>電腦</h3>
+    <h2 data-en="How to play">怎麼玩？</h2>
+    <h3 data-en="Computer">電腦</h3>
     <table>
-      <tr><td>點地面 / 小地圖</td><td>自動走過去（按方向鍵就停）</td></tr>
-      <tr><td>📒 護照</td><td>看看認識了幾位老師、蓋了幾個章</td></tr>
-      <tr><td>🧭 挑戰尋路</td><td>在「找教室」勾選後，不畫黃線，只靠線索和小地圖找路</td></tr>
-      <tr><td>W A S D</td><td>前後左右走</td></tr>
-      <tr><td>滑鼠拖曳 / ← →</td><td>轉頭看</td></tr>
-      <tr><td>Shift</td><td>跑步</td></tr>
-      <tr><td>空白鍵</td><td>跳</td></tr>
-      <tr><td>走上樓梯</td><td>直接走進樓梯就能上下樓（左邊上樓、右邊下樓）</td></tr>
-      <tr><td>E / Q</td><td>站在樓梯口時：自動走上 / 走下一層</td></tr>
-      <tr><td>M</td><td>切換鳥瞰 / 走路</td></tr>
-      <tr><td>V</td><td>切換第一 / 第三人稱</td></tr>
-      <tr><td>C</td><td>換角色（男學生 / 女學生）</td></tr>
-      <tr><td>滑鼠滾輪</td><td>第三人稱時把鏡頭拉近 / 拉遠</td></tr>
-      <tr><td>F</td><td>互動：在籃框、溜滑梯、老師旁邊時投籃 / 溜滑梯 / 一起玩（投籃要在綠色區域再按一次）</td></tr>
-      <tr><td>/</td><td>找教室</td></tr>
-      <tr><td>P</td><td>360° 實景導覽</td></tr>
-      <tr><td>Enter</td><td>站在紫色 📷 旁邊時：看 360° 實景</td></tr>
+      <tr><td data-en="Tap ground / minimap">點地面 / 小地圖</td><td data-en="Walk there automatically (arrow keys to stop)">自動走過去（按方向鍵就停）</td></tr>
+      <tr><td data-en="📒 Passport">📒 護照</td><td data-en="See how many teachers you have met and stamps you have collected">看看認識了幾位老師、蓋了幾個章</td></tr>
+      <tr><td data-en="🧭 Wayfinding challenge">🧭 挑戰尋路</td><td data-en="Tick it in "Find a room": no yellow line, just clues and the minimap">在「找教室」勾選後，不畫黃線，只靠線索和小地圖找路</td></tr>
+      <tr><td>W A S D</td><td data-en="Walk forward / back / left / right">前後左右走</td></tr>
+      <tr><td data-en="Drag mouse / ← →">滑鼠拖曳 / ← →</td><td data-en="Look around">轉頭看</td></tr>
+      <tr><td>Shift</td><td data-en="Run">跑步</td></tr>
+      <tr><td data-en="Space">空白鍵</td><td data-en="Jump">跳</td></tr>
+      <tr><td data-en="Stairs">走上樓梯</td><td data-en="Walk onto the stairs to change floors (left side up, right side down)">直接走進樓梯就能上下樓（左邊上樓、右邊下樓）</td></tr>
+      <tr><td>E / Q</td><td data-en="At the stairs: go up / down one floor">站在樓梯口時：自動走上 / 走下一層</td></tr>
+      <tr><td>M</td><td data-en="Switch bird's-eye / walking">切換鳥瞰 / 走路</td></tr>
+      <tr><td>V</td><td data-en="Switch first / third person">切換第一 / 第三人稱</td></tr>
+      <tr><td>C</td><td data-en="Change character (boy / girl)">換角色（男學生 / 女學生）</td></tr>
+      <tr><td data-en="Mouse wheel">滑鼠滾輪</td><td data-en="Zoom in / out in third person">第三人稱時把鏡頭拉近 / 拉遠</td></tr>
+      <tr><td>F</td><td data-en="Interact: shoot hoops, go down the slide or play with a teacher (for shooting, press again in the green zone)">互動：在籃框、溜滑梯、老師旁邊時投籃 / 溜滑梯 / 一起玩（投籃要在綠色區域再按一次）</td></tr>
+      <tr><td>/</td><td data-en="Find a room">找教室</td></tr>
+      <tr><td>P</td><td data-en="360° virtual tour">360° 實景導覽</td></tr>
+      <tr><td>Enter</td><td data-en="Next to a purple 📷: open the 360° view">站在紫色 📷 旁邊時：看 360° 實景</td></tr>
     </table>
-    <h3>手機 / 平板</h3>
+    <h3 data-en="Phone / tablet">手機 / 平板</h3>
     <table>
-      <tr><td>點地面 / 小地圖</td><td>自動走過去</td></tr>
-      <tr><td>左下搖桿</td><td>走路</td></tr>
-      <tr><td>畫面拖曳</td><td>轉頭看</td></tr>
-      <tr><td>點教室</td><td>看資訊、帶我去</td></tr>
+      <tr><td data-en="Tap ground / minimap">點地面 / 小地圖</td><td data-en="Walk there automatically">自動走過去</td></tr>
+      <tr><td data-en="Joystick (bottom left)">左下搖桿</td><td data-en="Walk">走路</td></tr>
+      <tr><td data-en="Drag the screen">畫面拖曳</td><td data-en="Look around">轉頭看</td></tr>
+      <tr><td data-en="Tap a room">點教室</td><td data-en="Info and directions">看資訊、帶我去</td></tr>
     </table>
-    <h3>找路</h3>
-    <p style="margin:0;font-size:14px">按「🔍 找教室」輸入班級（例如 <b>503</b> 或 <b>五年三班</b>）、教室號碼或名稱，再按「帶我去」，地上會出現<b style="background:#ffd400;padding:0 4px;border-radius:4px">黃色路線</b>。要換樓層時，跟著黃線走到樓梯口，直接走上樓梯，或按「▲ 走上」讓角色自己走。</p>
-    <h3>顏色</h3>
+    <h3 data-en="Finding your way">找路</h3>
+    <p style="margin:0;font-size:14px" data-en="Press &quot;🔍 Find a room&quot; and type a class (e.g. <b>503</b> or <b>Class 5-3</b>), a room number or a name, then press &quot;Go&quot;. A <b style=&quot;background:#ffd400;padding:0 4px;border-radius:4px&quot;>yellow route</b> appears on the ground. To change floors, follow it to the stairs and walk up, or press &quot;▲ Up to&quot; to climb automatically.">按「🔍 找教室」輸入班級（例如 <b>503</b> 或 <b>五年三班</b>）、教室號碼或名稱，再按「帶我去」，地上會出現<b style="background:#ffd400;padding:0 4px;border-radius:4px">黃色路線</b>。要換樓層時，跟著黃線走到樓梯口，直接走上樓梯，或按「▲ 走上」讓角色自己走。</p>
+    <h3 data-en="Colors">顏色</h3>
     <div class="legend">
-      <span><i style="background:#fff1bf"></i>班級教室</span><span><i style="background:#cdeccd"></i>專科教室</span>
-      <span><i style="background:#cfe2ff"></i>行政辦公室</span><span><i style="background:#ffd6e8"></i>幼兒園</span>
-      <span><i style="background:#cdb89a"></i>樓梯</span><span><i style="background:#dcdcdc"></i>廁所</span>
+      <span data-en="<i style=&quot;background:#fff1bf&quot;></i>Classroom"><i style="background:#fff1bf"></i>班級教室</span><span data-en="<i style=&quot;background:#cdeccd&quot;></i>Special classroom"><i style="background:#cdeccd"></i>專科教室</span>
+      <span data-en="<i style=&quot;background:#cfe2ff&quot;></i>Office"><i style="background:#cfe2ff"></i>行政辦公室</span><span data-en="<i style=&quot;background:#ffd6e8&quot;></i>Kindergarten"><i style="background:#ffd6e8"></i>幼兒園</span>
+      <span data-en="<i style=&quot;background:#cdb89a&quot;></i>Stairs"><i style="background:#cdb89a"></i>樓梯</span><span data-en="<i style=&quot;background:#dcdcdc&quot;></i>Restroom"><i style="background:#dcdcdc"></i>廁所</span>
     </div>
-    <h3>角色</h3>
-    <div class="style-pick"><button id="changeAvatar">👕 換角色（男學生 / 女學生）</button></div>
-    <h3>畫面風格</h3>
+    <h3 data-en="Character">角色</h3>
+    <div class="style-pick"><button id="changeAvatar" data-en="👕 Change character (boy / girl)">👕 換角色（男學生 / 女學生）</button></div>
+    <h3 data-en="Visual style">畫面風格</h3>
     <div class="style-pick">
-      <button data-style="block">🧱 方塊風</button>
-      <button data-style="classic">🏫 簡約風</button>
+      <button data-style="block" data-en="🧱 Blocky">🧱 方塊風</button>
+      <button data-style="classic" data-en="🏫 Simple">🏫 簡約風</button>
     </div>
-    <h3>設定</h3>
-    <label>移動速度 <input id="speed" type="range" min="50" max="200" value="150"> <span id="speedV">150%</span></label>
-    <label>轉頭靈敏度 <input id="sens" type="range" min="30" max="250" value="100"> <span id="sensV">100%</span></label>
-    <p style="font-size:12px;color:#8a96a3;margin:14px 0 0">資料來源：115 學年度校區平面圖（2026-08-03 版）。位置為依平面圖估算，僅供參考。</p>
+    <h3 data-en="Settings">設定</h3>
+    <label><span data-en="Walking speed">移動速度</span> <input id="speed" type="range" min="50" max="200" value="150"> <span id="speedV">150%</span></label>
+    <label><span data-en="Turning sensitivity">轉頭靈敏度</span> <input id="sens" type="range" min="30" max="250" value="100"> <span id="sensV">100%</span></label>
+    <p style="font-size:12px;color:#8a96a3;margin:14px 0 0" data-en="Source: school floor plans for school year 115 (2026-08-03). Locations are estimated from the plans and for reference only.">資料來源：115 學年度校區平面圖（2026-08-03 版）。位置為依平面圖估算，僅供參考。</p>
   </div>
 </div>
 
 <div id="loading"><span>正在生成校園世界…</span></div>
+<script>
+  // 英文介面：載入畫面先換成英文（app.js 還沒跑）
+  (function () {
+    var l = new URLSearchParams(location.search).get('lang');
+    try { l = l || localStorage.getItem('campus-lang'); } catch (e) {}
+    if (l === 'en') { document.documentElement.lang = 'en'; document.querySelector('#loading span').textContent = 'Building the campus…'; }
+  })();
+</script>
 
 <!-- 修改資料或程式後，把 v= 的數字加 1，瀏覽器才會抓新版 -->
 <script>
@@ -839,8 +855,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=210"></script>
-<script src="js/pano-data.js?v=210"></script>
-<script type="module" src="js/app.js?v=210"></script>
+<script src="js/campus-data.js?v=211"></script>
+<script src="js/pano-data.js?v=211"></script>
+<script type="module" src="js/app.js?v=211"></script>
 </body>
 </html>

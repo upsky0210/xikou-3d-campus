@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=210';
+import { Batch, mat, SPOTS } from './blocks.js?v=211';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2643,7 +2643,7 @@ function furnishRoom(room, fr, put) {
 /* ---------- 門牌 ---------- */
 
 // 門牌英文（班級教室不用，維持中文＋班級代號）
-const ROOM_EN = {
+export const ROOM_EN = {   // 也給 app.js 的英文介面用
   '人事室・會計室': 'Personnel & Accounting', '健康中心': 'Health Center', '儲藏室': 'Storage Room', '器材室': 'Equipment Room',
   '圖書館': 'Library', '團輔室': 'Group Counseling Room', '太陽班': 'Sun Class', '彩虹班': 'Rainbow Class', '星星班': 'Star Class',
   '月亮班': 'Moon Class', '白雲班': 'Cloud Class', '學務處': 'Student Affairs Office', '客語教室': 'Hakka Classroom',
