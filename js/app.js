@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=215';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=215';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=215';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=215';
-import { buildCampusWall } from './wall.js?v=215';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=215';
+import { PanoViewer } from './pano.js?v=218';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=218';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=218';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=218';
+import { buildCampusWall } from './wall.js?v=218';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=218';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4026,12 +4026,15 @@ const BAD = { D: 6, Dmin: 3.5, net: badmintonNet, mine: myRacket, theirs: npcRac
    跟羽球一樣左右移動、球飛到身邊時揮拍；打完（或按結束）兩個人一起回到教室 */
 const ppBall = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), new THREE.MeshLambertMaterial({ color: '#ffffff' }));
 ppBall.visible = false; scene.add(ppBall);
-const makePaddle = () => {                                             // 桌球拍：紅色拍面、木頭握把
+const makePaddle = () => {                                             // 桌球拍：一面紅、一面黑，木頭握把
   const g = new THREE.Group();
-  const face = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.02, 16).rotateZ(Math.PI / 2), new THREE.MeshLambertMaterial({ color: '#d32f2f' }));
-  face.position.y = -0.2; g.add(face);
-  const h = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.025), new THREE.MeshLambertMaterial({ color: '#c08a4a' })); h.position.y = -0.06; g.add(h);
-  g.position.set(0, -0.6, 0); g.rotation.x = Math.PI;
+  // 拍面朝前後（從學生背後、老師正面都看得到整個圓；側著的話只剩一條線）；方塊人手大，拍子做大一點
+  for (const [col, z] of [['#d32f2f', 0.012], ['#222222', -0.012]]) {
+    const face = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.024, 20).rotateX(Math.PI / 2), new THREE.MeshLambertMaterial({ color: col }));
+    face.position.set(0, -0.27, z); g.add(face);
+  }
+  const h = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.04), new THREE.MeshLambertMaterial({ color: '#c08a4a' })); h.position.y = -0.06; g.add(h);
+  g.position.set(0, -0.5, 0);                                          // 從手掌往外伸（不要翻轉，翻了拍面會縮回手臂裡被蓋住）
   return g;
 };
 const myPaddle = makePaddle(), npcPaddle = makePaddle();
@@ -4040,10 +4043,10 @@ const ppTable = () => { const r = rooms.find((x) => x.name === '桌球教室'); 
 function startPingpong(n) {
   stopAuto();
   const home = { f: n.f, pos: n.g.position.clone(), yaw: n.yaw, px: player.x, pz: player.z, pyaw: player.yaw };
-  const T = ppTable();
+  const tb = ppTable();                                                // 不要叫 T：會蓋掉中英文切換的 T()
   toast(`🏓 ${n.name}：好！我們去地下室桌球教室！`);
   // 瞬間移動：老師站球桌西邊、面向東；學生由 startBadminton 放到球桌東邊
-  placeNPC(n, T.f, T.x - 2.35, T.z, -Math.PI / 2);
+  placeNPC(n, tb.f, tb.x - 2.35, tb.z, -Math.PI / 2);
   n.label.visible = false;
   startBadminton(n, { ...BAD, D: 4.7, Dmin: 4.7, net: null, mine: myPaddle, theirs: npcPaddle, ball: ppBall, key: 'campus-pingpong-best', icon: '🏓', ballName: '桌球', ballNameEn: 'ball',
     myH: 0.95, npcH: 0.95, arc: 0.32, T0: 1.05, Tmin: 0.6, spread: 0.6, side: 0.9, speed: 3.2, reach: 0.65, smash: '殺球', pp: true,
@@ -4076,6 +4079,7 @@ function startBadminton(n, P = BAD) {
   const nL = n.g.userData.limbs, nArm = n.look.holdL === 'racket' ? nL.armL : nL.armR;   // 陳老師本來就左手拿拍
   if (nArm === nL.armR || P.pp) nArm.add(P.theirs);
   n.playing = true;
+  for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);    // 放下打招呼的手（左手拿拍的老師，右手才不會一直舉著）
   const tFace = Math.atan2(-ux, -uz);                                 // 老師面向學生
   n.g.rotation.y = tFace;
   let best = 0; try { best = +localStorage.getItem(P.key) || 0; } catch { /* 私密模式 */ }
