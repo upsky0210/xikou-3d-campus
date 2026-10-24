@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=214';
+import { Batch, mat, SPOTS } from './blocks.js?v=215';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -42,6 +42,10 @@ export const poolWallMat = () => once('poolwall', () => new THREE.MeshLambertMat
 
 /** 游泳館入口（北牆東端藍色立面中間偏西）：回傳門的 [x1, x2] */
 export const poolDoor = (m) => [m.x2 - 3.9, m.x2 - 2.8];
+/** 游泳館側門（西面條紋牆、南邊轉角第一格的鐵窗正下方）：回傳門的 [z1, z2]、門高 */
+// 寬 1.4：扣掉兩邊門框看起來約 1.1 公尺；比 1.4 窄的話尋路格子（0.5 公尺一格、離牆要 0.45）可能找不到路穿過去
+export const poolSideDoor = (m) => [m.z2 - 1.9, m.z2 - 0.5];
+export const POOL_SIDE_DOOR_H = 2.2;
 // 25 公尺泳池（水面）：中心、長（沿 x）、寬（沿 z），6 條水道；app.js 的碰撞、陳老師的節奏划水也用這個
 export const poolWater = (m) => {
   const W = m.x2 - m.x1, D = m.z2 - m.z1;
@@ -60,6 +64,18 @@ export const poolStripeMat = () => once('poolstripe', () => new THREE.MeshLamber
   }
   c.fillStyle = '#9aa0a6'; c.fillRect(0, h - 22, w, 22);
 }, [1 / 8, 1 / 6]) }));
+/** 西面條紋牆的一段（x：牆中線、za～zb、y0～y1、厚 t）：條紋從南邊轉角起算，牆分段開門時條紋、窗戶才接得起來 */
+export function poolStripeGeo(m, x, za, zb, y0, y1, t) {
+  const zEnd = m.z2 - 0.185;                                   // 側門剛好在第一格鐵窗正下方
+  const g = new THREE.BoxGeometry(t, y1 - y0, zb - za);
+  g.translate(x, (y0 + y1) / 2, (za + zb) / 2);
+  const p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) {
+    const nx = n.getX(i), z = p.getZ(i), y = p.getY(i);
+    uv.setXY(i, nx > 0.5 ? zEnd - z : nx < -0.5 ? z - zEnd : p.getX(i), Math.abs(n.getY(i)) > 0.5 ? z : y);   // 室內那面／室外那面
+  }
+  return g;
+}
 
 // 藍色立面：泡泡圓點（西端那面有「水漾游泳館」招牌）
 const poolFacadeMat = (sign = true) => once('poolfacade' + sign, () => new THREE.MeshLambertMaterial({ map: canvasTex(300, 480, (c, w, h) => {
@@ -127,6 +143,12 @@ export function buildPool(group, m, roofTex) {
   const keep = Batch.collector; Batch.collector = null;
   b.box(mat('wool', '#1d2228'), d1 - d0, 2.4, 0.05, (d0 + d1) / 2, 1.2, m.z1 + 0.32);
   for (const x of [d0 + 0.08, d1 - 0.08]) b.box(blue, 0.17, 2.4, 1.05, x, 1.2, m.z1 - 0.2);           // 門框（蓋住牆的斷面；門口寬度由牆的碰撞決定，門框不另外擋，免得卡在門框和牆的角落）
+  // 西面側門的門框（白色鋁框；跟大門一樣不算碰撞，門口寬度由牆決定）
+  {
+    const [s0, s1] = poolSideDoor(m), dh = POOL_SIDE_DOOR_H, frame = mat('wool', '#e8eef2');
+    for (const z of [s0 + 0.08, s1 - 0.08]) b.box(frame, 0.35, dh, 0.17, m.x1, dh / 2, z);
+    b.box(frame, 0.35, 0.12, s1 - s0, m.x1, dh - 0.06, (s0 + s1) / 2);
+  }
   Batch.collector = keep;
   // 門右邊（東側）的白色鐵格柵門
   for (let i = 0; i <= 8; i++) b.box(mat('wool', '#e8e8e4'), 0.04, 2.0, 0.04, d1 + 0.4 + i * 0.22, 1.0, m.z1 - 0.72);

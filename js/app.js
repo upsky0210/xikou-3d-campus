@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=214';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=214';
-import { poolWallMat, poolStripeMat, poolDoor, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=214';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=214';
-import { buildCampusWall } from './wall.js?v=214';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=214';
+import { PanoViewer } from './pano.js?v=215';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=215';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=215';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=215';
+import { buildCampusWall } from './wall.js?v=215';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=215';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -639,7 +639,11 @@ function wallRuns() {
     for (const [ax, az, bx, bz] of [[m.x1, m.z1, d0, m.z1], [d1, m.z1, m.x2, m.z1], [m.x1, m.z2, m.x2, m.z2], [m.x2, m.z1, m.x2, m.z2]]) {
       f1.segs.push({ ax, az, bx, bz, h, color, kind: 'poolwall' });
     }
-    f1.segs.push({ ax: m.x1, az: m.z1, bx: m.x1, bz: m.z2, h, color, kind: 'poolstripe' });
+    // 西面條紋牆：靠南邊轉角開一個側門（門上面是門楣，不擋路）
+    const [s0, s1] = poolSideDoor(m);
+    f1.segs.push({ ax: m.x1, az: m.z1, bx: m.x1, bz: s0, h, color, kind: 'poolstripe' });
+    f1.segs.push({ ax: m.x1, az: s1, bx: m.x1, bz: m.z2, h, color, kind: 'poolstripe' });
+    f1.segs.push({ ax: m.x1, az: s0, bx: m.x1, bz: s1, y0: POOL_SIDE_DOOR_H, h, color, kind: 'poolstripe', overhead: true });
     // 泳池：池邊擋住（不畫牆，只算碰撞），平常不能走到水面上；只有跟陳老師玩節奏划水時才下水
     const P = poolWater(m), w = P.w / 2, d = P.d / 2;
     for (const [ax, az, bx, bz] of [[P.x - w, P.z - d, P.x + w, P.z - d], [P.x - w, P.z + d, P.x + w, P.z + d], [P.x - w, P.z - d, P.x - w, P.z + d], [P.x + w, P.z - d, P.x + w, P.z + d]]) {
@@ -1173,7 +1177,13 @@ function buildFloor(f) {
     }
     if (s.kind === 'hedge') { piece(mat('leaves'), 0, s.h); continue; }
     if (s.kind === 'poolwall') { piece(BLOCKY ? poolWallMat() : mat('wool', '#eeeeee'), 0, s.h); continue; }
-    if (s.kind === 'poolstripe') { piece(BLOCKY ? poolStripeMat() : mat('wool', '#7cc3ec'), 0, s.h); continue; }
+    if (s.kind === 'poolstripe') {
+      const y0 = s.y0 || 0;
+      if (!BLOCKY) { piece(mat('wool', '#7cc3ec'), y0, s.h); continue; }
+      const za = Math.min(s.az, s.bz), zb = Math.max(s.az, s.bz), ext = s.overhead ? 0 : WALL_T / 2;
+      batch.add(poolStripeMat(), poolStripeGeo(rectM(D.outdoor.pool), cx, za - ext, zb + ext, y0, s.h, WALL_T));
+      continue;
+    }
     const wm = wallMat(s.bld);
     if (s.overhead) { piece(wm, s.y0, s.h); continue; }   // 門楣
     if (s.solid) { piece(wm, 0, s.h); continue; }        // 跟隔壁房間共用的實牆（沒有窗）
@@ -7031,7 +7041,8 @@ function setupCollision() {
     const ns = 'NS'.includes(d.side);
     (r.f.doors ||= []).push({ x: d.x, z: d.z, nx: ns ? 0 : 1, nz: ns ? 1 : 0 });   // n：門的法線方向（穿過門的方向）
   }
-  if (D.outdoor.pool) { const pm = rectM(D.outdoor.pool), [d0, d1] = poolDoor(pm); (f1.doors ||= []).push({ x: (d0 + d1) / 2, z: pm.z1, nx: 0, nz: 1 }); }
+  if (D.outdoor.pool) { const pm = rectM(D.outdoor.pool), [d0, d1] = poolDoor(pm); (f1.doors ||= []).push({ x: (d0 + d1) / 2, z: pm.z1, nx: 0, nz: 1 });
+    const [s0, s1] = poolSideDoor(pm); f1.doors.push({ x: pm.x1, z: (s0 + s1) / 2, nx: 1, nz: 0 }); }
   for (const f of floors) {
     // 1 樓墊高的平台（司令臺、花台、階梯）本身不算擋路，是可以踩上去的地面
     const isGround = (b) => f.level === 0 && b.y2 - f.y <= groundAt(f, (b.x1 + b.x2) / 2, (b.z1 + b.z2) / 2) + 0.2;
