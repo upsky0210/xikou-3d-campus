@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=212';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=212';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=212';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=212';
-import { buildCampusWall } from './wall.js?v=212';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=212';
+import { PanoViewer } from './pano.js?v=213';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=213';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=213';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=213';
+import { buildCampusWall } from './wall.js?v=213';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=213';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2703,23 +2703,27 @@ const GLIDERS = [
   {
     look: 'cream', name: '米果',
     hello: '🐿️ 我是米果，五年四班養的蜜袋鼯！<br>正窩在藍色袋子裡，抱著點心啃啃啃～',
+    helloEn: "🐿️ I'm Mi-guo, the sugar glider of Class 504!<br>I'm curled up in my blue pouch, nibbling on a snack~",
     // 老師桌在教室前面（南）、不靠門的那一側（東）
     at: () => { const r = rooms.find((x) => x.code === '504'); return [r.f, r.m.x2 - 1.3, r.m.z2 - 1.45, 0.78, 0.5]; },
   },
   {
     look: 'grey', name: '花花',
     hello: '🐿️ 我是花花！<br>灰色的毛、背上一條黑線，尾巴蓬蓬的～',
+    helloEn: "🐿️ I'm Hua-hua!<br>Grey fur, a black stripe down my back, and a fluffy tail~",
     // 教務處：靠窗那排北邊、粉紅色椅子的那張 OA 桌（桌子中心約在西側 2.1 m、北牆往南 2 m）
     at: () => { const r = rooms.find((x) => x.name === '教務處'); return [r.f, r.cx - 2.27, r.m.z1 + 1.5, 0.76, Math.PI / 2 + 0.25]; },
   },
   {
     look: 'pale', name: '泡泡',
     hello: '🐿️ 我是泡泡！<br>正抱著點心吃，不要跟我搶喔～',
+    helloEn: "🐿️ I'm Pao-pao!<br>I'm hugging my snack. Don't take it from me~",
     at: () => { const r = rooms.find((x) => x.name === '教務處'); return [r.f, r.cx - 2.27, r.m.z1 + 2.5, 0.76, Math.PI / 2 - 0.25]; },
   },
   {
     make: makeHamster, name: '羞羞',
     hello: '🐹 我是倉鼠羞羞，住在輔導室的透明小屋裡！<br>有點害羞，所以都躲在粉紅色小熊屋裡偷看你～',
+    helloEn: "🐹 I'm Shy-shy the hamster. I live in a clear little house in the Counseling Office!<br>I'm a bit shy, so I hide in my pink bear house and peek at you~",
     // 3F 輔導室（依空景照片）：東邊休息區最北邊那張小桌子上的透明倉鼠籠裡，面向西邊
     at: () => {
       const r = rooms.find((x) => x.name === '輔導室'), inset = WALL_T / 2 + 0.02, W = r.m.x2 - r.m.x1 - inset * 2;
@@ -2735,7 +2739,7 @@ for (const gl of GLIDERS) {
   f.group.add(gl.g);
   gl.g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.glider = gl; pickables.push(o); } });
 }
-function meetGlider(gl) { passMark('eggs', 'glider'); toast(gl.hello); }
+function meetGlider(gl) { passMark('eggs', 'glider'); toast(T(gl.hello, gl.helloEn)); }
 
 /* ---------------- 生態池的烏龜：兩隻（一隻在水裡繞圈游、一隻趴在石頭上曬太陽），池邊可以餵食，一天最多餵兩次 ---------------- */
 
