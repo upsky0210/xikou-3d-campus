@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=221';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=221';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=221';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=221';
-import { buildCampusWall } from './wall.js?v=221';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=221';
+import { PanoViewer } from './pano.js?v=225';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=225';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=225';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=225';
+import { buildCampusWall } from './wall.js?v=225';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=225';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -16,12 +16,13 @@ const D = window.CAMPUS;
 
 /* ---------------- 中英文切換（雙語第一層：介面、地點名稱、導航、護照；老師對白和遊戲題目維持中文） ----------------
    T('中文', 'English') 依目前語言回傳；首頁 HTML 的固定文字寫在 data-en 屬性或 .zh-only／.en-only 區塊。
-   選擇記在瀏覽器；網址加 ?lang=en 可以直接打開英文版。 */
+   打開網站一律是中文（依使用者說明：中文網站為主）；切成英文只記在這個分頁（重新整理還是英文，關掉再開就回中文）；
+   網址加 ?lang=en 可以直接打開英文版。 */
 const LANG_KEY = 'campus-lang';
 let LANG = (() => {
   const q = new URLSearchParams(location.search).get('lang');
-  if (q === 'en' || q === 'zh') { try { localStorage.setItem(LANG_KEY, q); } catch { /* 私密模式 */ } return q; }
-  try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh'; } catch { return 'zh'; }
+  if (q === 'en' || q === 'zh') { try { sessionStorage.setItem(LANG_KEY, q); } catch { /* 私密模式 */ } return q; }
+  try { return sessionStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh'; } catch { return 'zh'; }
 })();
 const T = (zh, en) => (LANG === 'en' ? en : zh);
 function applyStaticLang() {
@@ -521,7 +522,11 @@ for (const f of floors) addRailings(f);
 // 1F 北側走廊（多元文化走廊，依使用者說明）：封閉的室內走廊，北邊是有窗的外牆（不通戶外）
 { const f1n = floorById['1F'], zN = mz(150), col = lighten(D.buildings.A.color, 0.35);
   f1n.segs.push({ ax: mx(865), az: zN, bx: mx(1260), bz: zN, h: WALL_H, color: col, kind: 'wall', bld: 'A' });
-  f1n.segs.push({ ax: mx(1260), az: zN, bx: mx(1260), bz: mz(195), h: WALL_H, color: col, kind: 'wall', bld: 'A', solid: true }); }   // 東端封住（托育中心那邊）
+  f1n.segs.push({ ax: mx(1260), az: zN, bx: mx(1260), bz: mz(195), h: WALL_H, color: col, kind: 'wall', bld: 'A', solid: true }   // 東端封住（溪口家園那邊）
+    // 敬業樓西側、至善樓走廊的北端也封住：外面是圍牆邊的窄道，不能走（依使用者說明）
+    , { ax: mx(645), az: zN, bx: mx(705), bz: zN, h: WALL_H, color: col, kind: 'wall', bld: 'A', solid: true }
+    , { ax: mx(1505), az: zN, bx: mx(1548), bz: zN, h: WALL_H, color: lighten(D.buildings.B.color, 0.35), kind: 'wall', bld: 'B', solid: true }
+    , { ax: mx(1505), az: zN, bx: mx(1505), bz: mz(195), h: WALL_H, color: col, kind: 'wall', bld: 'A', solid: true }); }   // 溪口家園北邊那條空隙不通走廊
 // 1 樓戶外墊高的地方（司令臺、花台）：{ x1, x2, z1, z2, h }，h 是離地面的高度
 const raised = [];
 // 一樓「室內」（建築裡：走廊、教室、穿堂、樓梯間）；中庭花園不算
@@ -625,6 +630,11 @@ function wallRuns() {
     for (const [ax, az, bx, bz] of wallRuns().filter((r) => !r.noWall).map((r) => [r.ax, r.az, r.bx, r.bz])) {
       f1.segs.push({ ax, az, bx, bz, h: 2.5, color, kind: 'wall', noRender: true });
     }
+  }
+  if (O.northGap) {
+    // 敬業樓北面和圍牆中間太窄：東西兩端種樹籬封起來
+    const G = O.northGap, color = new THREE.Color('#3f8f3a');
+    for (const x of G.x) f1.segs.push({ ax: mx(x), az: mz(G.y1), bx: mx(x), bz: mz(G.y2), h: 1.5, color, kind: 'hedge' });
   }
   if (O.pond) {
     // 生態池：池邊擋住（不畫牆，只算碰撞），導航會繞過去
@@ -789,7 +799,7 @@ function setIsland(on) {
 
 // 樹（裝飾）
 const treeSpots = [
-  ...[[220, 980], [1850, 400], [1850, 900], [250, 1500], [1960, 1500], [220, 1900], [1980, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
+  ...[[220, 980], [1760, 400], [1760, 900], [250, 1500], [1890, 1500], [220, 1900], [1900, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
 ];
 if (BLOCKY) {
   const tb = new Batch();
@@ -8208,7 +8218,7 @@ document.getElementById('cover').addEventListener('click', (e) => {
 // 中英文切換：上方工具列和封面的「EN／中文」按鈕
 function setLang(l) {
   LANG = l;
-  try { localStorage.setItem(LANG_KEY, l); } catch { /* 私密模式 */ }
+  try { sessionStorage.setItem(LANG_KEY, l); } catch { /* 私密模式 */ }
   applyStaticLang();
   relabel3D();
   updateFloorButtons();

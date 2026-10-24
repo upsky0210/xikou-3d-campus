@@ -880,7 +880,7 @@
   // 英文介面：載入畫面先換成英文（app.js 還沒跑）
   (function () {
     var l = new URLSearchParams(location.search).get('lang');
-    try { l = l || localStorage.getItem('campus-lang'); } catch (e) {}
+    try { l = l || sessionStorage.getItem('campus-lang'); } catch (e) {}
     if (l === 'en') { document.documentElement.lang = 'en'; document.querySelector('#loading span').textContent = 'Building the campus…'; }
   })();
 </script>
@@ -894,8 +894,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=221"></script>
-<script src="js/pano-data.js?v=221"></script>
-<script type="module" src="js/app.js?v=221"></script>
+<script src="js/campus-data.js?v=225"></script>
+<script src="js/pano-data.js?v=225"></script>
+<script type="module" src="js/app.js?v=225"></script>
 </body>
 </html>

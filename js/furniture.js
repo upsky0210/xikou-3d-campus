@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=221';
+import { Batch, mat, SPOTS } from './blocks.js?v=225';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2600,6 +2600,54 @@ function tableTennisHall(put, fr) {
   put(mat('wool', '#e8e2c8'), 0.5, 0.12, 0.6, 7.6, W / 2 - 0.08, 1.4); put(mat('wool', '#e8e2c8'), 0.5, 0.12, 0.6, 8.3, W / 2 - 0.08, 1.4);
 }
 
+// 1F 幼兒園中央廚房（甲梯北邊、走廊對面是溪口家園）：紅磚色止滑地磚、靠牆不鏽鋼流理臺＋水槽、
+//   北牆大灶＋排油煙罩、蒸飯箱、冰箱、中島備料台、送餐車（午餐送到各班）、菜單白板
+function kinderKitchen(put, fr) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A;
+  const steel = mat('wool', '#cfd4d9'), steel2 = mat('wool', '#9ea6ad'), black = M.dark();
+  put(mat('wool', '#c46a50'), L - 0.1, W - 0.1, 0.012, L / 2, 0, 0);                         // 止滑地磚
+  // 東牆：長長的不鏽鋼流理臺、兩個水槽、上面一排層架（鍋碗）
+  const cv = A * (W / 2 - 0.4), cu = L / 2 + 0.3, cl = L - 1.4;
+  put(steel, cl, 0.7, 0.85, cu, cv, 0);
+  for (const u of [L * 0.32, L * 0.56]) {
+    put(steel2, 0.9, 0.5, 0.02, u, cv, 0.85);                                                 // 水槽
+    put(M.grey(), 0.04, 0.04, 0.32, u, cv + A * 0.28, 0.85); put(M.grey(), 0.04, 0.22, 0.04, u, cv + A * 0.18, 1.15);   // 水龍頭
+  }
+  put(steel, cl, 0.35, 0.03, cu, A * (W / 2 - 0.2), 1.65);                                    // 層架
+  for (let i = 0; i < 7; i++) put.geo(steel2, new THREE.CylinderGeometry(0.13, 0.11, 0.18, 12), cu - cl / 2 + 0.5 + i * (cl - 1) / 6, A * (W / 2 - 0.2), 1.77);
+  // 北牆：兩口大灶（上面大湯鍋）＋排油煙罩
+  for (const v of [A * 0.9, A * 2.0]) {
+    put(black, 0.9, 0.95, 0.7, 0.55, v, 0);
+    put.geo(steel, new THREE.CylinderGeometry(0.36, 0.33, 0.5, 18), 0.55, v, 0.95);
+  }
+  put(steel, 0.9, 2.5, 0.08, 0.5, A * 1.45, 2.2); put(steel, 0.08, 2.5, 0.45, 0.93, A * 1.45, 1.95);   // 油煙罩
+  put(steel2, 0.25, 0.25, 0.6, 0.15, A * 1.45, 2.3);                                         // 排氣管
+  // 西北角：蒸飯箱（不鏽鋼高櫃、門上有把手）
+  put(steel, 0.85, 1.0, 1.75, 0.55, D * 1.0, 0);
+  for (const y of [0.45, 1.2]) put(black, 0.03, 0.5, 0.05, 0.99, D * 1.0, y);
+  // 西牆（門以北）：兩台營業用冰箱、鐵架上的餐盤
+  for (const u of [1.6, 2.5]) { put(steel, 0.85, 0.75, 1.95, u, D * (W / 2 - 0.45), 0); put(black, 0.4, 0.03, 0.04, u, D * (W / 2 - 0.84), 1.1); }
+  const ru = 3.8, rv = D * (W / 2 - 0.3);
+  for (const [du, dv] of [[-0.55, -0.2], [0.55, -0.2], [-0.55, 0.2], [0.55, 0.2]]) put(M.grey(), 0.04, 0.04, 1.6, ru + du, rv + dv, 0);
+  for (const y of [0.2, 0.7, 1.2]) { put(M.grey(), 1.15, 0.45, 0.03, ru, rv, y); for (let i = 0; i < 3; i++) put(mat('wool', ['#f2c230', '#4fb0e0', '#e86ab0'][i]), 0.3, 0.32, 0.12, ru - 0.38 + i * 0.38, rv, y + 0.03); }
+  // 中間：不鏽鋼中島備料台、砧板、大鋼盆
+  const iu = L * 0.45, iv = A * 0.3;
+  put(steel, 3.0, 1.0, 0.85, iu, iv, 0); put(steel2, 2.9, 0.9, 0.04, iu, iv, 0.2);              // 下層隔板
+  put(mat('wool', '#f2f2ee'), 0.5, 0.35, 0.03, iu - 0.8, iv, 0.85); put(mat('wool', '#7fc26b'), 0.5, 0.35, 0.03, iu + 0.2, iv, 0.85);   // 白色、綠色砧板
+  put.geo(steel2, new THREE.CylinderGeometry(0.25, 0.18, 0.14, 14), iu + 1.0, iv, 0.92);
+  // 南邊（門旁）：兩台送餐車，上面放保溫湯桶和餐盒
+  for (const v of [D * 0.6, A * 0.9]) {
+    const u = L - 1.3;
+    for (const y of [0.15, 0.8]) put(steel, 0.9, 0.6, 0.04, u, v, y);
+    for (const [du, dv] of [[-0.42, -0.27], [0.42, -0.27], [-0.42, 0.27], [0.42, 0.27]]) { put(steel2, 0.04, 0.04, 0.8, u + du, v + dv, 0.04); put(black, 0.08, 0.08, 0.08, u + du, v + dv, 0); }
+    put.geo(mat('wool', '#e8ecef'), new THREE.CylinderGeometry(0.2, 0.2, 0.32, 14), u - 0.18, v, 1.0);
+    put(mat('wool', '#4fb0e0'), 0.35, 0.45, 0.14, u + 0.25, v, 0.84);
+  }
+  // 南牆：菜單白板（今天的午餐）
+  put(M.white(), 0.04, 1.6, 1.0, L - 0.03, A * 1.8, 1.1);
+  for (let i = 0; i < 4; i++) put(mat('wool', ['#d63a3a', '#2e6fd8', '#3ba55c', '#f2a03a'][i]), 0.045, 0.9 - (i % 2) * 0.3, 0.06, L - 0.03, A * 1.8 - 0.2, 1.85 - i * 0.2);
+}
+
 /** 依名稱、種類挑布置 */
 function furnishRoom(room, fr, put) {
   const n = room.name || '', t = room.type;
@@ -2634,6 +2682,7 @@ function furnishRoom(room, fr, put) {
   if (n.includes('活動中心')) return gym(put, fr);
   if (n.includes('舞蹈') || n.includes('律動')) return danceRoom(put, fr, room);
   if (n === '會議室' && room.no === '111') return meetingRoom(put, fr, room);   // 1F 會議室依照片
+  if (n === '幼兒園中央廚房') return kinderKitchen(put, fr);
   if (t === 'office') return office(put, fr, n, room);
   if (t === 'kinder') return kinder(put, fr);
   if (t === 'storage') return storage(put, fr);
@@ -2649,7 +2698,7 @@ export const ROOM_EN = {   // 也給 app.js 的英文介面用
   '月亮班': 'Moon Class', '白雲班': 'Cloud Class', '學務處': 'Student Affairs Office', '客語教室': 'Hakka Classroom',
   '家長會': "Parents' Association", '幸運方塘': 'Maker Space', '幼兒園辦公室': 'Kindergarten Office',
   '幼兒多功能活動室一': 'Kindergarten Activity Room 1', '幼兒多功能活動室二': 'Kindergarten Activity Room 2',
-  '律動教室': 'Rhythm Room', '思科教室': 'Cisco Classroom', '托育中心': 'After-School Care Center', '教務處': 'Academic Affairs Office',
+  '律動教室': 'Rhythm Room', '思科教室': 'Cisco Classroom', '溪口家園': 'Xikou Home', '幼兒園中央廚房': 'Kindergarten Central Kitchen', '教務處': 'Academic Affairs Office',
   '教師會辦公室': "Teachers' Association Office", '方陣教室': 'Science Discovery Room', '會議室': 'Meeting Room',
   '校長室': "Principal's Office", '桌球教室': 'Table Tennis Room', '油印室': 'Printing Room', '活動中心': 'Activity Center',
   '潛能教室一': 'Resource Room 1', '潛能教室二': 'Resource Room 2', '潛能教室三': 'Resource Room 3', '潛能教室四': 'Resource Room 4',
