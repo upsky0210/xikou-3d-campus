@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=218';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=218';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=218';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=218';
-import { buildCampusWall } from './wall.js?v=218';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=218';
+import { PanoViewer } from './pano.js?v=221';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=221';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=221';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=221';
+import { buildCampusWall } from './wall.js?v=221';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=221';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5171,9 +5171,10 @@ function startSwim(n) {
   let dist = 0, shown = 0, cues = [], cur = 0, strokes = 0, hand = 'L', lastKind = '';
   let perfect = 0, good = 0, judged = 0, extra = 0, combo = 0, maxCombo = 0;
   const offs = [], presses = [], arm = { L: null, R: null };
-  let roll = 0, rollGoal = 0, breathT = 0, kick = 0, dive = 0;
+  let roll = 0, rollGoal = 0, breathT = 0, kick = 0, dive = 0, dressed = null;
   try { best = +localStorage.getItem(SWIM_KEY) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
+  for (const k of ['armL', 'armR']) nL[k].rotation.set(0, 0, 0);    // 放下打招呼的手
   if (mode === 'first') setMode('third');                              // 第一人稱看不到自己在游，先換成第三人稱
   placeAt(f, deck.x, deck.z, YAW); player.yaw = YAW + 0.6; player.pitch = -0.1;
   f.labels.visible = false;
@@ -5287,6 +5288,7 @@ function startSwim(n) {
   const tick = (dt) => {
     t += dt;
     updateSwimDrops(dt);
+    if (dressed !== avatar) { avatar.userData.setOutfit?.(true); dressed = avatar; }   // 換上泳裝（中途換角色也照樣穿）
     if (phase === 'menu') return;
     const L = limbs();
     if (phase === 'dive') {                                             // 從池畔跳進水道，身體轉成趴著
@@ -5362,7 +5364,7 @@ function startSwim(n) {
     removeEventListener('keydown', onKey, true);
     for (const p of swimDrops) scene.remove(p.m);
     swimDrops.length = 0;
-    avatar.quaternion.identity(); resetPose();
+    avatar.quaternion.identity(); resetPose(); avatar.userData.setOutfit?.(false);   // 換回制服
     player.ride = null; player.pitch = -0.1;
     placeAt(f, deck.x, deck.z, YAW); player.yaw = YAW + 0.6;              // 回到池畔（會順便把名牌放回來）
     if (prevMode === 'first') setMode('first');

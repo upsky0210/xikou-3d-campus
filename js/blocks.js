@@ -366,6 +366,10 @@ export function makeBlockPerson(gender = 'boy') {
   const hair = new THREE.MeshLambertMaterial({ map: hairTexture(gender, false) });
   const hairSide = new THREE.MeshLambertMaterial({ map: hairTexture(gender, true) });
   const face = new THREE.MeshLambertMaterial({ map: faceTexture(gender) });
+  // 泳裝（游泳小遊戲用，保守款）：男生短袖水母衣＋短泳褲、女生連身泳裝；先用深藍色
+  const navy = cloth('#1d2b57'), girl = gender === 'girl';
+  const outfit = [];                                         // [方塊, 制服材質, 泳裝材質（null＝穿泳裝時藏起來）]
+  const swim = (mesh, m) => { outfit.push([mesh, mesh.material, m]); return mesh; };
 
   const box = (parent, w, h, d, m, x, y, z) => {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
@@ -393,17 +397,18 @@ export function makeBlockPerson(gender = 'boy') {
   const shirtBack = new THREE.MeshLambertMaterial({ map: shirtTexture(false) });
   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.6, 0.26), [trim, trim, polo, polo, shirtBack, shirtFront]);   // +x -x +y -y +z(背) -z(胸)
   torso.position.set(0, 1.0, 0); torso.castShadow = true; g.add(torso);
-  box(g, 0.44, 0.07, 0.28, collar, 0, 1.28, 0);             // 領子
-  box(g, 0.45, 0.02, 0.285, trim, 0, 1.31, 0);              // 領子上緣灰邊
-  box(g, 0.06, 0.15, 0.02, collar, 0, 1.17, -0.135);        // 門襟
-  box(g, 0.025, 0.025, 0.02, collar, 0, 1.2, -0.147);       // 鈕扣（同色）
-  box(g, 0.025, 0.025, 0.02, collar, 0, 1.13, -0.147);
+  swim(torso, navy);
+  swim(box(g, 0.44, 0.07, 0.28, collar, 0, 1.28, 0), null);             // 領子
+  swim(box(g, 0.45, 0.02, 0.285, trim, 0, 1.31, 0), null);              // 領子上緣灰邊
+  swim(box(g, 0.06, 0.15, 0.02, collar, 0, 1.17, -0.135), null);        // 門襟
+  swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.2, -0.147), null);       // 鈕扣（同色）
+  swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.13, -0.147), null);
 
   // 手臂：短袖（全紅）＋ 手臂（膚色）；左袖綠色小校徽
   const arm = (side) => {
     const p = pivot(side * 0.33, 1.3);
-    box(p, 0.2, 0.22, 0.22, polo, 0, -0.11, 0);
-    if (side === -1) box(p, 0.01, 0.06, 0.06, cloth('#2e9e4f'), -0.105, -0.08, 0);   // 校徽
+    swim(box(p, 0.2, 0.22, 0.22, polo, 0, -0.11, 0), girl ? skin : navy);           // 連身泳裝露手臂；水母衣是短袖
+    if (side === -1) swim(box(p, 0.01, 0.06, 0.06, cloth('#2e9e4f'), -0.105, -0.08, 0), null);   // 校徽
     box(p, 0.16, 0.36, 0.18, skin, 0, -0.4, 0);
     box(p, 0.17, 0.1, 0.19, skin, 0, -0.62, 0);
     return p;
@@ -411,20 +416,23 @@ export function makeBlockPerson(gender = 'boy') {
   const armL = arm(-1), armR = arm(1);
 
   // 黑色運動短褲（含腰部）＋ 腿 ＋ 白襪 ＋ 鞋子
-  box(g, 0.47, 0.14, 0.27, shorts, 0, 0.71, 0);
+  swim(box(g, 0.47, 0.14, 0.27, shorts, 0, 0.71, 0), navy);
   const leg = (side) => {
     const p = pivot(side * 0.12, 0.7);
-    box(p, 0.22, 0.26, 0.23, shorts, 0, -0.13, 0);
-    box(p, 0.02, 0.24, 0.23, trim, side * 0.115, -0.13, 0);    // 側邊灰條
+    swim(box(p, 0.22, 0.26, 0.23, shorts, 0, -0.13, 0), girl ? skin : navy);   // 短泳褲；連身泳裝只到腰下
+    swim(box(p, 0.02, 0.24, 0.23, trim, side * 0.115, -0.13, 0), null);    // 側邊灰條
     box(p, 0.18, 0.24, 0.19, skin, 0, -0.38, 0);
-    box(p, 0.19, 0.08, 0.2, sock, 0, -0.54, 0);
-    box(p, 0.21, 0.09, 0.27, shoe, 0, -0.62, -0.03);
+    swim(box(p, 0.19, 0.08, 0.2, sock, 0, -0.54, 0), skin);                  // 游泳打赤腳
+    swim(box(p, 0.21, 0.09, 0.27, shoe, 0, -0.62, -0.03), skin);
     return p;
   };
   const legL = leg(-1), legR = leg(1);
 
   g.userData.limbs = { armL, armR, legL, legR };
   g.userData.gender = gender;
+  g.userData.setOutfit = (swimsuit) => {
+    for (const [mesh, uni, sw] of outfit) { mesh.visible = !swimsuit || !!sw; mesh.material = swimsuit && sw ? sw : uni; }
+  };
   return g;
 }
 
