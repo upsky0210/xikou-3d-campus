@@ -23,9 +23,10 @@ const T = {
 };
 
 export class PanoViewer {
-  constructor(data, { onClose, onLocate } = {}) {
+  constructor(data, { onClose, onLocate, onShow } = {}) {
     this.onClose = onClose;
     this.onLocate = onLocate;
+    this.onShow = onShow;     // 每換一張照片通知一次（校園護照記錄看過哪些實景）
     this.lang = 'zh';
     this.isOpen = false;
 
@@ -211,6 +212,7 @@ export class PanoViewer {
     }
     this.updateAudioBtn();
     history.replaceState(null, '', `${location.pathname}?pano=${encodeURIComponent(img)}`);
+    this.onShow?.(s);
   }
 
   // 換掉球體貼圖；換下來的若不在快取裡（縮圖），就釋放掉

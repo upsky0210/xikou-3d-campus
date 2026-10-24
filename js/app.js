@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=207';
-import { furnishFloor } from './furniture.js?v=207';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=207';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=207';
-import { buildCampusWall } from './wall.js?v=207';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=207';
+import { PanoViewer } from './pano.js?v=208';
+import { furnishFloor } from './furniture.js?v=208';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=208';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=208';
+import { buildCampusWall } from './wall.js?v=208';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=208';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1673,7 +1673,7 @@ function findPath(f, sx, sz, tx, tz) {
 
 /* ---------------- 導航 ---------------- */
 
-const nav = { target: null, legs: [], stair: null };
+const nav = { target: null, legs: [], stair: null, reveal: true, gaveUp: false };
 
 // 「優先搭電梯」：勾選後跨樓層只走電梯；電梯到不了時才走樓梯，並說明原因
 const ELEV_KEY = 'campus-prefer-elevator';
@@ -1686,11 +1686,36 @@ elevBox.addEventListener('change', () => {
   try { localStorage.setItem(ELEV_KEY, preferElevator ? '1' : '0'); } catch { /* 私密模式 */ }
   if (nav.target) navigateTo(nav.target);   // 正在導航：馬上換路線
 });
+// 「挑戰尋路」（參考凡宇學院的挑戰模式）：不畫黃線和光柱，只給線索（大樓、樓層、方位、直線距離）和小地圖上的目的地點；
+//   找不到可以按「顯示路線」放棄。不看路線找到，記進校園護照（成功次數、最快時間）
+const NAVCH_KEY = 'campus-nav-challenge';
+let navChallenge = false;
+try { navChallenge = localStorage.getItem(NAVCH_KEY) === '1'; } catch { /* 私密模式 */ }
+const chBox = document.getElementById('navChallenge');
+chBox.checked = navChallenge;
+chBox.addEventListener('change', () => {
+  navChallenge = chBox.checked;
+  try { localStorage.setItem(NAVCH_KEY, navChallenge ? '1' : '0'); } catch { /* 私密模式 */ }
+  if (nav.target) navigateTo(nav.target);
+});
+const DIR8 = ['北', '東北', '東', '東南', '南', '西南', '西', '西北'];
+const dirTo = (x, z) => DIR8[Math.round(((Math.atan2(x - player.x, -(z - player.z)) * 180 / Math.PI) + 360) % 360 / 45) % 8];   // 地圖上方是北（-z）
+function drawRoute() {
+  const r = nav.target;
+  for (const l of nav.legs) drawLeg(l.f, l.p.pts);
+  addBeacon(r.f, r.cx, r.cz);
+  if (nav.stair) addBeacon(nav.from, nav.stair.ex ?? nav.stair.cx, nav.stair.ez ?? nav.stair.cz, '#ff9f1c');
+}
+function revealNav() {
+  if (!nav.target || nav.reveal) return;
+  nav.reveal = true; nav.gaveUp = true;
+  drawRoute(); updateNavBar();
+}
 const pathMat = new THREE.MeshBasicMaterial({ color: '#ffd400' });
 
 function clearNav() {
   for (const f of floors) f.navGroup.clear();
-  nav.target = null; nav.legs = []; nav.stair = null;
+  nav.target = null; nav.legs = []; nav.stair = null; nav.reveal = true; nav.gaveUp = false;
   document.getElementById('navbar').hidden = true;
 }
 
@@ -1728,6 +1753,7 @@ function addBeacon(f, x, z, color = '#ffd400') {
 }
 
 function navigateTo(room) {
+  const again = nav.target === room, t0 = nav.t0, gaveUp = nav.gaveUp;   // 同一個目的地重算路線（換電梯、換模式）：計時不重來
   clearNav();
   const pf = player.floor, tf = room.f;
   let best = null;
@@ -1757,10 +1783,10 @@ function navigateTo(room) {
     }
   }
   if (!best) { toast('找不到路線 😢'); return; }
-  nav.target = room; nav.legs = best.legs; nav.stair = best.stair || null;
-  for (const l of best.legs) drawLeg(l.f, l.p.pts);
-  addBeacon(tf, room.cx, room.cz);
-  if (nav.stair) addBeacon(pf, nav.stair.ex ?? nav.stair.cx, nav.stair.ez ?? nav.stair.cz, '#ff9f1c');
+  nav.target = room; nav.legs = best.legs; nav.stair = best.stair || null; nav.from = pf;
+  nav.t0 = again ? t0 : performance.now(); nav.gaveUp = again && gaveUp;
+  nav.reveal = !navChallenge || nav.gaveUp;
+  if (nav.reveal) drawRoute();
   updateNavBar();
   if (mode === 'bird') setMode('third');
 }
@@ -1770,6 +1796,16 @@ function updateNavBar() {
   if (!nav.target) { bar.hidden = true; return; }
   const r = nav.target;
   let msg;
+  revealBtn.hidden = nav.reveal;
+  if (!nav.reveal) {                                            // 挑戰尋路：只給線索
+    const where = `${r.building ? D.buildings[r.building].name + ' ' : ''}${r.f.id}`;
+    const dl = r.f.level - player.floor.level;
+    msg = `🧭 挑戰：找到 <b>${r.display}</b>（${where}）・`
+      + (dl ? `要${dl > 0 ? '往上' : '往下'} ${Math.abs(dl)} 層` : `在你的<b>${dirTo(r.cx, r.cz)}</b>方，直線約 ${Math.round(Math.hypot(r.cx - player.x, r.cz - player.z))} 公尺`);
+    bar.querySelector('.msg').innerHTML = msg;
+    bar.hidden = false;
+    return;
+  }
   if (player.floor !== r.f) {
     const s = nav.stair, d = remainingLen();
     msg = s ? `先沿黃線走到 <b>${s.id}</b>${d != null ? `（還有約 ${Math.round(d)} 公尺）` : ''}，再${s.elevator ? '搭電梯' : (r.f.level > player.floor.level ? '走上樓梯' : '走下樓梯')}到 <b>${r.f.id}</b>` : `目的地在 ${r.f.id}`;
@@ -2152,7 +2188,12 @@ function drawMinimap() {
     mmc.beginPath(); pts.forEach(([x, z], i) => { const [a, b] = toS(x, z); i ? mmc.lineTo(a, b) : mmc.moveTo(a, b); });
     mmc.strokeStyle = color; mmc.lineWidth = w; mmc.setLineDash(dash || []); mmc.stroke(); mmc.setLineDash([]);
   };
-  for (const l of nav.legs) if (l.f === f) line(l.p.pts, '#ffd400', 5);
+  if (nav.reveal) { for (const l of nav.legs) if (l.f === f) line(l.p.pts, '#ffd400', 5); }
+  else if (nav.target?.f === f) {                              // 挑戰尋路：只標目的地（在小地圖外面就貼在邊上，指出方向）
+    const [a, b] = toS(nav.target.cx, nav.target.cz), cx = Math.max(9, Math.min(N - 9, a)), cy = Math.max(9, Math.min(N - 9, b));
+    mmc.fillStyle = '#ffd400'; mmc.strokeStyle = '#2b2b2b'; mmc.lineWidth = 3;
+    mmc.beginPath(); mmc.arc(cx, cy, 7, 0, Math.PI * 2); mmc.stroke(); mmc.fill();
+  }
   if (auto.pts) {
     line([[player.x, player.z], ...auto.pts.slice(auto.i)], '#ffffff', 3, [6, 5]);
     const [a, b] = toS(...auto.pts.at(-1));
@@ -2208,7 +2249,11 @@ function updateWhere(dt) {
   if ((whereTick += dt) < 0.25) return;
   whereTick = 0;
   const t = whereAmI();
-  if (t !== whereText) { whereText = t; whereChip.querySelector('span').textContent = t; }
+  if (t !== whereText) {
+    whereText = t; whereChip.querySelector('span').textContent = t;
+    const r = mode !== 'bird' && rooms.find((x) => x.f === player.floor && x.keys && inRect(x.m, player.x, player.z));   // 走進可以搜尋到的教室、地點：蓋章
+    if (r) passMark('rooms', r.id);
+  }
 }
 
 // 手機搖桿
@@ -2256,6 +2301,7 @@ info.addEventListener('click', (e) => {
 });
 
 function teleportTo(room) {
+  if (nav.target && !nav.reveal) { nav.gaveUp = true; nav.reveal = true; drawRoute(); }   // 挑戰尋路中用傳送：算放棄，不記成績
   placeAt(room.f, room.cx, room.cz);
   if (mode === 'bird') setMode('third');
   toast(`已傳送到 ${room.display}`);
@@ -2337,6 +2383,8 @@ function focusRoom(r) {
 document.getElementById('openSearch').onclick = openSearch;
 document.getElementById('closeSearch').onclick = closeSearch;
 document.getElementById('navbar').querySelector('button').onclick = clearNav;
+const revealBtn = document.getElementById('revealNav');
+revealBtn.onclick = revealNav;
 document.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
 
 // 樓層按鈕
@@ -2409,6 +2457,7 @@ bgmUpdate();
 const viewer = new PanoViewer(window.PANO, {
   onClose: () => { clock.getDelta(); bgmHold('pano', false); },
   onLocate: (s) => focusPano(s),
+  onShow: (s) => passMark('pano', s.img),
 });
 const panoScenes = viewer.scenes;
 for (const s of panoScenes) {
@@ -2538,6 +2587,7 @@ floors[1].group.add(cat);
 cat.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.cat = true; pickables.push(o); } });
 let catNear = false;
 function meetCat() {
+  passMark('eggs', 'cat');
   let first = true;
   try { first = !localStorage.getItem(CAT_KEY); localStorage.setItem(CAT_KEY, '1'); } catch { /* 私密模式，忽略 */ }
   toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
@@ -2549,6 +2599,7 @@ let honkAudio = null;
 function honkCar(car) {
   if (car.busy) return;
   car.busy = true;
+  passMark('eggs', 'car');
   const set = (on) => car.lights.forEach((l) => l.material.emissive.set(on ? '#fff3b0' : '#000000'));
   [0, 260, 520, 780].forEach((t, i) => setTimeout(() => set(i % 2 === 0), t));
   setTimeout(() => { set(false); car.busy = false; }, 1040);
@@ -2602,7 +2653,7 @@ for (const gl of GLIDERS) {
   f.group.add(gl.g);
   gl.g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.glider = gl; pickables.push(o); } });
 }
-function meetGlider(gl) { toast(gl.hello); }
+function meetGlider(gl) { passMark('eggs', 'glider'); toast(gl.hello); }
 
 /* ---------------- 生態池的烏龜：兩隻（一隻在水裡繞圈游、一隻趴在石頭上曬太陽），池邊可以餵食，一天最多餵兩次 ---------------- */
 
@@ -2641,6 +2692,7 @@ function feedTurtles() {
   }
   rec.n++;
   try { localStorage.setItem(TURTLE_KEY, JSON.stringify(rec)); } catch { /* 私密模式 */ }
+  passMark('eggs', 'turtle');
   // 飼料撒在離你最近的水面上
   const [ix1, ix2, iz1, iz2] = turtles[0].box;
   const fx = Math.min(ix2 - 0.3, Math.max(ix1 + 0.3, player.x)), fz = Math.min(iz2 - 0.3, Math.max(iz1 + 0.3, player.z));
@@ -3552,6 +3604,7 @@ for (const n of NPCS) {
 }
 // hello 可以是好幾句：每次隨機換一句（不會連續兩次一樣）
 function meetNPC(n) {
+  passMark('npc', npcKey(n));
   let line = n.hello;
   if (Array.isArray(n.hello)) {
     let k; do k = Math.random() * n.hello.length | 0; while (n.hello.length > 1 && k === n.last);
@@ -5872,6 +5925,7 @@ toyProps.yoyoString = new THREE.Mesh(new THREE.BoxGeometry(1, 0.01, 0.01), new T
 toyProps.plane.scale.setScalar(1.8); toyProps.plane.visible = false; scene.add(toyProps.plane);
 
 function startToy(sp) {
+  passMark('eggs', 'toy');
   stopAuto();
   const L = limbs();
   let t = 0;
@@ -6052,6 +6106,7 @@ ball.castShadow = true; ball.visible = false;
 scene.add(ball);
 
 function startShot(sp, ctx = {}) {
+  passMark('eggs', 'shot');
   stopAuto();
   const dx = sp.x - player.x, dz = sp.z - player.z, dist = Math.hypot(dx, dz);
   const face = Math.atan2(-dx, -dz);
@@ -6118,6 +6173,7 @@ function shoot(sp, p, ideal, tol, ctx = {}) {
 
 // 溜滑梯：先爬到滑梯頂端，再沿著滑道滑下來
 function startSlide(sp) {
+  passMark('eggs', 'slide');
   stopAuto();
   const path = sp.path.map(([x, y, z]) => new THREE.Vector3(x, y, z));
   const seg = []; let total = 0;
@@ -6279,7 +6335,11 @@ function update(dt) {
       navTick = 0;
       updateNavBar();
       if (player.floor === nav.target.f && (inRect(nav.target.m, player.x, player.z, -0.4) || Math.hypot(player.x - nav.target.cx, player.z - nav.target.cz) < 1.6)) {   // 走進教室就算到（教室中間有桌椅，走不到正中央）
-        toast(`🎉 到達 ${nav.target.display}！`);
+        const r = nav.target, sec = (performance.now() - nav.t0) / 1000;
+        if (navChallenge && !nav.gaveUp) {
+          const best = passNav(sec);
+          toast(`🏆 挑戰成功！不看路線找到 ${r.display}<br>用了 ${fmtSec(sec)}${best ? '・新紀錄！' : ''}`);
+        } else toast(`🎉 到達 ${r.display}！${navChallenge ? '<br>下次試試看不按「顯示路線」找到它！' : ''}`);
         clearNav();
       }
     }
@@ -6394,6 +6454,106 @@ function qualityFrame(now) {
   toast(lv === 1 ? '🐢 這台電腦跑得比較吃力，已經自動關掉陰影，畫面會比較順～'
     : '🐢 這台電腦跑得比較吃力，已經自動降低畫面解析度，畫面會比較順～');
 }
+
+/* ---------------- 溪口校園護照（參考凡宇學院的「冒險紀錄」）：認識的老師、小遊戲紀錄、看過的實景、走過的地點、彩蛋、挑戰尋路 ----------------
+   全部存在這台電腦的瀏覽器裡；資料有版本號，之後做登入時可以直接上傳。小遊戲成績讀各遊戲原本的紀錄，不另外存一份。 */
+const PASS_KEY = 'campus-passport';
+const pass = (() => {
+  let o = null;
+  try { o = JSON.parse(localStorage.getItem(PASS_KEY) || 'null'); } catch { /* 私密模式 */ }
+  return { v: 1, npc: {}, pano: {}, rooms: {}, eggs: {}, nav: { n: 0, best: 0 }, ...(o || {}) };
+})();
+const passSave = () => { try { localStorage.setItem(PASS_KEY, JSON.stringify(pass)); } catch { /* 私密模式 */ } };
+const passBtn = document.getElementById('passBtn'), passBox = document.getElementById('passport');
+const passStampFx = () => { passBtn.classList.remove('stamp'); void passBtn.offsetWidth; passBtn.classList.add('stamp'); };   // 按鈕蓋章動畫
+function passMark(kind, id) {
+  if (!id || pass[kind][id]) return;
+  pass[kind][id] = new Date().toLocaleDateString('sv');
+  passSave(); passStampFx();
+}
+function passNav(sec) {                                         // 挑戰尋路成功一次；回傳是不是新紀錄
+  const best = !pass.nav.best || sec < pass.nav.best;
+  pass.nav.n++; if (best) pass.nav.best = Math.max(1, Math.round(sec));
+  passSave(); passStampFx();
+  return best;
+}
+const npcKey = (n) => `${n.name}｜${n.title || ''}`;          // 有同名的老師（兩位陳老師、兩位林老師），加上職稱才分得開
+const fmtSec = (sec) => { sec = Math.round(sec); return sec >= 60 ? `${Math.floor(sec / 60)} 分 ${sec % 60} 秒` : `${sec} 秒`; };
+const lsNum = (k) => { try { return +localStorage.getItem(k) || 0; } catch { return 0; } };
+const ans = (v) => `答對 ${v} 題`, win = (v) => `贏老師 ${v} 次`;
+const GAME_INFO = {
+  words: ['英文單字', 'campus-words-best', ans], listen: ['英文聽力', 'campus-listen-best', ans],
+  rps: ['剪刀石頭布', 'campus-rps-wins', win], ooxx: ['OOXX', 'campus-ooxx-wins', win], blackjack: ['21 點', 'campus-blackjack-wins', win],
+  shootout: ['投籃比賽', 'campus-shootout-wins', win],
+  badminton: ['羽球', 'campus-badminton-best', (v) => `連續 ${v} 球`], pingpong: ['桌球', 'campus-pingpong-best', (v) => `連續 ${v} 球`],
+  recorder: ['直笛記憶', 'campus-flute-best', (v) => `第 ${v} 關`], zhuyin: ['注音符號大闖關', 'campus-zhuyin-best', (v) => `過了 ${v} 關`],
+  baseball: ['樂樂棒球', 'campus-baseball-best', (v) => `${v} 分`], colors: ['顏色對對碰', 'campus-colors-best', (v) => `最少翻 ${v} 次`],
+  paint: ['著色本', 'campus-paint-count', (v) => `畫了 ${v} 張`], glider: ['蜜袋鼯能吃嗎？', 'campus-glider-food-best', ans],
+  float: ['沉浮實驗', 'campus-float-best', ans], heat: ['熱脹冷縮', 'campus-heat-best', ans], history: ['臺灣史地大考驗', 'campus-history-best', ans],
+  fraction: ['分數計算', 'campus-fraction-best', ans], life: ['生活大考驗', 'campus-life-best', ans],
+};
+// 小遊戲清單：照老師整理，同一個遊戲、同一份紀錄的老師合成一列（例如兩位老師都能打羽球）
+function passGames() {
+  const rows = new Map();
+  for (const n of NPCS) {
+    const g = GAME_INFO[n.game];
+    if (!g || (n.places && !n.places.some((p) => p.game))) continue;   // 目前沒開放的（樂樂棒球）先不列
+    const key = n.rpsKey || g[1];
+    if (!rows.has(key)) rows.set(key, { name: g[0], key, fmt: g[2], who: [] });
+    rows.get(key).who.push(n.name);
+  }
+  rows.set('campus-blocks-best', { name: '電子積木', key: 'campus-blocks-best', fmt: ans, who: ['方陣教室'] });
+  return [...rows.values()];
+}
+const EGGS = [
+  ['cat', '🐱', '游泳館門口的橘貓', () => lsNum('campus-cat-found')], ['turtle', '🐢', '餵生態池的烏龜'],
+  ['glider', '🐿️', '教室裡的小動物'], ['car', '🚙', '停車場的森林人'], ['sand', '🏰', '沙坑的沙堡', () => lsNum('campus-sand-castles')],
+  ['slide', '🛝', '溜滑梯'], ['shot', '🏀', '投籃'], ['toy', '🪀', '草地童玩'],
+];
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function renderPassport() {
+  const npcGot = NPCS.filter((n) => pass.npc[npcKey(n)]).length;
+  const games = passGames(), gameGot = games.filter((g) => lsNum(g.key) > 0).length;
+  const panoGot = panoScenes.filter((sc) => pass.pano[sc.img]).length;
+  const roomGot = searchList.filter((r) => pass.rooms[r.id]).length;
+  const eggGot = EGGS.filter(([id, , , ext]) => pass.eggs[id] || ext?.()).length;
+  const bar = (a, b) => `<div class="pbar"><i style="width:${b ? Math.round(a / b * 100) : 0}%"></i></div>`;
+  const sec = (icon, title, a, b, body) => `<section><h3>${icon} ${title}<span>${a} / ${b}</span></h3>${bar(a, b)}${body}</section>`;
+  passBox.querySelector('.body').innerHTML = `
+    <h2>📒 溪口校園護照</h2>
+    <p class="sub">走遍校園、認識老師、挑戰小遊戲，把每一格都蓋上章吧！</p>
+    ${sec('👩‍🏫', '認識的老師', npcGot, NPCS.length, `<div class="pgrid">${NPCS.map((n) => {
+      const got = pass.npc[npcKey(n)];
+      return `<div class="pcell${got ? ' got' : ''}"><b>${esc(n.name)}</b><small>${got ? esc(n.title || '') : '還沒遇到'}</small></div>`;
+    }).join('')}</div>`)}
+    ${sec('🎮', '小遊戲', gameGot, games.length, `<ul class="plist">${games.map((g) => {
+      const v = lsNum(g.key);
+      return `<li class="${v > 0 ? 'got' : ''}"><b>${esc(g.name)}</b><small>${esc(g.who.join('、'))}</small><span>${v > 0 ? esc(g.fmt(v)) : '還沒有紀錄'}</span></li>`;
+    }).join('')}</ul>`)}
+    ${sec('📷', '看過的 360° 實景', panoGot, panoScenes.length, '')}
+    ${sec('🚪', '走過的教室和地點', roomGot, searchList.length, '')}
+    ${sec('🎁', '校園彩蛋', eggGot, EGGS.length, `<div class="pgrid">${EGGS.map(([id, icon, label, ext]) => {
+      const got = pass.eggs[id] || ext?.();
+      return `<div class="pcell${got ? ' got' : ''}"><b>${got ? icon : '❓'}</b><small>${got ? label : '還沒發現'}</small></div>`;
+    }).join('')}</div>`)}
+    <section><h3>🧭 挑戰尋路<span>${pass.nav.n} 次</span></h3>
+      <p class="note">${pass.nav.n ? `不看路線找到目的地 ${pass.nav.n} 次，最快 ${fmtSec(pass.nav.best)}。` : '還沒挑戰過。到「🔍 找教室」勾選「🧭 挑戰尋路」，再按「帶我去」試試看！'}</p></section>
+    <p class="note">紀錄存在這台電腦的瀏覽器裡，換電腦或清除瀏覽紀錄就會不見。</p>
+    <button class="clear">清除護照紀錄</button>`;
+}
+function openPassport() { renderPassport(); passBox.hidden = false; }
+function closePassport() { passBox.hidden = true; }
+passBtn.addEventListener('click', openPassport);
+passBox.addEventListener('pointerdown', (e) => e.stopPropagation());
+passBox.addEventListener('click', (e) => {
+  if (e.target === passBox || e.target.closest('.close')) { closePassport(); return; }
+  const c = e.target.closest('.clear');
+  if (!c) return;
+  if (c.dataset.sure !== '1') { c.dataset.sure = '1'; c.textContent = '確定要清除嗎？再按一次'; return; }   // 按兩次才清除，避免誤按
+  Object.assign(pass, { npc: {}, pano: {}, rooms: {}, eggs: {}, nav: { n: 0, best: 0 } });
+  passSave(); renderPassport();
+});
+addEventListener('keydown', (e) => { if (e.code === 'Escape' && !passBox.hidden) closePassport(); });
 
 /* ---------------- 效能資訊（網址加 ?perf，或按 ` 鍵開關）：帶去學校電腦看跑得順不順 ----------------
    每秒張數、每張花多少毫秒（程式＋送繪圖指令）、繪圖指令數、三角形數、顯示卡名稱；可以直接切換畫質比較差多少。 */

@@ -106,6 +106,31 @@
   #help h3 { margin: 16px 0 6px; font-size: 15px; color: var(--accent2); }
   #help table { border-collapse: collapse; width: 100%; font-size: 14px; }
   #help td { padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  /* 溪口校園護照 */
+  #passport { position: fixed; inset: 0; background: rgba(10,20,30,.45); display: grid; place-items: center; z-index: 10; padding: 16px; }
+  #passport .card { background: #fbf6ea; border: 3px solid #2b2b2b; border-radius: 18px; padding: 20px 22px; width: min(620px, 100%); max-height: 90vh; overflow: auto; position: relative; color: #2b2b2b; }
+  #passport .close { position: absolute; top: 10px; right: 12px; }
+  #passport h2 { margin: 0 0 2px; } #passport .sub { margin: 0 0 10px; font-size: 13px; color: #666; }
+  #passport section { margin: 14px 0; }
+  #passport h3 { display: flex; justify-content: space-between; margin: 0 0 6px; font-size: 15px; color: #c0392b; }
+  #passport h3 span { color: #2b2b2b; font-variant-numeric: tabular-nums; }
+  #passport .pbar { height: 8px; background: #e7dfcc; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+  #passport .pbar i { display: block; height: 100%; background: #c0392b; border-radius: 6px; }
+  #passport .pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+  #passport .pcell { border: 2px dashed #c9bfa8; border-radius: 10px; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; min-width: 0; color: #9a917e; }
+  #passport .pcell b { font-size: 14px; overflow-wrap: anywhere; } #passport .pcell small { font-size: 11px; }
+  #passport .pcell.got { border: 2px solid #c0392b; background: #fff; color: #2b2b2b; position: relative; padding-right: 20px; }
+  #passport .pcell.got::after { content: '✔'; position: absolute; top: 4px; right: 6px; color: #c0392b; font-weight: 900; transform: rotate(-12deg); }
+  #passport .plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  #passport .plist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 8px; padding: 5px 8px; border-radius: 8px; background: #f1ead9; color: #9a917e; }
+  #passport .plist li b { font-size: 14px; } #passport .plist li small { grid-column: 1; font-size: 11px; }
+  #passport .plist li span { grid-column: 2; grid-row: 1 / 3; align-self: center; font-size: 13px; font-weight: 700; }
+  #passport .plist li.got { background: #fff; color: #2b2b2b; } #passport .plist li.got span { color: #c0392b; }
+  #passport .note { font-size: 12px; color: #666; margin: 4px 0; }
+  #passport .clear { margin-top: 6px; font-size: 12px; background: #e5e1ee; color: #333; padding: 4px 12px; border-radius: 10px; }
+  #passBtn.stamp { animation: passStamp .7s ease; }
+  @keyframes passStamp { 0% { transform: scale(1); } 30% { transform: scale(1.25) rotate(-8deg); background: #c0392b; color: #fff; } 100% { transform: scale(1); } }
+  @media (max-width: 1180px) { #passBtn span { display: none; } }
   #help td:first-child { white-space: nowrap; font-weight: 700; width: 1%; }
   #help .close { position: absolute; top: 12px; right: 12px; background: #eef1f4; padding: 6px 10px; }
   #help label { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 14px; }
@@ -545,6 +570,7 @@
     <button data-mode="first">👀 第一人稱</button>
   </div>
   <button class="iconbtn" id="avatarBtn" aria-label="選擇角色">👕 角色</button>
+  <button class="iconbtn" id="passBtn" aria-label="校園護照">📒<span> 護照</span></button>
   <div class="spacer"></div>
   <button class="iconbtn" id="bgmBtn" aria-label="背景音樂：校歌" aria-pressed="true"><i>🎵</i><span> 校歌</span></button>
   <button class="iconbtn" id="openGallery" style="background:#7b2cbf;color:#fff">📷 實景導覽</button>
@@ -562,6 +588,7 @@
     <button id="closeSearch">關閉</button>
   </header>
   <label class="opt"><input type="checkbox" id="preferElevator"> 🛗 優先搭電梯（換樓層不走樓梯）</label>
+  <label class="opt"><input type="checkbox" id="navChallenge"> 🧭 挑戰尋路（不畫黃線，只給線索和小地圖）</label>
   <ul id="results"></ul>
 </div>
 
@@ -576,7 +603,7 @@
   </div>
 </div>
 
-<div id="navbar" hidden><span class="msg"></span><button>結束導航</button></div>
+<div id="navbar" hidden><span class="msg"></span><button>結束導航</button><button id="revealNav" hidden>顯示路線</button></div>
 <div id="stairPanel" hidden></div>
 <div id="joy"><div class="knob"></div></div>
 <div id="panoPrompt" hidden></div>
@@ -748,6 +775,7 @@
 <div id="toast"></div>
 <div id="fade"></div>
 
+<div id="passport" hidden><div class="card"><button class="close" aria-label="關閉護照">✕</button><div class="body"></div></div></div>
 <div id="help" hidden>
   <div class="card">
     <button class="close">✕</button>
@@ -755,6 +783,8 @@
     <h3>電腦</h3>
     <table>
       <tr><td>點地面 / 小地圖</td><td>自動走過去（按方向鍵就停）</td></tr>
+      <tr><td>📒 護照</td><td>看看認識了幾位老師、蓋了幾個章</td></tr>
+      <tr><td>🧭 挑戰尋路</td><td>在「找教室」勾選後，不畫黃線，只靠線索和小地圖找路</td></tr>
       <tr><td>W A S D</td><td>前後左右走</td></tr>
       <tr><td>滑鼠拖曳 / ← →</td><td>轉頭看</td></tr>
       <tr><td>Shift</td><td>跑步</td></tr>
@@ -810,8 +840,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=207"></script>
-<script src="js/pano-data.js?v=207"></script>
-<script type="module" src="js/app.js?v=207"></script>
+<script src="js/campus-data.js?v=208"></script>
+<script src="js/pano-data.js?v=208"></script>
+<script type="module" src="js/app.js?v=208"></script>
 </body>
 </html>
