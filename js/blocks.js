@@ -351,6 +351,122 @@ function shirtTexture(front) {
   return t;
 }
 
+// 校隊隊服（圓領 T 恤，依使用者提供的照片；都不印號碼）
+//   籃球隊：男生紅底白字；女生同款，黑底橘字或白底藍字。左胸白色橢圓「Xi Kou」灌籃標誌，背後書法「韌性」＋Basketball 半顆球
+//   直笛隊：紫色。正面一隻抱著直笛的米白色小熊，背後圓形徽章（兩支交叉的直笛、態度／責任／榮譽、看樂譜的小孩）＋「溪口音樂校隊精神」
+const TEES = {
+  basketball: { bg: '#d7182a', fg: '#ffffff', draw: basketballPrint },
+  'basketball-black': { bg: '#1c1c1f', fg: '#f28a1e', draw: basketballPrint },
+  'basketball-white': { bg: '#f2f2ee', fg: '#1f5fbf', draw: basketballPrint },
+  recorder: { bg: '#4b2486', fg: '#efe6d4', ink: '#1f1d2b', draw: recorderPrint },
+};
+function basketballPrint(c, w, front, { fg }) {
+  c.strokeStyle = c.fillStyle = fg; c.lineCap = c.lineJoin = 'round';
+  if (front) {
+    const cx = w * 0.66, cy = 64;
+    c.lineWidth = 3.5; c.beginPath(); c.ellipse(cx, cy, 34, 23, -0.12, 0, Math.PI * 2); c.stroke();
+    c.font = 'italic 700 13px "Comic Sans MS", "Segoe Print", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('Xi Kou', cx - 9, cy + 1);
+    // 灌籃的人（剪影）：手往上伸到橢圓頂端
+    c.beginPath(); c.arc(cx + 21, cy - 11, 3.6, 0, Math.PI * 2); c.fill();
+    c.lineWidth = 5; c.beginPath(); c.moveTo(cx + 20, cy - 6); c.lineTo(cx + 18, cy + 6); c.stroke();
+    c.lineWidth = 3; c.beginPath(); c.moveTo(cx + 21, cy - 5); c.lineTo(cx + 29, cy - 22); c.stroke();
+    c.beginPath(); c.moveTo(cx + 19, cy - 4); c.lineTo(cx + 12, cy + 3); c.stroke();
+    c.beginPath(); c.moveTo(cx + 18, cy + 6); c.lineTo(cx + 13, cy + 17); c.lineTo(cx + 9, cy + 15); c.stroke();
+    c.beginPath(); c.moveTo(cx + 18, cy + 6); c.lineTo(cx + 27, cy + 13); c.lineTo(cx + 32, cy + 19); c.stroke();
+  } else {
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = '900 66px "DFKai-SB", "BiauKai", "標楷體", "KaiTi", "STKaiti", serif';
+    c.fillText('韌', w * 0.42, 100); c.fillText('性', w * 0.42, 172);
+    // 右上：半顆籃球＋斜斜的 Basketball
+    const bx = w * 0.7, by = 46;
+    c.lineWidth = 3; c.beginPath(); c.arc(bx, by, 19, Math.PI * 0.95, Math.PI * 2.3); c.stroke();
+    c.beginPath(); c.moveTo(bx - 19, by); c.lineTo(bx + 19, by); c.stroke();
+    c.beginPath(); c.moveTo(bx, by - 19); c.quadraticCurveTo(bx + 9, by, bx + 3, by + 18); c.stroke();
+    c.save(); c.translate(w * 0.58, 70); c.rotate(0.38);
+    c.font = 'italic 700 12px "Comic Sans MS", "Segoe Print", sans-serif'; c.fillText('Basketball', 0, 0);
+    c.restore();
+  }
+}
+// 一支直笛（中心 x, y、長 len、角度 a）：米白色管身、黑色吹口和指孔
+function recorderShape(c, x, y, len, a, { fg, ink }, wid = 13) {
+  c.save(); c.translate(x, y); c.rotate(a);
+  c.fillStyle = fg; c.strokeStyle = ink; c.lineWidth = 2;
+  c.beginPath(); c.rect(-wid / 2, -len / 2, wid, len); c.fill(); c.stroke();
+  c.fillStyle = ink;
+  c.fillRect(-wid / 2, -len / 2, wid, len * 0.12);                                       // 吹口
+  for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(0, -len * 0.12 + i * len * 0.09, wid * 0.22, 0, Math.PI * 2); c.fill(); }
+  c.fillRect(-wid / 2, len * 0.36, wid, 3);
+  c.restore();
+}
+function recorderPrint(c, w, front, P) {
+  const { fg, ink } = P;
+  c.lineCap = c.lineJoin = 'round';
+  if (front) {
+    // 抱著直笛的小熊
+    c.fillStyle = fg; c.strokeStyle = ink; c.lineWidth = 2.5;
+    for (const s of [-1, 1]) { c.beginPath(); c.arc(w / 2 + s * 38, 52, 14, 0, Math.PI * 2); c.fill(); c.stroke(); }   // 耳朵
+    c.beginPath(); c.ellipse(w / 2, 172, 52, 56, 0, 0, Math.PI * 2); c.fill(); c.stroke();                         // 身體
+    c.beginPath(); c.ellipse(w / 2, 86, 50, 40, 0, 0, Math.PI * 2); c.fill(); c.stroke();                          // 頭
+    for (const s of [-1, 1]) {                                                                                     // 耳朵裡的三角形
+      c.beginPath(); c.moveTo(w / 2 + s * 44, 48); c.lineTo(w / 2 + s * 32, 46); c.lineTo(w / 2 + s * 34, 58); c.closePath(); c.stroke();
+    }
+    c.fillStyle = ink;
+    for (const s of [-1, 1]) { c.beginPath(); c.arc(w / 2 + s * 17, 84, 5.5, 0, Math.PI * 2); c.fill(); }           // 眼睛
+    c.beginPath(); c.moveTo(w / 2 - 6, 96); c.lineTo(w / 2 + 6, 96); c.lineTo(w / 2, 104); c.closePath(); c.stroke();   // 嘴巴
+    c.lineWidth = 1.5;
+    for (const s of [-1, 1]) for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(w / 2 + s * (30 + i * 3), 92); c.lineTo(w / 2 + s * (28 + i * 3), 98); c.stroke(); }   // 腮紅
+    recorderShape(c, w / 2 + 6, 186, 76, 0.85, P, 12);
+    c.lineWidth = 2.5; c.strokeStyle = ink;
+    c.beginPath(); c.arc(w / 2 - 22, 168, 11, 0.2, Math.PI * 1.1); c.stroke();                                    // 兩隻手
+    c.beginPath(); c.arc(w / 2 + 26, 162, 11, -0.6, Math.PI * 0.9); c.stroke();
+  } else {
+    // 圓形徽章：兩支交叉的直笛、三個圖示（態度／責任／榮譽）、看樂譜的小孩
+    const cx = w / 2, cy = 100, r = 70;
+    c.fillStyle = fg; c.strokeStyle = ink; c.lineWidth = 2;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); c.stroke();
+    c.beginPath(); c.arc(cx, cy, r - 6, 0, Math.PI * 2); c.stroke();
+    recorderShape(c, cx, cy + 4, 130, -0.62, P, 17);
+    recorderShape(c, cx, cy + 4, 130, 0.62, P, 17);
+    c.fillStyle = fg; c.strokeStyle = ink; c.lineWidth = 2;
+    for (const [x, y] of [[cx, cy - 46], [cx - 44, cy - 2], [cx + 44, cy - 2]]) { c.beginPath(); c.arc(x, y, 14, 0, Math.PI * 2); c.fill(); c.stroke(); }
+    c.fillStyle = ink;
+    c.beginPath(); c.moveTo(cx - 52, cy + 6); c.lineTo(cx - 44, cy - 10); c.lineTo(cx - 36, cy + 6); c.fill();      // 山（態度）
+    c.fillRect(cx - 5, cy - 52, 10, 12);                                                                            // 拳頭（責任）
+    c.beginPath(); c.arc(cx + 44, cy - 4, 6, 0, Math.PI * 2); c.fill(); c.fillRect(cx + 40, cy + 1, 3, 9); c.fillRect(cx + 45, cy + 1, 3, 9);   // 獎章（榮譽）
+    c.font = '700 10px "Noto Sans TC", "Microsoft JhengHei", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('責任', cx, cy - 26); c.fillText('態度', cx - 44, cy - 22); c.fillText('榮譽', cx + 44, cy - 22);
+    c.fillStyle = fg; c.beginPath(); c.arc(cx, cy + 42, 9, 0, Math.PI * 2); c.fill(); c.stroke();                 // 小孩的頭
+    c.fillRect(cx - 14, cy + 51, 28, 18); c.strokeRect(cx - 14, cy + 51, 28, 18); c.beginPath(); c.moveTo(cx, cy + 51); c.lineTo(cx, cy + 69); c.stroke();   // 樂譜
+    c.fillStyle = fg; c.font = '900 14px "DFKai-SB", "標楷體", "Noto Serif TC", serif';
+    c.fillText('溪口音樂校隊精神', cx, cy + r + 16);
+  }
+}
+const teeTexCache = {};
+function teeTexture(kind, front) {
+  return (teeTexCache[kind + front] ||= (() => {
+    const P = TEES[kind], cv = document.createElement('canvas'), S = 2, w = 184;
+    cv.width = w * S; cv.height = 240 * S;
+    const c = cv.getContext('2d');
+    c.scale(S, S);
+    c.fillStyle = P.bg; c.fillRect(0, 0, w, 240);
+    c.fillStyle = 'rgba(0,0,0,.05)';
+    for (let y = 0; y < 240; y += 4) c.fillRect(0, y, w, 1);             // 排汗布細紋
+    P.draw(c, w, front, P);
+    const t = new THREE.CanvasTexture(cv);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  })());
+}
+
+/** 選角色畫面的服裝按鈕：key → [中文, English]（泳裝是游泳小遊戲自動換的，不在這裡）；
+ *  籃球隊女生有兩款（BB_GIRL），男生只有紅色那款 */
+export const OUTFITS = { uniform: ['制服', 'Uniform'], basketball: ['籃球隊', 'Basketball team'], recorder: ['直笛隊', 'Recorder team'] };
+export const BB_GIRL = { black: ['黑底橘字', 'Black & orange'], white: ['白底藍字', 'White & blue'] };
+/** 實際穿哪一套（女生的籃球隊要看選哪一款） */
+export const outfitFor = (o, gender, bbGirl = 'black') => (o === 'basketball' && gender === 'girl' ? `basketball-${bbGirl in BB_GIRL ? bbGirl : 'black'}` : o);
+
 /**
  * 方塊學生。gender: 'boy' | 'girl'
  * 制服：紅色 polo 衫（灰色斜條與側片、左胸名牌）＋ 黑色運動短褲（灰色側條）＋ 白襪
@@ -366,10 +482,15 @@ export function makeBlockPerson(gender = 'boy') {
   const hair = new THREE.MeshLambertMaterial({ map: hairTexture(gender, false) });
   const hairSide = new THREE.MeshLambertMaterial({ map: hairTexture(gender, true) });
   const face = new THREE.MeshLambertMaterial({ map: faceTexture(gender) });
-  // 泳裝（游泳小遊戲用，保守款）：男生短袖水母衣＋短泳褲、女生連身泳裝；先用深藍色
+  // 換裝：swim＝泳裝（游泳小遊戲用，保守款：男生短袖水母衣＋短泳褲、女生連身泳裝，深藍色）；其他＝校隊隊服（TEES）
   const navy = cloth('#1d2b57'), girl = gender === 'girl';
-  const outfit = [];                                         // [方塊, 制服材質, 泳裝材質（null＝穿泳裝時藏起來）]
-  const swim = (mesh, m) => { outfit.push([mesh, mesh.material, m]); return mesh; };
+  const outfit = [];                                         // [方塊, 制服材質, { 服裝: 材質（null＝藏起來；沒寫＝跟制服一樣） }]
+  const dress = (mesh, alt) => { outfit.push([mesh, mesh.material, alt]); return mesh; };
+  const teeKinds = girl ? ['basketball-black', 'basketball-white', 'recorder'] : ['basketball', 'recorder'];
+  const teeSide = Object.fromEntries(teeKinds.map((k) => [k, cloth(TEES[k].bg)]));
+  const tees = (f) => Object.fromEntries(teeKinds.map((k) => [k, f(k)]));   // 每一套隊服各用什麼材質
+  // swim(方塊, 泳裝材質, 隊服材質)：隊服材質可以是 (k) => 材質；沒給＝穿隊服時跟制服一樣
+  const swim = (mesh, m, tee) => dress(mesh, { swim: m, ...(tee === undefined ? {} : tees(typeof tee === 'function' ? tee : () => tee)) });
 
   const box = (parent, w, h, d, m, x, y, z) => {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
@@ -397,18 +518,21 @@ export function makeBlockPerson(gender = 'boy') {
   const shirtBack = new THREE.MeshLambertMaterial({ map: shirtTexture(false) });
   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.6, 0.26), [trim, trim, polo, polo, shirtBack, shirtFront]);   // +x -x +y -y +z(背) -z(胸)
   torso.position.set(0, 1.0, 0); torso.castShadow = true; g.add(torso);
-  swim(torso, navy);
-  swim(box(g, 0.44, 0.07, 0.28, collar, 0, 1.28, 0), null);             // 領子
-  swim(box(g, 0.45, 0.02, 0.285, trim, 0, 1.31, 0), null);              // 領子上緣灰邊
-  swim(box(g, 0.06, 0.15, 0.02, collar, 0, 1.17, -0.135), null);        // 門襟
-  swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.2, -0.147), null);       // 鈕扣（同色）
-  swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.13, -0.147), null);
+  swim(torso, navy, (k) => [teeSide[k], teeSide[k], teeSide[k], teeSide[k],
+    new THREE.MeshLambertMaterial({ map: teeTexture(k, false) }), new THREE.MeshLambertMaterial({ map: teeTexture(k, true) })]);
+  // 隊服是圓領 T 恤：polo 領、門襟、鈕扣都拿掉
+  swim(box(g, 0.44, 0.07, 0.28, collar, 0, 1.28, 0), null, null);             // 領子
+  swim(box(g, 0.45, 0.02, 0.285, trim, 0, 1.31, 0), null, null);              // 領子上緣灰邊
+  swim(box(g, 0.06, 0.15, 0.02, collar, 0, 1.17, -0.135), null, null);        // 門襟
+  swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.2, -0.147), null, null);       // 鈕扣（同色）
+  swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.13, -0.147), null, null);
+  dress(box(g, 0.47, 0.03, 0.27, polo, 0, 1.3, 0), { swim: null, uniform: null, ...tees((k) => teeSide[k]) });   // 圓領（只有隊服有）
 
   // 手臂：短袖（全紅）＋ 手臂（膚色）；左袖綠色小校徽
   const arm = (side) => {
     const p = pivot(side * 0.33, 1.3);
-    swim(box(p, 0.2, 0.22, 0.22, polo, 0, -0.11, 0), girl ? skin : navy);           // 連身泳裝露手臂；水母衣是短袖
-    if (side === -1) swim(box(p, 0.01, 0.06, 0.06, cloth('#2e9e4f'), -0.105, -0.08, 0), null);   // 校徽
+    swim(box(p, 0.2, 0.22, 0.22, polo, 0, -0.11, 0), girl ? skin : navy, (k) => teeSide[k]);   // 連身泳裝露手臂；水母衣是短袖
+    if (side === -1) swim(box(p, 0.01, 0.06, 0.06, cloth('#2e9e4f'), -0.105, -0.08, 0), null, null);   // 校徽
     box(p, 0.16, 0.36, 0.18, skin, 0, -0.4, 0);
     box(p, 0.17, 0.1, 0.19, skin, 0, -0.62, 0);
     return p;
@@ -430,9 +554,14 @@ export function makeBlockPerson(gender = 'boy') {
 
   g.userData.limbs = { armL, armR, legL, legR };
   g.userData.gender = gender;
-  g.userData.setOutfit = (swimsuit) => {
-    for (const [mesh, uni, sw] of outfit) { mesh.visible = !swimsuit || !!sw; mesh.material = swimsuit && sw ? sw : uni; }
+  // kind：'uniform'（制服）、'swim'（泳裝）、TEES 裡的隊服（女生的籃球隊用 outfitFor 換成 basketball-black／white）
+  g.userData.setOutfit = (kind = 'uniform') => {
+    for (const [mesh, uni, alt] of outfit) {
+      const m = kind in alt ? alt[kind] : uni;
+      mesh.visible = !!m; if (m) mesh.material = m;
+    }
   };
+  g.userData.setOutfit('uniform');
   return g;
 }
 

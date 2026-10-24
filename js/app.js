@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=226';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=226';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=226';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=226';
-import { buildCampusWall } from './wall.js?v=226';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=226';
+import { PanoViewer } from './pano.js?v=229';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=229';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=229';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=229';
+import { buildCampusWall } from './wall.js?v=229';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=229';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1397,13 +1397,24 @@ const AVATAR_KEY = 'campus-avatar';
 function savedGender() {
   try { const v = localStorage.getItem(AVATAR_KEY); return v === 'boy' || v === 'girl' ? v : null; } catch { return null; }
 }
+// 服裝：制服或校隊隊服（OUTFITS；也記在瀏覽器）；女生的籃球隊服有兩款（BB_GIRL）
+const OUTFIT_KEY = 'campus-outfit', BB_GIRL_KEY = 'campus-outfit-bbgirl';
+function savedOutfit() {
+  try { const v = localStorage.getItem(OUTFIT_KEY); return v in OUTFITS ? v : 'uniform'; } catch { return 'uniform'; }
+}
+function savedBbGirl() {
+  try { const v = localStorage.getItem(BB_GIRL_KEY); return v in BB_GIRL ? v : 'black'; } catch { return 'black'; }
+}
+const wearing = (gender) => outfitFor(savedOutfit(), gender, savedBbGirl());   // 這個角色實際穿哪一套
 let avatar = makeBlockPerson(savedGender() || 'boy');
+avatar.userData.setOutfit(wearing(avatar.userData.gender));
 avatar.scale.setScalar(AVATAR_SCALE);
 scene.add(avatar);
 
 function setGender(gender) {
   try { localStorage.setItem(AVATAR_KEY, gender); } catch { /* 私密模式，忽略 */ }
   const next = makeBlockPerson(gender);
+  next.userData.setOutfit(wearing(gender));
   next.scale.setScalar(AVATAR_SCALE);
   next.rotation.copy(avatar.rotation);
   next.position.copy(avatar.position);
@@ -1414,9 +1425,21 @@ function setGender(gender) {
   scene.add(avatar);
   document.querySelectorAll('[data-gender]').forEach((b) => b.classList.toggle('on', b.dataset.gender === gender));
 }
+function setOutfit(kind, bbGirl) {
+  try { localStorage.setItem(OUTFIT_KEY, kind); if (bbGirl) localStorage.setItem(BB_GIRL_KEY, bbGirl); } catch { /* 私密模式，忽略 */ }
+  avatar.userData.setOutfit(wearing(avatar.userData.gender));
+  markOutfitButtons();
+}
+function markOutfitButtons() {
+  const o = savedOutfit(), bg = savedBbGirl();
+  document.querySelectorAll('[data-outfit]').forEach((b) => b.classList.toggle('on', b.dataset.outfit === o));
+  document.querySelectorAll('[data-bbgirl]').forEach((b) => b.classList.toggle('on', b.dataset.bbgirl === bg));
+  const row = document.querySelector('#chooser .bbgirl');
+  if (row) row.hidden = o !== 'basketball';                            // 女生籃球隊服的款式：選了籃球隊才出現
+}
 
 // 角色預覽圖（選角色畫面用）：另外開一個小畫布拍「大頭照」
-function avatarPreviews() {
+function avatarPreviews(outfit = 'uniform', bbGirl = 'black') {
   const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   r.setSize(240, 300);
   const sc = new THREE.Scene();
@@ -1427,6 +1450,7 @@ function avatarPreviews() {
   const out = {};
   for (const gd of ['boy', 'girl']) {
     const p = makeBlockPerson(gd);
+    p.userData.setOutfit(outfitFor(outfit, gd, bbGirl));
     p.userData.limbs.armR.rotation.x = -0.5;            // 揮手
     p.userData.limbs.armR.rotation.z = 0.5;
     sc.add(p);
@@ -1439,19 +1463,33 @@ function avatarPreviews() {
   return out;
 }
 
+const previewCache = {};
+function showOutfitPreviews() {
+  const o = savedOutfit(), bg = savedBbGirl(), imgs = (previewCache[o + bg] ||= avatarPreviews(o, bg));
+  document.querySelectorAll('#chooser [data-gender] img').forEach((img) => { img.src = imgs[img.closest('[data-gender]').dataset.gender]; });
+}
 function openChooser({ firstTime = false } = {}) {
   const ch = document.getElementById('chooser');
   if (!ch.dataset.ready) {
-    const imgs = avatarPreviews();
-    ch.querySelectorAll('[data-gender] img').forEach((img) => { img.src = imgs[img.closest('[data-gender]').dataset.gender]; });
+    // 服裝按鈕（制服＋校隊隊服）：點了只換預覽和身上的衣服，不關視窗
+    ch.querySelector('.outfits').innerHTML = Object.entries(OUTFITS).map(([k, [zh, en]]) => `<button data-outfit="${k}" data-en="${en}">${zh}</button>`).join('');
+    ch.querySelector('.bbgirl').innerHTML = `<span data-en="Girls' style:">女生款式：</span>`
+      + Object.entries(BB_GIRL).map(([k, [zh, en]]) => `<button data-bbgirl="${k}" data-en="${en}">${zh}</button>`).join('');
+    applyStaticLang();
     ch.dataset.ready = '1';
   }
+  showOutfitPreviews();
+  markOutfitButtons();
   ch.dataset.first = firstTime ? '1' : '';
   ch.hidden = false;
 }
 document.getElementById('chooser').addEventListener('click', (e) => {
   const b = e.target.closest('[data-gender]');
   const ch = e.currentTarget;
+  const ob = e.target.closest('[data-outfit]');
+  if (ob) { setOutfit(ob.dataset.outfit); showOutfitPreviews(); return; }
+  const gb = e.target.closest('[data-bbgirl]');
+  if (gb) { setOutfit('basketball', gb.dataset.bbgirl); showOutfitPreviews(); return; }
   if (b) {
     setGender(b.dataset.gender);
     ch.hidden = true;
@@ -5305,7 +5343,7 @@ function startSwim(n) {
   const tick = (dt) => {
     t += dt;
     updateSwimDrops(dt);
-    if (dressed !== avatar) { avatar.userData.setOutfit?.(true); dressed = avatar; }   // 換上泳裝（中途換角色也照樣穿）
+    if (dressed !== avatar) { avatar.userData.setOutfit?.('swim'); dressed = avatar; }   // 換上泳裝（中途換角色也照樣穿）
     if (phase === 'menu') return;
     const L = limbs();
     if (phase === 'dive') {                                             // 從池畔跳進水道，身體轉成趴著
@@ -5381,7 +5419,7 @@ function startSwim(n) {
     removeEventListener('keydown', onKey, true);
     for (const p of swimDrops) scene.remove(p.m);
     swimDrops.length = 0;
-    avatar.quaternion.identity(); resetPose(); avatar.userData.setOutfit?.(false);   // 換回制服
+    avatar.quaternion.identity(); resetPose(); avatar.userData.setOutfit?.(wearing(avatar.userData.gender));   // 換回原本的衣服
     player.ride = null; player.pitch = -0.1;
     placeAt(f, deck.x, deck.z, YAW); player.yaw = YAW + 0.6;              // 回到池畔（會順便把名牌放回來）
     if (prevMode === 'first') setMode('first');

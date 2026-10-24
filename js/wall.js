@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=226';
+import { Batch, mat } from './blocks.js?v=229';
 
 /* =========================================================
  * 校園圍牆與外面的人行道（依 2026-10-12 使用者照片）

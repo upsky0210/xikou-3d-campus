@@ -244,6 +244,14 @@
   #chooser p { margin: 0 0 16px; color: #556; }
   #chooser small { color: #889; }
   #chooser .choices { display: flex; gap: 14px; margin-bottom: 12px; }
+  #chooser .outfits { display: flex; justify-content: center; gap: 8px; margin: -6px 0 12px; flex-wrap: wrap; }
+  #chooser .outfits button { border: 2px solid #c9d0d6; background: #fff; border-radius: 999px; padding: 5px 14px; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; color: #334; }
+  #chooser .outfits button.on { border-color: #d32f2f; background: #d32f2f; color: #fff; }
+  #chooser .outfits.bbgirl { margin-top: -4px; align-items: center; font-size: 13px; color: #556; }
+  #chooser .outfits.bbgirl[hidden] { display: none; }
+  #chooser .outfits.bbgirl button { padding: 3px 10px; font-size: 13px; }
+  body.mc #chooser .outfits button { border-radius: 0; border-color: #111; }
+  body.mc #chooser .outfits button.on { border-color: #111; }
   #chooser .choices button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 6px 14px;
     background: linear-gradient(#cfe8ff, #eaf5ff); border-radius: 14px; font-size: 18px; transition: transform .15s; }
   #chooser .choices button:hover { transform: translateY(-3px); }
@@ -522,6 +530,8 @@
     box-shadow: 10px 10px 0 rgba(0,0,0,.28); }                 /* 紙條風格（同一般風格） */
   body.mc #chooser h2 { font-family: "Cubic 11", "Noto Sans TC", sans-serif; font-weight: 400; }
   body.mc #chooser .choices button { background: #8fc8ff; box-shadow: inset 3px 3px 0 #c8e4ff, inset -3px -3px 0 #4b7fae; padding: 10px 6px 14px; }
+  body.mc #chooser .outfits button { padding: 5px 14px; font-size: 14px; }
+  body.mc #chooser .outfits button.on { background: #d32f2f; box-shadow: inset 2px 2px 0 #ff8080, inset -2px -2px 0 #8a1414; }
   body.mc #chooser .choices button.on { outline: 4px solid #d32f2f; }
 
   @media (max-width: 640px) {
@@ -779,6 +789,8 @@
     <div class="guide" data-en="FIELD GUIDE · <b>Xikou Campus Guide</b>">FIELD GUIDE · <b>溪口國小校園導覽</b></div>
     <h2 data-en="Choose your character">選擇你的角色</h2>
     <p data-en="Put on the Xikou uniform and explore the campus!">穿上溪口國小的制服，一起逛校園！</p>
+    <div class="outfits" role="group" aria-label="服裝" data-en-aria="Outfit"></div>
+    <div class="outfits bbgirl" role="group" aria-label="女生籃球隊服款式" data-en-aria="Girls' basketball style" hidden></div>
     <div class="choices">
       <button data-gender="boy"><img alt="男學生" data-en-alt="Boy"><b data-en="Boy">男學生</b></button>
       <button data-gender="girl"><img alt="女學生" data-en-alt="Girl"><b data-en="Girl">女學生</b></button>
@@ -894,8 +906,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=226"></script>
-<script src="js/pano-data.js?v=226"></script>
-<script type="module" src="js/app.js?v=226"></script>
+<script src="js/campus-data.js?v=229"></script>
+<script src="js/pano-data.js?v=229"></script>
+<script type="module" src="js/app.js?v=229"></script>
 </body>
 </html>
