@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=211';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=211';
-import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=211';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=211';
-import { buildCampusWall } from './wall.js?v=211';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=211';
+import { PanoViewer } from './pano.js?v=212';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=212';
+import { poolWallMat, poolStripeMat, poolDoor, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=212';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=212';
+import { buildCampusWall } from './wall.js?v=212';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=212';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2672,7 +2672,7 @@ function meetCat() {
   passMark('eggs', 'cat');
   let first = true;
   try { first = !localStorage.getItem(CAT_KEY); localStorage.setItem(CAT_KEY, '1'); } catch { /* 私密模式，忽略 */ }
-  toast(first ? '🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！' : '🐱 喵～又見面了！');
+  toast(first ? T('🐱 喵～你找到了坐在游泳館門口階梯上的橘貓！', '🐱 Meow~ You found the orange cat sitting on the pool steps!') : T('🐱 喵～又見面了！', '🐱 Meow~ Nice to see you again!'));
 }
 
 /* ---------------- 彩蛋：點停車場的森林人，閃兩下大燈、叭叭兩聲 ---------------- */
@@ -2762,14 +2762,14 @@ function pondSpot() {
   const dx = Math.max(pondM.x1 - player.x, 0, player.x - pondM.x2), dz = Math.max(pondM.z1 - player.z, 0, player.z - pondM.z2);
   return Math.hypot(dx, dz) < 1.6 ? { kind: 'feed' } : null;
 }
-function meetTurtle() { toast(turtles.length ? '🐢 生態池的烏龜正在慢慢游泳～<br>走到池邊按 F 可以餵牠們（一天最多兩次喔）' : ''); }
+function meetTurtle() { toast(turtles.length ? T('🐢 生態池的烏龜正在慢慢游泳～<br>走到池邊按 F 可以餵牠們（一天最多兩次喔）', '🐢 The pond turtles are swimming slowly~<br>Go to the edge and press F to feed them (twice a day at most)') : ''); }
 function feedTurtles() {
-  if (feed) { toast('🐢 烏龜正在吃，等牠們吃完再說～'); return; }
+  if (feed) { toast(T('🐢 烏龜正在吃，等牠們吃完再說～', '🐢 The turtles are still eating. Wait until they finish~')); return; }
   const today = new Date().toLocaleDateString('sv');
   let rec = { d: today, n: 0 };
   try { const o = JSON.parse(localStorage.getItem(TURTLE_KEY) || 'null'); if (o?.d === today) rec = o; } catch { /* 私密模式 */ }
   if (rec.n >= FEED_MAX) {
-    toast('🐢 烏龜已經吃飽飽了！<br>再餵牠們會太撐，吃不完的飼料還會汙染水源唷～明天再來吧！');
+    toast(T('🐢 烏龜已經吃飽飽了！<br>再餵牠們會太撐，吃不完的飼料還會汙染水源唷～明天再來吧！', '🐢 The turtles are full!<br>Too much food is bad for them and leftovers pollute the water. Come back tomorrow!'));
     return;
   }
   rec.n++;
@@ -2786,8 +2786,8 @@ function feedTurtles() {
   }
   feed = { x: fx, z: fz, pellets, t: 0 };
   for (const t of turtles) t.mode = 'go';
-  toast(rec.n < FEED_MAX ? `🐢 你撒了一小把飼料，烏龜游過來吃得好開心！<br>（今天還可以再餵 ${FEED_MAX - rec.n} 次）`
-    : '🐢 烏龜吃得飽飽的～今天就餵到這裡囉！<br>餵太多吃不完，會汙染水源喔！');
+  toast(rec.n < FEED_MAX ? T(`🐢 你撒了一小把飼料，烏龜游過來吃得好開心！<br>（今天還可以再餵 ${FEED_MAX - rec.n} 次）`, `🐢 You sprinkled some food and the turtles swam over happily!<br>(You can feed them ${FEED_MAX - rec.n} more time today)`)
+    : T('🐢 烏龜吃得飽飽的～今天就餵到這裡囉！<br>餵太多吃不完，會汙染水源喔！', "🐢 The turtles are full~ That's all for today!<br>Too much food pollutes the water!"));
 }
 function updateTurtles(t, dt) {
   for (const tu of turtles) {
@@ -3881,7 +3881,7 @@ function hamsterHint() {
   const near = !act.busy && mode !== 'bird' && player.floor === r.f && Math.hypot(player.x - (r.m.x2 - 1.6), player.z - (r.cz + 1.0)) < 1.4;
   if (near && !hamsterNear) hamsterWait = performance.now() + 500;     // 稍等一下，讓老師的招呼先跳
   if (!near) hamsterWait = false;
-  if (hamsterWait && performance.now() > hamsterWait && !document.getElementById('toast').classList.contains('on')) { hamsterWait = false; toast('🐹 這是竹竹老師的倉鼠奶茶'); }
+  if (hamsterWait && performance.now() > hamsterWait && !document.getElementById('toast').classList.contains('on')) { hamsterWait = false; toast(T('🐹 這是竹竹老師的倉鼠奶茶', "🐹 This is 竹竹老師's hamster, Milk Tea")); }
   hamsterNear = near;
 }
 function updateAct(dt) {
@@ -3889,33 +3889,33 @@ function updateAct(dt) {
   if (act.busy) act.busy.tick(dt);
   act.spot = act.busy ? null : badmintonSpot() || pondSpot() || nearestSpot();   // 靠近老師時打羽球優先（活動中心也有籃框）
   const sp = act.spot;
-  const label = act.busy ? (act.busy.label ?? (act.busy.press ? '🏀 出手！ <kbd>F</kbd>' : ''))
+  const label = act.busy ? (act.busy.label ?? (act.busy.press ? T('🏀 出手！ <kbd>F</kbd>', '🏀 Shoot! <kbd>F</kbd>') : ''))
     : !sp ? ''
-    : sp.kind === 'hoop' ? '🏀 投籃 <kbd>F</kbd>'
-    : sp.kind === 'toy' ? `${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`
-    : sp.kind === 'sand' ? '🏖️ 玩沙・堆沙堡 <kbd>F</kbd>'
-    : sp.kind === 'badminton' ? `🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`
-    : sp.kind === 'pingpong' ? `🏓 好啊！跟${sp.npc.name}去地下室打桌球 <kbd>F</kbd>`
-    : sp.kind === 'shootout' ? `🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`
-    : sp.kind === 'words' ? `📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`
-    : sp.kind === 'listen' ? `🎧 跟${sp.npc.name}玩英文聽力 <kbd>F</kbd>`
-    : sp.kind === 'rps' ? `✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`
-    : sp.kind === 'ooxx' ? `⭕ 跟${sp.npc.name}玩 OOXX <kbd>F</kbd>`
-    : sp.kind === 'recorder' ? `🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`
-    : sp.kind === 'baseball' ? `⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`
-    : sp.kind === 'heat' ? `🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`
-    : sp.kind === 'history' ? `🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`
-    : sp.kind === 'fraction' ? `🧮 幫${sp.npc.name}檢查分數計算 <kbd>F</kbd>`
-    : sp.kind === 'blackjack' ? `🃏 跟${sp.npc.name}玩 21 點 <kbd>F</kbd>`
-    : sp.kind === 'colors' ? `🎨 跟${sp.npc.name}玩顏色對對碰 <kbd>F</kbd>`
-    : sp.kind === 'zhuyin' ? `🔤 跟${sp.npc.name}玩注音符號大闖關 <kbd>F</kbd>`
-    : sp.kind === 'life' ? `🏠 跟${sp.npc.name}玩生活大考驗 <kbd>F</kbd>`
-    : sp.kind === 'blocks' ? '🧩 玩電子積木 <kbd>F</kbd>'
-    : sp.kind === 'float' ? `🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`
-    : sp.kind === 'glider' ? `🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`
-    : sp.kind === 'paint' ? `🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`
-    : sp.kind === 'feed' ? '🐢 餵烏龜 <kbd>F</kbd>'
-    : `🛝 溜${sp.name} <kbd>F</kbd>`;
+    : sp.kind === 'hoop' ? T('🏀 投籃 <kbd>F</kbd>', '🏀 Shoot hoops <kbd>F</kbd>')
+    : sp.kind === 'toy' ? T(`${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`, `${TOYS[sp.toy].icon} Play: ${TOYS[sp.toy].en} <kbd>F</kbd>`)
+    : sp.kind === 'sand' ? T('🏖️ 玩沙・堆沙堡 <kbd>F</kbd>', '🏖️ Build a sandcastle <kbd>F</kbd>')
+    : sp.kind === 'badminton' ? T(`🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`, `🏸 Badminton with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'pingpong' ? T(`🏓 好啊！跟${sp.npc.name}去地下室打桌球 <kbd>F</kbd>`, `🏓 Table tennis in the basement with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'shootout' ? T(`🏀 跟${sp.npc.name}比投籃 <kbd>F</kbd>`, `🏀 Shootout with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'words' ? T(`📝 跟${sp.npc.name}練英文單字 <kbd>F</kbd>`, `📝 English words with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'listen' ? T(`🎧 跟${sp.npc.name}玩英文聽力 <kbd>F</kbd>`, `🎧 English listening with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'rps' ? T(`✂️ 跟${sp.npc.name}猜拳 <kbd>F</kbd>`, `✂️ Rock-paper-scissors with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'ooxx' ? T(`⭕ 跟${sp.npc.name}玩 OOXX <kbd>F</kbd>`, `⭕ Tic-tac-toe with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'recorder' ? T(`🎵 跟${sp.npc.name}玩直笛記憶 <kbd>F</kbd>`, `🎵 Recorder memory game with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'baseball' ? T(`⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`, `⚾ T-ball with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'heat' ? T(`🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`, `🌡️ Heat & Cold with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'history' ? T(`🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`, `🗺️ Taiwan History & Geography with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'fraction' ? T(`🧮 幫${sp.npc.name}檢查分數計算 <kbd>F</kbd>`, `🧮 Check ${sp.npc.name}'s fractions <kbd>F</kbd>`)
+    : sp.kind === 'blackjack' ? T(`🃏 跟${sp.npc.name}玩 21 點 <kbd>F</kbd>`, `🃏 Blackjack with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'colors' ? T(`🎨 跟${sp.npc.name}玩顏色對對碰 <kbd>F</kbd>`, `🎨 Color Match with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'zhuyin' ? T(`🔤 跟${sp.npc.name}玩注音符號大闖關 <kbd>F</kbd>`, `🔤 Zhuyin Challenge with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'life' ? T(`🏠 跟${sp.npc.name}玩生活大考驗 <kbd>F</kbd>`, `🏠 Everyday Life Quiz with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'blocks' ? T('🧩 玩電子積木 <kbd>F</kbd>', '🧩 Electronic blocks <kbd>F</kbd>')
+    : sp.kind === 'float' ? T(`🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`, `🧪 Sink or Float with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'glider' ? T(`🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`, `🐿️ "Can Sugar Gliders Eat It?" with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'paint' ? T(`🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`, `🎨 Coloring with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'feed' ? T('🐢 餵烏龜 <kbd>F</kbd>', '🐢 Feed the turtles <kbd>F</kbd>')
+    : T(`🛝 溜${sp.name} <kbd>F</kbd>`, '🛝 Slide <kbd>F</kbd>');
   if (label !== actLabel) { actLabel = label; actBtn.innerHTML = label; actBtn.hidden = !label; }
   placeQuit();
 }
@@ -3951,7 +3951,7 @@ actBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 actBtn.addEventListener('click', doAction);
 const quitBtn = document.getElementById('quitGame');
 function quitGame() {
-  if (act.busy?.badminton) { const pp = act.busy.pp; act.busy.stop(); toast(pp ? '🏓 下次再來打桌球！' : '🏸 下次再來打羽球！'); }
+  if (act.busy?.badminton) { const pp = act.busy.pp; act.busy.stop(); toast(pp ? T('🏓 下次再來打桌球！', '🏓 Come back for more table tennis!') : T('🏸 下次再來打羽球！', '🏸 Come back for more badminton!')); }
   else duel?.quit();
 }
 quitBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -4002,7 +4002,7 @@ function badmintonSpot() {
   return null;
 }
 // 羽球／桌球共用的參數（startBadminton 的第二個參數）
-const BAD = { D: 6, Dmin: 3.5, net: badmintonNet, mine: myRacket, theirs: npcRacket, ball: shuttle, key: BADMINTON_KEY, icon: '🏸', ballName: '羽毛球',
+const BAD = { D: 6, Dmin: 3.5, net: badmintonNet, mine: myRacket, theirs: npcRacket, ball: shuttle, key: BADMINTON_KEY, icon: '🏸', ballName: '羽毛球', ballNameEn: 'shuttlecock',
   myH: 1.2, npcH: 1.95, arc: 2.0, T0: 1.65, Tmin: 0.85, spread: 2.2, side: 2.6, speed: 4.6, reach: 1.0, smash: '殺球' };
 
 /* ---------------- 桌球：在三年五班遇到林老師，說「好啊」就一起瞬間移動到 B1 桌球教室那張球桌開打 ----------------
@@ -4028,13 +4028,13 @@ function startPingpong(n) {
   // 瞬間移動：老師站球桌西邊、面向東；學生由 startBadminton 放到球桌東邊
   placeNPC(n, T.f, T.x - 2.35, T.z, -Math.PI / 2);
   n.label.visible = false;
-  startBadminton(n, { ...BAD, D: 4.7, Dmin: 4.7, net: null, mine: myPaddle, theirs: npcPaddle, ball: ppBall, key: 'campus-pingpong-best', icon: '🏓', ballName: '桌球',
+  startBadminton(n, { ...BAD, D: 4.7, Dmin: 4.7, net: null, mine: myPaddle, theirs: npcPaddle, ball: ppBall, key: 'campus-pingpong-best', icon: '🏓', ballName: '桌球', ballNameEn: 'ball',
     myH: 0.95, npcH: 0.95, arc: 0.32, T0: 1.05, Tmin: 0.6, spread: 0.6, side: 0.9, speed: 3.2, reach: 0.65, smash: '殺球', pp: true,
     onStop() {
       setTimeout(() => {                                               // 打完：一起回教室
         placeNPC(n, home.f, home.pos.x, home.pos.z, home.yaw); n.label.visible = true;
         placeAt(home.f, home.px, home.pz, home.pyaw);
-        toast(`🏓 回到教室囉！${n.name}：${n.ppBack ?? '請保持安靜～'}`);
+        toast(`${T('🏓 回到教室囉！', '🏓 Back to the classroom!')}${n.name}：${n.ppBack ?? '請保持安靜～'}`);
       }, 400);
     } });
 }
@@ -4063,7 +4063,8 @@ function startBadminton(n, P = BAD) {
   n.g.rotation.y = tFace;
   let best = 0; try { best = +localStorage.getItem(P.key) || 0; } catch { /* 私密模式 */ }
   const touch = matchMedia('(pointer: coarse)').matches;
-  toast(touch ? `${P.icon} 用搖桿左右移動，${P.ballName}飛到身邊時按橘色按鈕揮拍！` : `${P.icon} 用 A D 或 ← → 左右移動，${P.ballName}飛到身邊時按 F 或空白鍵揮拍！`);
+  toast(touch ? T(`${P.icon} 用搖桿左右移動，${P.ballName}飛到身邊時按橘色按鈕揮拍！`, `${P.icon} Move left and right with the joystick. Press the orange button when the ${P.ballNameEn} comes!`)
+    : T(`${P.icon} 用 A D 或 ← → 左右移動，${P.ballName}飛到身邊時按 F 或空白鍵揮拍！`, `${P.icon} Move with A D or ← →. Press F or Space to swing when the ${P.ballNameEn} comes!`));
 
   let rally = 0, t = 0, fl = null, swing = 9, npcSwing = 9, phase = 0, moving = 0, over = 0, serveAt = 1.6;
   const SEX = P.myH;                                                   // 學生擊球高度（學生比例比較小）
@@ -4087,7 +4088,7 @@ function startBadminton(n, P = BAD) {
   };
   act.busy = {
     badminton: true, pp: !!P.pp,
-    get label() { return over ? `${P.icon} 來回 <b>${rally}</b> 球　最高 ${best}` : `${P.icon} 揮拍 <kbd>F</kbd>　來回 <b>${rally}</b>　最高 ${best}`; },
+    get label() { return over ? T(`${P.icon} 來回 <b>${rally}</b> 球　最高 ${best}`, `${P.icon} Rally <b>${rally}</b>　Best ${best}`) : T(`${P.icon} 揮拍 <kbd>F</kbd>　來回 <b>${rally}</b>　最高 ${best}`, `${P.icon} Swing <kbd>F</kbd>　Rally <b>${rally}</b>　Best ${best}`); },
     tick(dt) {
       t += dt;
       if (mode === 'bird' || player.floor !== f) { this.stop(); return; }
@@ -4138,7 +4139,7 @@ function startBadminton(n, P = BAD) {
         fl = null;
         if (!over) end();
         npcFace(n, 'happy', 3);                                           // 老師笑了
-        toast(rally > 0 && rally >= best ? `${P.icon} 漏接了！來回 ${rally} 球，新紀錄！🎉` : `${P.icon} 漏接了！這局來回 ${rally} 球（最高 ${best} 球）`);
+        toast(rally > 0 && rally >= best ? T(`${P.icon} 漏接了！來回 ${rally} 球，新紀錄！🎉`, `${P.icon} Missed! Rally of ${rally}, new record! 🎉`) : T(`${P.icon} 漏接了！這局來回 ${rally} 球（最高 ${best} 球）`, `${P.icon} Missed! Rally of ${rally} (best ${best})`));
       }
     },
     press() {
@@ -4155,8 +4156,8 @@ function startBadminton(n, P = BAD) {
       const [qx, qz] = [T0.x + rx * off, T0.z + rz * off];
       const sp = P.ball.position;
       launch([sp.x, sp.y, sp.z], [qx, ground(qx, qz) + P.npcH, qz], smash ? P.T0 * 0.42 : P.T0 * 0.8, smash ? P.arc * 0.18 : P.arc * 1.1, false);
-      if (smash) { toast(`💥 ${P.smash}！（來回 ${rally} 球）`); npcFace(n, 'surprised', 1.4); }
-      else if (rally % 5 === 0) { toast(`${P.icon} 好球！來回 ${rally} 球`); npcFace(n, 'happy', 1.4); }
+      if (smash) { toast(T(`💥 ${P.smash}！（來回 ${rally} 球）`, `💥 Smash! (rally ${rally})`)); npcFace(n, 'surprised', 1.4); }
+      else if (rally % 5 === 0) { toast(T(`${P.icon} 好球！來回 ${rally} 球`, `${P.icon} Nice! Rally ${rally}`)); npcFace(n, 'happy', 1.4); }
     },
     stop() {
       P.mine.removeFromParent(); P.theirs.removeFromParent();
@@ -4184,7 +4185,7 @@ function startShootout(n) {
     const d = Math.hypot(h.x - T0.x, h.z - T0.z);
     if (d < bd) { bd = d; sp = h; }
   }
-  if (!sp) { toast('這裡沒有籃框耶！'); return; }
+  if (!sp) { toast(T('這裡沒有籃框耶！', 'There is no hoop here!')); return; }
   // 你站罰球線（籃框前 4.2 公尺），老師站在旁邊 1.4 公尺
   const D = 4.2, rx = -sp.fz, rz = sp.fx;
   const P = { x: sp.x + sp.fx * D, z: sp.z + sp.fz * D };
@@ -4200,7 +4201,7 @@ function startShootout(n) {
   stand();
   let me = 0, them = 0, k = 0, wins = 0;
   try { wins = +localStorage.getItem(SHOOTOUT_KEY) || 0; } catch { /* 私密模式 */ }
-  const score = () => `你 <b>${me}</b>：<b>${them}</b> ${n.name}`;
+  const score = () => `${T('你', 'You')} <b>${me}</b>：<b>${them}</b> ${n.name}`;
   // 等一下再做下一步（用 act.busy 計時，畫面上顯示比分）
   const wait = (sec, label, next) => { let t = 0; act.busy = { label, tick(dt) { if ((t += dt) > sec) next(); } }; };
   const finish = () => {
@@ -4214,12 +4215,12 @@ function startShootout(n) {
     placeAt(f, P.x, P.z, faceHoop(P.x, P.z));
     startShot(sp, {
       quiet: true,
-      label: `🏀 第 ${k} / ${SHOOTOUT_N} 球，出手！ <kbd>F</kbd>　${score()}`,
+      label: T(`🏀 第 ${k} / ${SHOOTOUT_N} 球，出手！ <kbd>F</kbd>　${score()}`, `🏀 Shot ${k} / ${SHOOTOUT_N}, shoot! <kbd>F</kbd>　${score()}`),
       onDone: (made) => {
         if (made) me++;
-        toast(made ? `🏀 你投進了！（${me}：${them}）` : `😣 你沒進（${me}：${them}）`);
+        toast(made ? T(`🏀 你投進了！（${me}：${them}）`, `🏀 You scored! (${me}:${them})`) : T(`😣 你沒進（${me}：${them}）`, `😣 You missed (${me}:${them})`));
         npcFace(n, made ? 'surprised' : 'tongue', 1.5);
-        wait(1.0, `🏀 換${n.name}投　${score()}`, theirTurn);
+        wait(1.0, T(`🏀 換${n.name}投　${score()}`, `🏀 ${n.name}'s turn　${score()}`), theirTurn);
       },
     });
   };
@@ -4227,7 +4228,7 @@ function startShootout(n) {
     // 老師舉手瞄準一下再出手
     let t = 0;
     act.busy = {
-      label: `🏀 ${n.name}瞄準中…　${score()}`,
+      label: T(`🏀 ${n.name}瞄準中…　${score()}`, `🏀 ${n.name} is aiming…　${score()}`),
       tick(dt) {
         t += dt;
         nL.armL.rotation.x = nL.armR.rotation.x = -2.5 - Math.min(1, t / 0.6) * 0.4;
@@ -4235,16 +4236,16 @@ function startShootout(n) {
         const y = n.g.position.y + 2.05;
         shoot(sp, 0, 0, 0, {
           quiet: true, made: Math.random() < 0.8, limbs: nL, from: { x: Q.x, y, z: Q.z },
-          label: `🏀 ${n.name}出手！　${score()}`,
+          label: T(`🏀 ${n.name}出手！　${score()}`, `🏀 ${n.name} shoots!　${score()}`),
           onDone: (made) => {
             if (made) them++;
-            toast(made ? `🏀 ${n.name}投進了！（${me}：${them}）` : `${n.name}沒進！（${me}：${them}）`);
+            toast(made ? T(`🏀 ${n.name}投進了！（${me}：${them}）`, `🏀 ${n.name} scored! (${me}:${them})`) : T(`${n.name}沒進！（${me}：${them}）`, `${n.name} missed! (${me}:${them})`));
             npcFace(n, made ? 'happy' : 'sad', 1.6);
-            if (k < SHOOTOUT_N) wait(1.0, `🏀 換你投　${score()}`, myTurn);
-            else wait(1.2, `🏁 比賽結束　${score()}`, () => {
+            if (k < SHOOTOUT_N) wait(1.0, T(`🏀 換你投　${score()}`, `🏀 Your turn　${score()}`), myTurn);
+            else wait(1.2, T(`🏁 比賽結束　${score()}`, `🏁 Game over　${score()}`), () => {
               if (me > them) { wins++; try { localStorage.setItem(SHOOTOUT_KEY, String(wins)); } catch { /* 私密模式 */ } }
-              toast(me > them ? `🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）`
-                : me === them ? `🤝 平手！${me}：${them}，再比一次？` : `💪 ${n.name}贏了 ${them}：${me}，再接再厲！`);
+              toast(me > them ? T(`🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）`, `🏆 You win! ${me}:${them} (beat ${n.name} ${wins}×)`)
+                : me === them ? T(`🤝 平手！${me}：${them}，再比一次？`, `🤝 A tie! ${me}:${them}. Play again?`) : T(`💪 ${n.name}贏了 ${them}：${me}，再接再厲！`, `💪 ${n.name} wins ${them}:${me}. Keep trying!`));
               finish();
               npcFace(n, me > them ? 'sad' : me === them ? 'wink' : 'happy', 3);
             });
@@ -4253,9 +4254,9 @@ function startShootout(n) {
       },
     };
   };
-  duel = { quit() { powerBox.hidden = true; ball.visible = false; finish(); toast('🏀 比賽中止'); } };
-  toast(`🏀 投籃比賽！你跟${n.name}輪流投 ${SHOOTOUT_N} 球，進比較多球的贏。<br>綠色區域時按 F 出手！`);
-  wait(1.2, `🏀 準備…　${score()}`, myTurn);
+  duel = { quit() { powerBox.hidden = true; ball.visible = false; finish(); toast(T('🏀 比賽中止', '🏀 Game stopped')); } };
+  toast(T(`🏀 投籃比賽！你跟${n.name}輪流投 ${SHOOTOUT_N} 球，進比較多球的贏。<br>綠色區域時按 F 出手！`, `🏀 Shootout! You and ${n.name} take turns for ${SHOOTOUT_N} shots each. Most baskets wins.<br>Press F in the green zone!`));
+  wait(1.2, T(`🏀 準備…　${score()}`, `🏀 Get ready…　${score()}`), myTurn);
 }
 
 /* ---------------- 英文單字小測驗：遇到 Ashley 老師（輔導室外走廊、2F 英語教室一）可以練背單字 ----------------
@@ -4263,6 +4264,7 @@ function startShootout(n) {
    答錯可以再試一次（提示會多給一個字母），第二次還錯就公布答案。答完會唸出發音。 */
 
 const WORDS_KEY = 'campus-words-best';
+const CAT_EN = { 顏色: 'Colors', 動物: 'Animals', 文具: 'Stationery', 水果食物: 'Fruit & Food', 天氣: 'Weather', 身體: 'Body', 交通工具: 'Transport' };
 const WORD_BANK = {
   顏色: [['red', '紅色', '🔴'], ['blue', '藍色', '🔵'], ['green', '綠色', '🟢'], ['yellow', '黃色', '🟡'], ['orange', '橘色', '🟠'],
     ['purple', '紫色', '🟣'], ['pink', '粉紅色', '🌸'], ['black', '黑色', '⚫'], ['white', '白色', '⚪'], ['brown', '咖啡色', '🟤']],
@@ -4300,7 +4302,7 @@ function startWords(n) {
   const ask = () => {
     const q = qs[k];
     tries = 0; locked = false;
-    $('.cat').textContent = q.cat; $('.prog').textContent = `第 ${k + 1} / ${qs.length} 題`;
+    $('.cat').textContent = T(q.cat, CAT_EN[q.cat]); $('.prog').textContent = T(`第 ${k + 1} / ${qs.length} 題`, `Question ${k + 1} / ${qs.length}`);
     $('.emo').textContent = q.emo; $('.q').textContent = q.zh;
     hint(); msg('');
     quizInput.value = ''; quizInput.disabled = false;
@@ -4313,25 +4315,25 @@ function startWords(n) {
     try { best = +localStorage.getItem(WORDS_KEY) || 0; if (right > best) localStorage.setItem(WORDS_KEY, String(right)); } catch { /* 私密模式 */ }
     const perfect = right === qs.length;
     finish();
-    toast(perfect ? `🌟 全對！${right} / ${qs.length}<br>${n.name}：Great job！你好棒！`
-      : `📝 答對 ${right} / ${qs.length} 題<br>${n.name}：Good try！下次再來練習喔！`);
+    toast(perfect ? `${T('🌟 全對！', '🌟 All correct! ')}${right} / ${qs.length}<br>${n.name}：Great job！你好棒！`
+      : `${T(`📝 答對 ${right} / ${qs.length} 題`, `📝 ${right} / ${qs.length} correct`)}<br>${n.name}：Good try！下次再來練習喔！`);
   };
   const reveal = (ok) => {
     const q = qs[k];
     locked = true; quizInput.disabled = true;
     $('.hint').textContent = q.en.split('').join(' ');
     npcFace(n, ok ? 'happy' : 'sad', 1.8);
-    msg(ok ? `✅ 答對了！<b>${q.en}</b> = ${q.zh}` : `答案是 <b>${q.en}</b>（${q.zh}），記起來囉！`, ok ? 'ok' : 'no');
+    msg(ok ? T(`✅ 答對了！<b>${q.en}</b> = ${q.zh}`, `✅ Correct! <b>${q.en}</b> = ${q.zh}`) : T(`答案是 <b>${q.en}</b>（${q.zh}），記起來囉！`, `The answer is <b>${q.en}</b> (${q.zh}). Remember it!`), ok ? 'ok' : 'no');
     sayEnglish(q.en);
     setTimeout(next, ok ? 1300 : 2200);
   };
   const submit = () => {
     if (locked) return;
     const a = quizInput.value.trim().toLowerCase();
-    if (!a) { msg('先打英文單字再送出喔！', 'no'); quizInput.focus(); return; }
+    if (!a) { msg(T('先打英文單字再送出喔！', 'Type the English word first!'), 'no'); quizInput.focus(); return; }
     if (a === qs[k].en) { right++; reveal(true); return; }
     tries++;
-    if (tries < 2) { hint(); msg('❌ 不太對，看提示再試一次！', 'no'); quizInput.select(); return; }
+    if (tries < 2) { hint(); msg(T('❌ 不太對，看提示再試一次！', '❌ Not quite. Check the hint and try again!'), 'no'); quizInput.select(); return; }
     reveal(false);
   };
   const finish = () => {
@@ -4347,10 +4349,10 @@ function startWords(n) {
     if (e.key === 'Enter') submit();
     if (e.key === 'Escape') duel?.quit();
   };
-  duel = { quit() { finish(); toast(`📝 下次再來找${n.name}練單字喔！`); } };
-  act.busy = { label: '📝 單字測驗中…', tick() {} };                 // 測驗時不能走動
+  duel = { quit() { finish(); toast(T(`📝 下次再來找${n.name}練單字喔！`, `📝 Come back to practice words with ${n.name}!`)); } };
+  act.busy = { label: T('📝 單字測驗中…', '📝 Word quiz…'), tick() {} };                 // 測驗時不能走動
   quizBox.hidden = false;
-  $('.tip').textContent = `${n.name}：Let's practice！看中文打出英文單字 🔊 答完會唸出發音`;
+  $('.tip').textContent = T(`${n.name}：Let's practice！看中文打出英文單字 🔊 答完會唸出發音`, `${n.name}: Let's practice! Read the Chinese and type the English word 🔊 You'll hear it after you answer`);
   ask();
 }
 
@@ -4405,11 +4407,11 @@ function startListen(n) {
     locked = false;
     const q = qs[i];
     peek = !voice;
-    $('.prog').textContent = `第 ${i + 1} / ${qs.length} 題・${q.w.cat}`;
+    $('.prog').textContent = T(`第 ${i + 1} / ${qs.length} 題・${q.w.cat}`, `Question ${i + 1} / ${qs.length} · ${CAT_EN[q.w.cat]}`);
     $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
     showWord();
     btns.forEach((b, k) => { b.disabled = false; b.className = ''; b.innerHTML = `${q.opts[k].emo}<small>${k + 1}</small>`; });
-    msg(voice ? '👂 仔細聽，是哪一個？' : '這台電腦不能唸英文，看單字選選看！');
+    msg(voice ? T('👂 仔細聽，是哪一個？', '👂 Listen carefully. Which one is it?') : T('這台電腦不能唸英文，看單字選選看！', "This computer can't speak English. Read the word and choose!"));
     setTimeout(() => say(false), 350);
   };
   const finish = () => {
@@ -4427,7 +4429,7 @@ function startListen(n) {
     if (ok) right++; else { btns[k].className = 'wrong'; hearts--; }
     peek = true; showWord();
     $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
-    msg(ok ? `✅ Great! <b>${q.w.en}</b> = ${q.w.emo} ${q.w.zh}` : `❌ 是 <b>${q.w.en}</b> ${q.w.emo}（${q.w.zh}），再聽一次記起來！`, ok ? 'ok' : 'no');
+    msg(ok ? `✅ Great! <b>${q.w.en}</b> = ${q.w.emo} ${q.w.zh}` : T(`❌ 是 <b>${q.w.en}</b> ${q.w.emo}（${q.w.zh}），再聽一次記起來！`, `❌ It's <b>${q.w.en}</b> ${q.w.emo} (${q.w.zh}). Listen once more and remember it!`), ok ? 'ok' : 'no');
     npcFace(n, ok ? 'happy' : 'surprised', 1.5);
     speakListen(q.w.en, false);
     setTimeout(() => {
@@ -4436,9 +4438,9 @@ function startListen(n) {
       if (right > best) { best = right; try { localStorage.setItem(LISTEN_KEY, String(best)); } catch { /* 私密模式 */ } }
       npcFace(n, right === qs.length ? 'happy' : 'wink', 3);
       finish();
-      toast(right === qs.length ? `🌟 5 題全對！你的耳朵超厲害！<br>${n.name}：Excellent! You're a great listener!`
-        : !hearts ? `🎧 愛心用完了，答對 ${right} 題（最好紀錄 ${best} 題）<br>${n.name}：Good try! 多聽幾次就會越來越熟喔！`
-        : `🎧 答對 ${right} / ${qs.length} 題（最好紀錄 ${best} 題）<br>${n.name}：Nice job! 下次再來挑戰全對！`);
+      toast(right === qs.length ? `${T('🌟 5 題全對！你的耳朵超厲害！', '🌟 All 5 correct! Great ears!')}<br>${n.name}：Excellent! You're a great listener!`
+        : !hearts ? `${T(`🎧 愛心用完了，答對 ${right} 題（最好紀錄 ${best} 題）`, `🎧 Out of hearts. ${right} correct (best ${best})`)}<br>${n.name}：Good try! 多聽幾次就會越來越熟喔！`
+        : `${T(`🎧 答對 ${right} / ${qs.length} 題（最好紀錄 ${best} 題）`, `🎧 ${right} / ${qs.length} correct (best ${best})`)}<br>${n.name}：Nice job! 下次再來挑戰全對！`);
     }, ok ? 1500 : 2300);
   };
   const onKey = (e) => {
@@ -4455,8 +4457,8 @@ function startListen(n) {
   $('.peek').onclick = () => { if (!locked) { peek = true; showWord(); } };
   $('.quit').onclick = () => duel?.quit();
   $('.who').textContent = n.name;
-  duel = { quit() { finish(); toast(`🎧 下次再來找${n.name}練聽力喔！`); } };
-  act.busy = { label: '🎧 英文聽力中…', tick() {} };                  // 玩的時候不能走動
+  duel = { quit() { finish(); toast(T(`🎧 下次再來找${n.name}練聽力喔！`, `🎧 Come back for more listening with ${n.name}!`)); } };
+  act.busy = { label: T('🎧 英文聽力中…', '🎧 Listening…'), tick() {} };                  // 玩的時候不能走動
   listenBox.hidden = false;
   ready();
 }
@@ -4479,7 +4481,8 @@ function faceTeacher(n) {
 }
 
 const RPS_KEY = 'campus-rps-wins';
-const RPS = [{ e: '✌️', n: '剪刀' }, { e: '✊', n: '石頭' }, { e: '🖐️', n: '布' }];
+const RPS = [{ e: '✌️', n: '剪刀', en: 'Scissors' }, { e: '✊', n: '石頭', en: 'Rock' }, { e: '🖐️', n: '布', en: 'Paper' }];
+const rpsN = (h) => T(RPS[h].n, RPS[h].en);
 const rpsBox = document.getElementById('rps');
 function startRps(n) {
   stopAuto();
@@ -4494,7 +4497,7 @@ function startRps(n) {
   const show = () => {
     $('.who').textContent = n.name;
     $('.score').textContent = `${me} ： ${them}`;
-    $('.round').textContent = me >= 2 || them >= 2 ? '比賽結束' : `第 ${round + 1} 局`;
+    $('.round').textContent = me >= 2 || them >= 2 ? T('比賽結束', 'Game over') : T(`第 ${round + 1} 局`, `Round ${round + 1}`);
   };
   // 老師頭上的拳（名牌下面）
   const popHand = (h) => {
@@ -4522,10 +4525,10 @@ function startRps(n) {
     clearHand();
     $('.me').classList.add('shake'); $('.them').classList.add('shake');
     $('.me').textContent = '✊'; $('.them').textContent = '✊';
-    msg('剪刀、石頭、布！');
+    msg(T('剪刀、石頭、布！', 'Rock, paper, scissors!'));
     // 老師一起甩手：舉起右手上下擺
     let t = 0;
-    act.busy = { label: '✂️ 剪刀石頭布…', tick(dt) { t += dt; nL.armR.rotation.x = 1.6 + Math.sin(t * 20) * 0.45; } };
+    act.busy = { label: T('✂️ 剪刀石頭布…', '✂️ Rock, paper, scissors…'), tick(dt) { t += dt; nL.armR.rotation.x = 1.6 + Math.sin(t * 20) * 0.45; } };
     setTimeout(() => {
       if (done) return;                                                // 中途按了結束
       const tHand = Math.random() * 3 | 0, r = (h - tHand + 3) % 3;   // 0 平手、1 你贏、2 老師贏
@@ -4533,10 +4536,10 @@ function startRps(n) {
       $('.me').textContent = RPS[h].e; $('.them').textContent = RPS[tHand].e;
       nL.armR.rotation.x = 1.9;
       popHand(tHand);
-      act.busy = { label: '✂️ 剪刀石頭布中…', tick() {} };
-      if (r === 0) { msg(`平手！都出${RPS[h].n}，再來一次！`); npcFace(n, 'wink', 1.6); }
-      else if (r === 1) { me++; round++; msg(`✅ ${RPS[h].n}贏${RPS[tHand].n}！你贏這局！`, 'ok'); npcFace(n, 'sad', 1.8); }
-      else { them++; round++; msg(`❌ ${RPS[tHand].n}贏${RPS[h].n}！${n.name}贏這局`, 'no'); npcFace(n, 'tongue', 1.8); }
+      act.busy = { label: T('✂️ 剪刀石頭布中…', '✂️ Rock-paper-scissors…'), tick() {} };
+      if (r === 0) { msg(T(`平手！都出${RPS[h].n}，再來一次！`, `Tie! Both chose ${RPS[h].en}. Again!`)); npcFace(n, 'wink', 1.6); }
+      else if (r === 1) { me++; round++; msg(T(`✅ ${RPS[h].n}贏${RPS[tHand].n}！你贏這局！`, `✅ ${RPS[h].en} beats ${RPS[tHand].en}! You win this round!`), 'ok'); npcFace(n, 'sad', 1.8); }
+      else { them++; round++; msg(T(`❌ ${RPS[tHand].n}贏${RPS[h].n}！${n.name}贏這局`, `❌ ${RPS[tHand].en} beats ${RPS[h].en}! ${n.name} wins this round`), 'no'); npcFace(n, 'tongue', 1.8); }
       show();
       if (me < 2 && them < 2) { setTimeout(() => { if (!done) ready(); }, 1300); return; }
       // 三戰兩勝結束
@@ -4545,8 +4548,8 @@ function startRps(n) {
         if (me > them) { wins++; try { localStorage.setItem(n.rpsKey || RPS_KEY, String(wins)); } catch { /* 私密模式 */ } }
         npcFace(n, me > them ? 'surprised' : 'happy', 3);
         finish();
-        toast(me > them ? `🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）<br>${n.name}：${n.rpsTalk?.win ?? '好厲害！'}`
-          : `😝 ${n.name}贏了！${them}：${me}<br>${n.name}：${n.rpsTalk?.lose ?? '再接再厲！'}`);
+        toast(me > them ? `${T(`🏆 你贏了！${me}：${them}（已經贏${n.name} ${wins} 次）`, `🏆 You win! ${me}:${them} (beat ${n.name} ${wins}×)`)}<br>${n.name}：${n.rpsTalk?.win ?? '好厲害！'}`
+          : `${T(`😝 ${n.name}贏了！${them}：${me}`, `😝 ${n.name} wins! ${them}:${me}`)}<br>${n.name}：${n.rpsTalk?.lose ?? '再接再厲！'}`);
       }, 1500);
     }, 900);
   };
@@ -4557,8 +4560,8 @@ function startRps(n) {
   addEventListener('keydown', onKey, true);
   btns.forEach((b) => (b.onclick = () => choose(+b.dataset.h)));
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(`✂️ 下次再來找${n.name}猜拳！`); } };
-  act.busy = { label: '✂️ 剪刀石頭布中…', tick() {} };                 // 猜拳時不能走動
+  duel = { quit() { finish(); toast(T(`✂️ 下次再來找${n.name}猜拳！`, `✂️ Come back to play with ${n.name}!`)); } };
+  act.busy = { label: T('✂️ 剪刀石頭布中…', '✂️ Rock-paper-scissors…'), tick() {} };                 // 猜拳時不能走動
   rpsBox.hidden = false;
   msg(`${n.name}：${n.rpsTalk?.start ?? '來猜拳吧！先贏兩局的人獲勝！'}`);
   ready();
@@ -4612,7 +4615,7 @@ function startZhuyin(n) {
   stopAuto();
   const $ = (sel) => zyBox.querySelector(sel);
   const btns = [...zyBox.querySelectorAll('[data-k]')];
-  const LV = ['', '找聲母', '拼拼看', '第幾聲'];
+  const LV = ['', '找聲母', '拼拼看', '第幾聲'], LV_EN = ['', 'Find the initial', 'Spell it', 'Which tone?'];
   let lv = 1, qs = makeZhuyinLevel(1), i = 0, hearts = 3, best = 0, locked = false, done = false;
   try { best = +localStorage.getItem(ZHUYIN_KEY) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
@@ -4622,7 +4625,7 @@ function startZhuyin(n) {
   const ready = () => {
     locked = false;
     const q = qs[i];
-    $('.lv').textContent = `第 ${lv} 關・${LV[lv]}（${i + 1}／${qs.length}）`;
+    $('.lv').textContent = T(`第 ${lv} 關・${LV[lv]}（${i + 1}／${qs.length}）`, `Level ${lv} · ${LV_EN[lv]} (${i + 1}/${qs.length})`);
     $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
     $('.emo').textContent = q.w.e; $('.word').textContent = q.w.w;
     $('.ask').textContent = q.ask;
@@ -4641,21 +4644,21 @@ function startZhuyin(n) {
     btns[q.opts.indexOf(q.ans)].className = 'right';
     if (!right) { btns[k].className = 'wrong'; hearts--; }
     $('.hearts').textContent = '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts);
-    msg(`${right ? '✅ 答對了！' : '❌ 答錯囉！'}${q.why}`, right ? 'ok' : 'no');
+    msg(`${right ? T('✅ 答對了！', '✅ Correct! ') : T('❌ 答錯囉！', '❌ Wrong! ')}${q.why}`, right ? 'ok' : 'no');
     npcFace(n, right ? 'happy' : 'surprised', 1.5);
     setTimeout(() => {
       if (done) return;
       if (!hearts) {
         save(lv - 1); npcFace(n, 'wink', 3); finish();
-        toast(`🔤 闖到第 ${lv} 關，愛心用完了！（最好紀錄：過了 ${best} 關）<br>${n.name}：沒關係，多念幾次就會記住了！`); return;
+        toast(`${T(`🔤 闖到第 ${lv} 關，愛心用完了！（最好紀錄：過了 ${best} 關）`, `🔤 Out of hearts at level ${lv}! (best: ${best} cleared)`)}<br>${n.name}：沒關係，多念幾次就會記住了！`); return;
       }
       if (++i < qs.length) { ready(); return; }
       if (lv === 3) {
         save(3); npcFace(n, 'happy', 3); finish();
-        toast(`🏅 三關全部過關！你是注音小達人！<br>${n.name}：好棒！給你一個大大的讚！`); return;
+        toast(`${T('🏅 三關全部過關！你是注音小達人！', '🏅 All 3 levels cleared! Zhuyin master!')}<br>${n.name}：好棒！給你一個大大的讚！`); return;
       }
       save(lv); lv++; qs = makeZhuyinLevel(lv); i = 0;
-      msg(`🎉 過關了！接下來第 ${lv} 關：${LV[lv]}`, 'ok');
+      msg(T(`🎉 過關了！接下來第 ${lv} 關：${LV[lv]}`, `🎉 Level cleared! Next: level ${lv} · ${LV_EN[lv]}`), 'ok');
       setTimeout(() => { if (!done) ready(); }, 1200);
     }, 1800);
   };
@@ -4666,8 +4669,8 @@ function startZhuyin(n) {
   addEventListener('keydown', onKey, true);
   btns.forEach((b, k) => (b.onclick = () => answer(k)));
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(`🔤 下次再來找${n.name}闖關！`); } };
-  act.busy = { label: '🔤 注音闖關中…', tick() {} };
+  duel = { quit() { finish(); toast(T(`🔤 下次再來找${n.name}闖關！`, `🔤 Come back for the challenge with ${n.name}!`)); } };
+  act.busy = { label: T('🔤 注音闖關中…', '🔤 Zhuyin challenge…'), tick() {} };
   zyBox.hidden = false;
   ready();
   msg(`${n.name}：一共三關，答錯會少一顆愛心，加油！`);
@@ -4678,12 +4681,12 @@ function startZhuyin(n) {
    全部配完看翻了幾次，記錄最少次數。 */
 const COLOR_KEY = 'campus-colors-best';
 const COLOR_MIX = [
-  { a: ['#e53935', '紅'], b: ['#fdd835', '黃'], c: ['#fb8c00', '橙色'] },
-  { a: ['#fdd835', '黃'], b: ['#1e88e5', '藍'], c: ['#43a047', '綠色'] },
-  { a: ['#e53935', '紅'], b: ['#1e88e5', '藍'], c: ['#8e24aa', '紫色'] },
-  { a: ['#e53935', '紅'], b: ['#ffffff', '白'], c: ['#f8a5c2', '粉紅色'] },
-  { a: ['#1e88e5', '藍'], b: ['#ffffff', '白'], c: ['#8ecdf5', '淺藍色'] },
-  { a: ['#212121', '黑'], b: ['#ffffff', '白'], c: ['#9e9e9e', '灰色'] },
+  { a: ['#e53935', '紅', 'Red'], b: ['#fdd835', '黃', 'Yellow'], c: ['#fb8c00', '橙色', 'Orange'] },
+  { a: ['#fdd835', '黃', 'Yellow'], b: ['#1e88e5', '藍', 'Blue'], c: ['#43a047', '綠色', 'Green'] },
+  { a: ['#e53935', '紅', 'Red'], b: ['#1e88e5', '藍', 'Blue'], c: ['#8e24aa', '紫色', 'Purple'] },
+  { a: ['#e53935', '紅', 'Red'], b: ['#ffffff', '白', 'White'], c: ['#f8a5c2', '粉紅色', 'Pink'] },
+  { a: ['#1e88e5', '藍', 'Blue'], b: ['#ffffff', '白', 'White'], c: ['#8ecdf5', '淺藍色', 'Light blue'] },
+  { a: ['#212121', '黑', 'Black'], b: ['#ffffff', '白', 'White'], c: ['#9e9e9e', '灰色', 'Grey'] },
 ];
 const cmBox = document.getElementById('cm');
 function startColors(n) {
@@ -4706,7 +4709,7 @@ function startColors(n) {
     b.onclick = () => flip(cd, b); grid.appendChild(b);
   });
   const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
-  const show = () => { $('.flips').textContent = `翻了 ${flips} 次${best ? `・最少 ${best} 次` : ''}`; };
+  const show = () => { $('.flips').textContent = T(`翻了 ${flips} 次${best ? `・最少 ${best} 次` : ''}`, `Flips: ${flips}${best ? ` · best ${best}` : ''}`); };
   const finish = () => {
     done = true; cmBox.hidden = true;
     updateVisibility();
@@ -4722,20 +4725,20 @@ function startColors(n) {
     if (c1.k === c2.k) {
       matched++; b1.classList.add('ok'); b2.classList.add('ok');
       const m = COLOR_MIX[c1.k];
-      msg(`✅ 答對了！${m.a[1]}色＋${m.b[1]}色＝${m.c[1]}`, 'ok'); npcFace(n, 'happy', 1.5);
+      msg(T(`✅ 答對了！${m.a[1]}色＋${m.b[1]}色＝${m.c[1]}`, `✅ Correct! ${m.a[2]} + ${m.b[2]} = ${m.c[2]}`), 'ok'); npcFace(n, 'happy', 1.5);
       if (matched === COLOR_MIX.length) {
         if (!best || flips < best) { best = flips; try { localStorage.setItem(COLOR_KEY, String(best)); } catch { /* 私密模式 */ } }
         npcFace(n, 'surprised', 3);
-        setTimeout(() => { if (done) return; finish(); toast(`🎨 全部配對完成！翻了 ${flips} 次（最少紀錄：${best} 次）<br>${n.name}：${flips <= 8 ? '哇！你是調色小天才！' : '好棒！下次記住每張牌的位置，會更快喔！'}`); }, 1500);
+        setTimeout(() => { if (done) return; finish(); toast(`${T(`🎨 全部配對完成！翻了 ${flips} 次（最少紀錄：${best} 次）`, `🎨 All matched! ${flips} flips (best ${best})`)}<br>${n.name}：${flips <= 8 ? '哇！你是調色小天才！' : '好棒！下次記住每張牌的位置，會更快喔！'}`); }, 1500);
       }
     } else {
-      lock = true; msg('❌ 不是一對，記住它們的位置！', 'no'); npcFace(n, 'wink', 1.2);
-      setTimeout(() => { if (done) return; for (const x of [b1, b2]) { x.classList.remove('up'); x.innerHTML = '<span class="q">🎨</span>'; } lock = false; msg('再翻兩張看看！'); }, 1100);
+      lock = true; msg(T('❌ 不是一對，記住它們的位置！', '❌ Not a pair. Remember where they are!'), 'no'); npcFace(n, 'wink', 1.2);
+      setTimeout(() => { if (done) return; for (const x of [b1, b2]) { x.classList.remove('up'); x.innerHTML = '<span class="q">🎨</span>'; } lock = false; msg(T('再翻兩張看看！', 'Flip two more!')); }, 1100);
     }
   };
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(`🎨 下次再來找${n.name}玩顏色對對碰！`); } };
-  act.busy = { label: '🎨 顏色對對碰中…', tick() {} };
+  duel = { quit() { finish(); toast(T(`🎨 下次再來找${n.name}玩顏色對對碰！`, `🎨 Come back for Color Match with ${n.name}!`)); } };
+  act.busy = { label: T('🎨 顏色對對碰中…', '🎨 Color Match…'), tick() {} };
   $('.who').textContent = n.name;
   cmBox.hidden = false;
   show();
@@ -4763,10 +4766,10 @@ function startBlackjack(n) {
   const draw = () => {
     const hide = phase === 'play';
     $('.them .cards').innerHTML = them.map((c, i) => cardHtml(c, hide && i === 1)).join('');
-    $('.them .pt').textContent = hide ? `${val(them[0].r) === 1 ? 'A' : val(them[0].r)} ＋ ？` : `${total(them)} 點`;
+    $('.them .pt').textContent = hide ? `${val(them[0].r) === 1 ? 'A' : val(them[0].r)} ＋ ？` : T(`${total(them)} 點`, `${total(them)} pts`);
     $('.me .cards').innerHTML = me.map((c) => cardHtml(c)).join('');
-    $('.me .pt').textContent = `${total(me)} 點`;
-    $('.wins').textContent = `贏老師 ${wins} 次`;
+    $('.me .pt').textContent = T(`${total(me)} 點`, `${total(me)} pts`);
+    $('.wins').textContent = T(`贏老師 ${wins} 次`, `Beat the teacher ${wins}×`);
     $('.hit').hidden = $('.stand').hidden = phase !== 'play';
     $('.again').hidden = phase !== 'over';
   };
@@ -4784,18 +4787,18 @@ function startBlackjack(n) {
   };
   const settle = () => {
     const a = total(me), b = total(them);
-    if (b > 21) over(`🎉 ${n.name} ${b} 點爆掉了！你贏了！`, 'ok', 'surprised', true);
-    else if (a > b) over(`🎉 你 ${a} 點、${n.name} ${b} 點，你贏了！`, 'ok', 'sad', true);
-    else if (a < b) over(`😝 你 ${a} 點、${n.name} ${b} 點，老師贏了！`, 'no', 'tongue');
-    else over(`🤝 都是 ${a} 點，平手！`, '', 'wink');
+    if (b > 21) over(T(`🎉 ${n.name} ${b} 點爆掉了！你贏了！`, `🎉 ${n.name} busts with ${b}! You win!`), 'ok', 'surprised', true);
+    else if (a > b) over(T(`🎉 你 ${a} 點、${n.name} ${b} 點，你贏了！`, `🎉 You ${a}, ${n.name} ${b}. You win!`), 'ok', 'sad', true);
+    else if (a < b) over(T(`😝 你 ${a} 點、${n.name} ${b} 點，老師贏了！`, `😝 You ${a}, ${n.name} ${b}. The teacher wins!`), 'no', 'tongue');
+    else over(T(`🤝 都是 ${a} 點，平手！`, `🤝 Both ${a}. A tie!`), '', 'wink');
   };
   // 老師翻牌，不到 17 點就一張一張拿
   const dealerTurn = () => {
-    phase = 'dealer'; draw(); msg(`${n.name}翻牌：${total(them)} 點`);
+    phase = 'dealer'; draw(); msg(T(`${n.name}翻牌：${total(them)} 點`, `${n.name} reveals: ${total(them)} pts`));
     const step = () => {
       if (done) return;
       if (total(them) < 17) {
-        them.push(deck.pop()); n.g.userData.limbs.armR.rotation.x = 1.2; draw(); msg(`${n.name}再拿一張…${total(them)} 點`);
+        them.push(deck.pop()); n.g.userData.limbs.armR.rotation.x = 1.2; draw(); msg(T(`${n.name}再拿一張…${total(them)} 點`, `${n.name} takes another card… ${total(them)} pts`));
         timer = setTimeout(() => { n.g.userData.limbs.armR.rotation.x = 0; step(); }, 800);
       } else settle();
     };
@@ -4804,16 +4807,16 @@ function startBlackjack(n) {
   const deal = () => {
     newDeck(); me = [deck.pop(), deck.pop()]; them = [deck.pop(), deck.pop()]; phase = 'play';
     draw();
-    if (total(me) === 21) { phase = 'dealer'; draw(); if (total(them) === 21) over('🤝 兩個人都是 21 點，平手！', '', 'surprised'); else over('🌟 一拿到就是 21 點！你贏了！', 'ok', 'surprised', true); return; }
-    msg('要再拿一張牌（要牌），還是不拿了（停牌）？');
+    if (total(me) === 21) { phase = 'dealer'; draw(); if (total(them) === 21) over(T('🤝 兩個人都是 21 點，平手！', '🤝 Both have 21. A tie!'), '', 'surprised'); else over(T('🌟 一拿到就是 21 點！你贏了！', '🌟 Blackjack! You win!'), 'ok', 'surprised', true); return; }
+    msg(T('要再拿一張牌（要牌），還是不拿了（停牌）？', 'Take another card (Hit) or stop (Stand)?'));
   };
   const hit = () => {
     if (phase !== 'play') return;
     me.push(deck.pop()); draw();
     const t = total(me);
-    if (t > 21) over(`💥 ${t} 點，超過 21 點爆掉了！老師贏了`, 'no', 'tongue');
+    if (t > 21) over(T(`💥 ${t} 點，超過 21 點爆掉了！老師贏了`, `💥 ${t}, over 21. Bust! The teacher wins`), 'no', 'tongue');
     else if (t === 21) dealerTurn();
-    else msg(`你現在 ${t} 點，要牌還是停牌？`);
+    else msg(T(`你現在 ${t} 點，要牌還是停牌？`, `You have ${t}. Hit or stand?`));
   };
   const stand = () => { if (phase === 'play') dealerTurn(); };
   const onKey = (e) => {
@@ -4823,8 +4826,8 @@ function startBlackjack(n) {
   addEventListener('keydown', onKey, true);
   $('.hit').onclick = hit; $('.stand').onclick = stand; $('.again').onclick = deal;
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(`🃏 下次再來找${n.name}玩 21 點！（已經贏老師 ${wins} 次）`); } };
-  act.busy = { label: '🃏 21 點進行中…', tick() {} };
+  duel = { quit() { finish(); toast(T(`🃏 下次再來找${n.name}玩 21 點！（已經贏老師 ${wins} 次）`, `🃏 Come back for Blackjack with ${n.name}! (beat the teacher ${wins}×)`)); } };
+  act.busy = { label: T('🃏 21 點進行中…', '🃏 Blackjack…'), tick() {} };
   $('.who').textContent = n.name;
   bjBox.hidden = false;
   deal();
@@ -4881,21 +4884,21 @@ function startOoxx(n) {
     let L = lineOf('O');
     if (L) {
       wins++; try { localStorage.setItem(OOXX_KEY, String(wins)); } catch { /* 私密模式 */ }
-      return end('✅ 連成一條線！你贏了！', 'ok', 'surprised', `🏆 你贏了杜老師！（已經贏 ${wins} 次）<br>${n.name}：好厲害！上課也要這麼專心唷！`, L);
+      return end(T('✅ 連成一條線！你贏了！', '✅ Three in a row! You win!'), 'ok', 'surprised', `${T(`🏆 你贏了${n.name}！（已經贏 ${wins} 次）`, `🏆 You beat ${n.name}! (${wins} wins)`)}<br>${n.name}：好厲害！上課也要這麼專心唷！`, L);
     }
-    if (b.every(Boolean)) return end('🤝 格子下滿了，平手！', '', 'happy', `🤝 跟${n.name}平手！<br>${n.name}：專心寫、小心檢查，下次一定贏！`);
+    if (b.every(Boolean)) return end(T('🤝 格子下滿了，平手！', '🤝 The board is full. A tie!'), '', 'happy', `${T(`🤝 跟${n.name}平手！`, `🤝 A tie with ${n.name}!`)}<br>${n.name}：專心寫、小心檢查，下次一定贏！`);
     locked = true; draw();
-    msg(`${n.name}想一想…`);
+    msg(T(`${n.name}想一想…`, `${n.name} is thinking…`));
     nL.armR.rotation.x = 1.4;                                           // 老師舉手準備畫
     setTimeout(() => {
       if (done) return;
       const k = teacherPick(); b[k] = 'X';
       nL.armR.rotation.x = 0;
       L = lineOf('X');
-      if (L) return end(`❌ ${n.name}連成一條線了！`, 'no', 'tongue', `😝 ${n.name}贏了！<br>${n.name}：沒關係，下次要小心檢查喔！`, L);
-      if (b.every(Boolean)) return end('🤝 格子下滿了，平手！', '', 'happy', `🤝 跟${n.name}平手！<br>${n.name}：專心寫、小心檢查，下次一定贏！`);
+      if (L) return end(T(`❌ ${n.name}連成一條線了！`, `❌ ${n.name} got three in a row!`), 'no', 'tongue', `${T(`😝 ${n.name}贏了！`, `😝 ${n.name} wins!`)}<br>${n.name}：沒關係，下次要小心檢查喔！`, L);
+      if (b.every(Boolean)) return end(T('🤝 格子下滿了，平手！', '🤝 The board is full. A tie!'), '', 'happy', `${T(`🤝 跟${n.name}平手！`, `🤝 A tie with ${n.name}!`)}<br>${n.name}：專心寫、小心檢查，下次一定贏！`);
       locked = false; draw();
-      msg('換你了！點一格（或按 1～9）');
+      msg(T('換你了！點一格（或按 1～9）', 'Your turn! Tap a square (or press 1–9)'));
     }, 800);
   };
   const onKey = (e) => {
@@ -4905,8 +4908,8 @@ function startOoxx(n) {
   addEventListener('keydown', onKey, true);
   cells.forEach((c, i) => (c.onclick = () => choose(i)));
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(`⭕ 下次再來找${n.name}玩 OOXX！`); } };
-  act.busy = { label: '⭕ OOXX 比賽中…', tick() {} };                 // 比賽時不能走動
+  duel = { quit() { finish(); toast(T(`⭕ 下次再來找${n.name}玩 OOXX！`, `⭕ Come back for tic-tac-toe with ${n.name}!`)); } };
+  act.busy = { label: T('⭕ OOXX 比賽中…', '⭕ Tic-tac-toe…'), tick() {} };                 // 比賽時不能走動
   $('.who').textContent = n.name;
   ooxxBox.hidden = false;
   draw();
@@ -4925,7 +4928,7 @@ const FLUTE = [
   { n: 'Do', hi: true, abc: 'C', hz: 1046.5, c: '#66bb6a', f: '1|0100000' },
   { n: 'Re', hi: true, abc: 'D', hz: 1174.7, c: '#42a5f5', f: '0|0100000' },
 ];
-const fluteName = (k) => (FLUTE[k].hi ? '高音' : '') + FLUTE[k].n;
+const fluteName = (k) => (FLUTE[k].hi ? T('高音', 'high ') : '') + FLUTE[k].n;
 let fluteAudio = null;
 // 用 WebAudio 合成直笛聲：正弦波＋一點點高八度泛音、輕輕的顫音、柔和的起音
 function fluteNote(hz, dur = 0.45) {
@@ -4950,7 +4953,7 @@ const fluteBox = document.getElementById('flute');
 fluteBox.querySelector('.keys').innerHTML = FLUTE.map((x, k) => {
   const [th, fr] = x.f.split('|');
   const holes = `<i class="th ${th === '1' ? 'on' : ''}"></i>` + [...fr].map((h) => `<i class="${h === '1' ? 'on' : ''}"></i>`).join('');
-  return `<button data-k="${k}" style="--c:${x.c}"><b>${x.hi ? '<small>高音</small>' : ''}${x.n}</b><span class="fing">${holes}</span><small>${x.abc}・${k + 1}</small></button>`;
+  return `<button data-k="${k}" style="--c:${x.c}"><b>${x.hi ? `<small>${T('高音', 'high')}</small>` : ''}${x.n}</b><span class="fing">${holes}</span><small>${x.abc}・${k + 1}</small></button>`;
 }).join('');
 function startFlute(n) {
   stopAuto(); bgmHold('flute', true);                                   // 聽老師吹直笛時，校歌先停
@@ -4964,9 +4967,9 @@ function startFlute(n) {
   const level = () => seq.length - 2;                                   // 第 1 關 3 個音
   const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
   const show = () => {
-    $('.lv').textContent = `第 ${level()} 關`;
+    $('.lv').textContent = T(`第 ${level()} 關`, `Level ${level()}`);
     $('.lives').textContent = '❤️'.repeat(lives) + '🤍'.repeat(2 - lives);
-    $('.best').textContent = best ? `🏅 最佳紀錄：第 ${best} 關` : '🏅 還沒有紀錄，加油！';
+    $('.best').textContent = best ? T(`🏅 最佳紀錄：第 ${best} 關`, `🏅 Best: level ${best}`) : T('🏅 還沒有紀錄，加油！', '🏅 No record yet. You can do it!');
     $('.prog').innerHTML = seq.map((k, i) => `<i style="${i < pos ? `background:${FLUTE[k].c}` : ''}"></i>`).join('');
   };
   const setBtns = (on) => btns.forEach((b) => (b.disabled = !on));
@@ -4986,7 +4989,7 @@ function startFlute(n) {
   };
   const teacherPlays = async () => {
     listening = false; setBtns(false); pos = 0; show();
-    msg(`🎵 ${n.name}吹給你聽，仔細聽喔…`);
+    msg(T(`🎵 ${n.name}吹給你聽，仔細聽喔…`, `🎵 ${n.name} is playing. Listen carefully…`));
     blow(true);
     await wait(800);
     const step = Math.max(400, 650 - seq.length * 20);                // 越後面吹得越快一點
@@ -4999,7 +5002,7 @@ function startFlute(n) {
     clearNote(); blow(false);
     if (done) return;
     listening = true; setBtns(true);
-    msg(`換你吹！照順序按出這 ${seq.length} 個音`);
+    msg(T(`換你吹！照順序按出這 ${seq.length} 個音`, `Your turn! Play these ${seq.length} notes in order`));
   };
   const addNote = () => {                                               // 隨機加一個音（不要同一個音連續出現三次）
     let k;
@@ -5015,25 +5018,25 @@ function startFlute(n) {
       listening = false; setBtns(false);
       if (level() > best) { best = level(); try { localStorage.setItem(FLUTE_KEY, String(best)); } catch { /* 私密模式 */ } }
       npcFace(n, 'happy', 1.6);
-      msg(['✅ 全部吹對了！', '✅ 好好聽！', '✅ 音感真好！'][Math.random() * 3 | 0] + '下一關多一個音', 'ok');
+      msg(T(['✅ 全部吹對了！', '✅ 好好聽！', '✅ 音感真好！'][Math.random() * 3 | 0] + '下一關多一個音', ['✅ All correct! ', '✅ Beautiful! ', '✅ Great ear! '][Math.random() * 3 | 0] + 'Next level adds one note'), 'ok');
       setTimeout(() => { if (done) return; addNote(); teacherPlays(); }, 1500);
       return;
     }
     lives--; listening = false; setBtns(false); show();
     if (lives > 0) {
       npcFace(n, 'surprised', 1.6);
-      msg(`❌ 第 ${pos + 1} 個音應該是 ${fluteName(seq[pos])}，老師再吹一次給你聽`, 'no');
+      msg(T(`❌ 第 ${pos + 1} 個音應該是 ${fluteName(seq[pos])}，老師再吹一次給你聽`, `❌ Note ${pos + 1} should be ${fluteName(seq[pos])}. The teacher will play it again`), 'no');
       setTimeout(() => { if (!done) teacherPlays(); }, 1800);
       return;
     }
     npcFace(n, 'sad', 1.8);
-    msg(`❌ 第 ${pos + 1} 個音應該是 ${fluteName(seq[pos])}`, 'no');
+    msg(T(`❌ 第 ${pos + 1} 個音應該是 ${fluteName(seq[pos])}`, `❌ Note ${pos + 1} should be ${fluteName(seq[pos])}`), 'no');
     const lv = level() - 1;
     setTimeout(() => {
       if (done) return;
       npcFace(n, 'happy', 3);
       finish();
-      toast(lv > 0 ? `🎵 你過了 ${lv} 關！（最佳紀錄：第 ${best} 關）<br>${n.name}：很棒喔！回家多練習，下次挑戰更長的旋律！`
+      toast(lv > 0 ? `${T(`🎵 你過了 ${lv} 關！（最佳紀錄：第 ${best} 關）`, `🎵 You cleared ${lv} level${lv > 1 ? 's' : ''}! (best: level ${best})`)}<br>${n.name}：很棒喔！回家多練習，下次挑戰更長的旋律！`
         : `🎵 ${n.name}：沒關係，多聽幾次就記得了，再來挑戰一次吧！`);
     }, 1600);
   };
@@ -5050,7 +5053,7 @@ function startFlute(n) {
   addEventListener('keydown', onKey, true);
   btns.forEach((b) => (b.onclick = () => press(+b.dataset.k)));
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(`🎵 下次再來找${n.name}吹直笛！`); } };
+  duel = { quit() { finish(); toast(T(`🎵 下次再來找${n.name}吹直笛！`, `🎵 Come back to play the recorder with ${n.name}!`)); } };
   act.busy = { label: '', tick() {} };                                  // 玩的時候不能走動（視窗在下面，橘色提示鈕先收起來）
   fluteBox.hidden = false;
   for (let i = 0; i < 3; i++) addNote();
@@ -5088,7 +5091,7 @@ const GLIDER_FOOD = [
   { e: '🥛', n: '牛奶', ok: 0, why: '蜜袋鼯消化不了牛奶裡的乳糖，會拉肚子。' },
 ];
 const foodBox = document.getElementById('food');
-const GLIDER_Q = { list: GLIDER_FOOD, key: FOOD_KEY, title: '🐿️ 蜜袋鼯能吃嗎？', icon: '🐿️', yes: ['✅', '可以吃'], no: ['❌', '不能吃'],
+const GLIDER_Q = { en: { title: 'Can Sugar Gliders Eat It?', yes: 'Yes', no: 'No' }, list: GLIDER_FOOD, key: FOOD_KEY, title: '🐿️ 蜜袋鼯能吃嗎？', icon: '🐿️', yes: ['✅', '可以吃'], no: ['❌', '不能吃'],
   ask: (q) => `🐿️ 蜜袋鼯可以吃「${q.n}」嗎？`, intro: '花花和泡泡肚子餓了！哪些東西蜜袋鼯可以吃呢？',
   endTalk: (sc, n) => (sc === n ? '你是蜜袋鼯小專家！花花和泡泡謝謝你～' : sc >= 3 ? '很不錯喔！記住不能吃的東西，就是愛護小動物！' : '沒關係，記住哪些不能吃，就是愛護小動物唷！'),
   quitTalk: (n) => `🐿️ 下次再來找${n.name}玩！要愛護小動物唷！` };
@@ -5131,7 +5134,7 @@ const floatItem = (() => {                                             // 掉進
   sp.userData.set = (e) => { const c = cv.getContext('2d'); c.clearRect(0, 0, 128, 128); c.font = '96px "Segoe UI Emoji", "Apple Color Emoji", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e, 64, 70); tex.needsUpdate = true; };
   return sp;
 })();
-const FLOAT_Q = { list: FLOAT_ITEMS, key: FLOAT_KEY, title: '🧪 沉浮實驗：浮還是沉？', icon: '🧪', yes: ['🛟', '浮起來'], no: ['⚓', '沉下去'],
+const FLOAT_Q = { en: { title: 'Sink or Float?', yes: 'Float', no: 'Sink' }, list: FLOAT_ITEMS, key: FLOAT_KEY, title: '🧪 沉浮實驗：浮還是沉？', icon: '🧪', yes: ['🛟', '浮起來'], no: ['⚓', '沉下去'],
   ask: (q) => `🧪 把「${q.n}」放進水裡，會浮起來還是沉下去？`, intro: '我們來做實驗吧！先猜猜看，再放進水裡看看結果！',
   endTalk: (sc, n) => (sc === n ? '全部答對！你是小小科學家！' : sc >= 3 ? '很棒喔！同學們跟我一起做，觀察得很仔細！' : '沒關係，實驗就是要多試幾次！'),
   quitTalk: (n) => `🧪 下次再來找${n.name}做實驗！` };
@@ -5186,7 +5189,7 @@ const heatSprite = (size) => {                                        // 實驗�
   return sp;
 };
 const heatItem = heatSprite(0.36), heatFire = heatSprite(0.24);
-const HEAT_Q = { list: HEAT_ITEMS, key: HEAT_KEY, title: '🌡️ 熱脹冷縮：膨脹還是收縮？', icon: '🌡️', yes: ['➕', '膨脹'], no: ['➖', '收縮'],
+const HEAT_Q = { en: { title: 'Heat & Cold: expand or contract?', yes: 'Expand', no: 'Contract' }, list: HEAT_ITEMS, key: HEAT_KEY, title: '🌡️ 熱脹冷縮：膨脹還是收縮？', icon: '🌡️', yes: ['➕', '膨脹'], no: ['➖', '收縮'],
   ask: (q) => `${q.c}「${q.n}」會膨脹還是收縮？（${q.k}）`, intro: '從細節觀察不同的地方！東西變熱、變冷的時候，會變大還是變小呢？',
   endTalk: (sc, n) => (sc === n ? '全部答對！你觀察得好仔細！' : sc >= 3 ? '很棒喔！上課專心，就會越來越厲害！' : '沒關係，記住：受熱膨脹、遇冷收縮！'),
   quitTalk: (n) => `🌡️ 下次再來找${n.name}做實驗！上課要專心唷！` };
@@ -5233,7 +5236,7 @@ const HISTORY_ITEMS = [
   { e: '🪨', n: '太魯閣國家公園在臺南市', ok: 0, why: '太魯閣國家公園在花蓮縣，有很壯觀的峽谷。' },
   { e: '🏰', n: '安平古堡是日本人蓋的', ok: 0, why: '安平古堡（熱蘭遮城）是荷蘭人蓋的。' },
 ];
-const HISTORY_Q = { list: HISTORY_ITEMS, key: HISTORY_KEY, title: '🗺️ 臺灣史地大考驗', icon: '🗺️', yes: ['⭕', '對'], no: ['❌', '錯'],
+const HISTORY_Q = { en: { title: 'Taiwan History & Geography', yes: 'True', no: 'False' }, list: HISTORY_ITEMS, key: HISTORY_KEY, title: '🗺️ 臺灣史地大考驗', icon: '🗺️', yes: ['⭕', '對'], no: ['❌', '錯'],
   ask: (q) => `🗺️ 「${q.n}」，對還是錯？`, intro: '要認真學習唷！我們來考考臺灣的歷史和地理，看你知道多少！',
   endTalk: (sc, n) => (sc === n ? '全部答對！你是臺灣史地小博士！' : sc >= 3 ? '很棒喔！要認真學習，出去玩也要注意安全唷！' : '沒關係，多看書、多出去走走，就會越來越認識臺灣！'),
   quitTalk: (n) => `🗺️ 下次再來找${n.name}挑戰！出去玩要注意安全唷！` };
@@ -5291,7 +5294,7 @@ function makeFractionItems() {
   };
   return [0, 1, 2, 3, 4, 5].flatMap(() => [one(1), one(0)]);
 }
-const FRACTION_Q = { get list() { return makeFractionItems(); }, key: FRACTION_KEY, title: '🧮 分數計算：老師算對了嗎？', icon: '🧮', yes: ['⭕', '算對了'], no: ['❌', '算錯了'],
+const FRACTION_Q = { en: { title: 'Fractions: did the teacher get it right?', yes: 'Right', no: 'Wrong' }, get list() { return makeFractionItems(); }, key: FRACTION_KEY, title: '🧮 分數計算：老師算對了嗎？', icon: '🧮', yes: ['⭕', '算對了'], no: ['❌', '算錯了'],
   ask: () => '🧮 黃老師在黑板上算了這一題，算對還是算錯？', intro: '老師在黑板上算了幾題分數，幫我檢查看看！算的時候要專心，一次做好一件事！',
   endTalk: (sc, n) => (sc === n ? '全部答對！分數難不倒你，六年一班最棒！' : sc >= 3 ? '很不錯喔！記得先通分、再計算，最後約分！' : '沒關係，分數就像切壽司，慢慢想就會懂！'),
   quitTalk: (n) => `🧮 下次再來找${n.name}算分數！` };
@@ -5318,7 +5321,7 @@ const LIFE_ITEMS = [
   { e: '🚰', n: '洗完手，水龍頭開著不關', ok: 0, why: '要隨手關緊水龍頭，節約用水。' },
   { e: '🗣️', n: '別人在說話時，一直插嘴', ok: 0, why: '要等別人說完再說，這是好禮貌。' },
 ];
-const LIFE_Q = { list: LIFE_ITEMS, key: LIFE_KEY, title: '🏠 生活大考驗：這樣做對不對？', icon: '🏠', yes: ['⭕', '對'], no: ['❌', '不對'],
+const LIFE_Q = { en: { title: 'Everyday Life: right or wrong?', yes: 'Right', no: 'Wrong' }, list: LIFE_ITEMS, key: LIFE_KEY, title: '🏠 生活大考驗：這樣做對不對？', icon: '🏠', yes: ['⭕', '對'], no: ['❌', '不對'],
   ask: (q) => `🏠 「${q.n}」，這樣做對不對？`, intro: '我們來看看，你是不是生活小達人！想一想，這樣做對不對？',
   endTalk: (sc, n) => (sc === n ? '全部答對！你是生活小達人！' : sc >= 3 ? '很棒喔！在家裡、在學校都要記得這樣做！' : '沒關係，記住老師說的，下次一定會更好！'),
   quitTalk: (n) => `🏠 下次再來找${n.name}挑戰喔！` };
@@ -5376,7 +5379,7 @@ const blocksBoard = (() => {                                            // 地�
   m.visible = false; scene.add(m);
   return m;
 })();
-const BLOCKS_Q = { list: BLOCKS_ITEMS, key: BLOCKS_KEY, title: '🧩 電子積木：燈泡會亮嗎？', icon: '🧩', yes: ['💡', '會亮'], no: ['⚫', '不會亮'],
+const BLOCKS_Q = { en: { title: 'Electronic Blocks: will the bulb light up?', yes: 'Lights up', no: 'Stays off' }, list: BLOCKS_ITEMS, key: BLOCKS_KEY, title: '🧩 電子積木：燈泡會亮嗎？', icon: '🧩', yes: ['💡', '會亮'], no: ['⚫', '不會亮'],
   ask: (q) => `🧩「${q.n}」，燈泡會亮嗎？`, intro: '看看積木板上的電路，猜猜看燈泡會不會亮！',
   endTalk: (sc, n) => (sc === n ? '全部答對！你是電路小專家！' : sc >= 3 ? '很棒喔！記得：要接成一整圈「通路」燈才會亮！' : '沒關係，再試一次，看清楚電路有沒有接成一圈！'),
   quitTalk: () => '🧩 下次再來玩電子積木！' };
@@ -5403,14 +5406,15 @@ function startFood(n, Q = GLIDER_Q) {
   try { best = +localStorage.getItem(Q.key) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
   if (n.g) faceTeacher(n);                                            // 電子積木沒有老師
-  $('.ttl').textContent = Q.title;
-  btns.forEach((b) => (b.innerHTML = +b.dataset.a ? `${Q.yes[0]}<small>${Q.yes[1]} 1</small>` : `${Q.no[0]}<small>${Q.no[1]} 2</small>`));
+  const yesT = T(Q.yes[1], Q.en.yes), noT = T(Q.no[1], Q.en.no);
+  $('.ttl').textContent = T(Q.title, `${Q.icon} ${Q.en.title}`);
+  btns.forEach((b) => (b.innerHTML = +b.dataset.a ? `${Q.yes[0]}<small>${yesT} 1</small>` : `${Q.no[0]}<small>${noT} 2</small>`));
   Q.start?.(n);
   const msg = (text, cls = '') => { const m = $('.msg'); m.innerHTML = text; m.className = `msg ${cls}`; };
   const ready = () => {
     locked = false; btns.forEach((b) => (b.disabled = false));
     const q = qs[i];
-    $('.round').textContent = `第 ${i + 1}／${qs.length} 題・答對 ${score}`;
+    $('.round').textContent = T(`第 ${i + 1}／${qs.length} 題・答對 ${score}`, `Question ${i + 1}/${qs.length} · ${score} correct`);
     $('.emo').textContent = q.e; $('.nm').textContent = q.n;
     msg(Q.ask(q)); Q.show?.(q);
   };
@@ -5425,8 +5429,8 @@ function startFood(n, Q = GLIDER_Q) {
     locked = true; btns.forEach((b) => (b.disabled = true));
     const q = qs[i], right = a === q.ok;
     if (right) score++;
-    $('.round').textContent = `第 ${i + 1}／${qs.length} 題・答對 ${score}`;
-    msg(`${right ? '✅ 答對了！' : '❌ 答錯囉！'}${q.ok ? Q.yes[1] : Q.no[1]}：${q.why}`, right ? 'ok' : 'no');
+    $('.round').textContent = T(`第 ${i + 1}／${qs.length} 題・答對 ${score}`, `Question ${i + 1}/${qs.length} · ${score} correct`);
+    msg(`${right ? T('✅ 答對了！', '✅ Correct! ') : T('❌ 答錯囉！', '❌ Wrong! ')}${q.ok ? yesT : noT}：${q.why}`, right ? 'ok' : 'no');
     Q.reveal?.(q);
     if (n.g) npcFace(n, right ? 'happy' : 'surprised', 1.8);
     setTimeout(() => {
@@ -5435,7 +5439,7 @@ function startFood(n, Q = GLIDER_Q) {
       if (score > best) { best = score; try { localStorage.setItem(Q.key, String(best)); } catch { /* 私密模式 */ } }
       if (n.g) npcFace(n, score >= 4 ? 'happy' : 'wink', 3);
       finish();
-      toast(`${Q.icon} 答對 ${score}／${qs.length} 題！（最佳紀錄：${best} 題）<br>${n.name}：${Q.endTalk(score, qs.length)}`);
+      toast(`${T(`${Q.icon} 答對 ${score}／${qs.length} 題！（最佳紀錄：${best} 題）`, `${Q.icon} ${score}/${qs.length} correct! (best ${best})`)}<br>${n.name ? `${n.name}：` : ''}${Q.endTalk(score, qs.length)}`);
     }, 2600);
   };
   const onKey = (e) => {
@@ -5445,7 +5449,7 @@ function startFood(n, Q = GLIDER_Q) {
   addEventListener('keydown', onKey, true);
   btns.forEach((b) => (b.onclick = () => answer(+b.dataset.a)));
   $('.quit').onclick = () => duel?.quit();
-  duel = { quit() { finish(); toast(Q.quitTalk(n)); } };
+  duel = { quit() { finish(); toast(T(Q.quitTalk(n), `${Q.icon} Come back and play again!`)); } };
   act.busy = { label: '', tick(dt) { Q.tick?.(dt); } };                 // 玩的時候不能走動（視窗在下面，橘色提示鈕先收起來）
   foodBox.hidden = false;
   ready();
@@ -5852,6 +5856,8 @@ const ANIMALS = (() => {
     }],
   ];
 })();
+const PAINT_EN = { 貓咪: 'Cat', 小狗: 'Puppy', 兔子: 'Rabbit', 小魚: 'Fish', 小鳥: 'Bird', 烏龜: 'Turtle', 蝴蝶: 'Butterfly', 倉鼠羞羞: 'Shyshy the hamster', 游泳館的橘貓: 'The pool cat', 蜜袋鼯米果: 'Mi-guo the sugar glider' };
+const paintName = (k) => T(ANIMALS[k][0], PAINT_EN[ANIMALS[k][0]] || ANIMALS[k][0]);
 const PAINT_PRAISE = ['🌈 哇！這配色好有創意，老師好喜歡！', '👏 塗得好仔細，連小地方都沒漏掉！', '🎨 你是小小藝術家！這張可以貼在教室後面的作品牆喔！',
   '✨ 顏色搭得好漂亮，看起來好開心！', '💖 老師要把這張拍照收藏起來～'];
 function startPaint(n) {
@@ -5880,8 +5886,8 @@ function startPaint(n) {
       L++;
     }
     colors = new Array(L).fill(null);
-    $('.name').textContent = `今天畫：${ANIMALS[k][0]}`;
-    msg(first ? `${n.name}：哈囉！幫這隻${ANIMALS[k][0]}穿上漂亮的顏色吧～<br>點一個顏色，再點圖裡的空白處就能塗上去！` : '點一個顏色，再點圖裡的空白處就能塗上去！');
+    $('.name').textContent = T(`今天畫：${ANIMALS[k][0]}`, `Today: ${paintName(k)}`);
+    msg(first ? `${n.name}：哈囉！幫這隻${ANIMALS[k][0]}穿上漂亮的顏色吧～<br>${T('點一個顏色，再點圖裡的空白處就能塗上去！', 'Pick a color, then tap a blank area to fill it!')}` : T('點一個顏色，再點圖裡的空白處就能塗上去！', 'Pick a color, then tap a blank area to fill it!'));
     first = false;
     draw();
   };
@@ -5912,22 +5918,22 @@ function startPaint(n) {
     if (++fills % 5 === 0) npcFace(n, 'happy', 1.2);
   };
   // 調色盤
-  $('.pal').innerHTML = PAINT_COLORS.map((c) => `<button data-c="${c}" style="background:${c}" title="${c === '#ffffff' ? '橡皮擦（白色）' : c}"></button>`).join('');
+  $('.pal').innerHTML = PAINT_COLORS.map((c) => `<button data-c="${c}" style="background:${c}" title="${c === '#ffffff' ? T('橡皮擦（白色）', 'Eraser (white)') : c}"></button>`).join('');
   const pick = (c) => { color = c; paintBox.querySelectorAll('.pal button').forEach((b) => b.classList.toggle('on', b.dataset.c === c)); };
   $('.pal').onclick = (e) => { const b = e.target.closest('button'); if (b) pick(b.dataset.c); };
   pick(color);
   paintCv.onpointerdown = (e) => { e.preventDefault(); e.stopPropagation(); fillAt(e); };
   const colored = () => colors.filter(Boolean).length;
   $('.next').onclick = () => { k = (k + 1) % ANIMALS.length; load(); };
-  $('.clear').onclick = () => { colors.fill(null); draw(); msg('重新開始！'); };
-  $('.save').onclick = () => { const a = document.createElement('a'); a.download = `${ANIMALS[k][0]}著色.png`; a.href = paintCv.toDataURL('image/png'); a.click(); msg('📥 圖片存好了！', 'ok'); };
+  $('.clear').onclick = () => { colors.fill(null); draw(); msg(T('重新開始！', 'Start over!')); };
+  $('.save').onclick = () => { const a = document.createElement('a'); a.download = `${ANIMALS[k][0]}著色.png`; a.href = paintCv.toDataURL('image/png'); a.click(); msg(T('📥 圖片存好了！', '📥 Picture saved!'), 'ok'); };
   $('.done').onclick = () => {
-    if (colored() < 3) { msg('還有好多地方是白白的，再多塗幾個顏色吧！', 'no'); npcFace(n, 'surprised', 1.2); return; }
+    if (colored() < 3) { msg(T('還有好多地方是白白的，再多塗幾個顏色吧！', 'Lots of white spots left. Add a few more colors!'), 'no'); npcFace(n, 'surprised', 1.2); return; }
     let cnt = 1; try { cnt = (+localStorage.getItem(PAINT_KEY) || 0) + 1; localStorage.setItem(PAINT_KEY, String(cnt)); } catch { /* 私密模式 */ }
     const name = ANIMALS[k][0];
     finish();
     npcFace(n, 'happy', 3);
-    toast(`${PAINT_PRAISE[Math.random() * PAINT_PRAISE.length | 0]}<br>🖼️ ${name}完成！這是你在美勞教室畫的第 ${cnt} 張作品`);
+    toast(`${PAINT_PRAISE[Math.random() * PAINT_PRAISE.length | 0]}<br>${T(`🖼️ ${name}完成！這是你在美勞教室畫的第 ${cnt} 張作品`, `🖼️ ${PAINT_EN[name] || name} finished! That's drawing #${cnt} in the art room`)}`);
   };
   $('.quit').onclick = () => duel?.quit();
   // 著色時鍵盤只留 Esc（不要按到 E／Q 換樓層、C 換角色）
@@ -5940,7 +5946,7 @@ function startPaint(n) {
   n.playing = true;
   n.g.rotation.y = Math.atan2(n.g.position.x - player.x, n.g.position.z - player.z);   // 老師面向你
   duel = { quit() { finish(); toast(`🎨 ${n.name}：下次再來畫畫喔！`); } };
-  act.busy = { label: '🎨 著色中…', tick() {} };
+  act.busy = { label: T('🎨 著色中…', '🎨 Coloring…'), tick() {} };
   paintBox.hidden = false;
   load();
 }
@@ -5948,9 +5954,9 @@ function startPaint(n) {
 /* ---------------- 草地上的童玩：跳繩、扯鈴、小飛機 ---------------- */
 
 const TOYS = {
-  rope: { icon: '🪢', name: '跳繩' },
-  yoyo: { icon: '🪀', name: '扯鈴' },
-  plane: { icon: '✈️', name: '丟小飛機' },
+  rope: { icon: '🪢', name: '跳繩', en: 'Jump rope' },
+  yoyo: { icon: '🪀', name: '扯鈴', en: 'Diabolo' },
+  plane: { icon: '✈️', name: '丟小飛機', en: 'Paper plane' },
 };
 // 童玩擺放處（中庭草地、操場兩端草地）：地上放一個小籃子，靠近就可以玩
 function placeToys() {
@@ -6016,7 +6022,7 @@ function startToy(sp) {
     let count = 0, wasUp = false;
     act.busy = {
       toy: 'rope',
-      get label() { return `🪢 跳了 <b>${count}</b> 下　停止 <kbd>F</kbd>`; },
+      get label() { return T(`🪢 跳了 <b>${count}</b> 下　停止 <kbd>F</kbd>`, `🪢 Jumps: <b>${count}</b>　Stop <kbd>F</kbd>`); },
       tick(dt) {
         t += dt;
         const ph = t * Math.PI * 2 * 1.4;                                  // 一秒轉 1.4 圈
@@ -6026,11 +6032,11 @@ function startToy(sp) {
         if (L) { L.armL.rotation.z = -0.45; L.armR.rotation.z = 0.45; L.armL.rotation.x = L.armR.rotation.x = -0.35 + Math.sin(ph) * 0.18; L.legL.rotation.x = L.legR.rotation.x = -Math.max(0, c) * 0.25; }
         // 每次繩子過腳底（跳到最高點）算一下
         const up = c > 0.9;
-        if (up && !wasUp) { count++; if (count % 10 === 0) toast(`🪢 跳了 ${count} 下！`); }
+        if (up && !wasUp) { count++; if (count % 10 === 0) toast(T(`🪢 跳了 ${count} 下！`, `🪢 ${count} jumps!`)); }
         wasUp = up;
       },
       press() { this.stop(); },
-      stop() { avatar.remove(rope); player.jump = 0; resetPose(); act.busy = null; toast(`🪢 一共跳了 ${count} 下！`); },
+      stop() { avatar.remove(rope); player.jump = 0; resetPose(); act.busy = null; toast(T(`🪢 一共跳了 ${count} 下！`, `🪢 ${count} jumps in total!`)); },
     };
   } else if (sp.toy === 'yoyo') {
     const d = toyProps.yoyo, st = toyProps.sticks, str = toyProps.yoyoString;
@@ -6038,7 +6044,7 @@ function startToy(sp) {
     let toss = -1, tosses = 0;
     act.busy = {
       toy: 'yoyo',
-      label: '🪀 往上拋 <kbd>F</kbd>　（走開就停）',
+      get label() { return T('🪀 往上拋 <kbd>F</kbd>　（走開就停）', '🪀 Toss <kbd>F</kbd>　(walk away to stop)'); },
       tick(dt) {
         t += dt;
         d.rotation.x += dt * 30;                                            // 扯鈴一直轉
@@ -6048,7 +6054,7 @@ function startToy(sp) {
           toss += dt;
           const T = 1.3, k = toss / T;
           y = 0.42 + Math.sin(Math.PI * Math.min(1, k)) * 2.6;
-          if (k >= 1) { toss = -1; tosses++; toast(`🪀 接住了！（${tosses}）`); }
+          if (k >= 1) { toss = -1; tosses++; toast(T(`🪀 接住了！（${tosses}）`, `🪀 Caught it! (${tosses})`)); }
         }
         d.position.set(0, y, -0.45);
         str.visible = toss < 0;
@@ -6078,7 +6084,7 @@ function startToy(sp) {
         pl.position.copy(start).addScaledVector(dir, dist * k);
         pl.position.y = Math.max(gy + 0.05, start.y + Math.sin(Math.PI * k) * 1.6 - k * (start.y - gy));
         pl.rotation.set(0, yaw, 0); pl.rotateX(-Math.cos(Math.PI * k) * 0.35); pl.rotateZ(Math.sin(t * 3) * 0.2);
-        if (t > 0.35 + T + 1.2) { pl.visible = false; resetPose(); act.busy = null; toast('✈️ 飛好遠！再丟一次？'); }
+        if (t > 0.35 + T + 1.2) { pl.visible = false; resetPose(); act.busy = null; toast(T('✈️ 飛好遠！再丟一次？', '✈️ It flew so far! Throw again?')); }
       },
     };
   }
@@ -6089,6 +6095,7 @@ function startToy(sp) {
 
 const SAND_KEY = 'campus-sand-castles';
 const SAND_FINDS = ['🐚 一個貝殼', '🔮 一顆彈珠', '🦖 一隻恐龍小玩具', '🪨 一顆亮亮的小石頭', '🦀 一隻螃蟹沙模'];
+const SAND_FINDS_EN = ['🐚 a seashell', '🔮 a marble', '🦖 a toy dinosaur', '🪨 a shiny pebble', '🦀 a crab sand mold'];
 const sandM = new THREE.MeshLambertMaterial({ color: '#e3cf9a' }), sandDk = new THREE.MeshLambertMaterial({ color: '#c9b07a' });
 // 每一層：[寬, 高, 深, x, y, z, 材質]（y 是方塊底部的高度）
 const SAND_STAGES = (() => {
@@ -6147,13 +6154,14 @@ function startSand(sp) {
     grow = g; growT = 0; g.scale.set(1, 0.01, 1);
     if (done()) {
       let n = 0; try { n = (+localStorage.getItem(SAND_KEY) || 0) + 1; localStorage.setItem(SAND_KEY, String(n)); } catch { /* 私密模式 */ }
-      const find = Math.random() < 0.5 ? `<br>✨ 挖沙的時候還挖到${SAND_FINDS[Math.random() * SAND_FINDS.length | 0]}！` : '';
-      toast(`🏰 沙堡蓋好了！${n ? `（已經蓋了 ${n} 座）` : ''}${find}`);
+      const fi = Math.random() * SAND_FINDS.length | 0;
+      const find = Math.random() < 0.5 ? T(`<br>✨ 挖沙的時候還挖到${SAND_FINDS[fi]}！`, `<br>✨ You also dug up ${SAND_FINDS_EN[fi]}!`) : '';
+      toast(T(`🏰 沙堡蓋好了！${n ? `（已經蓋了 ${n} 座）` : ''}`, `🏰 Sandcastle done!${n ? ` (${n} built)` : ''}`) + find);
     }
   };
   act.busy = {
     toy: 'sand',
-    get label() { return done() ? '🏰 推平再蓋一座 <kbd>F</kbd>　（走開就停）' : `🏖️ 挖一鏟 <kbd>F</kbd>　沙堡 ${sandParts.length}／${SAND_STAGES.length}`; },
+    get label() { return done() ? T('🏰 推平再蓋一座 <kbd>F</kbd>　（走開就停）', '🏰 Flatten and build again <kbd>F</kbd>　(walk away to stop)') : T(`🏖️ 挖一鏟 <kbd>F</kbd>　沙堡 ${sandParts.length}／${SAND_STAGES.length}`, `🏖️ Dig <kbd>F</kbd>　Castle ${sandParts.length}/${SAND_STAGES.length}`); },
     tick(dt) {
       if (dig >= 0) {                                                      // 鏟子往下挖、再往前把沙倒在沙堡上
         dig += dt;
@@ -6171,7 +6179,7 @@ function startSand(sp) {
     },
     stop() { sandShovel.removeFromParent(); resetPose(); act.busy = null; },
   };
-  if (!sandParts.length) toast('🏖️ 來堆沙堡！按 F 挖一鏟，8 鏟蓋好一座');
+  if (!sandParts.length) toast(T('🏖️ 來堆沙堡！按 F 挖一鏟，8 鏟蓋好一座', '🏖️ Build a sandcastle! Press F to dig. 8 scoops make one castle'));
   if (!done()) act.busy.press();                                        // 一開始就先挖第一鏟
 }
 
@@ -6235,10 +6243,10 @@ function shoot(sp, p, ideal, tol, ctx = {}) {
         if (t > 0.35) relax();
         if (t < T) return;
         // 到籃框了：進球就從網子掉下去；沒進就彈開
-        if (made) { phys = { vx: 0, vy: -1.5, vz: 0 }; if (!ctx.quiet) { act.makes++; toast(`🏀 進球！（${act.makes} / ${act.shots}）`); } }
+        if (made) { phys = { vx: 0, vy: -1.5, vz: 0 }; if (!ctx.quiet) { act.makes++; toast(T(`🏀 進球！（${act.makes} / ${act.shots}）`, `🏀 Score! (${act.makes} / ${act.shots})`)); } }
         else {
           phys = { vx: -ux * (over > 0 ? 1.8 : 0.6) + (Math.random() - 0.5), vy: over > 0.25 ? 1.2 : 2.6, vz: -uz * (over > 0 ? 1.8 : 0.6) + (Math.random() - 0.5) };
-          if (!ctx.quiet) toast(err < 0 ? `差一點！力道太小（${act.makes} / ${act.shots}）` : `差一點！力道太大（${act.makes} / ${act.shots}）`);
+          if (!ctx.quiet) toast(err < 0 ? T(`差一點！力道太小（${act.makes} / ${act.shots}）`, `So close! Too soft (${act.makes} / ${act.shots})`) : T(`差一點！力道太大（${act.makes} / ${act.shots}）`, `So close! Too hard (${act.makes} / ${act.shots})`));
         }
         return;
       }
@@ -6288,7 +6296,7 @@ function startSlide(sp) {
         const end = path.at(-1);
         player.x = end.x; player.z = end.z; player.ride = null; player.gy = groundAt(f, end.x, end.z);
         resetPose(); act.busy = null;
-        toast('🛝 咻～好好玩！');
+        toast(T('🛝 咻～好好玩！', '🛝 Wheee~ So fun!'));
         return;
       }
       let i = 0, rem = s;

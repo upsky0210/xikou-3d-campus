@@ -618,69 +618,69 @@
 <div id="quiz" hidden>
   <div class="top"><span class="cat"></span><span class="prog"></span></div>
   <div class="emo"></div><div class="q"></div><div class="hint"></div>
-  <input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="用鍵盤打英文單字">
+  <input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="用鍵盤打英文單字" data-en-ph="Type the English word">
   <div class="msg"></div>
-  <div class="btns"><button class="go">送出 Enter</button><button class="sub skip">我不會</button><button class="sub quit">結束 Esc</button></div>
+  <div class="btns"><button class="go" data-en="Submit Enter">送出 Enter</button><button class="sub skip" data-en="I don't know">我不會</button><button class="sub quit" data-en="Quit Esc">結束 Esc</button></div>
   <div class="tip">🔊 答完會唸出單字的發音</div>
 </div>
 <div id="paint" hidden>
-  <div class="top"><span class="cat">🎨 哈囉老師的著色本</span><span class="name"></span></div>
+  <div class="top"><span class="cat" data-en="🎨 Coloring Book">🎨 哈囉老師的著色本</span><span class="name"></span></div>
   <canvas width="400" height="400"></canvas>
   <div class="pal"></div>
   <div class="msg"></div>
-  <div class="btns"><button class="done">完成 ✨</button><button class="sub next">換一隻</button><button class="sub clear">重來</button><button class="sub save">存成圖片</button><button class="sub quit">結束 Esc</button></div>
+  <div class="btns"><button class="done" data-en="Done ✨">完成 ✨</button><button class="sub next" data-en="Another one">換一隻</button><button class="sub clear" data-en="Start over">重來</button><button class="sub save" data-en="Save image">存成圖片</button><button class="sub quit" data-en="Quit Esc">結束 Esc</button></div>
 </div>
 <div id="rps" hidden>
-  <div class="top"><span>✂️ 剪刀石頭布・三戰兩勝</span><span class="round"></span></div>
-  <div class="vs"><div><small>你</small><div class="hand me">❔</div></div><div class="score"></div><div><small class="who"></small><div class="hand them">❔</div></div></div>
+  <div class="top"><span data-en="✂️ Rock-Paper-Scissors · Best of 3">✂️ 剪刀石頭布・三戰兩勝</span><span class="round"></span></div>
+  <div class="vs"><div><small data-en="You">你</small><div class="hand me">❔</div></div><div class="score"></div><div><small class="who"></small><div class="hand them">❔</div></div></div>
   <div class="msg"></div>
   <div class="btns">
-    <button data-h="0">✌️<small>剪刀 1</small></button><button data-h="1">✊<small>石頭 2</small></button><button data-h="2">🖐️<small>布 3</small></button>
-    <button class="quit">結束<br>Esc</button>
+    <button data-h="0">✌️<small data-en="Scissors 1">剪刀 1</small></button><button data-h="1">✊<small data-en="Rock 2">石頭 2</small></button><button data-h="2">🖐️<small data-en="Paper 3">布 3</small></button>
+    <button class="quit" data-en="Quit<br>Esc">結束<br>Esc</button>
   </div>
 </div>
 <div id="ooxx" hidden>
-  <div class="top"><span>⭕ OOXX・你 ⭕ vs <b class="who"></b> ❌</span></div>
+  <div class="top"><span><span data-en="⭕ Tic-tac-toe · You ⭕ vs">⭕ OOXX・你 ⭕ vs</span> <b class="who"></b> ❌</span></div>
   <div class="board"><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button><button class="cell"></button></div>
   <div class="msg"></div>
-  <button class="quit">結束 Esc</button>
+  <button class="quit" data-en="Quit Esc">結束 Esc</button>
 </div>
 <div id="zy" hidden>
-  <div class="top"><span>🔤 注音符號大闖關・<b class="lv"></b></span><span class="hearts"></span></div>
+  <div class="top"><span><span data-en="🔤 Zhuyin Challenge · ">🔤 注音符號大闖關・</span><b class="lv"></b></span><span class="hearts"></span></div>
   <div class="pic"><span class="emo"></span><span class="word"></span></div>
   <div class="ask"></div>
   <div class="btns"><button data-k="0"></button><button data-k="1"></button><button data-k="2"></button></div>
   <div class="msg"></div>
-  <button class="quit">結束 Esc</button>
+  <button class="quit" data-en="Quit Esc">結束 Esc</button>
 </div>
 <div id="listen" hidden>
-  <div class="top"><span>🎧 聽聽看，是哪一個？・<b class="who"></b></span><span class="hearts"></span></div>
+  <div class="top"><span><span data-en="🎧 Listen and Choose · ">🎧 聽聽看，是哪一個？・</span><b class="who"></b></span><span class="hearts"></span></div>
   <div class="prog"></div>
   <div class="word"></div>
-  <div class="tools"><button class="again">🔊 重聽 R</button><button class="slow">🐢 慢慢唸 S</button><button class="peek">👀 看字</button></div>
+  <div class="tools"><button class="again" data-en="🔊 Replay R">🔊 重聽 R</button><button class="slow" data-en="🐢 Slowly S">🐢 慢慢唸 S</button><button class="peek" data-en="👀 Show word">👀 看字</button></div>
   <div class="btns"><button data-k="0"></button><button data-k="1"></button><button data-k="2"></button><button data-k="3"></button></div>
   <div class="msg"></div>
-  <button class="quit">結束 Esc</button>
+  <button class="quit" data-en="Quit Esc">結束 Esc</button>
 </div>
 <div id="cm" hidden>
-  <div class="top"><span>🎨 顏色對對碰・<b class="who"></b></span><span class="flips"></span></div>
+  <div class="top"><span><span data-en="🎨 Color Match · ">🎨 顏色對對碰・</span><b class="who"></b></span><span class="flips"></span></div>
   <div class="grid"></div>
   <div class="msg"></div>
-  <button class="quit">結束 Esc</button>
+  <button class="quit" data-en="Quit Esc">結束 Esc</button>
 </div>
 <div id="bj" hidden>
-  <div class="top"><span>🃏 21 點・最接近 21 的贏</span><span class="wins"></span></div>
+  <div class="top"><span data-en="🃏 Blackjack · Closest to 21 wins">🃏 21 點・最接近 21 的贏</span><span class="wins"></span></div>
   <div class="hand them"><small class="who"></small><div class="cards"></div><span class="pt"></span></div>
-  <div class="hand me"><small>你</small><div class="cards"></div><span class="pt"></span></div>
+  <div class="hand me"><small data-en="You">你</small><div class="cards"></div><span class="pt"></span></div>
   <div class="msg"></div>
-  <div class="btns"><button class="hit">要牌 1</button><button class="stand">停牌 2</button><button class="again" hidden>再玩一局 1</button><button class="quit">結束 Esc</button></div>
+  <div class="btns"><button class="hit" data-en="Hit 1">要牌 1</button><button class="stand" data-en="Stand 2">停牌 2</button><button class="again" hidden data-en="Play again 1">再玩一局 1</button><button class="quit" data-en="Quit Esc">結束 Esc</button></div>
 </div>
 <div id="flute" hidden>
-  <div class="top"><span>🎵 直笛記憶・<b class="lv"></b></span><span class="lives"></span></div>
+  <div class="top"><span><span data-en="🎵 Recorder Memory · ">🎵 直笛記憶・</span><b class="lv"></b></span><span class="lives"></span></div>
   <div class="prog"></div>
   <div class="msg"></div>
   <div class="keys"></div>
-  <div class="foot"><span class="best"></span><button class="quit">結束 Esc</button></div>
+  <div class="foot"><span class="best"></span><button class="quit" data-en="Quit Esc">結束 Esc</button></div>
 </div>
 <div id="food" hidden>
   <div class="top"><span class="ttl">🐿️ 蜜袋鼯能吃嗎？</span><span class="round"></span></div>
@@ -688,16 +688,16 @@
   <div class="msg"></div>
   <div class="btns">
     <button data-a="1">✅<small>可以吃 1</small></button><button data-a="0">❌<small>不能吃 2</small></button>
-    <button class="quit">結束<br>Esc</button>
+    <button class="quit" data-en="Quit<br>Esc">結束<br>Esc</button>
   </div>
 </div>
 <div id="bb" hidden>
-  <div class="top"><span>⚾ 樂樂棒球・投打對決</span><span class="runs"></span></div>
-  <div class="cnt"><span>好球 <b class="s"></b></span><span>壞球 <b class="b"></b></span><span>出局 <b class="o"></b></span><span class="bases"></span></div>
+  <div class="top"><span data-en="⚾ T-Ball · Batter vs Pitcher">⚾ 樂樂棒球・投打對決</span><span class="runs"></span></div>
+  <div class="cnt"><span><span data-en="Strikes">好球</span> <b class="s"></b></span><span><span data-en="Balls">壞球</span> <b class="b"></b></span><span><span data-en="Outs">出局</span> <b class="o"></b></span><span class="bases"></span></div>
   <div class="msg"></div>
-  <div class="btns"><button class="swing">⚾ 揮棒 F</button><button class="quit">結束 Esc</button></div>
+  <div class="btns"><button class="swing" data-en="⚾ Swing F">⚾ 揮棒 F</button><button class="quit" data-en="Quit Esc">結束 Esc</button></div>
 </div>
-<div id="power" hidden><div class="lbl">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
+<div id="power" hidden><div class="lbl" data-en="Press again when it is in the green zone!">時機抓在綠色區域再按一次！</div><div class="sweet"></div><div class="bar"></div></div>
 
 <div id="gallery" hidden>
   <div class="card-wrap">
@@ -855,8 +855,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=211"></script>
-<script src="js/pano-data.js?v=211"></script>
-<script type="module" src="js/app.js?v=211"></script>
+<script src="js/campus-data.js?v=212"></script>
+<script src="js/pano-data.js?v=212"></script>
+<script type="module" src="js/app.js?v=212"></script>
 </body>
 </html>
