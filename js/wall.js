@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat } from './blocks.js?v=225';
+import { Batch, mat } from './blocks.js?v=226';
 
 /* =========================================================
  * 校園圍牆與外面的人行道（依 2026-10-12 使用者照片）
@@ -67,7 +67,11 @@ export function buildCampusWall(group, runs, { avoid = [] } = {}) {
       const [x, z] = at(t);
       b.box(m, horiz ? len : thick, h, horiz ? thick : len, x, y, z);
     };
-    if (r.street) buildStreet(b, r, L, ux, uz, avoid);
+    if (r.street) {
+      // 人行道和馬路可以比圍牆長（圍牆往內退的地方，馬路照舊直直走）
+      const s = { ...r, ...(r.streetFrom && { ax: r.streetFrom[0], az: r.streetFrom[1] }), ...(r.streetTo && { bx: r.streetTo[0], bz: r.streetTo[1] }) };
+      buildStreet(b, s, Math.hypot(s.bx - s.ax, s.bz - s.az), ux, uz, avoid);
+    }
     if (r.noWall) continue;                                      // 正門兩側是樹籬，不蓋圍牆
     box(baseMat(), L, 0.75, 0.42, L / 2, 0.375);                 // 矮牆
     box(stone, L, 0.08, 0.5, L / 2, 0.79);                       // 矮牆頂

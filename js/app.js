@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=225';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=225';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=225';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=225';
-import { buildCampusWall } from './wall.js?v=225';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=225';
+import { PanoViewer } from './pano.js?v=226';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=226';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=226';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=226';
+import { buildCampusWall } from './wall.js?v=226';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=226';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -603,18 +603,25 @@ function buildPlinth() {
 function wallRuns() {
   const W = D.outdoor.wall, G = D.outdoor.gate;
   const [x1, z1, x2, z2] = [mx(W.x1), mz(W.y1), mx(W.x2), mz(W.y2)];
-  const runs = [
-    { ax: x1, az: z1, bx: x2, bz: z1, out: [0, -1] },          // 北
-    { ax: x2, az: z1, bx: x2, bz: z2, out: [1, 0] },           // 東
-    { ax: x1, az: z2, bx: x2, bz: z2, out: [0, 1] },           // 南
-  ];
+  const runs = [{ ax: x1, az: z2, bx: x2, bz: z2, out: [0, 1] }];   // 南
+  if (W.recess) {
+    // 東邊至善樓那段往內退（xr），到 zr 再轉出去；馬路還是沿最外圈 x2 走（streetFrom／streetTo：人行道和馬路畫到哪裡）
+    const xr = mx(W.recess.x), zr = mz(W.recess.y);
+    runs.push({ ax: x1, az: z1, bx: xr, bz: z1, out: [0, -1], streetTo: [x2, z1] },   // 北
+      { ax: xr, az: z1, bx: xr, bz: zr, out: [1, 0], noStreet: true },               // 東（往內退的那段）
+      { ax: xr, az: zr, bx: x2, bz: zr, out: [0, -1], noStreet: true },              // 轉出去
+      { ax: x2, az: zr, bx: x2, bz: z2, out: [1, 0], streetFrom: [x2, z1] });         // 東
+  } else {
+    runs.push({ ax: x1, az: z1, bx: x2, bz: z1, out: [0, -1] },          // 北
+      { ax: x2, az: z1, bx: x2, bz: z2, out: [1, 0] });                   // 東
+  }
   // 西邊（正門那面）榕樹比較多：樹種得比較密；正門兩側樹籬那段沒有圍牆，但外面一樣有人行道和榕樹
   const west = { out: [-1, 0], treeGap: 9 };
   if (G && Math.abs(G.x - W.x1) < 1) {
     runs.push({ ax: x1, az: z1, bx: x1, bz: mz(540), ...west }, { ax: x1, az: mz(540), bx: x1, bz: mz(1110), noWall: true, ...west },
       { ax: x1, az: mz(1110), bx: x1, bz: z2, ...west });
   } else runs.push({ ax: x1, az: z1, bx: x1, bz: z2, ...west });
-  return runs.map((r) => ({ ...r, street: true }));
+  return runs.map((r) => ({ ...r, street: !r.noStreet }));
 }
 // 戶外的牆：校門兩側的樹籬、操場南邊那棟建築（都會擋路，也會被導航避開）
 {
@@ -799,7 +806,7 @@ function setIsland(on) {
 
 // 樹（裝飾）
 const treeSpots = [
-  ...[[220, 980], [1760, 400], [1760, 900], [250, 1500], [1890, 1500], [220, 1900], [1900, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
+  ...[[220, 980], [1760, 400], [1760, 900], [250, 1500], [1890, 1500], [220, 1900], [1980, 2000], [850, 2120]].map(([x, y]) => [x, y, 1.4]),
 ];
 if (BLOCKY) {
   const tb = new Batch();
