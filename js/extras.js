@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=213';
+import { Batch, mat, SPOTS } from './blocks.js?v=214';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -42,6 +42,11 @@ export const poolWallMat = () => once('poolwall', () => new THREE.MeshLambertMat
 
 /** 游泳館入口（北牆東端藍色立面中間偏西）：回傳門的 [x1, x2] */
 export const poolDoor = (m) => [m.x2 - 3.9, m.x2 - 2.8];
+// 25 公尺泳池（水面）：中心、長（沿 x）、寬（沿 z），6 條水道；app.js 的碰撞、陳老師的節奏划水也用這個
+export const poolWater = (m) => {
+  const W = m.x2 - m.x1, D = m.z2 - m.z1;
+  return { x: (m.x1 + m.x2) / 2 + 2, z: (m.z1 + m.z2) / 2, w: Math.min(25, W - 10), d: Math.min(10.5, D - 3.6), lanes: 6 };
+};
 
 // 游泳館西面（面向遊戲場）：藍白直條紋、上排大窗、下排鐵窗
 export const poolStripeMat = () => once('poolstripe', () => new THREE.MeshLambertMaterial({ map: canvasTex(512, 384, (c, w, h) => {
@@ -148,7 +153,7 @@ export function buildPool(group, m, roofTex) {
   // ===== 室內 =====
   const deck = mat('tile', '#e9e4d8');
   b.box(deck, W - 0.4, 0.05, D - 0.4, cx, 0.025, cz);                      // 池畔磁磚
-  const pw = Math.min(25, W - 10), pd = Math.min(10.5, D - 3.6), px = cx + 2;   // 25 公尺泳池
+  const { w: pw, d: pd, x: px } = poolWater(m);                             // 25 公尺泳池
   const water = new THREE.Mesh(new THREE.BoxGeometry(pw, 0.04, pd), waterMat(6));
   water.position.set(px, 0.06, cz); water.receiveShadow = true;
   group.add(water);

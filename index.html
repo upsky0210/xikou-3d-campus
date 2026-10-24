@@ -274,7 +274,7 @@
   body.mc button:hover { filter: brightness(1.12); }
   body.mc button:disabled { background: #555; color: #999; text-shadow: none; filter: none; }
   /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
-  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #flute button, body.mc #food button, body.mc #bb button { text-shadow: none; }
+  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #flute button, body.mc #swim button, body.mc #food button, body.mc #bb button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
   body.mc .iconbtn.primary, body.mc #info .acts [data-act=go], body.mc #results button, body.mc #pano .ctrl .audio {
@@ -428,6 +428,36 @@
   #bgmBtn i { font-style: normal; } #bgmBtn.off { opacity: .6; }
   @media (max-width: 1180px) { #bgmBtn span { display: none; } }   /* 上面那排擠不下：只留圖示 */
   #flute .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+  /* 節奏划水（游泳館的陳老師）：提示從右邊滑到圈圈時按；手機按下面三個大按鈕 */
+  #swim { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(400px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 10px 8px; text-align: center; user-select: none; -webkit-user-select: none; }
+  #swim .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #swim .top b { color: #1f6fb2; }
+  #swim .lane { position: relative; height: 8px; margin: 7px 14px 4px 6px; border-radius: 4px; background: repeating-linear-gradient(90deg, #d63a3a 0 8px, #f2f2f2 8px 16px); }
+  #swim .lane i { position: absolute; top: 50%; transform: translate(-50%, -50%); font-style: normal; font-size: 16px; transition: left .2s linear; }
+  #swim .lane::after { content: '🏁'; position: absolute; right: -14px; top: 50%; transform: translateY(-55%); font-size: 13px; }
+  #swim .track { position: relative; height: 54px; margin: 6px 0 2px; border-radius: 12px; background: linear-gradient(#bfe6fb, #8fd0f2); overflow: hidden; }
+  #swim .ring { position: absolute; left: 12%; top: 50%; width: 46px; height: 46px; transform: translate(-50%, -50%); border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px #1f6fb2; }
+  #swim .ring.pulse { animation: swimPulse .3s ease-out; }
+  @keyframes swimPulse { from { transform: translate(-50%, -50%) scale(1.18); background: rgba(255, 255, 255, .6); } to { transform: translate(-50%, -50%) scale(1); } }
+  #swim .cue { position: absolute; top: 50%; width: 38px; height: 38px; transform: translate(-50%, -50%); border-radius: 50%; font-style: normal; font-size: 21px; line-height: 38px; }
+  #swim .cue.L { background: #4f8fe8; } #swim .cue.R { background: #f2a03a; } #swim .cue.B { background: #3cc1a8; }
+  #swim .track:not(.timed) .cue { transition: left .18s ease-out; }
+  #swim .track:not(.timed) .cue.next { width: 46px; height: 46px; line-height: 46px; font-size: 26px; }
+  #swim .cue.hit { animation: swimHit .35s forwards; } #swim .cue.miss { animation: swimMiss .35s forwards; }
+  @keyframes swimHit { to { transform: translate(-50%, -90%) scale(1.5); opacity: 0; } }
+  @keyframes swimMiss { to { transform: translate(-50%, 0) scale(.6); opacity: 0; filter: grayscale(1); } }
+  #swim .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 4px 0 6px; }
+  #swim .msg.ok { color: #1b8a3a; } #swim .msg.no { color: #c0392b; }
+  #swim .modes, #swim .pads { display: flex; gap: 6px; }
+  #swim .modes button { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 8px 4px; border-radius: 12px; background: #e3f2fc; border: 2px solid #1f6fb2; color: #1a3550; }
+  #swim .modes b { font-size: 16px; } #swim .modes small { font-size: 11px; color: #456; }
+  #swim .pads button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 2px 6px; border-radius: 14px;
+    background: color-mix(in srgb, var(--c) 25%, #fff); border: 2px solid var(--c); color: #234; font-size: 30px; line-height: 1; touch-action: manipulation; transition: transform .08s; }
+  #swim .pads button small { font-size: 11px; color: #345; }
+  #swim .pads button.lit { background: var(--c); transform: scale(.94); }
+  #swim .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: #777; }
+  #swim .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
   /* 蜜袋鼯能吃嗎？（邱老師） */
   #food { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(360px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
@@ -453,7 +483,7 @@
   #bb .btns { display: flex; gap: 6px; justify-content: center; }
   #bb .btns button { padding: 7px 16px; font-weight: 700; border-radius: 10px; background: #1f3a7a; color: #fff; font-size: 15px; }
   #bb .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #bj, body.mc #cm, body.mc #zy, body.mc #flute, body.mc #food, body.mc #bb {
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #bj, body.mc #cm, body.mc #zy, body.mc #flute, body.mc #swim, body.mc #food, body.mc #bb {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -682,6 +712,15 @@
   <div class="keys"></div>
   <div class="foot"><span class="best"></span><button class="quit" data-en="Quit Esc">結束 Esc</button></div>
 </div>
+<div id="swim" hidden>
+  <div class="top"><span><span data-en="🏊 Rhythm Swim · ">🏊 節奏划水・</span><b class="md"></b></span><span class="dist"></span></div>
+  <div class="lane"><i>🏊</i></div>
+  <div class="track"><span class="ring"></span><div class="cues"></div></div>
+  <div class="msg"></div>
+  <div class="modes"></div>
+  <div class="pads"></div>
+  <div class="foot"><span class="best"></span><button class="quit" data-en="Quit Esc">結束 Esc</button></div>
+</div>
 <div id="food" hidden>
   <div class="top"><span class="ttl">🐿️ 蜜袋鼯能吃嗎？</span><span class="round"></span></div>
   <div class="item"><span class="emo"></span><span class="nm"></span></div>
@@ -855,8 +894,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=213"></script>
-<script src="js/pano-data.js?v=213"></script>
-<script type="module" src="js/app.js?v=213"></script>
+<script src="js/campus-data.js?v=214"></script>
+<script src="js/pano-data.js?v=214"></script>
+<script type="module" src="js/app.js?v=214"></script>
 </body>
 </html>
