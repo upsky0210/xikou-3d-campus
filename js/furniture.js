@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=229';
+import { Batch, mat, SPOTS } from './blocks.js?v=230';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1691,11 +1691,12 @@ function makerRoom(put, fr, room) {
   // 兩組弧形長桌（兩段斜接成弧形），兩邊配紅、白造型椅
   const chair = (u, v, k) => { const m = k % 2 ? red : white; put(m, 0.42, 0.42, 0.06, u, v, 0.44); put(m, 0.42, 0.06, 0.42, u, v + (v > 0 ? 0.2 : -0.2), 0.48); for (const [a, b] of [[-0.15, -0.15], [0.15, 0.15], [-0.15, 0.15], [0.15, -0.15]]) put(mat('wool', '#c8a070'), 0.03, 0.03, 0.44, u + a, v + b, 0); };
   let ck = 0;
-  for (const gu of [L * 0.3, L * 0.72]) {
+  //   兩組中間留約 1 公尺走道（原本兩組接成一整排，加上兩頭的窗下檯面，門的另一半邊整個走不過去）
+  for (const gu of [2.5, L - 2.5]) {
     for (const s of [-1, 1]) {
-      const a = s * 0.28, cu = gu + s * 1.05, cv = 0.25;
-      const g = new THREE.BoxGeometry(2.2, 0.05, 0.8); g.rotateY(a); put.geo(top, g, cu, cv, 0.72);
-      for (const [lu, lv] of [[-0.9, -0.3], [0.9, 0.3], [-0.9, 0.3], [0.9, -0.3]]) put(legM, 0.05, 0.05, 0.72, cu + lu * Math.cos(a) + lv * Math.sin(a), cv + lv * Math.cos(a) - lu * Math.sin(a), 0);
+      const a = s * 0.28, cu = gu + s * 0.87, cv = 0.25;
+      const g = new THREE.BoxGeometry(1.8, 0.05, 0.8); g.rotateY(a); put.geo(top, g, cu, cv, 0.72);
+      for (const [lu, lv] of [[-0.75, -0.3], [0.75, 0.3], [-0.75, 0.3], [0.75, -0.3]]) put(legM, 0.05, 0.05, 0.72, cu + lu * Math.cos(a) + lv * Math.sin(a), cv + lv * Math.cos(a) - lu * Math.sin(a), 0);
       for (const t of [-0.55, 0.55]) for (const side of [-1, 1]) chair(cu + t * Math.cos(a) + side * 0.65 * Math.sin(a), cv + side * 0.65 * Math.cos(a) - t * Math.sin(a), ck++);
     }
   }
@@ -2346,12 +2347,13 @@ function resourceRoom(put, fr) {
   // 西邊門旁：洗手台
   put(cream, 0.6, 0.9, 0.85, L - 0.95, D * (W / 2 - 0.5), 0); put(grey, 0.62, 0.92, 0.04, L - 0.95, D * (W / 2 - 0.5), 0.85);
   // 中間：淺藍色小桌 2 × 3、木頭小椅
-  const blue = mat('wool', '#9fd0ea'), wood = mat('wool', '#c8955a'), tv0 = D * 0.4;
+  //   房間窄的時候（潛能教室二）整組往北靠，南邊高櫃前留約 0.85 公尺走道：不然兩排椅子把南北都塞住，到不了東邊老師桌
+  const blue = mat('wool', '#9fd0ea'), wood = mat('wool', '#c8955a'), tv0 = D * 0.4, tu = Math.min(L / 2, Math.max(1.58, L - 2.51));
   for (const du of [-0.34, 0.34]) for (const k of [-1, 0, 1]) {
-    const u = L / 2 + du, v = tv0 + k * 0.95;
+    const u = tu + du, v = tv0 + k * 0.95;
     put(blue, 0.66, 0.92, 0.04, u, v, 0.6);
     for (const [a, b] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(wood, 0.05, 0.05, 0.6, u + a * 0.28, v + b * 0.4, 0);
-    const cu = u + Math.sign(du) * 0.6;
+    const cu = u + Math.sign(du) * 0.55;
     put(wood, 0.32, 0.32, 0.04, cu, v, 0.34); put(wood, 0.04, 0.32, 0.3, cu + Math.sign(du) * 0.15, v, 0.38);
   }
 }
@@ -2392,7 +2394,7 @@ function seniorBack(put, fr, room) {
   put(mat('wool', '#b89a72'), sl, 0.35, 0.85, 1.6 + sl / 2, A * (W / 2 - 0.18), 0);
   for (let i = 0; i < sn; i++) put(i % 2 ? lime : wood, sl / sn - 0.05, 0.02, 0.7, 1.6 + (sl / sn) * (i + 0.5), A * (W / 2 - 0.37), 0.08);
   // 前面角落：灰色屏風老師區
-  put(mat('wool', '#b8bcc0'), 1.5, 0.05, 1.2, 1.25, A * (W / 2 - 1.75), 0);
+  put(mat('wool', '#b8bcc0'), 1.35, 0.05, 1.2, 1.325, A * (W / 2 - 1.75), 0);    // 屏風跟前牆留 0.65 公尺，走得進老師座位（原本只剩 0.5，人卡住）
   // 書櫃（D 側＝門那一側）：放在後門前面的牆邊，不擋門（門寬最多 1.6 m）
   const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
   const backU = doorU.length ? doorU[doorU.length - 1] : L - 1.5;
