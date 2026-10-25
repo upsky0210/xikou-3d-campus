@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=230';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=230';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=230';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=230';
-import { buildCampusWall } from './wall.js?v=230';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=230';
+import { PanoViewer } from './pano.js?v=232';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=232';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=232';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=232';
+import { buildCampusWall } from './wall.js?v=232';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=232';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -696,8 +696,8 @@ orbit.minDistance = 8;
 orbit.maxDistance = 220;
 
 // 天空光 + 中性的地面反光（不要偏綠，室內天花板才不會發綠）+ 一點環境光讓室內不會太暗
-scene.add(new THREE.HemisphereLight('#ffffff', '#c9bfae', 1.35));
-scene.add(new THREE.AmbientLight('#ffffff', 0.45));
+const hemi = new THREE.HemisphereLight('#ffffff', '#c9bfae', 1.35), amb = new THREE.AmbientLight('#ffffff', 0.45);   // 顏色、強度跟著時間換（TIMES）
+scene.add(hemi, amb);
 const sun = new THREE.DirectionalLight('#fff6e0', 1.6);
 sun.position.set(-40, 80, 30);
 sun.castShadow = true;
@@ -828,6 +828,72 @@ if (BLOCKY) {
 // 方塊雲
 const clouds = BLOCKY ? makeClouds() : null;
 if (clouds) scene.add(clouds);
+
+// 時間：清晨、中午、傍晚、晚上（天空、霧、太陽／月光、天空光、雲的顏色）。換的時候約 1.5 秒慢慢轉過去；選擇記在瀏覽器
+// sun 的第三格是光照過來的方向（東＝+x、北＝-z），實際距離固定，影子範圍才不會跑掉
+const TIME_KEY = 'campus-time';
+const TIMES = {
+  dawn:  { zh: '清晨', en: 'Dawn',  icon: '🌅', sky: '#f3c7a9', fog: [90, 300],  hemi: ['#ffe0c6', '#b3a392', 1.1],  amb: ['#ffe8d6', 0.42], sun: ['#ffc287', 1.35, [80, 30, 12]],  cloud: ['#ffd8c4', 0.35] },
+  noon:  { zh: '中午', en: 'Noon',  icon: '☀️', sky: SKY,       fog: [130, 340], hemi: ['#ffffff', '#c9bfae', 1.35], amb: ['#ffffff', 0.45], sun: ['#fff6e0', 1.6, [-40, 80, 30]],  cloud: ['#ffffff', 0.4] },
+  dusk:  { zh: '傍晚', en: 'Dusk',  icon: '🌇', sky: '#e8916c', fog: [90, 300],  hemi: ['#ffc59e', '#8f7b70', 0.95], amb: ['#ffd3b4', 0.4],  sun: ['#ff9748', 1.45, [-80, 26, 22]], cloud: ['#ffb38e', 0.3] },
+  night: { zh: '晚上', en: 'Night', icon: '🌙', sky: '#16254a', fog: [90, 300],  hemi: ['#8ea3d8', '#3a3d52', 0.85], amb: ['#a4b6e6', 0.42], sun: ['#c4d4ff', 1.0, [35, 70, -25]], cloud: ['#4a5878', 0.15] },
+};
+const lookOf = (p) => ({ sky: new THREE.Color(p.sky), fogN: p.fog[0], fogF: p.fog[1], hs: new THREE.Color(p.hemi[0]), hg: new THREE.Color(p.hemi[1]), hi: p.hemi[2],
+  ac: new THREE.Color(p.amb[0]), ai: p.amb[1], sc: new THREE.Color(p.sun[0]), si: p.sun[1], sp: new THREE.Vector3(...p.sun[2]), cc: new THREE.Color(p.cloud[0]), ce: p.cloud[1] });
+const mixLook = (o, a, b, k) => {
+  for (const key in o) {
+    if (o[key].isColor) o[key].lerpColors(a[key], b[key], k);
+    else if (o[key].isVector3) o[key].lerpVectors(a[key], b[key], k);
+    else o[key] = a[key] + (b[key] - a[key]) * k;
+  }
+};
+const SUN_DIST = sun.position.length();
+function showLook(L) {
+  scene.background.copy(L.sky);
+  if (scene.fog) { scene.fog.color.copy(L.sky); scene.fog.near = L.fogN; scene.fog.far = L.fogF; }
+  hemi.color.copy(L.hs); hemi.groundColor.copy(L.hg); hemi.intensity = L.hi;
+  amb.color.copy(L.ac); amb.intensity = L.ai;
+  sun.color.copy(L.sc); sun.intensity = L.si; sun.position.copy(L.sp).setLength(SUN_DIST);
+  for (const g of [clouds, lowClouds]) if (g) { const m = g.children[0].children[0].material; m.color.copy(L.cc); m.emissive.copy(L.cc); m.emissiveIntensity = L.ce; }
+}
+let timeKey = (() => { try { const v = localStorage.getItem(TIME_KEY); return v in TIMES ? v : 'noon'; } catch { return 'noon'; } })();
+const LOOKS = Object.fromEntries(Object.entries(TIMES).map(([k, p]) => [k, lookOf(p)]));
+const lookNow = lookOf(TIMES[timeKey]), lookFrom = lookOf(TIMES[timeKey]);
+let timeK = 1;                                                           // 轉換進度：1＝已經到了
+showLook(lookNow);
+function setTime(k) {
+  if (!(k in TIMES)) return;
+  timeKey = k;
+  try { localStorage.setItem(TIME_KEY, k); } catch { /* 私密模式，忽略 */ }
+  mixLook(lookFrom, lookNow, lookNow, 0);                                // 從畫面現在的樣子開始轉（轉到一半又換也不會跳）
+  timeK = 0;
+  timeLabel();
+}
+function stepTime(dt) {
+  if (timeK >= 1) return;
+  timeK = Math.min(1, timeK + dt / 1.5);
+  mixLook(lookNow, lookFrom, LOOKS[timeKey], timeK * timeK * (3 - 2 * timeK));
+  showLook(lookNow);
+}
+const timeBtn = document.getElementById('timeBtn'), timeMenu = document.getElementById('timeMenu');
+timeMenu.innerHTML = Object.entries(TIMES).map(([k, p]) => `<button data-time="${k}" role="menuitemradio" data-en="${p.icon} ${p.en}">${p.icon} ${p.zh}</button>`).join('');
+function timeLabel() {
+  const p = TIMES[timeKey];
+  timeBtn.querySelector('i').textContent = p.icon;
+  timeBtn.querySelector('span').textContent = ' ' + T(p.zh, p.en);
+  timeBtn.title = T('時間：', 'Time: ') + T(p.zh, p.en);
+  for (const b of timeMenu.children) { const on = b.dataset.time === timeKey; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }
+}
+function showTimeMenu(on) { timeMenu.hidden = !on; timeBtn.setAttribute('aria-expanded', String(on)); }
+timeLabel();
+for (const el of [timeBtn, timeMenu]) el.addEventListener('pointerdown', (e) => e.stopPropagation());
+timeBtn.addEventListener('click', (e) => { e.stopPropagation(); showTimeMenu(timeMenu.hidden); });
+timeMenu.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-time]');
+  if (b) { setTime(b.dataset.time); showTimeMenu(false); }
+});
+addEventListener('pointerdown', () => { if (!timeMenu.hidden) showTimeMenu(false); });
 
 const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 const pickables = [];
@@ -6867,6 +6933,7 @@ function update(dt) {
     const sp = clouds.userData.spread;
     for (const c of clouds.children) { c.position.x += dt * 1.5; if (c.position.x > sp) c.position.x = -sp; }
   }
+  stepTime(dt);
   // 動畫：樓梯標記、導航箭頭、目的地光圈
   const pulse = 0.35 + 0.25 * Math.sin(t * 4);
   for (const f of floors) {
@@ -8194,7 +8261,8 @@ function renderCover() {
   cam.position.copy(c0).add(new THREE.Vector3(0.62, 0.78, 1).normalize().multiplyScalar(600));
   cam.lookAt(c0);
   cam.updateProjectionMatrix();
-  // 暫時換掉的東西
+  // 暫時換掉的東西（封面一律用中午的光線）
+  showLook(LOOKS.noon);
   const saved = { bg: scene.background, fog: scene.fog, avatar: avatar.visible, bl: buildingLabels.visible, clouds: clouds?.visible, dest: destMark.visible };
   const hidden = [];
   scene.background = new THREE.Color('#f3eee3'); scene.fog = null;
@@ -8212,6 +8280,7 @@ function renderCover() {
   // 還原
   scene.background = saved.bg; scene.fog = saved.fog; avatar.visible = saved.avatar; buildingLabels.visible = saved.bl; destMark.visible = saved.dest;
   if (clouds) clouds.visible = saved.clouds;
+  showLook(lookNow);
   for (const [o, v] of hidden) o.visible = v;
   updateVisibility();
   return { url, pos };
@@ -8274,6 +8343,7 @@ function setLang(l) {
   if (infoRoom) showInfo(infoRoom);
   updateNavBar();
   bgmUpdate();
+  timeLabel();
   if (!passBox.hidden) renderPassport();
   if (!gallery.hidden) openGallery();
   if (viewer.isOpen) viewer.setLang(l);

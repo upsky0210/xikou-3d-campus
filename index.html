@@ -133,6 +133,13 @@
   #passBtn.stamp { animation: passStamp .7s ease; }
   @keyframes passStamp { 0% { transform: scale(1); } 30% { transform: scale(1.25) rotate(-8deg); background: #c0392b; color: #fff; } 100% { transform: scale(1); } }
   @media (max-width: 1180px) { #passBtn span { display: none; } }
+  /* 時間：按鈕下面展開清晨／中午／傍晚／晚上 */
+  .timeWrap { position: relative; }
+  #timeBtn i { font-style: normal; }
+  .timeMenu { position: absolute; top: calc(100% + 6px); left: 0; flex-direction: column; z-index: 5; }
+  .timeMenu[hidden] { display: none; }
+  .timeMenu button { text-align: left; }
+  @media (max-width: 1180px) { #timeBtn span { display: none; } }
   #help td:first-child { white-space: nowrap; font-weight: 700; width: 1%; }
   #help .close { position: absolute; top: 12px; right: 12px; background: #eef1f4; padding: 6px 10px; }
   #help label { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 14px; }
@@ -284,6 +291,7 @@
   /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
   body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #flute button, body.mc #swim button, body.mc #food button, body.mc #bb button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
+  body.mc .timeMenu { background: rgba(0,0,0,.45); padding: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
   body.mc .iconbtn.primary, body.mc #info .acts [data-act=go], body.mc #results button, body.mc #pano .ctrl .audio {
     background: #d9a31a; color: #fff; box-shadow: inset 2px 2px 0 #ffd65c, inset -2px -2px 0 #8a6408; }
@@ -616,6 +624,10 @@
   </div>
   <button class="iconbtn" id="avatarBtn" aria-label="選擇角色" data-en-aria="Choose character" data-en="👕 Avatar">👕 角色</button>
   <button class="iconbtn" id="passBtn" aria-label="校園護照" data-en-aria="Campus passport">📒<span data-en=" Passport"> 護照</span></button>
+  <div class="timeWrap">
+    <button class="iconbtn" id="timeBtn" aria-label="時間" data-en-aria="Time of day" aria-haspopup="true" aria-expanded="false"><i>☀️</i><span> 中午</span></button>
+    <div class="seg timeMenu" id="timeMenu" role="menu" aria-label="時間" data-en-aria="Time of day" hidden></div>
+  </div>
   <div class="spacer"></div>
   <button class="iconbtn" id="bgmBtn" aria-label="背景音樂：校歌" data-en-aria="Background music: school song" aria-pressed="true"><i>🎵</i><span data-en=" Song"> 校歌</span></button>
   <button class="iconbtn" id="openGallery" style="background:#7b2cbf;color:#fff" data-en="📷 360° Tour">📷 實景導覽</button>
@@ -906,8 +918,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=230"></script>
-<script src="js/pano-data.js?v=230"></script>
-<script type="module" src="js/app.js?v=230"></script>
+<script src="js/campus-data.js?v=232"></script>
+<script src="js/pano-data.js?v=232"></script>
+<script type="module" src="js/app.js?v=232"></script>
 </body>
 </html>

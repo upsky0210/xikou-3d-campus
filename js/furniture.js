@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=230';
+import { Batch, mat, SPOTS } from './blocks.js?v=232';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -126,15 +126,28 @@ function frameOf(room, wallT, flip = false) {
   return { L, W, alongX, toWorld, toLocal, away: -doorSide };
 }
 
+// 會發白光的燈（日光燈、LED、吸頂燈）
+const isLamp = (m) => m.emissiveIntensity >= 0.6 && m.emissive && m.emissive.r > 0.8 && m.emissive.g > 0.8;
+// 沒畫燈的房間自動補長條日光燈（跟方陣教室一樣：1.2m 長、貼著天花板），大約每 2.6m 一排；挑高的活動中心自己有燈
+const tubeMat = () => once('tube', () => new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#f4fbff', emissiveIntensity: 0.9 }));
+function ceilingTubes(put, fr) {
+  const nu = Math.max(1, Math.round(fr.L / 2.6)), nv = Math.max(1, Math.round(fr.W / 2.6));
+  for (let i = 0; i < nu; i++) for (let k = 0; k < nv; k++) {
+    put(tubeMat(), Math.min(1.2, fr.L - 0.4), 0.06, 0.04, (i + 0.5) * fr.L / nu, (k + 0.5 - nv / 2) * fr.W / nv, 2.85);
+  }
+}
+
 function placer(batch, fr, y0) {
   // 以 (u, v) 為中心、底部在 y 的方塊
   const put = (material, du, dv, h, u, v, y = 0, plain = false) => {
+    if (y >= 2.2 && isLamp(material)) put.lit = true;              // 這間已經有天花板燈（就不用再自動補）
     const [x, z] = fr.toWorld(u, v);
     const [w, d] = fr.alongX ? [du, dv] : [dv, du];
     (plain ? batch.plain : batch.box).call(batch, material, w, h, d, x, y0 + y + h / 2, z);
   };
   // 任意幾何（例如六角柱）：中心放在 (u, v)，y 是中心高度；rotY 是繞垂直軸旋轉
   put.geo = (material, geo, u, v, y, rotY = 0) => {
+    if (y >= 2.2 && isLamp(material)) put.lit = true;
     const [x, z] = fr.toWorld(u, v);
     if (rotY) geo.rotateY(rotY);
     geo.translate(x, y0 + y, z);
@@ -2780,7 +2793,9 @@ export function furnishFloor(f, wallT) {
   for (const room of f.rooms) {
     const fr = frameOf(room, wallT, flipped(room));
     const b = room.open || room.type === 'garden' ? outdoor : batch;
-    furnishRoom(room, fr, placer(b, fr, room.ground ? 0 : f.y));   // 警衛室在地面高度
+    const put = placer(b, fr, room.ground ? 0 : f.y);              // 警衛室在地面高度
+    furnishRoom(room, fr, put);
+    if (!put.lit && !room.hidden && !room.open && !['garden', 'hall'].includes(room.type) && !(room.name || '').includes('活動中心')) ceilingTubes(put, fr);
   }
   const g = new THREE.Group();
   batch.build(g, { cast: false });
