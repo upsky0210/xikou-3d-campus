@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=232';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=232';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=232';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=232';
-import { buildCampusWall } from './wall.js?v=232';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=232';
+import { PanoViewer } from './pano.js?v=234';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=234';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=234';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=234';
+import { buildCampusWall } from './wall.js?v=234';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=234';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -831,15 +831,16 @@ if (clouds) scene.add(clouds);
 
 // 時間：清晨、中午、傍晚、晚上（天空、霧、太陽／月光、天空光、雲的顏色）。換的時候約 1.5 秒慢慢轉過去；選擇記在瀏覽器
 // sun 的第三格是光照過來的方向（東＝+x、北＝-z），實際距離固定，影子範圍才不會跑掉
+// dark：天黑的程度（星星、月亮、窗戶亮燈）；room：走進房間時補多少暖色燈光（教室裡開著日光燈）
 const TIME_KEY = 'campus-time';
 const TIMES = {
-  dawn:  { zh: '清晨', en: 'Dawn',  icon: '🌅', sky: '#f3c7a9', fog: [90, 300],  hemi: ['#ffe0c6', '#b3a392', 1.1],  amb: ['#ffe8d6', 0.42], sun: ['#ffc287', 1.35, [80, 30, 12]],  cloud: ['#ffd8c4', 0.35] },
-  noon:  { zh: '中午', en: 'Noon',  icon: '☀️', sky: SKY,       fog: [130, 340], hemi: ['#ffffff', '#c9bfae', 1.35], amb: ['#ffffff', 0.45], sun: ['#fff6e0', 1.6, [-40, 80, 30]],  cloud: ['#ffffff', 0.4] },
-  dusk:  { zh: '傍晚', en: 'Dusk',  icon: '🌇', sky: '#e8916c', fog: [90, 300],  hemi: ['#ffc59e', '#8f7b70', 0.95], amb: ['#ffd3b4', 0.4],  sun: ['#ff9748', 1.45, [-80, 26, 22]], cloud: ['#ffb38e', 0.3] },
-  night: { zh: '晚上', en: 'Night', icon: '🌙', sky: '#16254a', fog: [90, 300],  hemi: ['#8ea3d8', '#3a3d52', 0.85], amb: ['#a4b6e6', 0.42], sun: ['#c4d4ff', 1.0, [35, 70, -25]], cloud: ['#4a5878', 0.15] },
+  dawn:  { zh: '清晨', en: 'Dawn',  icon: '🌅', sky: '#f3c7a9', fog: [90, 300],  hemi: ['#ffe0c6', '#b3a392', 1.1],  amb: ['#ffe8d6', 0.42], sun: ['#ffc287', 1.35, [80, 30, 12]],  cloud: ['#ffd8c4', 0.35], dark: 0.15, room: 0.2 },
+  noon:  { zh: '中午', en: 'Noon',  icon: '☀️', sky: SKY,       fog: [130, 340], hemi: ['#ffffff', '#c9bfae', 1.35], amb: ['#ffffff', 0.45], sun: ['#fff6e0', 1.6, [-40, 80, 30]],  cloud: ['#ffffff', 0.4],  dark: 0,    room: 0 },
+  dusk:  { zh: '傍晚', en: 'Dusk',  icon: '🌇', sky: '#e8916c', fog: [90, 300],  hemi: ['#ffc59e', '#8f7b70', 0.95], amb: ['#ffd3b4', 0.4],  sun: ['#ff9748', 1.45, [-80, 26, 22]], cloud: ['#ffb38e', 0.3],  dark: 0.3,  room: 0.35 },
+  night: { zh: '晚上', en: 'Night', icon: '🌙', sky: '#16254a', fog: [90, 300],  hemi: ['#8ea3d8', '#3a3d52', 0.85], amb: ['#a4b6e6', 0.42], sun: ['#c4d4ff', 1.0, [35, 70, -25]], cloud: ['#4a5878', 0.15], dark: 1,    room: 0.8 },
 };
 const lookOf = (p) => ({ sky: new THREE.Color(p.sky), fogN: p.fog[0], fogF: p.fog[1], hs: new THREE.Color(p.hemi[0]), hg: new THREE.Color(p.hemi[1]), hi: p.hemi[2],
-  ac: new THREE.Color(p.amb[0]), ai: p.amb[1], sc: new THREE.Color(p.sun[0]), si: p.sun[1], sp: new THREE.Vector3(...p.sun[2]), cc: new THREE.Color(p.cloud[0]), ce: p.cloud[1] });
+  ac: new THREE.Color(p.amb[0]), ai: p.amb[1], sc: new THREE.Color(p.sun[0]), si: p.sun[1], sp: new THREE.Vector3(...p.sun[2]), cc: new THREE.Color(p.cloud[0]), ce: p.cloud[1], dark: p.dark, room: p.room });
 const mixLook = (o, a, b, k) => {
   for (const key in o) {
     if (o[key].isColor) o[key].lerpColors(a[key], b[key], k);
@@ -848,13 +849,51 @@ const mixLook = (o, a, b, k) => {
   }
 };
 const SUN_DIST = sun.position.length();
-function showLook(L) {
+// 夜空：星星（一顆顆小方點）＋方塊月亮，跟著鏡頭走（像真的天空一樣永遠在很遠的地方），天黑才出現
+const nightSky = (() => {
+  let seed = 7;
+  const g = new THREE.Group(), r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647), pts = [];   // 固定亂數：每次星星位置一樣
+  for (let i = 0; i < 700; i++) {
+    const a = r() * Math.PI * 2, y = 0.08 + r() * 0.92, h = Math.sqrt(1 - y * y);
+    pts.push(Math.cos(a) * h * 450, y * 450, Math.sin(a) * h * 450);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  const stars = new THREE.Points(geo, new THREE.PointsMaterial({ color: '#fffbe8', size: 2.2, sizeAttenuation: false, fog: false, transparent: true, depthWrite: false }));
+  const cv = document.createElement('canvas'); cv.width = cv.height = 16;                 // 月亮：16×16 的方塊貼圖（淡黃底、灰色坑洞）
+  const c = cv.getContext('2d'); c.fillStyle = '#f6f1d6'; c.fillRect(0, 0, 16, 16); c.fillStyle = '#d9d2b4';
+  for (const [x, y, w] of [[3, 3, 3], [10, 5, 2], [5, 10, 4], [11, 11, 2], [2, 8, 1]]) c.fillRect(x, y, w, w);
+  const tex = new THREE.CanvasTexture(cv); tex.magFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
+  const moon = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), new THREE.MeshBasicMaterial({ map: tex, fog: false, transparent: true, depthWrite: false }));
+  moon.position.set(0.6, 0.32, -0.72).setLength(420);                                     // 東北方的天空（晚上的月光也從那邊照過來）
+  g.add(stars, moon);
+  g.renderOrder = -1; stars.renderOrder = moon.renderOrder = -1;
+  g.visible = false;
+  scene.add(g);
+  return { g, stars, moon };
+})();
+// 晚上的窗戶：玻璃發出暖黃色的光（從外面看得到教室亮燈；在房間裡就不發光，往外看才是暗的）
+const glassMat = mat('glass'), WINDOW_GLOW = new THREE.Color('#ffd27a');
+// 走進房間（不是走廊、戶外）時補暖色的燈光；inK 慢慢變化，進出門口不會一下跳亮
+const ROOM_LAMP = new THREE.Color('#ffe7c2');
+let inK = 0;
+function showLook(L, k = inK) {
   scene.background.copy(L.sky);
   if (scene.fog) { scene.fog.color.copy(L.sky); scene.fog.near = L.fogN; scene.fog.far = L.fogF; }
-  hemi.color.copy(L.hs); hemi.groundColor.copy(L.hg); hemi.intensity = L.hi;
-  amb.color.copy(L.ac); amb.intensity = L.ai;
-  sun.color.copy(L.sc); sun.intensity = L.si; sun.position.copy(L.sp).setLength(SUN_DIST);
+  const lamp = k * L.room;                                               // 房間裡的燈占多少
+  hemi.color.copy(L.hs); hemi.groundColor.copy(L.hg); hemi.intensity = L.hi * (1 - 0.45 * lamp);
+  amb.color.copy(L.ac).lerp(ROOM_LAMP, Math.min(1, lamp * 1.2)); amb.intensity = L.ai + 0.9 * lamp;
+  sun.color.copy(L.sc); sun.intensity = L.si * (1 - 0.5 * lamp); sun.position.copy(L.sp).setLength(SUN_DIST);
   for (const g of [clouds, lowClouds]) if (g) { const m = g.children[0].children[0].material; m.color.copy(L.cc); m.emissive.copy(L.cc); m.emissiveIntensity = L.ce; }
+  nightSky.g.visible = L.dark > 0.02;
+  nightSky.stars.material.opacity = L.dark; nightSky.moon.material.opacity = L.dark;
+  glassMat.emissive.copy(WINDOW_GLOW); glassMat.emissiveIntensity = 0.85 * L.dark * (1 - k);
+}
+// 玩家在不在房間裡（鳥瞰不算）
+function inRoomNow() {
+  if (mode === 'bird') return false;
+  const f = player.floor, x = player.x, z = player.z;
+  return rooms.some((r) => r.f === f && !r.hidden && !r.open && r.type !== 'garden' && r.type !== 'hall' && inRect(r.m, x, z));
 }
 let timeKey = (() => { try { const v = localStorage.getItem(TIME_KEY); return v in TIMES ? v : 'noon'; } catch { return 'noon'; } })();
 const LOOKS = Object.fromEntries(Object.entries(TIMES).map(([k, p]) => [k, lookOf(p)]));
@@ -869,10 +908,18 @@ function setTime(k) {
   timeK = 0;
   timeLabel();
 }
+let inCheck = 0, inTarget = 0;
 function stepTime(dt) {
-  if (timeK >= 1) return;
-  timeK = Math.min(1, timeK + dt / 1.5);
-  mixLook(lookNow, lookFrom, LOOKS[timeKey], timeK * timeK * (3 - 2 * timeK));
+  if ((inCheck -= dt) <= 0) { inCheck = 0.25; inTarget = inRoomNow() ? 1 : 0; }   // 每 0.25 秒看一次在不在房間裡
+  const k0 = inK;
+  inK += Math.sign(inTarget - inK) * Math.min(Math.abs(inTarget - inK), dt * 2.5);
+  nightSky.g.position.copy(camera.position);
+  nightSky.moon.lookAt(camera.position);
+  if (timeK >= 1 && inK === k0) return;
+  if (timeK < 1) {
+    timeK = Math.min(1, timeK + dt / 1.5);
+    mixLook(lookNow, lookFrom, LOOKS[timeKey], timeK * timeK * (3 - 2 * timeK));
+  }
   showLook(lookNow);
 }
 const timeBtn = document.getElementById('timeBtn'), timeMenu = document.getElementById('timeMenu');
@@ -8262,7 +8309,7 @@ function renderCover() {
   cam.lookAt(c0);
   cam.updateProjectionMatrix();
   // 暫時換掉的東西（封面一律用中午的光線）
-  showLook(LOOKS.noon);
+  showLook(LOOKS.noon, 0);
   const saved = { bg: scene.background, fog: scene.fog, avatar: avatar.visible, bl: buildingLabels.visible, clouds: clouds?.visible, dest: destMark.visible };
   const hidden = [];
   scene.background = new THREE.Color('#f3eee3'); scene.fog = null;
