@@ -289,7 +289,7 @@
   body.mc button:hover { filter: brightness(1.12); }
   body.mc button:disabled { background: #555; color: #999; text-shadow: none; filter: none; }
   /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
-  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #flute button, body.mc #swim button, body.mc #food button, body.mc #bb button { text-shadow: none; }
+  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #p3d button, body.mc #flute button, body.mc #swim button, body.mc #food button, body.mc #bb button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
   body.mc .timeMenu { background: rgba(0,0,0,.45); padding: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
@@ -376,6 +376,20 @@
     padding: 6px 10px; border-radius: 8px; max-width: min(360px, calc(100vw - 16px)); pointer-events: auto; }
   #perf b { font-size: 15px; } #perf .ok { color: #7ee08a; } #perf .mid { color: #ffd166; } #perf .bad { color: #ff7b72; }
   #perf button { margin-top: 3px; font: inherit; font-size: 11px; padding: 1px 8px; border-radius: 6px; background: #3a4452; color: #fff; }
+  /* 立體拼圖（周周老師）：缺一塊的方塊模型＋3 塊選項 */
+  #p3d { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
+  #p3d .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #p3d .model { display: block; width: 176px; height: 144px; margin: 0 auto; background: #f3f6fb; border-radius: 10px; }
+  #p3d .ask { font-size: 15px; font-weight: 900; margin: 4px 0 6px; color: #2b4a8a; }
+  #p3d .btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  #p3d .btns button { display: flex; flex-direction: column; align-items: center; padding: 4px 2px; border-radius: 10px; background: #ffe08a; line-height: 1.1; }
+  #p3d .btns button img { width: 100%; max-width: 104px; aspect-ratio: 220 / 180; }
+  #p3d .btns button small { font-size: 11px; color: #555; }
+  #p3d .btns button.right { background: #b9eaa0; } #p3d .btns button.wrong { background: #f6b3ab; opacity: .6; }
+  #p3d .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 6px 0; }
+  #p3d .msg.ok { color: #1b8a3a; } #p3d .msg.no { color: #c0392b; }
+  #p3d .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
   /* 英文聽力「聽聽看，是哪一個？」（Joanne 老師） */
   #listen { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
@@ -499,7 +513,7 @@
   #bb .btns { display: flex; gap: 6px; justify-content: center; }
   #bb .btns button { padding: 7px 16px; font-weight: 700; border-radius: 10px; background: #1f3a7a; color: #fff; font-size: 15px; }
   #bb .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #bj, body.mc #cm, body.mc #zy, body.mc #flute, body.mc #swim, body.mc #food, body.mc #bb {
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #bj, body.mc #cm, body.mc #zy, body.mc #p3d, body.mc #flute, body.mc #swim, body.mc #food, body.mc #bb {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -714,6 +728,14 @@
   <div class="msg"></div>
   <button class="quit" data-en="Quit Esc">結束 Esc</button>
 </div>
+<div id="p3d" hidden>
+  <div class="top"><span><span data-en="🧩 3D Puzzle · ">🧩 立體拼圖・</span><b class="who"></b></span><span class="prog"></span></div>
+  <img class="model" alt="">
+  <div class="ask"></div>
+  <div class="btns"><button data-k="0"></button><button data-k="1"></button><button data-k="2"></button></div>
+  <div class="msg"></div>
+  <button class="quit" data-en="Quit Esc">結束 Esc</button>
+</div>
 <div id="cm" hidden>
   <div class="top"><span><span data-en="🎨 Color Match · ">🎨 顏色對對碰・</span><b class="who"></b></span><span class="flips"></span></div>
   <div class="grid"></div>
@@ -918,8 +940,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=236"></script>
-<script src="js/pano-data.js?v=236"></script>
-<script type="module" src="js/app.js?v=236"></script>
+<script src="js/campus-data.js?v=240"></script>
+<script src="js/pano-data.js?v=240"></script>
+<script type="module" src="js/app.js?v=240"></script>
 </body>
 </html>

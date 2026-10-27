@@ -626,9 +626,16 @@ export function makeBlockNPC(look) {
   const g = new THREE.Group();
   const cloth = (color) => new THREE.MeshLambertMaterial({ map: BLOCKY ? tex('wool') : null, color });
   const skin = new THREE.MeshLambertMaterial({ color: look.skin });
-  const top = cloth(look.top), pants = cloth(look.pants);
+  const top = cloth(look.top);
   const shoe = new THREE.MeshLambertMaterial({ color: look.shoe });
   const px = (draw) => canvasTex((c) => draw(c), 1, 16, { smooth: false });
+  // pantsPrint：花紋寬褲（[底色, 花紋色…]，一圈一圈的漩渦和小圓花）
+  const pants = !look.pantsPrint ? cloth(look.pants) : new THREE.MeshLambertMaterial({ map: px((c) => {
+    const [bg, ...ink] = look.pantsPrint;
+    c.fillStyle = bg; c.fillRect(0, 0, 16, 16);
+    const P = [[0, 1, 5, 2], [6, 0, 4, 2], [11, 2, 5, 2], [2, 4, 2, 4], [8, 4, 3, 2], [13, 6, 3, 3], [0, 9, 4, 2], [5, 8, 3, 3], [9, 10, 5, 2], [1, 13, 4, 2], [7, 13, 3, 3], [12, 13, 4, 2]];
+    P.forEach(([x, y, w, h], i) => { c.fillStyle = ink[i % ink.length]; c.fillRect(x, y, w, h); });
+  }) });
   // 表情（參考學生美勞作品「方塊人像」）：從原本的臉自動找出眼睛、嘴巴再改畫，各表情的貼圖用到才做
   const drawFace = faceDrawer(look), faces = {};
   const faceTex = (ex) => (faces[ex] ||= px((c) => drawFace(c, ex)));
@@ -787,6 +794,10 @@ export function makeBlockNPC(look) {
     P(0.008, 0.14, 0.09, 0.98);
     P(0.012, 0.13, 0.09, 0.82);
   }
+  if (look.necklace) {                                      // 細繩項鍊：深色繩子繞過脖子到胸前，下面一顆圓墜子
+    for (const sd of [-1, 1]) { const b = box(g, 0.015, 0.2, 0.01, cloth(look.necklace), sd * 0.05, 1.2, -0.135); b.rotation.z = sd * 0.35; }
+    box(g, 0.05, 0.05, 0.014, cloth('#1a1a1a'), 0, 1.07, -0.138);
+  }
   if (look.lanyard) {                                       // 識別證：掛繩斜斜到胸前、白色卡片
     for (const sd of [-1, 1]) { const b = box(g, 0.03, 0.3, 0.012, cloth(look.lanyard), sd * 0.075, 1.15, -0.136); b.rotation.z = sd * 0.25; }
     box(g, 0.14, 0.17, 0.014, new THREE.MeshLambertMaterial({ color: '#ffffff' }), 0, 0.93, -0.14);
@@ -888,7 +899,7 @@ export function makeBlockNPC(look) {
   box(g, 0.47, 0.12, 0.27, pants, 0, 0.72, 0);
   const leg = (side) => {
     const p = pivot(side * 0.12, 0.7);
-    box(p, 0.21, 0.58, 0.22, pants, 0, -0.29, 0);
+    box(p, look.widePants ? 0.24 : 0.21, 0.58, look.widePants ? 0.26 : 0.22, pants, 0, -0.29, 0);   // widePants：寬褲
     if (look.stripe) box(p, 0.02, 0.58, 0.06, cloth(look.stripe), side * 0.11, -0.29, 0);   // 運動褲側條
     box(p, 0.21, 0.09, 0.27, shoe, 0, -0.62, -0.03);
     return p;
