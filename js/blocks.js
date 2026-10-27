@@ -352,7 +352,7 @@ function shirtTexture(front) {
 }
 
 // 校隊隊服（圓領 T 恤，依使用者提供的照片；都不印號碼）
-//   籃球隊：男生紅底白字；女生同款，黑底橘字或白底藍字。左胸白色橢圓「Xi Kou」灌籃標誌，背後書法「韌性」＋Basketball 半顆球
+//   籃球隊：男生紅底白字；女生同款，紅底白字、黑底橘字或白底藍字。左胸白色橢圓「Xi Kou」灌籃標誌，背後書法「韌性」＋Basketball 半顆球
 //   直笛隊：紫色。正面一隻抱著直笛的米白色小熊，背後圓形徽章（兩支交叉的直笛、態度／責任／榮譽、看樂譜的小孩）＋「溪口音樂校隊精神」
 const TEES = {
   basketball: { bg: '#d7182a', fg: '#ffffff', draw: basketballPrint },
@@ -495,11 +495,11 @@ function teeTexture(kind, front) {
 }
 
 /** 選角色畫面的服裝按鈕：key → [中文, English]（泳裝是游泳小遊戲自動換的，不在這裡）；
- *  籃球隊女生有兩款（BB_GIRL），男生只有紅色那款 */
+ *  籃球隊女生有三款（BB_GIRL，也可以穿男生的紅色款），男生只有紅色那款 */
 export const OUTFITS = { uniform: ['制服', 'Uniform'], basketball: ['籃球隊', 'Basketball team'], recorder: ['直笛隊', 'Recorder team'], dance: ['舞蹈隊', 'Dance team'] };
-export const BB_GIRL = { black: ['黑底橘字', 'Black & orange'], white: ['白底藍字', 'White & blue'] };
+export const BB_GIRL = { red: ['紅底白字', 'Red & white'], black: ['黑底橘字', 'Black & orange'], white: ['白底藍字', 'White & blue'] };
 /** 實際穿哪一套（女生的籃球隊要看選哪一款） */
-export const outfitFor = (o, gender, bbGirl = 'black') => (o === 'basketball' && gender === 'girl' ? `basketball-${bbGirl in BB_GIRL ? bbGirl : 'black'}` : o);
+export const outfitFor = (o, gender, bbGirl = 'black') => (o === 'basketball' && gender === 'girl' && bbGirl !== 'red' ? `basketball-${bbGirl in BB_GIRL ? bbGirl : 'black'}` : o);
 
 /**
  * 方塊學生。gender: 'boy' | 'girl'
@@ -520,7 +520,7 @@ export function makeBlockPerson(gender = 'boy') {
   const navy = cloth('#1d2b57'), girl = gender === 'girl';
   const outfit = [];                                         // [方塊, 制服材質, { 服裝: 材質（null＝藏起來；沒寫＝跟制服一樣） }]
   const dress = (mesh, alt) => { outfit.push([mesh, mesh.material, alt]); return mesh; };
-  const teeKinds = girl ? ['basketball-black', 'basketball-white', 'recorder', 'dance'] : ['basketball', 'recorder', 'dance'];
+  const teeKinds = girl ? ['basketball', 'basketball-black', 'basketball-white', 'recorder', 'dance'] : ['basketball', 'recorder', 'dance'];
   const teeSide = Object.fromEntries(teeKinds.map((k) => [k, cloth(TEES[k].bg)]));
   const tees = (f) => Object.fromEntries(teeKinds.map((k) => [k, f(k)]));   // 每一套隊服各用什麼材質
   // swim(方塊, 泳裝材質, 隊服材質)：隊服材質可以是 (k) => 材質；沒給＝穿隊服時跟制服一樣

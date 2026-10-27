@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=235';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=235';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=235';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=235';
-import { buildCampusWall } from './wall.js?v=235';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=235';
+import { PanoViewer } from './pano.js?v=236';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=236';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=236';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=236';
+import { buildCampusWall } from './wall.js?v=236';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=236';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1510,7 +1510,7 @@ const AVATAR_KEY = 'campus-avatar';
 function savedGender() {
   try { const v = localStorage.getItem(AVATAR_KEY); return v === 'boy' || v === 'girl' ? v : null; } catch { return null; }
 }
-// 服裝：制服或校隊隊服（OUTFITS；也記在瀏覽器）；女生的籃球隊服有兩款（BB_GIRL）
+// 服裝：制服或校隊隊服（OUTFITS；也記在瀏覽器）；女生的籃球隊服有三款（BB_GIRL）
 const OUTFIT_KEY = 'campus-outfit', BB_GIRL_KEY = 'campus-outfit-bbgirl';
 function savedOutfit() {
   try { const v = localStorage.getItem(OUTFIT_KEY); return v in OUTFITS ? v : 'uniform'; } catch { return 'uniform'; }
