@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=240';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=240';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=240';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=240';
-import { buildCampusWall } from './wall.js?v=240';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=240';
+import { PanoViewer } from './pano.js?v=241';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=241';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=241';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=241';
+import { buildCampusWall } from './wall.js?v=241';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=241';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1101,6 +1101,7 @@ function floorMat(type, f, room) {
     return mat('tile', '#cfc8ba');                                                        // 其他頂樓：地磚
   }
   if (/^(星星|太陽|月亮|彩虹)班$/.test(room?.name)) return mat('planks', '#e6dccb');   // 幼兒園教室：淺色木紋地板（依照片）
+  if (room?.name === '科任教師辦公室') return mat('planks', '#d8cebc');   // 米色（深咖啡格子在家具那邊畫）
   const kind = FLOOR_TEX[type] || 'tile';
   const color = BLOCKY && (kind === 'grass' || kind === 'terrazzo') ? '#ffffff' : (TYPE_COLORS[type] || '#eeeeee');
   return mat(kind, color);
@@ -3025,7 +3026,7 @@ const BB = { home: { x: -28, z: 77 }, mound: { x: -28, z: 70.5 }, side: 7 };
 // Teacher Angela 在科任教師辦公室站的地方
 // 思源樓（D）教室門在東、教室前後對調：黑板在南，老師站在黑板前面、面向學生（北）
 const D_CLASS_FRONT = (r) => [r.cx - 0.6, r.m.z2 - 1.6, 0];
-const ANGELA_OFFICE = { x: (r) => r.cx + 1.2, z: (r) => r.cz + 2.6 };   // 靠門口那片空地（辦公桌之間太窄，猜拳時學生站不下）
+const ANGELA_OFFICE = { x: (r) => r.cx + 1.2, z: (r) => r.cz + 3.3 };   // 南邊黑板前那條走道（辦公桌之間太窄，猜拳時學生站不下）
 const NPCS = [
   {
     name: '呂老師', title: '體育老師', game: 'badminton',
@@ -3445,7 +3446,7 @@ const NPCS = [
     // 隨機出現：3 樓英語教室二（310）前面講台旁，或 2 樓科任教師辦公室（Teacher Angela 也會出現在那裡，Joanne 站在她北邊）；兩個地方都可以玩聽力
     places: [
       { floor: '3F', where: '英語教室二', game: true, at: () => { const r = rooms.find((x) => x.name === '英語教室二'); return [r.m.x1 + 1.3, r.cz - 0.4, -Math.PI / 2]; } },
-      { floor: '2F', where: '科任教師辦公室', game: true, at: () => { const r = rooms.find((x) => x.name === '科任教師辦公室'); return [ANGELA_OFFICE.x(r), ANGELA_OFFICE.z(r) - 2.8, Math.PI / 2]; } },   // 離 Angela 2.8 公尺，兩人名牌才不會黏在一起
+      { floor: '2F', where: '科任教師辦公室', game: true, at: () => { const r = rooms.find((x) => x.name === '科任教師辦公室'); return [ANGELA_OFFICE.x(r), ANGELA_OFFICE.z(r) - 3.3, Math.PI / 2]; } },   // 兩區辦公桌中間的走道（離 Angela 3.3 公尺，名牌才不會黏在一起）
     ],
     look: {
       // 依照片：淺咖啡色頭髮往後綁（臉旁兩撮）、笑開露牙；白色短袖 T 恤＋灰色細格紋吊帶洋裝（前面一排扣子、黑色細皮帶）、拿著深藍色水壺
@@ -3834,9 +3835,9 @@ const NPCS = [
   {
     name: '周周老師', title: '星星班老師', game: 'puzzle3d',
     hello: ['🐢 周周老師：慢慢來沒關係！', '🤝 周周老師：我們一起做，加油～', '🧩 周周老師：要不要來玩立體拼圖？'],
-    // 1F 幼兒園星星班（125 室）：站在前面白板前、面向教室，前面那張小矮桌放立體拼圖
+    // 1F 幼兒園星星班（125 室）：白板在南牆，站在白板前、面向北邊的教室，前面那張小矮桌放立體拼圖
     places: [
-      { floor: '1F', where: '星星班', game: true, at: () => { const r = rooms.find((x) => x.name === '星星班'); return [r.cx + 0.3, r.m.z1 + 1.35, Math.PI]; } },
+      { floor: '1F', where: '星星班', game: true, at: () => { const r = rooms.find((x) => x.name === '星星班'); return [r.cx + 0.3, r.m.z2 - 1.35, 0]; } },
     ],
     look: {
       // 依照片：黑色及肩短髮、細框眼鏡、笑容；黑色短袖 T 恤、細繩項鍊（黑色圓墜子）、深藍粉橘米色漩渦花紋寬褲、黑鞋

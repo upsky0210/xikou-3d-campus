@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=240';
+import { Batch, mat, SPOTS } from './blocks.js?v=241';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2063,10 +2063,99 @@ function generalOffice(put, fr, room) {
 }
 
 
+// 2F 科任教師辦公室（依 10-27 九張照片）：原本是一間教室
+//   地板：深咖啡、米色大格子相間；中間兩區芥末黃屏風隔間（上半黃、下半灰、鋁框），每區 6 個座位背對背，兩區中間一條東西向走道
+//   北牆：四片綠色黑板（木框）、上面貼「兒童園地」字、下面一排藍粉白小門矮櫃，東側木格子櫃，西側粉紅色門
+//   南牆：綠色黑板（午餐明細、紅色「福」字、粉筆寫的名字），西南角銀色冰箱、木凳，西牆南段嵌一座木格櫃
+//   西牆北段咖啡色木格櫃、紙箱；東牆（走廊）紅色時鐘、兩扇門中間藍白矮櫃；南區東端一疊透明收納箱
+// u：從北牆往南；v：A 西（窗、校外）、D 東（走廊、門）
+function subjectOffice(put, fr, room) {
+  const W = fr.W, L = fr.L, A = fr.away, D = -A, s = W / 2;
+  const yellow = mat('wool', '#d9a640'), panel = mat('wool', '#a9aeb3'), alu = mat('wool', '#d2d5d8');
+  const deskTop = mat('wool', '#dfe1dc'), drawer = mat('wool', '#d8d6cc'), black = mat('wool', '#202226');
+  const brown = mat('planks', '#8a4f2c'), frame = mat('planks', '#b07a3e'), board = mat('wool', '#2f5d47');
+  // 地板大格子（深咖啡那一半；底色是米色）
+  const T = 0.9;
+  for (let i = 0; i * T < L; i++) for (let k = 0; k * T < W; k++) if ((i + k) % 2) {
+    const u = Math.min(L, (i + 1) * T), w = Math.min(W, (k + 1) * T);
+    put(mat('planks', '#5a3a2a'), u - i * T, w - k * T, 0.01, (i * T + u) / 2, -s + (k * T + w) / 2, 0);
+  }
+  const screen = (u, v, du, dv) => { put(panel, du, dv, 0.55, u, v, 0); put(yellow, du, dv, 0.62, u, v, 0.55); put(alu, du + 0.02, dv + 0.02, 0.03, u, v, 1.17); };
+  // 一區：沿 v 排 3 張桌子、兩排背對背，c＝這區中心的 u
+  const v0 = A * 2.3, v1 = D * 1.6, n = 3, dw = (v1 - v0) / n;
+  const block = (c) => {
+    screen(c, (v0 + v1) / 2, 0.05, Math.abs(v1 - v0));
+    for (const k of [-1, 1]) for (const vv of [v0, v1]) screen(c + k * 0.36, vv, 0.72, 0.05);
+    for (let i = 0; i < n; i++) for (const k of [-1, 1]) {
+      const v = v0 + dw * (i + 0.5), u = c + k * 0.37;
+      put(deskTop, 0.68, Math.abs(dw) - 0.08, 0.04, u, v, 0.72);
+      put(drawer, 0.55, 0.42, 0.68, u + k * 0.03, v + dw * 0.32, 0);           // 抽屜櫃
+      put(black, 0.04, 0.55, 0.34, u - k * 0.25, v - dw * 0.08, 0.84); put(screenMat(), 0.02, 0.5, 0.3, u - k * 0.23, v - dw * 0.08, 0.86);
+      put(black, 0.22, 0.32, 0.02, u - k * 0.22, v - dw * 0.08, 0.76);
+      put(black, 0.15, 0.45, 0.02, u - k * 0.02, v - dw * 0.08, 0.76);         // 鍵盤
+      put(black, 0.22, 0.12, 0.3, u - k * 0.15, v + dw * 0.2, 0.76);           // 小主機
+      officeChair(put, u + k * 0.62, v - dw * 0.08, -k, 0, '#8a2a3a');         // 酒紅色網椅
+    }
+  };
+  block(2.05); block(5.65);
+  // 透明收納箱一疊（南區東端）
+  for (let j = 0; j < 4; j++) {
+    put(mat('wool', '#8ccfc4'), 0.5, 0.62, 0.04, 5.65, D * 2.05, j * 0.4);
+    put(mat('glass'), 0.48, 0.6, 0.34, 5.65, D * 2.05, j * 0.4 + 0.04);
+  }
+  put(mat('wool', '#3cc04a'), 0.45, 0.55, 0.12, 5.65, D * 2.05, 1.6);
+
+  /* ---- 北牆 ---- */
+  put(frame, 0.06, 4.7, 1.32, 0.03, D * 0.2, 0.86);
+  put(board, 0.07, 4.5, 1.2, 0.04, D * 0.2, 0.92);
+  for (let k = 1; k < 4; k++) put(frame, 0.08, 0.05, 1.2, 0.05, D * 0.2 - 2.25 + k * 1.125, 0.92);
+  put(childCornerMat(), 0.02, 2.2, 0.38, 0.02, D * 0.2, 2.3, true);             // 「兒童園地」
+  put(frame, 0.4, 4.7, 0.82, 0.2, D * 0.2, 0);                                   // 黑板下矮櫃（小門藍粉白）
+  for (let k = 0; k < 8; k++) for (const y of [0.06, 0.42]) put(mat('wool', ['#4a7ad8', '#f2d4e0', '#f6f6f2', '#7aa8e8'][(k + (y > 0.1 ? 1 : 0)) % 4]), 0.02, 0.54, 0.32, 0.41, D * 0.2 - 2.1 + k * 0.6, y);
+  put(frame, 0.35, 0.9, 2.1, 0.18, D * (s - 0.55), 0);                          // 東側木格子櫃
+  for (const y of [0.5, 1.0, 1.5]) put(frame, 0.33, 0.85, 0.03, 0.19, D * (s - 0.55), y);
+  put(mat('wool', '#e8505b'), 0.25, 0.3, 0.3, 0.2, D * (s - 0.45), 1.53); put(mat('wool', '#f2c94c'), 0.2, 0.25, 0.2, 0.2, D * (s - 0.7), 1.03);
+  put(mat('wool', '#f2c3d4'), 0.04, 0.9, 2.05, 0.02, A * (s - 0.6), 0);          // 粉紅色門
+
+  /* ---- 南牆 ---- */
+  put(frame, 0.06, 3.6, 1.32, L - 0.03, D * 0.4, 0.86);
+  put(lunchBoardMat(), 0.07, 3.4, 1.2, L - 0.04, D * 0.4, 0.92, true);
+  put(M.grey(), 0.7, 0.7, 1.75, L - 0.4, A * (s - 0.45), 0);                     // 銀色冰箱
+  put(M.white(), 0.6, 0.62, 0.02, L - 0.76, A * (s - 0.45), 1.05);
+  put(frame, 0.45, 0.45, 0.6, L - 0.35, A * (s - 1.3), 0);                       // 木凳、小木桌
+  put(brown, 0.4, 1.0, 2.1, L - 1.8, A * (s - 0.2), 0);                          // 西牆南段嵌入的木格櫃
+  for (const y of [0.7, 1.4]) put(mat('wool', '#e8dcc8'), 0.3, 0.9, 0.04, L - 1.8, A * (s - 0.22), y);
+
+  /* ---- 西牆北段：咖啡色木格櫃、紙箱 ---- */
+  put(brown, 2.4, 0.42, 1.0, 2.2, A * (s - 0.21), 0);
+  for (let k = 0; k < 4; k++) put(mat('wool', '#e8dcc8'), 0.02, 0.4, 0.95, 1.0 + k * 0.6, A * (s - 0.43), 0.02);
+  put(mat('wool', '#c9a06a'), 0.5, 0.4, 0.35, 3.0, A * (s - 0.65), 0);
+  /* ---- 東牆（走廊）：紅色時鐘、兩扇門中間藍白矮櫃 ---- */
+  const doorU = (room.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
+  const c0 = (doorU[0] ?? 1.6) + 1.0, c1 = (doorU[1] ?? L - 1.6) - 1.0;
+  put(frame, c1 - c0, 0.4, 0.75, (c0 + c1) / 2, D * (s - 0.2), 0);
+  for (let u = c0 + 0.3; u < c1 - 0.2; u += 0.6) put(mat('wool', ['#4a7ad8', '#f6f6f2'][Math.round(u / 0.6) % 2]), 0.54, 0.02, 0.6, u, D * (s - 0.41), 0.08);
+  put.geo(mat('wool', '#c62828'), new THREE.CylinderGeometry(0.17, 0.17, 0.04, 20).rotateX(Math.PI / 2), L / 2, D * (s - 0.03), 2.3, fr.alongX ? 0 : Math.PI / 2);
+}
+const childCornerMat = () => once('childcorner', () => new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, map: bigTex(400, 70, (c, w, h) => {
+  c.fillStyle = '#2b3a6a'; c.font = '900 52px "DFKai-SB", "標楷體", serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  ['地', '園', '童', '兒'].forEach((t, i) => c.fillText(t, 50 + i * 100, h / 2));     // 由右往左讀：兒童園地
+}) }));
+const lunchBoardMat = () => once('lunchboard', () => new THREE.MeshLambertMaterial({ map: bigTex(480, 170, (c, w, h) => {
+  c.fillStyle = '#2f5d47'; c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(255,255,255,.85)'; c.font = '16px sans-serif'; c.fillText('午餐明細', 20, 26);
+  for (const [x, y, ww, hh, col] of [[22, 40, 34, 46, '#ffffff'], [64, 40, 40, 30, '#ffffff'], [30, 96, 30, 40, '#f8c8dc'], [70, 90, 30, 40, '#f6e58d']]) { c.fillStyle = col; c.fillRect(x, y, ww, hh); }
+  c.save(); c.translate(250, 70); c.rotate(Math.PI / 4); c.fillStyle = '#d32f2f'; c.fillRect(-16, -16, 32, 32); c.restore();
+  c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 2; c.strokeRect(320, 20, 140, 130); c.beginPath(); c.moveTo(320, 85); c.lineTo(460, 85); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,.85)'; c.font = '15px sans-serif';
+  for (let r = 0; r < 4; r++) c.fillText('〇〇  〇〇  〇〇', 330, 42 + r * 30);
+}) }));
+
 function office(put, fr, name, room) {
   const W = fr.W, L = fr.L;
   if (name.includes('校長室') && room) return principalOffice(put, fr, room);
-  if (name.includes('總務處') && room) return generalOffice(put, fr, room);
+  if (name === '科任教師辦公室' && room) return subjectOffice(put, fr, room);   // 依照片
+  if (name.includes('總務處') && room) return generalOffice(...flipU(put, fr), room);   // 白板在南牆、玻璃書櫃在北牆（使用者 10-27 說明）
   if (name.includes('會議室')) {
     put(M.wood(), L * 0.6, Math.min(2.2, W * 0.4), 0.75, L / 2, 0, 0);
     const n = Math.floor((L * 0.6) / 0.8);
@@ -2109,6 +2198,13 @@ function kinder(put, fr) {
 //   後牆：山形綠色布告欄＋下面米色矮櫃、門那側角落到頂的米色高櫃（烤箱）、窗那側白色百葉門；帳篷、弧形收納櫃（白色收納盒）、綠色地墊
 //   門那側：牆上掛網夾著小朋友的畫、矮書櫃上放木頭娃娃屋、繪本網架；中間低矮的木頭展示桌（拱形底座、白色托盤）、白色長桌＋小木椅、線軸圓桌
 // u：從前牆往後；v：A 窗（校外）、D 門（走廊）；周周老師站在白板前（u≈1.2, v≈0.3），前面那張小矮桌是立體拼圖桌
+// 前後對調（u → L-u）：put 和 fr.toLocal 一起換，函式裡用門的位置算的家具也跟著對
+function flipU(put0, fr) {
+  const L = fr.L;
+  const put = (m, du, dv, h, u, v, y, plain) => put0(m, du, dv, h, L - u, v, y, plain);
+  put.geo = (m, g, u, v, y, r = 0) => put0.geo(m, g, L - u, v, y, -r);
+  return [put, { ...fr, toLocal: (x, z) => { const [u, v] = fr.toLocal(x, z); return [L - u, v]; } }];
+}
 function kinderClass(put, fr) {
   const W = fr.W, L = fr.L, A = fr.away, D = -A, s = W / 2;
   const lw = mat('planks', '#e6d3b5'), beige = mat('wool', '#e8dcc8'), wood = mat('planks', '#d9b98a'), white = M.white();
@@ -2899,7 +2995,8 @@ function furnishRoom(room, fr, put) {
   if (n === '會議室' && room.no === '111') return meetingRoom(put, fr, room);   // 1F 會議室依照片
   if (n === '幼兒園中央廚房') return kinderKitchen(put, fr);
   if (t === 'office') return office(put, fr, n, room);
-  if (['星星班', '太陽班', '月亮班', '彩虹班'].includes(n)) return kinderClass(put, fr);   // 依星星班照片
+  if (n === '星星班' || n === '太陽班') return kinderClass(...flipU(put, fr));   // 白板在南牆（使用者 10-27 說明）
+  if (n === '月亮班' || n === '彩虹班') return kinderClass(put, fr);   // 依星星班照片
   if (t === 'kinder') return kinder(put, fr);
   if (t === 'storage') return storage(put, fr);
   if (t === 'special' && n !== '桌球教室') { frontWall(put, fr); return groupTables(put, fr); }
