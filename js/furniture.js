@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=241';
+import { Batch, mat, SPOTS } from './blocks.js?v=242';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2082,28 +2082,28 @@ function subjectOffice(put, fr, room) {
   }
   const screen = (u, v, du, dv) => { put(panel, du, dv, 0.55, u, v, 0); put(yellow, du, dv, 0.62, u, v, 0.55); put(alu, du + 0.02, dv + 0.02, 0.03, u, v, 1.17); };
   // 一區：沿 v 排 3 張桌子、兩排背對背，c＝這區中心的 u
-  const v0 = A * 2.3, v1 = D * 1.6, n = 3, dw = (v1 - v0) / n;
+  const v0 = A * 1.7, v1 = D * 1.4, n = 3, dw = (v1 - v0) / n;   // 桌子小一點，四周留得出走道
   const block = (c) => {
     screen(c, (v0 + v1) / 2, 0.05, Math.abs(v1 - v0));
-    for (const k of [-1, 1]) for (const vv of [v0, v1]) screen(c + k * 0.36, vv, 0.72, 0.05);
+    for (const k of [-1, 1]) for (const vv of [v0, v1]) screen(c + k * 0.31, vv, 0.62, 0.05);
     for (let i = 0; i < n; i++) for (const k of [-1, 1]) {
-      const v = v0 + dw * (i + 0.5), u = c + k * 0.37;
-      put(deskTop, 0.68, Math.abs(dw) - 0.08, 0.04, u, v, 0.72);
-      put(drawer, 0.55, 0.42, 0.68, u + k * 0.03, v + dw * 0.32, 0);           // 抽屜櫃
-      put(black, 0.04, 0.55, 0.34, u - k * 0.25, v - dw * 0.08, 0.84); put(screenMat(), 0.02, 0.5, 0.3, u - k * 0.23, v - dw * 0.08, 0.86);
-      put(black, 0.22, 0.32, 0.02, u - k * 0.22, v - dw * 0.08, 0.76);
-      put(black, 0.15, 0.45, 0.02, u - k * 0.02, v - dw * 0.08, 0.76);         // 鍵盤
-      put(black, 0.22, 0.12, 0.3, u - k * 0.15, v + dw * 0.2, 0.76);           // 小主機
-      officeChair(put, u + k * 0.62, v - dw * 0.08, -k, 0, '#8a2a3a');         // 酒紅色網椅
+      const v = v0 + dw * (i + 0.5), u = c + k * 0.32;
+      put(deskTop, 0.6, Math.abs(dw) - 0.06, 0.04, u, v, 0.72);
+      put(drawer, 0.5, 0.36, 0.68, u + k * 0.03, v + dw * 0.33, 0);           // 抽屜櫃
+      put(black, 0.04, 0.5, 0.32, u - k * 0.22, v - dw * 0.08, 0.84); put(screenMat(), 0.02, 0.46, 0.28, u - k * 0.2, v - dw * 0.08, 0.86);
+      put(black, 0.2, 0.3, 0.02, u - k * 0.19, v - dw * 0.08, 0.76);
+      put(black, 0.14, 0.42, 0.02, u, v - dw * 0.08, 0.76);                    // 鍵盤
+      put(black, 0.2, 0.11, 0.28, u - k * 0.13, v + dw * 0.22, 0.76);          // 小主機
+      officeChair(put, u + k * 0.5, v - dw * 0.08, -k, 0, '#8a2a3a');          // 酒紅色網椅（靠著桌子）
     }
   };
-  block(2.05); block(5.65);
+  block(2.4); block(5.75);                                                    // 北邊黑板前、兩區中間、南邊都留走道
   // 透明收納箱一疊（南區東端）
   for (let j = 0; j < 4; j++) {
-    put(mat('wool', '#8ccfc4'), 0.5, 0.62, 0.04, 5.65, D * 2.05, j * 0.4);
-    put(mat('glass'), 0.48, 0.6, 0.34, 5.65, D * 2.05, j * 0.4 + 0.04);
+    put(mat('wool', '#8ccfc4'), 0.5, 0.6, 0.04, 5.75, D * 1.75, j * 0.4);
+    put(mat('glass'), 0.48, 0.58, 0.34, 5.75, D * 1.75, j * 0.4 + 0.04);
   }
-  put(mat('wool', '#3cc04a'), 0.45, 0.55, 0.12, 5.65, D * 2.05, 1.6);
+  put(mat('wool', '#3cc04a'), 0.45, 0.55, 0.12, 5.75, D * 1.75, 1.6);
 
   /* ---- 北牆 ---- */
   put(frame, 0.06, 4.7, 1.32, 0.03, D * 0.2, 0.86);
@@ -2129,7 +2129,7 @@ function subjectOffice(put, fr, room) {
   /* ---- 西牆北段：咖啡色木格櫃、紙箱 ---- */
   put(brown, 2.4, 0.42, 1.0, 2.2, A * (s - 0.21), 0);
   for (let k = 0; k < 4; k++) put(mat('wool', '#e8dcc8'), 0.02, 0.4, 0.95, 1.0 + k * 0.6, A * (s - 0.43), 0.02);
-  put(mat('wool', '#c9a06a'), 0.5, 0.4, 0.35, 3.0, A * (s - 0.65), 0);
+  put(mat('wool', '#c9a06a'), 0.5, 0.4, 0.35, 3.0, A * (s - 0.21), 1.0);   // 紙箱放在櫃子上，不擋走道
   /* ---- 東牆（走廊）：紅色時鐘、兩扇門中間藍白矮櫃 ---- */
   const doorU = (room.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
   const c0 = (doorU[0] ?? 1.6) + 1.0, c1 = (doorU[1] ?? L - 1.6) - 1.0;
