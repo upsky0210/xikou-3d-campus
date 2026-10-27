@@ -359,7 +359,41 @@ const TEES = {
   'basketball-black': { bg: '#1c1c1f', fg: '#f28a1e', draw: basketballPrint },
   'basketball-white': { bg: '#f2f2ee', fg: '#1f5fbf', draw: basketballPrint },
   recorder: { bg: '#4b2486', fg: '#efe6d4', ink: '#1f1d2b', draw: recorderPrint },
+  dance: { bg: '#f6dde3', fg: '#d6202a', ink: '#141414', draw: dancePrint },
 };
+//   舞蹈隊：淡粉紅色。左胸紅色草寫「Dance」（深色描邊），背後黑色書法「舞」＋跳芭蕾的女孩剪影＋紅色彩帶
+function dancePrint(c, w, front, { fg, ink }) {
+  c.lineCap = c.lineJoin = 'round';
+  if (front) {
+    c.save(); c.translate(w * 0.68, 60); c.rotate(-0.06);
+    c.font = 'italic 700 22px "Segoe Script", "Brush Script MT", "Comic Sans MS", cursive'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.lineWidth = 3; c.strokeStyle = '#3a1418'; c.strokeText('Dance', 0, 0);
+    c.fillStyle = fg; c.fillText('Dance', 0, 0);
+    c.restore();
+  } else {
+    // 紅色彩帶：右上兩道捲起來，再一路往左下拖
+    c.strokeStyle = fg; c.lineWidth = 7;
+    c.beginPath(); c.moveTo(w * 0.78, 70); c.bezierCurveTo(w * 0.62, 40, w * 0.66, 18, w * 0.8, 26); c.stroke();
+    c.beginPath(); c.moveTo(w * 0.86, 62); c.bezierCurveTo(w * 0.7, 76, w * 0.7, 100, w * 0.82, 104); c.stroke();
+    c.beginPath(); c.moveTo(w * 0.74, 118); c.bezierCurveTo(w * 0.7, 140, w * 0.86, 140, w * 0.78, 120); c.stroke();
+    c.lineWidth = 9;
+    c.beginPath(); c.moveTo(w * 0.86, 108); c.bezierCurveTo(w * 0.9, 150, w * 0.6, 190, w * 0.2, 196); c.stroke();
+    // 書法「舞」
+    c.fillStyle = ink; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = '900 108px "DFKai-SB", "BiauKai", "標楷體", "KaiTi", "STKaiti", serif';
+    c.fillText('舞', w * 0.42, 118);
+    // 芭蕾女孩剪影（站在「舞」右下，雙手往上舉、蓬蓬裙、單腳踮起）
+    const x = w * 0.6, y = 112;
+    c.strokeStyle = c.fillStyle = ink;
+    c.beginPath(); c.arc(x, y - 22, 5, 0, Math.PI * 2); c.fill();
+    c.lineWidth = 3; c.beginPath(); c.moveTo(x - 2, y - 14); c.quadraticCurveTo(x - 16, y - 26, x - 12, y - 36); c.stroke();
+    c.beginPath(); c.moveTo(x + 2, y - 14); c.quadraticCurveTo(x + 14, y - 30, x + 20, y - 26); c.stroke();
+    c.lineWidth = 5; c.beginPath(); c.moveTo(x, y - 16); c.lineTo(x, y + 2); c.stroke();
+    c.beginPath(); c.ellipse(x, y + 4, 15, 5, 0, 0, Math.PI * 2); c.fill();   // 蓬蓬裙
+    c.lineWidth = 2.5; c.beginPath(); c.moveTo(x, y + 6); c.lineTo(x + 1, y + 40); c.stroke();
+    c.beginPath(); c.moveTo(x, y + 8); c.lineTo(x - 10, y + 20); c.lineTo(x - 2, y + 26); c.stroke();
+  }
+}
 function basketballPrint(c, w, front, { fg }) {
   c.strokeStyle = c.fillStyle = fg; c.lineCap = c.lineJoin = 'round';
   if (front) {
@@ -462,7 +496,7 @@ function teeTexture(kind, front) {
 
 /** 選角色畫面的服裝按鈕：key → [中文, English]（泳裝是游泳小遊戲自動換的，不在這裡）；
  *  籃球隊女生有兩款（BB_GIRL），男生只有紅色那款 */
-export const OUTFITS = { uniform: ['制服', 'Uniform'], basketball: ['籃球隊', 'Basketball team'], recorder: ['直笛隊', 'Recorder team'] };
+export const OUTFITS = { uniform: ['制服', 'Uniform'], basketball: ['籃球隊', 'Basketball team'], recorder: ['直笛隊', 'Recorder team'], dance: ['舞蹈隊', 'Dance team'] };
 export const BB_GIRL = { black: ['黑底橘字', 'Black & orange'], white: ['白底藍字', 'White & blue'] };
 /** 實際穿哪一套（女生的籃球隊要看選哪一款） */
 export const outfitFor = (o, gender, bbGirl = 'black') => (o === 'basketball' && gender === 'girl' ? `basketball-${bbGirl in BB_GIRL ? bbGirl : 'black'}` : o);
@@ -486,7 +520,7 @@ export function makeBlockPerson(gender = 'boy') {
   const navy = cloth('#1d2b57'), girl = gender === 'girl';
   const outfit = [];                                         // [方塊, 制服材質, { 服裝: 材質（null＝藏起來；沒寫＝跟制服一樣） }]
   const dress = (mesh, alt) => { outfit.push([mesh, mesh.material, alt]); return mesh; };
-  const teeKinds = girl ? ['basketball-black', 'basketball-white', 'recorder'] : ['basketball', 'recorder'];
+  const teeKinds = girl ? ['basketball-black', 'basketball-white', 'recorder', 'dance'] : ['basketball', 'recorder', 'dance'];
   const teeSide = Object.fromEntries(teeKinds.map((k) => [k, cloth(TEES[k].bg)]));
   const tees = (f) => Object.fromEntries(teeKinds.map((k) => [k, f(k)]));   // 每一套隊服各用什麼材質
   // swim(方塊, 泳裝材質, 隊服材質)：隊服材質可以是 (k) => 材質；沒給＝穿隊服時跟制服一樣
