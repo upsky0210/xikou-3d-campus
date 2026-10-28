@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=248';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=248';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=248';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=248';
-import { buildCampusWall } from './wall.js?v=248';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=248';
+import { PanoViewer } from './pano.js?v=249';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=249';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=249';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=249';
+import { buildCampusWall } from './wall.js?v=249';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=249';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4134,6 +4134,66 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: 'Anya 老師', title: '白雲班老師', game: 'animalcall',
+    hello: ['👋 Anya 老師：哈囉～抱抱！今天有沒有乖乖喝ㄋㄟㄋㄟ？', '🧻 Anya 老師：想尿尿要跟老師說喔！', '👏 Anya 老師：我們一起拍拍手～拍拍手！', '🐶 Anya 老師：汪汪汪～是誰在叫呀？一起來聽聽看！'],
+    // 1F 幼兒園白雲班（2 歲專班）：站在教室前段靠窗那邊、面向門口（西）
+    places: [{ floor: '1F', where: '白雲班', game: true, at: () => { const r = rooms.find((x) => x.name.startsWith('白雲班')); return [r.cx + 2.0, r.m.z1 + 2.2, Math.PI / 2]; } }],
+    look: {
+      // 依照片：黑色頭髮往後綁、笑得很開心；白色短袖 T 恤外面套粉紅白格子長圍裙、淺藍色寬褲（圍裙上的卡通圖案不畫）
+      skin: '#e8c2a4', hair: '#1c1616', top: '#f4c6d4', pants: '#a9bcd4', shoe: '#e8e8e8',
+      bun: true, tee: '#fbf7f0', shortSkirt: '#f4c6d4', widePants: true,
+      pal: { H: '#1c1616', h: '#33282a', S: '#e8c2a4', K: '#1c1616', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHSSSSHHHHHH',
+        'HHHHSSSSSSSSHHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '欣欣老師', title: '白雲班老師', game: 'toyhome',
+    hello: ['😊 欣欣老師：早安～跟老師說早安！', '🙌 欣欣老師：洗手手，搓搓搓，沖沖水～', '😴 欣欣老師：吃飽飽、睡飽飽，長高高！', '🧺 欣欣老師：玩具要回家囉，幫它們找一樣顏色的籃子！'],
+    // 1F 幼兒園白雲班：站在教室後段靠窗那邊、面向門口（西），跟 Anya 老師分開
+    places: [{ floor: '1F', where: '白雲班', game: true, at: () => { const r = rooms.find((x) => x.name.startsWith('白雲班')); return [r.cx + 2.0, r.m.z2 - 1.8, Math.PI / 2]; } }],
+    look: {
+      // 依照片：深咖啡色長捲髮、黑色圓框眼鏡；白色短袖 T 恤外面套灰色直條紋長圍裙、黑色寬褲
+      skin: '#f2d2bc', hair: '#2a1e1a', top: '#5e6066', pants: '#1c1c1e', shoe: '#2a2a2a',
+      longHair: true, tee: '#fbf7f0', shortSkirt: '#5e6066', widePants: true,
+      pal: { H: '#2a1e1a', h: '#3a2a24', S: '#f2d2bc', K: '#2a2a2a', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSSSSHH',
+        'HHHHHHSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHKEEKKKKKKEEKHH',
+        'HHKEWKSSSSKEWKHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -4403,6 +4463,8 @@ function updateAct(dt) {
     : sp.kind === 'shrink' ? T(`🔥 跟${sp.npc.name}做熱縮片 <kbd>F</kbd>`, `🔥 Shrink art with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'bugs' ? T(`🔍 跟${sp.npc.name}玩昆蟲放大鏡 <kbd>F</kbd>`, `🔍 Bug Magnifier with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'shadow' ? T(`🔦 跟${sp.npc.name}玩影子配對 <kbd>F</kbd>`, `🔦 Shadow match with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'animalcall' ? T(`🐶 跟${sp.npc.name}玩「是誰在叫？」 <kbd>F</kbd>`, `🐶 "Who Says That?" with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'toyhome' ? T(`🧺 跟${sp.npc.name}玩「玩具回家囉」 <kbd>F</kbd>`, `🧺 "Toys Go Home" with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'stack' ? T(`🐘 跟${sp.npc.name}玩動物疊疊樂 <kbd>F</kbd>`, `🐘 Animal stacking with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'cubes' ? T(`🧊 跟${sp.npc.name}玩空間方塊 <kbd>F</kbd>`, `🧊 Block counting with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'beads' ? T(`📿 跟${sp.npc.name}玩串珠遊戲 <kbd>F</kbd>`, `📿 Bead patterns with ${sp.npc.name} <kbd>F</kbd>`)
@@ -6470,12 +6532,12 @@ function kgPlay(n, G) {
   $('.ttl').textContent = `${T(...G.title)}・${n.name}`;
   duel = { quit() { finish(); toast(G.bye(n)); } };
   act.busy = { label: T(...G.label), tick(dt) { ctx.tick?.(dt); } };
-  ctx.prog(''); ctx.ask(''); ctx.msg(''); $('.btns').innerHTML = '';
+  ctx.prog(''); ctx.ask(''); ctx.msg(''); $('.btns').innerHTML = ''; ctx.stage.onclick = null;
   kgBox.hidden = false;
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get shadow() { return KG_SHADOW; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -7067,6 +7129,84 @@ const KG_SHADOW = {
       } })));
     };
     ask();
+  },
+};
+
+
+/* ---- 白雲班（2 歲專班）的兩個小遊戲：題目很短、按鈕大大的、選錯也沒關係，一回 5 題 ---- */
+// 老師唸出來（有中文語音才唸）
+function kgSay(text) {
+  try {
+    if (!window.speechSynthesis) return;
+    const v = speechSynthesis.getVoices().find((x) => /^zh/i.test(x.lang));
+    if (!v && speechSynthesis.getVoices().length) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = v?.lang || 'zh-TW'; if (v) u.voice = v; u.rate = 0.85; u.pitch = 1.2;
+    speechSynthesis.speak(u);
+  } catch { /* 不支援就算了 */ }
+}
+// 共用：一題一個大圖示＋2～3 個大按鈕，選錯可以再選
+function toddlerQuiz(ctx, qs, { ask, say, opt, ok, end }) {
+  let i = 0, right = 0, tries = 0;
+  const next = () => {
+    tries = 0;
+    const q = qs[i];
+    ctx.prog(T(`第 ${i + 1} / ${qs.length} 題`, `${i + 1} / ${qs.length}`));
+    ctx.stage.innerHTML = `<span class="big">${q.show}</span>`;
+    ctx.ask(ask(q)); ctx.msg('');
+    kgSay(say(q)); ctx.stage.onclick = () => kgSay(say(q));                // 點圖示再聽一次
+    ctx.buttons(q.opts.map((o, j) => ({ html: `${opt(o)}<small>${j + 1}</small>`, cls: 'huge', on: (el) => {
+      tries++;
+      if (o !== q.ans) { el.disabled = true; el.className = 'huge wrong'; ctx.face('surprised', 1); ctx.msg(T('再找找看～', 'Try again~'), 'no'); return; }
+      el.className = 'huge right'; ctx.btnEls.forEach((b) => (b.disabled = true));
+      if (tries === 1) right++;
+      ctx.face('happy'); ctx.msg(ok(q), 'ok'); kgSay(T('好棒！', 'Great!'));
+      ctx.later(() => (++i < qs.length ? next() : ctx.end(right, end(right))), 1500);
+    } })));
+  };
+  next();
+}
+
+/* ---- 是誰在叫？（Anya 老師，白雲班）：老師學動物叫，選出是哪一隻 ---- */
+const TODDLER_ANIMALS = [['🐶', '狗狗', '汪汪汪', 'Woof woof'], ['🐱', '貓咪', '喵喵喵', 'Meow meow'], ['🐮', '牛牛', '哞～哞～', 'Moo'], ['🐷', '豬豬', '齁齁齁', 'Oink oink'],
+  ['🐔', '公雞', '咕咕咕～', 'Cock-a-doodle-doo'], ['🦆', '鴨鴨', '呱呱呱', 'Quack quack'], ['🐑', '羊咩咩', '咩～咩～', 'Baa'], ['🐸', '青蛙', '呱呱～呱呱～', 'Ribbit']];
+const KG_ANIMALCALL = {
+  key: 'campus-kg-animalcall-best', title: ['🐶 是誰在叫？', '🐶 Who Says That?'], label: ['🐶 聽動物叫聲…', '🐶 Animal sounds…'],
+  bye: (n) => T(`🐶 下次再來找${n.name}聽動物叫！`, `🐶 Come back for animal sounds with ${n.name}!`),
+  start(ctx) {
+    // 青蛙和鴨鴨都是「呱呱」，不要同一題出現
+    const qs = kgShuffle(TODDLER_ANIMALS.slice()).slice(0, 5).map((a, k) => {
+      const others = kgShuffle(TODDLER_ANIMALS.filter((b) => b !== a && !(a[2].startsWith('呱') && b[2].startsWith('呱')))).slice(0, k < 2 ? 1 : 2);
+      return { ans: a, opts: kgShuffle([a, ...others]), show: '🔊' };
+    });
+    toddlerQuiz(ctx, qs, {
+      ask: (q) => T(`「${q.ans[2]}」是誰在叫？`, `"${q.ans[3]}" Who says that?`),
+      say: (q) => q.ans[2],
+      opt: (o) => o[0],
+      ok: (q) => T(`對！${q.ans[1]}${q.ans[2]}～`, `Yes! The ${q.ans[1]} says ${q.ans[3]}~`),
+      end: (r) => (b) => `${T(`🐶 聽出 ${r} / 5 隻動物（最好紀錄 ${b} 隻）`, `🐶 ${r} / 5 animals (best ${b})`)}<br>${ctx.n.name}：哇～耳朵好棒！我們一起拍拍手！`,
+    });
+  },
+};
+
+/* ---- 玩具回家囉（欣欣老師，白雲班）：把玩具放進一樣顏色的籃子 ---- */
+const TODDLER_COLORS = [['紅色', 'red', '#e53935', ['🍎', '🚒', '🎈']], ['黃色', 'yellow', '#fdd835', ['🍌', '⭐', '🐥']], ['藍色', 'blue', '#1e88e5', ['🧢', '🐳', '🫐']], ['綠色', 'green', '#43a047', ['🐸', '🦖', '🥦']]];
+const KG_TOYHOME = {
+  key: 'campus-kg-toyhome-best', title: ['🧺 玩具回家囉', '🧺 Toys Go Home'], label: ['🧺 收玩具中…', '🧺 Tidying up…'],
+  bye: (n) => T(`🧺 下次再來找${n.name}收玩具！`, `🧺 Come back to tidy toys with ${n.name}!`),
+  start(ctx) {
+    const qs = Array.from({ length: 5 }, (_, k) => {
+      const ans = TODDLER_COLORS[Math.random() * TODDLER_COLORS.length | 0];
+      const others = kgShuffle(TODDLER_COLORS.filter((c) => c !== ans)).slice(0, k < 2 ? 1 : 2);
+      return { ans, opts: kgShuffle([ans, ...others]), show: ans[3][Math.random() * 3 | 0] };
+    });
+    toddlerQuiz(ctx, qs, {
+      ask: (q) => T(`${q.show} 要回哪一個籃子？`, `${q.show} Which basket does it go in?`),
+      say: (q) => T(`${q.ans[0]}的玩具，要回家囉`, 'Time for the toy to go home'),
+      opt: (o) => `<span class="basket" style="background:${o[2]}"></span>`,
+      ok: (q) => T(`放進${q.ans[0]}的籃子，玩具回家了！`, `Into the ${q.ans[1]} basket. The toy is home!`),
+      end: (r) => (b) => `${T(`🧺 送 ${r} / 5 個玩具回家（最好紀錄 ${b} 個）`, `🧺 ${r} / 5 toys home (best ${b})`)}<br>${ctx.n.name}：玩具都回家了，好乾淨喔！謝謝你～`,
+    });
   },
 };
 
@@ -8214,6 +8354,7 @@ const GAME_INFO = {
   shrink: [['熱縮片', 'Shrink Art'], 'campus-kg-shrink-count', (v) => T(`做了 ${v} 個`, `${v} made`)],
   bugs: [['昆蟲放大鏡', 'Bug Magnifier'], 'campus-kg-bugs-count', (v) => T(`探險 ${v} 次`, `${v} explorations`)],
   shadow: [['影子配對', 'Shadow Match'], 'campus-kg-shadow-best', ans],
+  animalcall: [['是誰在叫？', 'Who Says That?'], 'campus-kg-animalcall-best', ans], toyhome: [['玩具回家囉', 'Toys Go Home'], 'campus-kg-toyhome-best', ans],
 };
 // 小遊戲清單：照老師整理，同一個遊戲、同一份紀錄的老師合成一列（例如兩位老師都能打羽球）
 function passGames() {
