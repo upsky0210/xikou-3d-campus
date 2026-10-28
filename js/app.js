@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=251';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=251';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=251';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=251';
-import { buildCampusWall } from './wall.js?v=251';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=251';
+import { PanoViewer } from './pano.js?v=253';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=253';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=253';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=253';
+import { buildCampusWall } from './wall.js?v=253';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=253';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1101,6 +1101,7 @@ function floorMat(type, f, room) {
     return mat('tile', '#cfc8ba');                                                        // 其他頂樓：地磚
   }
   if (/^(星星|太陽|月亮|彩虹)班$/.test(room?.name)) return mat('planks', '#e6dccb');   // 幼兒園教室：淺色木紋地板（依照片）
+  if (room?.name === '潛能教室三' || room?.name === '潛能教室四') return mat('tile', '#b4bcc8');   // 灰藍色塑膠地磚（依照片）
   if (room?.name === '科任教師辦公室') return mat('planks', '#d8cebc');
   if (room?.name === '英語教室一') return mat('planks', '#9a6a3a');   // 咖啡色木紋地板（依照片）
   if (room?.name === '幼兒園辦公室') return mat('planks', '#ece6dc');   // 灰米色木紋地板（依照片）   // 米色（深咖啡格子在家具那邊畫）
