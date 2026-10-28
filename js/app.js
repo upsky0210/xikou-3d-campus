@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=245';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=245';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=245';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=245';
-import { buildCampusWall } from './wall.js?v=245';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=245';
+import { PanoViewer } from './pano.js?v=247';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=247';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=247';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=247';
+import { buildCampusWall } from './wall.js?v=247';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=247';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3872,7 +3872,7 @@ const NPCS = [
     look: {
       // 依照片：棕色長髮綁馬尾、白色長袖上衣、深藍格紋背心連身裙
       skin: '#f2d2bc', hair: '#5a3a28', top: '#2c3556', pants: '#2c3556', shoe: '#2a2a2a',
-      bun: true, tee: '#f7f5ef', sleeve: '#f7f5ef', longSleeve: true, skirt: '#2c3556',
+      bun: true, tee: '#f7f5ef', sleeve: '#f7f5ef', longSleeve: true, skirt: '#2c3556', skirtPlaid: ['#2c3556', '#8a96b8'],
       pal: { H: '#5a3a28', h: '#6e4a34', S: '#f2d2bc', K: '#5a3a28', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
       face: [
         'HHHHHHHHHHHHHHHH',
@@ -4005,6 +4005,126 @@ const NPCS = [
         'HHKEEKKKKKKEEKHH',
         'HHKEWKSSSSKEWKHH',
         'HHKKKKSSSSKKKKHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '小靜老師', title: '星星班老師', game: 'darkchess',
+    hello: ['⭐ 小靜老師：星星班的小朋友，今天也要閃閃發亮喔！', '🧸 小靜老師：玩具要輪流玩，大家一起分享～', '🤫 小靜老師：說話小小聲，耳朵仔細聽。', '♟️ 小靜老師：要不要跟老師下暗棋？翻翻看是什麼棋子！'],
+    // 1F 幼兒園星星班：站在後面（北牆）綠色布告欄前、面向教室，跟前面的周周老師分開
+    places: [{ floor: '1F', where: '星星班', game: true, at: () => { const r = rooms.find((x) => x.name === '星星班'); return [r.cx - 0.6, r.m.z1 + 1.42, Math.PI]; } }],
+    look: {
+      // 依照片：棕色長直髮有瀏海；淺綠色長袖大學 T、黑色高領內搭、藍色牛仔褲
+      skin: '#f2d2bc', hair: '#5a3a2a', top: '#a8d8d0', pants: '#4a6a9a', shoe: '#2a2a2a',
+      longHair: true, longSleeve: true, collar: '#1c1c1e',
+      pal: { H: '#5a3a2a', h: '#6e4a34', S: '#f2d2bc', K: '#3a3a3a', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '小米老師', title: '月亮班老師', game: 'shrink',
+    hello: ['🌙 小米老師：哈囉！今天心情怎麼樣呀？', '🖍️ 小米老師：慢慢塗，不要塗出線外喔～', '🙌 小米老師：做完記得把彩色筆蓋子蓋好喔！', '🔥 小米老師：要不要來做熱縮片？放進烤箱會變小喔！'],
+    // 1F 幼兒園月亮班：站在後面（東牆）綠色布告欄前、面向教室（西），跟前面的何何老師分開
+    places: [{ floor: '1F', where: '月亮班', game: true, at: () => { const r = rooms.find((x) => x.name === '月亮班'); return [r.m.x2 - 1.35, r.cz - 0.6, Math.PI / 2]; } }],
+    look: {
+      // 依照片：黑色長直髮、齊瀏海；淺藍色上衣、白色長裙
+      skin: '#f2d2bc', hair: '#1c1616', top: '#a9c4e0', pants: '#f4f2ee', shoe: '#e8e4dc',
+      longHair: true, longSleeve: true, skirt: '#f4f2ee',
+      pal: { H: '#1c1616', h: '#33282a', S: '#f2d2bc', K: '#3a3a3a', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '禎禎老師', title: '太陽班老師', game: 'doll',
+    hello: ['☀️ 禎禎老師：早安！記得跟爸爸媽媽說再見了嗎？', '🧥 禎禎老師：天氣變涼了，出去玩要穿外套喔！', '🍱 禎禎老師：吃飯要細嚼慢嚥，吃完再去玩～', '🎀 禎禎老師：要不要來幫紙娃娃換衣服？'],
+    // 1F 幼兒園太陽班：站在後面（北牆）綠色布告欄前、面向教室，跟前面的小粉老師分開
+    places: [{ floor: '1F', where: '太陽班', game: true, at: () => { const r = rooms.find((x) => x.name === '太陽班'); return [r.cx - 0.6, r.m.z1 + 1.42, Math.PI]; } }],
+    look: {
+      // 依照片：紅棕色及肩捲髮、旁分瀏海；米白色毛衣（黑色橫條紋）、紅黑格子長裙
+      skin: '#f2d2bc', hair: '#6a3424', top: '#f2ece0', pants: '#8a2a22', shoe: '#2a2a2a',
+      bob: true, longSleeve: true, topStripes: '#1c1c1e', skirt: '#8a2a22', skirtPlaid: ['#a8322a', '#1c1c1c'],
+      pal: { H: '#6a3424', h: '#7e4430', S: '#f2d2bc', K: '#3a3a3a', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHSSSSSSHH',
+        'HHHHSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '球球老師', title: '彩虹班老師', game: 'shadow',
+    hello: ['🌈 球球老師：彩虹班的小朋友最棒了！', '💧 球球老師：玩完要記得喝水、上廁所喔。', '🧹 球球老師：用完的東西要放回原來的地方喔～', '🔦 球球老師：影子黑黑的，你猜得出來是什麼嗎？'],
+    // 1F 幼兒園彩虹班：站在教室中間走道（雅如老師在前面、喵喵老師在後面），面向窗戶那邊的桌子
+    places: [{ floor: '1F', where: '彩虹班', game: true, at: () => { const r = rooms.find((x) => x.name === '彩虹班'); return [r.m.x1 + 4.37, r.cz - 0.5, Math.PI]; } }],
+    look: {
+      // 依照片：棕色齊肩鮑伯頭、旁分瀏海；米色高領、綠色連帽 T（白色抽繩）、深藍色牛仔褲
+      skin: '#f0cdb4', hair: '#8a5a3a', top: '#2f7d4f', pants: '#2a3a5a', shoe: '#2a2a2a',
+      bob: true, longSleeve: true, hoodie: '#f4f4f0', pocket: '#2f7d4f', collar: '#d8c8a8',
+      pal: { H: '#8a5a3a', h: '#9a6a48', S: '#f0cdb4', K: '#3a3a3a', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHSSSSSSHH',
+        'HHHHSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
         'HHSSSSSNNSSSSSHH',
         'HHBBSSSSSSSSBBHH',
         'HHSSMMMMMMMMSSHH',
@@ -4279,6 +4399,10 @@ function updateAct(dt) {
     : sp.kind === 'zhuyin' ? T(`🔤 跟${sp.npc.name}玩注音符號大闖關 <kbd>F</kbd>`, `🔤 Zhuyin Challenge with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'life' ? T(`🏠 跟${sp.npc.name}玩生活大考驗 <kbd>F</kbd>`, `🏠 Everyday Life Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'blocks' ? T('🧩 玩電子積木 <kbd>F</kbd>', '🧩 Electronic blocks <kbd>F</kbd>')
+    : sp.kind === 'darkchess' ? T(`♟️ 跟${sp.npc.name}下暗棋 <kbd>F</kbd>`, `♟️ Dark chess with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'shrink' ? T(`🔥 跟${sp.npc.name}做熱縮片 <kbd>F</kbd>`, `🔥 Shrink art with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'doll' ? T(`🎀 跟${sp.npc.name}玩紙娃娃 <kbd>F</kbd>`, `🎀 Paper doll with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'shadow' ? T(`🔦 跟${sp.npc.name}玩影子配對 <kbd>F</kbd>`, `🔦 Shadow match with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'stack' ? T(`🐘 跟${sp.npc.name}玩動物疊疊樂 <kbd>F</kbd>`, `🐘 Animal stacking with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'cubes' ? T(`🧊 跟${sp.npc.name}玩空間方塊 <kbd>F</kbd>`, `🧊 Block counting with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'beads' ? T(`📿 跟${sp.npc.name}玩串珠遊戲 <kbd>F</kbd>`, `📿 Bead patterns with ${sp.npc.name} <kbd>F</kbd>`)
@@ -6350,7 +6474,8 @@ function kgPlay(n, G) {
   kgBox.hidden = false;
   G.start(ctx);
 }
-const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; } };
+const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get doll() { return KG_DOLL; }, get shadow() { return KG_SHADOW; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -6628,6 +6753,304 @@ const KG_COOK = {
     wok();
     ctx.ask(T('吃飯前、煮飯前都要先洗手！', 'Wash your hands before cooking and eating!'));
     ctx.buttons([{ html: T('🧼 先洗手 <small>1</small>', '🧼 Wash hands <small>1</small>'), on: () => { ctx.msg(T('🫧 洗乾淨了！', '🫧 All clean!'), 'ok'); ctx.later(dish, 700); ctx.buttons([]); } }]);
+  },
+};
+
+
+/* ---- 暗棋（小靜老師，星星班）：4×8 棋盤 32 顆棋子全部蓋著。第一次翻到什麼顏色你就是那一邊；
+   每回合翻一顆，或把自己的棋子走一格（上下左右）；大吃小（帥＞仕＞相＞俥＞傌＞炮＞兵），兵可以吃帥、帥不能吃兵；
+   炮要隔一顆棋子才能吃（直線、距離不限）。吃光對方就贏；60 步都沒有吃子就和局 ---- */
+const DC_NAMES = { r: ['帥', '仕', '相', '俥', '傌', '炮', '兵'], b: ['將', '士', '象', '車', '馬', '包', '卒'] };
+const DC_RANK = [7, 6, 5, 4, 3, 2, 1];                                     // 名字的順序對應的大小
+const DC_COUNT = [1, 2, 2, 2, 2, 2, 5];
+const KG_DARKCHESS = {
+  key: 'campus-kg-darkchess-wins', title: ['♟️ 暗棋', '♟️ Dark Chess'], label: ['♟️ 下暗棋中…', '♟️ Playing dark chess…'],
+  bye: (n) => T(`♟️ 下次再來找${n.name}下暗棋！`, `♟️ Come back for dark chess with ${n.name}!`),
+  start(ctx) {
+    const R = 4, C = 8;
+    const pieces = [];
+    for (const side of ['r', 'b']) DC_COUNT.forEach((cnt, k) => { for (let i = 0; i < cnt; i++) pieces.push({ side, k, up: false }); });
+    const board = kgShuffle(pieces);                                       // board[r*C+c]：棋子或 null
+    let me = null, ai = null, turn = 'me', sel = -1, quiet = 0, over = false;
+    const rank = (p) => DC_RANK[p.k];
+    const canEat = (a, b) => {                                             // a 能不能吃 b（不看炮的規則）
+      if (!b || !b.up || a.side === b.side) return false;
+      if (a.k === 0 && b.k === 6) return false;                            // 帥不能吃兵
+      if (a.k === 6 && b.k === 0) return true;                             // 兵可以吃帥
+      return rank(a) >= rank(b);
+    };
+    const rc = (i) => [Math.floor(i / C), i % C];
+    // 某顆棋子的所有走法：[到哪, 是不是吃子]
+    const movesOf = (i) => {
+      const p = board[i], [r, c] = rc(i), out = [];
+      for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= R || nc < 0 || nc >= C) continue;
+        const j = nr * C + nc, q = board[j];
+        if (!q) out.push([j, false]);
+        else if (p.k !== 5 && canEat(p, q)) out.push([j, true]);
+        if (p.k === 5) {                                                   // 炮：往這個方向找，跳過一顆之後遇到的第一顆
+          let jumped = false;
+          for (let rr = r + dr, cc = c + dc; rr >= 0 && rr < R && cc >= 0 && cc < C; rr += dr, cc += dc) {
+            const t = board[rr * C + cc]; if (!t) continue;
+            if (!jumped) { jumped = true; continue; }
+            if (t.up && t.side !== p.side) out.push([rr * C + cc, true]);
+            break;
+          }
+        }
+      }
+      return out;
+    };
+    const left = (side) => board.filter((p) => p && p.side === side).length;
+    const nameOf = (p) => DC_NAMES[p.side][p.k];
+    const sideName = (s) => (s === 'r' ? T('紅色', 'Red') : T('黑色', 'Black'));
+    const draw = () => {
+      ctx.stage.innerHTML = `<div class="dc">${board.map((p, i) => {
+        const cls = !p ? 'e' : !p.up ? 'd' : p.side;
+        const tgt = sel >= 0 && movesOf(sel).some(([j]) => j === i);
+        return `<button data-i="${i}" class="${cls}${i === sel ? ' sel' : ''}${tgt ? ' tgt' : ''}">${p && p.up ? nameOf(p) : ''}</button>`;
+      }).join('')}</div>`;
+      ctx.stage.querySelectorAll('[data-i]').forEach((b) => (b.onclick = () => click(+b.dataset.i)));
+      ctx.prog(me ? T(`你是${sideName(me)}・${sideName(me)} ${left(me)} 顆、${sideName(ai)} ${left(ai)} 顆`, `You: ${sideName(me)} · ${left(me)} vs ${left(ai)}`) : T('先翻一顆棋子', 'Flip a piece first'));
+    };
+    const finishCheck = () => {
+      if (!me) return false;
+      const lost = (s) => !left(s) || (!board.some((p) => p && !p.up) && !board.some((p, i) => p && p.side === s && movesOf(i).length));
+      if (lost(ai)) { over = true; draw(); ctx.face('surprised', 2); ctx.msg(T('🎉 你贏了！', '🎉 You win!'), 'ok'); ctx.later(() => ctx.end(ctx.best + 1, (b) => `${T(`♟️ 你贏了${ctx.n.name}！（已經贏 ${b} 次）`, `♟️ You beat ${ctx.n.name}! (${b} wins)`)}<br>${ctx.n.name}：好厲害！下棋要先想一想再動手喔！`), 1500); return true; }
+      if (lost(me)) { over = true; draw(); ctx.face('happy', 2); ctx.msg(T(`${ctx.n.name}贏了！`, `${ctx.n.name} wins!`), 'no'); ctx.later(() => ctx.end(0, () => `${T(`♟️ ${ctx.n.name}贏了！`, `♟️ ${ctx.n.name} wins!`)}<br>${ctx.n.name}：輸了沒關係，我們再下一盤！`), 1500); return true; }
+      if (quiet >= 60) { over = true; draw(); ctx.msg(T('🤝 60 步都沒有吃子，和局！', '🤝 60 moves with no capture. A draw!')); ctx.later(() => ctx.end(0, () => `${T(`♟️ 跟${ctx.n.name}和局！`, `♟️ A draw with ${ctx.n.name}!`)}<br>${ctx.n.name}：下得很好喔，旗鼓相當！`), 1500); return true; }
+      return false;
+    };
+    const doMove = (from, to) => { const eat = !!board[to]; board[to] = board[from]; board[from] = null; quiet = eat ? 0 : quiet + 1; return eat; };
+    const aiTurn = () => {
+      turn = 'ai'; ctx.msg(T(`${ctx.n.name}想一想…`, `${ctx.n.name} is thinking…`));
+      ctx.later(() => {
+        if (over) return;
+        const mine = board.map((p, i) => (p && p.up && p.side === ai ? i : -1)).filter((i) => i >= 0);
+        const all = mine.flatMap((i) => movesOf(i).map(([j, eat]) => ({ i, j, eat })));
+        const danger = (j, p) => board.some((q, k) => q && q.up && q.side === me && (k !== j) && movesOf(k).some(([t, e]) => t === j && e) && canEat(q, p));
+        const eats = all.filter((m) => m.eat).sort((a, b) => rank(board[b.j]) - rank(board[a.j]));
+        const downs = board.map((p, i) => (p && !p.up ? i : -1)).filter((i) => i >= 0);
+        let text = '';
+        if (eats.length && Math.random() < 0.85) {                         // 能吃就吃（偶爾會漏看）
+          const m = eats[0], q = board[m.j]; doMove(m.i, m.j); text = T(`${ctx.n.name}用${nameOf(board[m.j])}吃掉你的${nameOf(q)}！`, `${ctx.n.name} captured your ${nameOf(q)}!`);
+        } else {
+          const threatened = mine.filter((i) => board.some((q, k) => q && q.up && q.side === me && movesOf(k).some(([t, e]) => t === i && e)));
+          const escape = threatened.flatMap((i) => movesOf(i).filter(([j, e]) => !e).map(([j]) => ({ i, j }))).find((m) => !danger(m.j, board[m.i]));
+          if (escape && Math.random() < 0.7) { doMove(escape.i, escape.j); text = T(`${ctx.n.name}把${nameOf(board[escape.j])}移開了`, `${ctx.n.name} moved away`); }
+          else if (downs.length && (Math.random() < 0.75 || !all.length)) { const i = downs[Math.random() * downs.length | 0]; board[i].up = true; quiet++; text = T(`${ctx.n.name}翻開一顆：${nameOf(board[i])}`, `${ctx.n.name} flipped ${nameOf(board[i])}`); }
+          else if (all.length) { const safe = all.filter((m) => !m.eat && !danger(m.j, board[m.i])); const m = (safe.length ? safe : all)[Math.random() * (safe.length || all.length) | 0]; doMove(m.i, m.j); text = T(`${ctx.n.name}走了一步`, `${ctx.n.name} moved`); }
+        }
+        turn = 'me'; draw();
+        if (!finishCheck()) ctx.msg(`${text}${T('　換你了！', '　Your turn!')}`);
+      }, 800);
+    };
+    const click = (i) => {
+      if (over || turn !== 'me') return;
+      const p = board[i];
+      if (sel >= 0) {
+        const mv = movesOf(sel).find(([j]) => j === i);
+        if (mv) {
+          const q = board[i], eat = doMove(sel, i); sel = -1; draw();
+          if (eat) { ctx.face('surprised', 1); ctx.msg(T(`吃掉了${nameOf(q)}！`, `Captured ${nameOf(q)}!`), 'ok'); }
+          if (!finishCheck()) aiTurn();
+          return;
+        }
+        sel = -1;
+      }
+      if (p && !p.up) {                                                    // 翻棋
+        p.up = true; quiet++;
+        if (!me) { me = p.side; ai = me === 'r' ? 'b' : 'r'; ctx.msg(T(`翻到${nameOf(p)}，你是${sideName(me)}！`, `You flipped ${nameOf(p)}. You are ${sideName(me)}!`), 'ok'); }
+        draw(); if (!finishCheck()) aiTurn();
+        return;
+      }
+      if (p && p.up && p.side === me) { sel = i; draw(); ctx.msg(movesOf(i).length ? T('選一個亮起來的格子', 'Pick a highlighted square') : T('這顆現在不能走', "This piece can't move now")); return; }
+      draw();
+    };
+    ctx.ask(T('翻棋子或走一步；大吃小，兵可以吃帥，炮要隔一顆才能吃', 'Flip or move one step. Bigger beats smaller; soldiers beat the general; cannons jump to capture'));
+    ctx.msg(T(`${ctx.n.name}：你先翻一顆！`, `${ctx.n.name}: You flip first!`));
+    draw();
+  },
+};
+
+/* ---- 熱縮片（小米老師，月亮班）：選一張圖案，用顏色把每一塊塗滿，放進烤箱縮小變成吊飾 ---- */
+const SHRINK_TPL = (() => {
+  const P = (f) => { const p = new Path2D(); f(p); return p; };
+  const star = (cx, cy, R1, R2) => P((p) => { for (let i = 0; i < 10; i++) { const r = i % 2 ? R2 : R1, a = -Math.PI / 2 + i * Math.PI / 5; p[i ? 'lineTo' : 'moveTo'](cx + r * Math.cos(a), cy + r * Math.sin(a)); } p.closePath(); });
+  return [
+    { n: ['星星', 'Star'], e: '⭐', regions: [star(100, 105, 85, 36), P((p) => p.arc(100, 105, 22, 0, 7))] },
+    { n: ['愛心', 'Heart'], e: '❤️', regions: [
+      P((p) => { p.moveTo(100, 60); p.bezierCurveTo(85, 25, 25, 30, 30, 85); p.bezierCurveTo(35, 125, 80, 150, 100, 175); p.closePath(); }),
+      P((p) => { p.moveTo(100, 60); p.bezierCurveTo(115, 25, 175, 30, 170, 85); p.bezierCurveTo(165, 125, 120, 150, 100, 175); p.closePath(); }) ] },
+    { n: ['小貓', 'Kitty'], e: '🐱', regions: [
+      P((p) => { p.moveTo(42, 70); p.lineTo(55, 18); p.lineTo(85, 52); p.closePath(); }), P((p) => { p.moveTo(158, 70); p.lineTo(145, 18); p.lineTo(115, 52); p.closePath(); }),
+      P((p) => p.ellipse(100, 108, 70, 62, 0, 0, 7)), P((p) => { p.moveTo(92, 112); p.lineTo(108, 112); p.lineTo(100, 122); p.closePath(); }) ] },
+    { n: ['小魚', 'Fish'], e: '🐟', regions: [
+      P((p) => { p.moveTo(150, 100); p.lineTo(190, 65); p.lineTo(190, 135); p.closePath(); }), P((p) => p.ellipse(92, 100, 70, 45, 0, 0, 7)), P((p) => p.arc(62, 92, 9, 0, 7)) ] },
+  ];
+})();
+const SHRINK_COLS = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#f48fb1', '#6d4c41'];
+const KG_SHRINK = {
+  key: 'campus-kg-shrink-count', title: ['🔥 熱縮片', '🔥 Shrink Art'], label: ['🔥 做熱縮片中…', '🔥 Making shrink art…'],
+  bye: (n) => T(`🔥 下次再來找${n.name}做熱縮片！`, `🔥 Come back to make shrink art with ${n.name}!`),
+  start(ctx) {
+    let tpl = null, fills = [], color = SHRINK_COLS[0], bake = -1;
+    const cv = kgCanvas(ctx, 200, 200), c = cv.getContext('2d');
+    const paint = (k = 1, curl = 0) => {
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.fillStyle = bake >= 0 ? `rgba(255,${160 + 60 * k | 0},90,1)` : '#fbfbf8'; c.fillRect(0, 0, 200, 200);
+      if (!tpl) return;
+      c.setTransform(k, 0, 0, k * (1 - curl), 100 * (1 - k), 100 * (1 - k * (1 - curl)));
+      c.fillStyle = 'rgba(255,255,255,.75)'; c.beginPath(); c.arc(100, 22, 14, 0, 7); c.fill();       // 打洞的地方
+      tpl.regions.forEach((r, i) => { c.fillStyle = fills[i] || 'rgba(255,255,255,.6)'; c.fill(r); c.lineWidth = 3 / Math.max(k, 0.5); c.strokeStyle = '#333'; c.stroke(r); });
+      c.strokeStyle = '#999'; c.lineWidth = 2; c.beginPath(); c.arc(100, 22, 6, 0, 7); c.stroke();
+    };
+    const palette = () => ctx.buttons([
+      ...SHRINK_COLS.map((col) => ({ html: `<span class="dot" style="background:${col}"></span>`, cls: col === color ? 'on' : '', on: () => { color = col; palette(); } })),
+      { html: T('🔥 烤', '🔥 Bake'), cls: 'wide', on: startBake },
+    ]);
+    const startBake = () => {
+      if (fills.filter(Boolean).length < tpl.regions.length) return ctx.msg(T('還有地方沒塗到喔，每一塊都塗上顏色！', 'Some parts are still blank. Color every part!'), 'no');
+      ctx.buttons([]); bake = 0; ctx.ask(T('🔥 放進烤箱…看它慢慢縮小、變厚！', '🔥 Into the oven… watch it shrink and get thicker!')); ctx.msg('');
+    };
+    cv.onclick = (e) => {
+      if (!tpl || bake >= 0) return;
+      const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * 200 / r.width, y = (e.clientY - r.top) * 200 / r.height;
+      for (let i = tpl.regions.length - 1; i >= 0; i--) if (c.isPointInPath(tpl.regions[i], x, y)) { fills[i] = color; paint(); return; }
+    };
+    ctx.tick = (dt) => {
+      if (bake < 0) return;
+      bake += dt;
+      const t = Math.min(1, bake / 2.4), k = 1 - 0.55 * t, curl = Math.sin(t * Math.PI) * 0.35;   // 先捲起來再攤平
+      paint(k, curl);
+      if (t >= 1 && bake < 100) {
+        bake = 100; ctx.face('happy', 2);
+        c.setTransform(1, 0, 0, 1, 0, 0); c.strokeStyle = '#b0b4b8'; c.lineWidth = 3;               // 鑰匙圈
+        c.beginPath(); c.arc(100, 22, 13, 0, 7); c.stroke(); c.beginPath(); c.moveTo(100, 9); c.lineTo(100, 0); c.stroke();
+        ctx.ask(T(`${tpl.e} ${tpl.n[0]}吊飾完成了！變得小小的、硬硬的`, `${tpl.e} Your ${tpl.n[1].toLowerCase()} charm is done! Small and hard now`));
+        ctx.msg(T('剛烤好很燙，要等它涼了再摸喔！', "It's hot from the oven. Wait until it cools down!"), 'ok');
+        ctx.later(() => ctx.end(ctx.best + 1, (b) => `${T(`🔥 做好${tpl.n[0]}熱縮片吊飾！（已經做了 ${b} 個）`, `🔥 ${tpl.n[1]} charm done! (${b} made)`)}<br>${ctx.n.name}：好漂亮！可以掛在書包上喔～`), 2200);
+      }
+    };
+    ctx.ask(T('選一張圖案', 'Pick a design'));
+    ctx.msg(T('慢慢塗，不要塗出線外喔～', 'Color slowly and stay inside the lines~'));
+    paint();
+    ctx.buttons(SHRINK_TPL.map((t) => ({ html: `${t.e}<small>${T(...t.n)}</small>`, on: () => {
+      tpl = t; fills = []; paint(); palette();
+      ctx.ask(T(`先選顏色，再點${t.n[0]}的每一塊塗上去，塗滿再按「烤」`, `Pick a color, then tap each part of the ${t.n[1].toLowerCase()}. Bake when it's all colored`));
+    } })));
+  },
+};
+
+/* ---- 紙娃娃換裝（禎禎老師，太陽班）：看今天的天氣幫紙娃娃換衣服（髮型、上衣、下身、鞋子、配件，每樣都可以換顏色），穿好按「完成」 ---- */
+const DOLL = {
+  hair: [['短髮', 'Short'], ['長髮', 'Long'], ['馬尾', 'Ponytail'], ['包包頭', 'Bun']],
+  top: [['T 恤', 'T-shirt'], ['條紋毛衣', 'Sweater'], ['外套', 'Jacket'], ['洋裝', 'Dress']],
+  bottom: [['長褲', 'Pants'], ['裙子', 'Skirt'], ['短褲', 'Shorts']],
+  shoes: [['布鞋', 'Sneakers'], ['雨鞋', 'Rain boots'], ['涼鞋', 'Sandals']],
+  acc: [['不戴', 'None'], ['帽子', 'Hat'], ['蝴蝶結', 'Bow'], ['雨傘', 'Umbrella']],
+};
+const DOLL_COLS = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#f48fb1', '#5d4037', '#212121', '#f5f5f5'];
+const DOLL_WEATHER = [
+  { k: 'sun', e: '☀️', n: ['大晴天', 'sunny'], ok: (d) => d.acc === 1, tip: ['太陽很大，戴頂帽子更好喔！', 'The sun is strong. A hat would be great!'] },
+  { k: 'rain', e: '🌧️', n: ['下雨天', 'rainy'], ok: (d) => d.shoes === 1 || d.acc === 3, tip: ['下雨了，穿雨鞋或帶雨傘才不會淋濕喔！', "It's raining. Rain boots or an umbrella will keep you dry!"] },
+  { k: 'cold', e: '🥶', n: ['冷冷的天', 'cold'], ok: (d) => (d.top === 1 || d.top === 2) && d.bottom === 0, tip: ['天氣涼涼的，要穿毛衣或外套、長褲喔！', "It's chilly. Wear a sweater or jacket and long pants!"] },
+];
+const KG_DOLL = {
+  key: 'campus-kg-doll-count', title: ['🎀 紙娃娃換裝', '🎀 Paper Doll'], label: ['🎀 幫紙娃娃換衣服…', '🎀 Dressing the doll…'],
+  bye: (n) => T(`🎀 下次再來找${n.name}玩紙娃娃！`, `🎀 Come back to play paper dolls with ${n.name}!`),
+  start(ctx) {
+    const wx = DOLL_WEATHER[Math.random() * DOLL_WEATHER.length | 0];
+    const d = { hair: 0, top: 0, bottom: 0, shoes: 0, acc: 0 }, col = { hair: 7, top: 0, bottom: 4, shoes: 9, acc: 6 };
+    let cur = 'top';
+    const cv = kgCanvas(ctx, 200, 240), c = cv.getContext('2d');
+    const C = (k) => DOLL_COLS[col[k]];
+    const R = (x, y, w, h, f) => { c.fillStyle = f; c.fillRect(x, y, w, h); c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 1.5; c.strokeRect(x, y, w, h); };
+    const draw = () => {
+      c.fillStyle = wx.k === 'rain' ? '#dfe7ee' : wx.k === 'cold' ? '#e6f0fa' : '#fff7d6'; c.fillRect(0, 0, 200, 240);
+      c.font = '22px sans-serif'; c.fillText(wx.e, 8, 28);
+      if (wx.k === 'rain') { c.strokeStyle = '#8fb3d0'; c.lineWidth = 2; for (let i = 0; i < 14; i++) { const x = (i * 37) % 200, y = (i * 53) % 220; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 4, y + 10); c.stroke(); } }
+      const skin = '#f2d2bc', hc = C('hair');
+      if (d.hair === 1) R(72, 30, 56, 70, hc);                                               // 長髮在頭後面
+      if (d.hair === 2) R(124, 40, 12, 40, hc);
+      // 腿、鞋子
+      R(84, 150, 13, 62, skin); R(103, 150, 13, 62, skin);
+      const sh = C('shoes');
+      if (d.shoes === 1) { R(80, 188, 18, 30, sh); R(102, 188, 18, 30, sh); } else if (d.shoes === 2) { R(80, 210, 19, 6, sh); R(101, 210, 19, 6, sh); } else { R(80, 206, 19, 12, sh); R(101, 206, 19, 12, sh); R(80, 214, 19, 4, '#fff'); R(101, 214, 19, 4, '#fff'); }
+      // 下身（穿洋裝就不用）
+      const bc = C('bottom');
+      if (d.top !== 3) { if (d.bottom === 0) { R(82, 140, 17, 58, bc); R(101, 140, 17, 58, bc); } else if (d.bottom === 1) R(76, 140, 48, 34, bc); else { R(82, 140, 17, 22, bc); R(101, 140, 17, 22, bc); } }
+      // 手臂、上衣
+      const tc = C('top'), longS = d.top === 1 || d.top === 2;
+      R(62, 92, 13, longS ? 52 : 22, longS ? tc : tc); R(125, 92, 13, longS ? 52 : 22, tc);
+      if (!longS) { R(62, 114, 13, 30, skin); R(125, 114, 13, 30, skin); }
+      if (d.top === 3) { c.fillStyle = tc; c.beginPath(); c.moveTo(78, 90); c.lineTo(122, 90); c.lineTo(134, 175); c.lineTo(66, 175); c.closePath(); c.fill(); c.stroke(); }
+      else R(74, 90, 52, 54, tc);
+      if (d.top === 1) for (const y of [104, 118, 132]) R(74, y, 52, 4, '#222');
+      if (d.top === 2) { R(98, 90, 4, 54, '#ccc'); for (const y of [104, 120]) R(104, y, 4, 4, '#ddd'); }
+      // 頭、臉
+      R(80, 46, 40, 44, skin);
+      c.fillStyle = '#222'; c.fillRect(89, 64, 5, 5); c.fillRect(106, 64, 5, 5); c.fillStyle = '#d06a6a'; c.fillRect(95, 78, 10, 3);
+      R(78, 40, 44, 12, hc); if (d.hair !== 0) R(76, 40, 6, 30, hc), R(118, 40, 6, 30, hc);
+      if (d.hair === 3) R(92, 26, 16, 16, hc);
+      // 配件
+      const ac = C('acc');
+      if (d.acc === 1) { R(70, 36, 60, 8, ac); R(82, 22, 36, 16, ac); }
+      if (d.acc === 2) { c.fillStyle = ac; c.beginPath(); c.moveTo(118, 42); c.lineTo(132, 34); c.lineTo(132, 50); c.closePath(); c.moveTo(118, 42); c.lineTo(104, 34); c.lineTo(104, 50); c.closePath(); c.fill(); }
+      if (d.acc === 3) { c.fillStyle = ac; c.beginPath(); c.arc(160, 80, 30, Math.PI, 0); c.fill(); R(159, 80, 3, 62, '#555'); }
+    };
+    const label = (k) => T(...DOLL[k][d[k]]);
+    const menu = () => ctx.buttons([
+      ...[['hair', '💇'], ['top', '👕'], ['bottom', '👖'], ['shoes', '👟'], ['acc', '🎀']].map(([k, e]) => ({ html: `${e}<small>${label(k)}</small>`, cls: k === cur ? 'on' : '',
+        on: () => { if (cur === k) d[k] = (d[k] + 1) % DOLL[k].length; cur = k; draw(); menu(); } })),
+      { html: T('🎨<small>換顏色</small>', '🎨<small>Color</small>'), on: () => { col[cur] = (col[cur] + 1) % DOLL_COLS.length; draw(); } },
+      { html: T('📸<small>完成</small>', '📸<small>Done</small>'), on: () => {
+        ctx.buttons([]); const good = wx.ok(d); ctx.face('happy', 2);
+        ctx.msg(good ? T(`✅ 穿得好適合${wx.n[0]}！`, `✅ Perfect for a ${wx.n[1]} day!`) : `💡 ${T(...wx.tip)}`, good ? 'ok' : '');
+        ctx.ask(T('📸 喀嚓！拍一張漂亮的照片', '📸 Click! A lovely photo'));
+        ctx.later(() => ctx.end(ctx.best + 1, (b) => `${T(`🎀 紙娃娃換好衣服了！（已經換了 ${b} 套）`, `🎀 The doll is dressed! (${b} outfits)`)}<br>${ctx.n.name}：${good ? T('你好會搭配，還會看天氣穿衣服！', 'Great match, and right for the weather!') : T(...wx.tip)}`), 2000);
+      } },
+    ]);
+    ctx.ask(T(`今天是${wx.e}${wx.n[0]}，幫紙娃娃換衣服！`, `It's a ${wx.e} ${wx.n[1]} day. Dress the paper doll!`));
+    ctx.msg(T('點一下選要換的部位，再點一次換樣式；🎨 換顏色', 'Tap a part to choose it, tap again to change style; 🎨 changes color'));
+    draw(); menu();
+  },
+};
+
+/* ---- 影子配對（球球老師，彩虹班）：看黑黑的影子，猜是哪一個；一回 5 題 ---- */
+const SHADOW_ITEMS = ['🐘', '🦒', '🐇', '🐢', '🐟', '🦋', '🐓', '🐈', '🦆', '🐌', '🚲', '✈️', '🚗', '🎸', '☂️', '🍎', '🍌', '🍐', '🏠', '🌳', '⭐', '🔑', '✂️', '⚽', '🎈', '🍦', '🧸', '🦕'];
+function shadowImage(emo) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 120;
+  const c = cv.getContext('2d');
+  c.font = '92px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(emo, 60, 66);
+  c.globalCompositeOperation = 'source-in'; c.fillStyle = '#1d1d24'; c.fillRect(0, 0, 120, 120);   // 只留形狀，塗成黑影
+  return cv.toDataURL();
+}
+const KG_SHADOW = {
+  key: 'campus-kg-shadow-best', title: ['🔦 影子配對', '🔦 Shadow Match'], label: ['🔦 影子配對中…', '🔦 Matching shadows…'],
+  bye: (n) => T(`🔦 下次再來找${n.name}猜影子！`, `🔦 Come back to match shadows with ${n.name}!`),
+  start(ctx) {
+    const qs = kgShuffle(SHADOW_ITEMS.slice()).slice(0, 5);
+    let i = 0, right = 0, tries = 0;
+    const ask = () => {
+      tries = 0;
+      const ans = qs[i], opts = kgShuffle([ans, ...kgShuffle(SHADOW_ITEMS.filter((e) => e !== ans)).slice(0, 2)]);
+      ctx.stage.innerHTML = `<img class="shadow" alt="" src="${shadowImage(ans)}">`;
+      ctx.prog(T(`第 ${i + 1} / 5 題`, `${i + 1} / 5`));
+      ctx.ask(T('這是誰的影子？', 'Whose shadow is this?'));
+      ctx.msg(T('看看形狀，耳朵、尾巴、輪子在哪裡？', 'Look at the shape. Where are the ears, tail or wheels?'));
+      ctx.buttons(opts.map((e, j) => ({ html: `${e}<small>${j + 1}</small>`, on: (el) => {
+        tries++;
+        if (e !== ans) { el.disabled = true; el.className = 'wrong'; ctx.face('surprised', 1); return ctx.msg(T('形狀不太一樣喔，再看一次！', "The shape doesn't match. Look again!"), 'no'); }
+        el.className = 'right'; ctx.btnEls.forEach((b) => (b.disabled = true));
+        if (tries === 1) right++;
+        ctx.stage.innerHTML = `<span class="reveal">${ans}</span>`; ctx.face('happy');
+        ctx.msg(T('✅ 答對了！影子就是它！', "✅ That's right! It's the shadow's owner!"), 'ok');
+        ctx.later(() => (++i < 5 ? ask() : ctx.end(right, (b) => `${T(`🔦 一次就猜對 ${right} / 5 題（最好紀錄 ${b} 題）`, `🔦 ${right} / 5 right on the first try (best ${b})`)}<br>${ctx.n.name}：你的眼睛好厲害！`)), 1300);
+      } })));
+    };
+    ask();
   },
 };
 
@@ -7771,6 +8194,10 @@ const GAME_INFO = {
   cubes: [['空間方塊', 'Block Count'], 'campus-kg-cubes-best', ans], beads: [['串珠遊戲', 'Bead Patterns'], 'campus-kg-beads-best', ans],
   fold: [['摺紙遊戲', 'Origami'], 'campus-kg-fold-best', (v) => T(`一次就選對 ${v} 步`, `${v} steps right`)],
   cook: [['炒菜遊戲', 'Cooking'], 'campus-kg-cook-best', (v) => T(`做對 ${v} 道菜`, `${v} perfect dishes`)],
+  darkchess: [['暗棋', 'Dark Chess'], 'campus-kg-darkchess-wins', win],
+  shrink: [['熱縮片', 'Shrink Art'], 'campus-kg-shrink-count', (v) => T(`做了 ${v} 個`, `${v} made`)],
+  doll: [['紙娃娃換裝', 'Paper Doll'], 'campus-kg-doll-count', (v) => T(`換了 ${v} 套`, `${v} outfits`)],
+  shadow: [['影子配對', 'Shadow Match'], 'campus-kg-shadow-best', ans],
 };
 // 小遊戲清單：照老師整理，同一個遊戲、同一份紀錄的老師合成一列（例如兩位老師都能打羽球）
 function passGames() {
