@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=247';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=247';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=247';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=247';
-import { buildCampusWall } from './wall.js?v=247';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=247';
+import { PanoViewer } from './pano.js?v=248';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=248';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=248';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=248';
+import { buildCampusWall } from './wall.js?v=248';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=248';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4075,8 +4075,8 @@ const NPCS = [
     },
   },
   {
-    name: '禎禎老師', title: '太陽班老師', game: 'doll',
-    hello: ['☀️ 禎禎老師：早安！記得跟爸爸媽媽說再見了嗎？', '🧥 禎禎老師：天氣變涼了，出去玩要穿外套喔！', '🍱 禎禎老師：吃飯要細嚼慢嚥，吃完再去玩～', '🎀 禎禎老師：要不要來幫紙娃娃換衣服？'],
+    name: '禎禎老師', title: '太陽班老師', game: 'bugs',
+    hello: ['☀️ 禎禎老師：早安！記得跟爸爸媽媽說再見了嗎？', '🧥 禎禎老師：天氣變涼了，出去玩要穿外套喔！', '🍱 禎禎老師：吃飯要細嚼慢嚥，吃完再去玩～', '🔍 禎禎老師：拿起放大鏡，草叢裡藏著什麼小昆蟲呢？'],
     // 1F 幼兒園太陽班：站在後面（北牆）綠色布告欄前、面向教室，跟前面的小粉老師分開
     places: [{ floor: '1F', where: '太陽班', game: true, at: () => { const r = rooms.find((x) => x.name === '太陽班'); return [r.cx - 0.6, r.m.z1 + 1.42, Math.PI]; } }],
     look: {
@@ -4401,7 +4401,7 @@ function updateAct(dt) {
     : sp.kind === 'blocks' ? T('🧩 玩電子積木 <kbd>F</kbd>', '🧩 Electronic blocks <kbd>F</kbd>')
     : sp.kind === 'darkchess' ? T(`♟️ 跟${sp.npc.name}下暗棋 <kbd>F</kbd>`, `♟️ Dark chess with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'shrink' ? T(`🔥 跟${sp.npc.name}做熱縮片 <kbd>F</kbd>`, `🔥 Shrink art with ${sp.npc.name} <kbd>F</kbd>`)
-    : sp.kind === 'doll' ? T(`🎀 跟${sp.npc.name}玩紙娃娃 <kbd>F</kbd>`, `🎀 Paper doll with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'bugs' ? T(`🔍 跟${sp.npc.name}玩昆蟲放大鏡 <kbd>F</kbd>`, `🔍 Bug Magnifier with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'shadow' ? T(`🔦 跟${sp.npc.name}玩影子配對 <kbd>F</kbd>`, `🔦 Shadow match with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'stack' ? T(`🐘 跟${sp.npc.name}玩動物疊疊樂 <kbd>F</kbd>`, `🐘 Animal stacking with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'cubes' ? T(`🧊 跟${sp.npc.name}玩空間方塊 <kbd>F</kbd>`, `🧊 Block counting with ${sp.npc.name} <kbd>F</kbd>`)
@@ -6475,7 +6475,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get doll() { return KG_DOLL; }, get shadow() { return KG_SHADOW; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get shadow() { return KG_SHADOW; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -6942,78 +6942,94 @@ const KG_SHRINK = {
   },
 };
 
-/* ---- 紙娃娃換裝（禎禎老師，太陽班）：看今天的天氣幫紙娃娃換衣服（髮型、上衣、下身、鞋子、配件，每樣都可以換顏色），穿好按「完成」 ---- */
-const DOLL = {
-  hair: [['短髮', 'Short'], ['長髮', 'Long'], ['馬尾', 'Ponytail'], ['包包頭', 'Bun']],
-  top: [['T 恤', 'T-shirt'], ['條紋毛衣', 'Sweater'], ['外套', 'Jacket'], ['洋裝', 'Dress']],
-  bottom: [['長褲', 'Pants'], ['裙子', 'Skirt'], ['短褲', 'Shorts']],
-  shoes: [['布鞋', 'Sneakers'], ['雨鞋', 'Rain boots'], ['涼鞋', 'Sandals']],
-  acc: [['不戴', 'None'], ['帽子', 'Hat'], ['蝴蝶結', 'Bow'], ['雨傘', 'Umbrella']],
-};
-const DOLL_COLS = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#f48fb1', '#5d4037', '#212121', '#f5f5f5'];
-const DOLL_WEATHER = [
-  { k: 'sun', e: '☀️', n: ['大晴天', 'sunny'], ok: (d) => d.acc === 1, tip: ['太陽很大，戴頂帽子更好喔！', 'The sun is strong. A hat would be great!'] },
-  { k: 'rain', e: '🌧️', n: ['下雨天', 'rainy'], ok: (d) => d.shoes === 1 || d.acc === 3, tip: ['下雨了，穿雨鞋或帶雨傘才不會淋濕喔！', "It's raining. Rain boots or an umbrella will keep you dry!"] },
-  { k: 'cold', e: '🥶', n: ['冷冷的天', 'cold'], ok: (d) => (d.top === 1 || d.top === 2) && d.bottom === 0, tip: ['天氣涼涼的，要穿毛衣或外套、長褲喔！', "It's chilly. Wear a sweater or jacket and long pants!"] },
+/* ---- 昆蟲放大鏡（禎禎老師，太陽班）：草叢裡藏著 5 隻小昆蟲（小小的、被草擋住、會動），
+   用滑鼠／手指拖曳放大鏡（鍵盤用方向鍵），放大鏡裡會放大看清楚；在放大鏡裡點昆蟲（或按 F）就解鎖牠的生態小檔案 ---- */
+const BUGS = [
+  { e: '🐞', n: ['瓢蟲', 'Ladybug'], f: ['背上有圓圓的點點，會吃蚜蟲，是農夫的好朋友。', 'Spots on its back! It eats aphids and helps farmers.'] },
+  { e: '🦋', n: ['蝴蝶', 'Butterfly'], f: ['用長長捲捲的嘴巴吸花蜜，翅膀上有好多小鱗片。', 'It sips nectar with a long curly mouth. Its wings are covered in tiny scales.'] },
+  { e: '🐜', n: ['螞蟻', 'Ant'], f: ['力氣好大，可以搬比自己重很多的東西，喜歡大家住在一起。', 'Super strong! It carries things much heavier than itself and lives in a big family.'] },
+  { e: '🐝', n: ['蜜蜂', 'Bee'], f: ['幫花朵傳花粉，還會做甜甜的蜂蜜。', 'It carries pollen between flowers and makes sweet honey.'] },
+  { e: '🦗', n: ['蟋蟀', 'Cricket'], f: ['用翅膀摩擦發出「唧唧」的聲音，後腳很會跳。', 'It rubs its wings to chirp, and its back legs are great jumpers.'] },
+  { e: '🐛', n: ['毛毛蟲', 'Caterpillar'], f: ['吃好多好多葉子，長大以後會變成蝴蝶或蛾。', 'It eats lots of leaves and grows up into a butterfly or moth.'] },
+  { e: '🪲', n: ['甲蟲', 'Beetle'], f: ['身體有一層硬硬的殼，像穿了盔甲一樣。', 'It has a hard shell, like wearing armor.'] },
 ];
-const KG_DOLL = {
-  key: 'campus-kg-doll-count', title: ['🎀 紙娃娃換裝', '🎀 Paper Doll'], label: ['🎀 幫紙娃娃換衣服…', '🎀 Dressing the doll…'],
-  bye: (n) => T(`🎀 下次再來找${n.name}玩紙娃娃！`, `🎀 Come back to play paper dolls with ${n.name}!`),
+const KG_BUGS = {
+  key: 'campus-kg-bugs-count', title: ['🔍 昆蟲放大鏡', '🔍 Bug Magnifier'], label: ['🔍 找昆蟲中…', '🔍 Looking for bugs…'],
+  bye: (n) => T(`🔍 下次再來找${n.name}找昆蟲！`, `🔍 Come back to look for bugs with ${n.name}!`),
   start(ctx) {
-    const wx = DOLL_WEATHER[Math.random() * DOLL_WEATHER.length | 0];
-    const d = { hair: 0, top: 0, bottom: 0, shoes: 0, acc: 0 }, col = { hair: 7, top: 0, bottom: 4, shoes: 9, acc: 6 };
-    let cur = 'top';
-    const cv = kgCanvas(ctx, 200, 240), c = cv.getContext('2d');
-    const C = (k) => DOLL_COLS[col[k]];
-    const R = (x, y, w, h, f) => { c.fillStyle = f; c.fillRect(x, y, w, h); c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 1.5; c.strokeRect(x, y, w, h); };
-    const draw = () => {
-      c.fillStyle = wx.k === 'rain' ? '#dfe7ee' : wx.k === 'cold' ? '#e6f0fa' : '#fff7d6'; c.fillRect(0, 0, 200, 240);
-      c.font = '22px sans-serif'; c.fillText(wx.e, 8, 28);
-      if (wx.k === 'rain') { c.strokeStyle = '#8fb3d0'; c.lineWidth = 2; for (let i = 0; i < 14; i++) { const x = (i * 37) % 200, y = (i * 53) % 220; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 4, y + 10); c.stroke(); } }
-      const skin = '#f2d2bc', hc = C('hair');
-      if (d.hair === 1) R(72, 30, 56, 70, hc);                                               // 長髮在頭後面
-      if (d.hair === 2) R(124, 40, 12, 40, hc);
-      // 腿、鞋子
-      R(84, 150, 13, 62, skin); R(103, 150, 13, 62, skin);
-      const sh = C('shoes');
-      if (d.shoes === 1) { R(80, 188, 18, 30, sh); R(102, 188, 18, 30, sh); } else if (d.shoes === 2) { R(80, 210, 19, 6, sh); R(101, 210, 19, 6, sh); } else { R(80, 206, 19, 12, sh); R(101, 206, 19, 12, sh); R(80, 214, 19, 4, '#fff'); R(101, 214, 19, 4, '#fff'); }
-      // 下身（穿洋裝就不用）
-      const bc = C('bottom');
-      if (d.top !== 3) { if (d.bottom === 0) { R(82, 140, 17, 58, bc); R(101, 140, 17, 58, bc); } else if (d.bottom === 1) R(76, 140, 48, 34, bc); else { R(82, 140, 17, 22, bc); R(101, 140, 17, 22, bc); } }
-      // 手臂、上衣
-      const tc = C('top'), longS = d.top === 1 || d.top === 2;
-      R(62, 92, 13, longS ? 52 : 22, longS ? tc : tc); R(125, 92, 13, longS ? 52 : 22, tc);
-      if (!longS) { R(62, 114, 13, 30, skin); R(125, 114, 13, 30, skin); }
-      if (d.top === 3) { c.fillStyle = tc; c.beginPath(); c.moveTo(78, 90); c.lineTo(122, 90); c.lineTo(134, 175); c.lineTo(66, 175); c.closePath(); c.fill(); c.stroke(); }
-      else R(74, 90, 52, 54, tc);
-      if (d.top === 1) for (const y of [104, 118, 132]) R(74, y, 52, 4, '#222');
-      if (d.top === 2) { R(98, 90, 4, 54, '#ccc'); for (const y of [104, 120]) R(104, y, 4, 4, '#ddd'); }
-      // 頭、臉
-      R(80, 46, 40, 44, skin);
-      c.fillStyle = '#222'; c.fillRect(89, 64, 5, 5); c.fillRect(106, 64, 5, 5); c.fillStyle = '#d06a6a'; c.fillRect(95, 78, 10, 3);
-      R(78, 40, 44, 12, hc); if (d.hair !== 0) R(76, 40, 6, 30, hc), R(118, 40, 6, 30, hc);
-      if (d.hair === 3) R(92, 26, 16, 16, hc);
-      // 配件
-      const ac = C('acc');
-      if (d.acc === 1) { R(70, 36, 60, 8, ac); R(82, 22, 36, 16, ac); }
-      if (d.acc === 2) { c.fillStyle = ac; c.beginPath(); c.moveTo(118, 42); c.lineTo(132, 34); c.lineTo(132, 50); c.closePath(); c.moveTo(118, 42); c.lineTo(104, 34); c.lineTo(104, 50); c.closePath(); c.fill(); }
-      if (d.acc === 3) { c.fillStyle = ac; c.beginPath(); c.arc(160, 80, 30, Math.PI, 0); c.fill(); R(159, 80, 3, 62, '#555'); }
+    const W = 300, H = 220, LR = 44, Z = 2.6;                              // 放大鏡半徑、放大倍數
+    const cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    cv.style.touchAction = 'none'; cv.style.cursor = 'none';
+    let seed = Math.random() * 1e6 | 0;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    // 草叢分兩層：後面（底色＋草）、前面（擋在昆蟲前面的草葉）
+    const layer = (front) => {
+      const L = document.createElement('canvas'); L.width = W; L.height = H; const g = L.getContext('2d');
+      if (!front) { const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#9fd27a'); gr.addColorStop(1, '#4f8f3a'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
+      for (let i = 0; i < (front ? 150 : 110); i++) {
+        const x = rnd() * W, y = H * (0.15 + rnd() * 0.95), h = 18 + rnd() * 40, lean = (rnd() - 0.5) * 18;
+        g.strokeStyle = ['#2f6b2a', '#3e8a33', '#5aa83f', '#6fbf4a'][i % 4]; g.lineWidth = 2 + rnd() * 3; g.lineCap = 'round';
+        g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + lean * 0.3, y - h * 0.6, x + lean, y - h); g.stroke();
+      }
+      if (!front) for (let i = 0; i < 10; i++) { g.fillStyle = ['#fff6a8', '#ffffff', '#f7b0d0'][i % 3]; g.beginPath(); g.arc(rnd() * W, rnd() * H, 2.5, 0, 7); g.fill(); }   // 小花
+      return L;
     };
-    const label = (k) => T(...DOLL[k][d[k]]);
-    const menu = () => ctx.buttons([
-      ...[['hair', '💇'], ['top', '👕'], ['bottom', '👖'], ['shoes', '👟'], ['acc', '🎀']].map(([k, e]) => ({ html: `${e}<small>${label(k)}</small>`, cls: k === cur ? 'on' : '',
-        on: () => { if (cur === k) d[k] = (d[k] + 1) % DOLL[k].length; cur = k; draw(); menu(); } })),
-      { html: T('🎨<small>換顏色</small>', '🎨<small>Color</small>'), on: () => { col[cur] = (col[cur] + 1) % DOLL_COLS.length; draw(); } },
-      { html: T('📸<small>完成</small>', '📸<small>Done</small>'), on: () => {
-        ctx.buttons([]); const good = wx.ok(d); ctx.face('happy', 2);
-        ctx.msg(good ? T(`✅ 穿得好適合${wx.n[0]}！`, `✅ Perfect for a ${wx.n[1]} day!`) : `💡 ${T(...wx.tip)}`, good ? 'ok' : '');
-        ctx.ask(T('📸 喀嚓！拍一張漂亮的照片', '📸 Click! A lovely photo'));
-        ctx.later(() => ctx.end(ctx.best + 1, (b) => `${T(`🎀 紙娃娃換好衣服了！（已經換了 ${b} 套）`, `🎀 The doll is dressed! (${b} outfits)`)}<br>${ctx.n.name}：${good ? T('你好會搭配，還會看天氣穿衣服！', 'Great match, and right for the weather!') : T(...wx.tip)}`), 2000);
-      } },
-    ]);
-    ctx.ask(T(`今天是${wx.e}${wx.n[0]}，幫紙娃娃換衣服！`, `It's a ${wx.e} ${wx.n[1]} day. Dress the paper doll!`));
-    ctx.msg(T('點一下選要換的部位，再點一次換樣式；🎨 換顏色', 'Tap a part to choose it, tap again to change style; 🎨 changes color'));
-    draw(); menu();
+    const back = layer(false), front = layer(true);
+    const bugs = kgShuffle(BUGS.slice()).slice(0, 5).map((b, k) => ({ ...b, x: 30 + rnd() * (W - 60), y: 40 + rnd() * (H - 70), ph: rnd() * 6, found: false, k }));
+    const lens = { x: W / 2, y: H / 2 };
+    let t = 0, found = 0, done = false;
+    const bugPos = (b) => [b.x + Math.sin(t * 1.3 + b.ph) * 4, b.y + Math.cos(t * 0.9 + b.ph) * 2];   // 慢慢動來動去
+    const scene = (sz, frontAlpha) => {
+      c.drawImage(back, 0, 0);
+      c.font = `${sz}px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      for (const b of bugs) { const [x, y] = bugPos(b); c.globalAlpha = b.found ? 1 : 0.9; c.fillText(b.e, x, y); if (b.found) { c.strokeStyle = '#ffd400'; c.lineWidth = 2 / (sz / 12); c.beginPath(); c.arc(x, y, 9, 0, 7); c.stroke(); } }
+      c.globalAlpha = frontAlpha; c.drawImage(front, 0, 0); c.globalAlpha = 1;
+    };
+    const draw = () => {
+      scene(12, 1);
+      // 放大鏡：圓形裡面放大，草葉變淡、昆蟲看得清楚
+      c.save(); c.beginPath(); c.arc(lens.x, lens.y, LR, 0, 7); c.clip();
+      c.translate(lens.x, lens.y); c.scale(Z, Z); c.translate(-lens.x, -lens.y);
+      scene(12, 0.18); c.restore();
+      c.strokeStyle = '#6b4a2a'; c.lineWidth = 6; c.beginPath(); c.arc(lens.x, lens.y, LR, 0, 7); c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 2; c.beginPath(); c.arc(lens.x, lens.y, LR - 6, Math.PI * 1.1, Math.PI * 1.45); c.stroke();
+      c.strokeStyle = '#6b4a2a'; c.lineWidth = 9; c.lineCap = 'round'; c.beginPath(); c.moveTo(lens.x + LR * 0.72, lens.y + LR * 0.72); c.lineTo(lens.x + LR * 1.25, lens.y + LR * 1.25); c.stroke();
+    };
+    // 放大鏡裡看到的昆蟲（點的位置換算回草叢座標）
+    const bugAt = (px, py) => {
+      if (Math.hypot(px - lens.x, py - lens.y) > LR) return null;
+      const sx = lens.x + (px - lens.x) / Z, sy = lens.y + (py - lens.y) / Z;
+      return bugs.find((b) => !b.found && Math.hypot(bugPos(b)[0] - sx, bugPos(b)[1] - sy) < 9) || null;
+    };
+    const inLens = () => bugs.find((b) => !b.found && Math.hypot(bugPos(b)[0] - lens.x, bugPos(b)[1] - lens.y) < LR / Z) || null;
+    const catchBug = (b) => {
+      if (!b || done) return;
+      b.found = true; found++; ctx.face('happy', 1.2);
+      ctx.prog(T(`找到 ${found} / 5 隻`, `${found} / 5 found`));
+      ctx.ask(`${b.e} ${T(...b.n)}`);
+      ctx.msg(`📒 ${T(...b.f)}`, 'ok');
+      if (found >= 5) { done = true; ctx.later(() => ctx.end(ctx.best + 1, (best) => `${T(`🔍 5 隻昆蟲都找到了！（已經探險 ${best} 次）`, `🔍 Found all 5 bugs! (${best} explorations)`)}<br>${ctx.n.name}：你是小小昆蟲博士！昆蟲都有 6 隻腳喔～`), 3200); }
+    };
+    const toCanvas = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+    let dragging = false, downAt = null;
+    cv.onpointerdown = (e) => { dragging = true; downAt = toCanvas(e); cv.setPointerCapture?.(e.pointerId); };
+    cv.onpointermove = (e) => { if (!dragging && e.pointerType !== 'mouse') return; [lens.x, lens.y] = toCanvas(e); };
+    cv.onpointerup = (e) => {
+      dragging = false; const p = toCanvas(e);
+      if (downAt && Math.hypot(p[0] - downAt[0], p[1] - downAt[1]) < 6) catchBug(bugAt(...p) || inLens());   // 點一下（沒有拖）＝抓這隻
+      downAt = null;
+    };
+    const keyMove = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    ctx.onKey = (e) => {
+      const m = keyMove[e.code]; if (m) { lens.x = Math.max(0, Math.min(W, lens.x + m[0] * 12)); lens.y = Math.max(0, Math.min(H, lens.y + m[1] * 12)); return true; }
+      if (e.code === 'KeyF' || e.code === 'Space') { catchBug(inLens()); return true; }
+      return false;
+    };
+    ctx.tick = (dt) => { t += dt; draw(); };
+    ctx.prog(T('找到 0 / 5 隻', '0 / 5 found'));
+    ctx.ask(T('草叢裡有東西在動…拿放大鏡找找看！', 'Something is moving in the grass… use the magnifier!'));
+    ctx.msg(T('拖曳放大鏡（或按方向鍵），看到昆蟲就點牠（或按 F）', 'Drag the magnifier (or use arrow keys). Tap a bug when you see it (or press F)'));
+    draw();
   },
 };
 
@@ -8196,7 +8212,7 @@ const GAME_INFO = {
   cook: [['炒菜遊戲', 'Cooking'], 'campus-kg-cook-best', (v) => T(`做對 ${v} 道菜`, `${v} perfect dishes`)],
   darkchess: [['暗棋', 'Dark Chess'], 'campus-kg-darkchess-wins', win],
   shrink: [['熱縮片', 'Shrink Art'], 'campus-kg-shrink-count', (v) => T(`做了 ${v} 個`, `${v} made`)],
-  doll: [['紙娃娃換裝', 'Paper Doll'], 'campus-kg-doll-count', (v) => T(`換了 ${v} 套`, `${v} outfits`)],
+  bugs: [['昆蟲放大鏡', 'Bug Magnifier'], 'campus-kg-bugs-count', (v) => T(`探險 ${v} 次`, `${v} explorations`)],
   shadow: [['影子配對', 'Shadow Match'], 'campus-kg-shadow-best', ans],
 };
 // 小遊戲清單：照老師整理，同一個遊戲、同一份紀錄的老師合成一列（例如兩位老師都能打羽球）
