@@ -289,7 +289,7 @@
   body.mc button:hover { filter: brightness(1.12); }
   body.mc button:disabled { background: #555; color: #999; text-shadow: none; filter: none; }
   /* 小遊戲視窗的按鈕是淺色底、深色字：不要石頭按鈕的字陰影（不然字會疊出殘影） */
-  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #p3d button, body.mc #flute button, body.mc #swim button, body.mc #food button, body.mc #bb button { text-shadow: none; }
+  body.mc #quiz button, body.mc #paint button, body.mc #rps button, body.mc #ooxx button, body.mc #bj button, body.mc #cm button, body.mc #zy button, body.mc #listen button, body.mc #p3d button, body.mc #kg button, body.mc #flute button, body.mc #swim button, body.mc #food button, body.mc #bb button { text-shadow: none; }
   body.mc .seg, body.mc #floors { background: none; box-shadow: none; padding: 0; gap: 4px; }
   body.mc .timeMenu { background: rgba(0,0,0,.45); padding: 4px; }
   body.mc .seg button.on, body.mc #floors button.on, body.mc #pano .tabs button.on { background: #4f8a2b; box-shadow: inset 2px 2px 0 #7fc04f, inset -2px -2px 0 #2f5a17; }
@@ -376,6 +376,34 @@
     padding: 6px 10px; border-radius: 8px; max-width: min(360px, calc(100vw - 16px)); pointer-events: auto; }
   #perf b { font-size: 15px; } #perf .ok { color: #7ee08a; } #perf .mid { color: #ffd166; } #perf .bad { color: #ff7b72; }
   #perf button { margin-top: 3px; font: inherit; font-size: 11px; padding: 1px 8px; border-radius: 6px; background: #3a4452; color: #fff; }
+  /* 幼兒園小遊戲（疊疊樂、空間方塊、串珠、摺紙、炒菜）共用的面板 */
+  #kg { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
+  #kg .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  #kg .stage { display: flex; justify-content: center; align-items: center; min-height: 60px; margin: 4px 0; }
+  #kg .stage canvas { width: 300px; max-width: 100%; height: auto; border-radius: 10px; cursor: pointer; }
+  #kg .stage img { width: 176px; height: 144px; background: #f3f6fb; border-radius: 10px; }
+  #kg .stage img.fold { width: 130px; height: 130px; }
+  #kg .ask { font-size: 15px; font-weight: 900; margin: 2px 0 6px; color: #2b4a8a; }
+  #kg .btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  #kg .btns:empty { display: none; }
+  #kg .btns button { flex: 1 1 0; min-width: 52px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 26px; font-weight: 900;
+    padding: 6px 4px; border-radius: 10px; background: #ffe08a; line-height: 1.1; }
+  #kg .btns button img { width: 64px; height: 64px; }
+  #kg .btns button small { font-size: 11px; font-weight: 700; color: #555; }
+  #kg .btns button.right { background: #b9eaa0; } #kg .btns button.wrong { background: #f6b3ab; opacity: .6; }
+  #kg .msg { min-height: 1.4em; font-size: 13px; font-weight: 700; margin: 6px 0; }
+  #kg .msg.ok { color: #1b8a3a; } #kg .msg.no { color: #c0392b; }
+  #kg .quit { background: #e5e1ee; color: #333; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 4px 12px; }
+  #kg .string { display: flex; align-items: center; gap: 3px; padding: 10px 6px; background: linear-gradient(transparent 47%, #9a7a52 47%, #9a7a52 53%, transparent 53%); flex-wrap: wrap; justify-content: center; }
+  #kg .bead { display: inline-flex; width: 26px; height: 26px; border-radius: 50%; box-shadow: inset -3px -3px 0 rgba(0,0,0,.2); align-items: center; justify-content: center; font-size: 16px; color: #888; }
+  #kg .bead.q { border: 2px dashed #999; box-shadow: none; }
+  #kg .btns .bead { width: 30px; height: 30px; }
+  #kg .wok { width: 170px; height: 100px; position: relative; }
+  #kg .wok .pan { position: absolute; inset: 18px 10px 6px; background: radial-gradient(#5a5e64, #2b2d31); border-radius: 0 0 80px 80px / 0 0 60px 60px;
+    display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; padding-top: 4px; font-size: 24px; }
+  #kg .wok::after { content: ''; position: absolute; right: -36px; top: 26px; width: 46px; height: 9px; background: #3a2a22; border-radius: 4px; }
+  #kg .wok.shake .pan { transform: translateY(-6px) rotate(-4deg); }
   /* 立體拼圖（周周老師）：缺一塊的方塊模型＋3 塊選項 */
   #p3d { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
@@ -513,7 +541,7 @@
   #bb .btns { display: flex; gap: 6px; justify-content: center; }
   #bb .btns button { padding: 7px 16px; font-weight: 700; border-radius: 10px; background: #1f3a7a; color: #fff; font-size: 15px; }
   #bb .btns .quit { background: #e5e1ee; color: #333; font-size: 12px; }
-  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #bj, body.mc #cm, body.mc #zy, body.mc #p3d, body.mc #flute, body.mc #swim, body.mc #food, body.mc #bb {
+  body.mc .brand, body.mc #search, body.mc #info, body.mc #help .card, body.mc #gallery .card-wrap, body.mc #stairPanel, body.mc #quiz, body.mc #paint, body.mc #rps, body.mc #ooxx, body.mc #bj, body.mc #cm, body.mc #zy, body.mc #p3d, body.mc #kg, body.mc #flute, body.mc #swim, body.mc #food, body.mc #bb {
     background: var(--mc-panel); color: var(--mc-ink); border: 3px solid #111; border-radius: 0;
     box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 0 6px 0 rgba(0,0,0,.25);
   }
@@ -725,6 +753,14 @@
   <div class="word"></div>
   <div class="tools"><button class="again" data-en="🔊 Replay R">🔊 重聽 R</button><button class="slow" data-en="🐢 Slowly S">🐢 慢慢唸 S</button><button class="peek" data-en="👀 Show word">👀 看字</button></div>
   <div class="btns"><button data-k="0"></button><button data-k="1"></button><button data-k="2"></button><button data-k="3"></button></div>
+  <div class="msg"></div>
+  <button class="quit" data-en="Quit Esc">結束 Esc</button>
+</div>
+<div id="kg" hidden>
+  <div class="top"><span class="ttl"></span><span class="prog"></span></div>
+  <div class="stage"></div>
+  <div class="ask"></div>
+  <div class="btns"></div>
   <div class="msg"></div>
   <button class="quit" data-en="Quit Esc">結束 Esc</button>
 </div>
@@ -940,8 +976,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=244"></script>
-<script src="js/pano-data.js?v=244"></script>
-<script type="module" src="js/app.js?v=244"></script>
+<script src="js/campus-data.js?v=245"></script>
+<script src="js/pano-data.js?v=245"></script>
+<script type="module" src="js/app.js?v=245"></script>
 </body>
 </html>

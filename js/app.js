@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=244';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=244';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=244';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=244';
-import { buildCampusWall } from './wall.js?v=244';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=244';
+import { PanoViewer } from './pano.js?v=245';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=245';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=245';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=245';
+import { buildCampusWall } from './wall.js?v=245';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=245';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3864,6 +3864,156 @@ const NPCS = [
       ],
     },
   },
+  {
+    name: '小粉老師', title: '太陽班老師', game: 'stack',
+    hello: ['☀️ 小粉老師：早安！今天也是陽光滿滿的一天喔～', '🐘 小粉老師：疊疊樂要慢慢放、輕輕放，倒了也沒關係，我們再試一次！', '🧸 小粉老師：玩完記得把玩具送回家，它們也要休息喔。'],
+    // 1F 幼兒園太陽班（126 室）：白板在南牆，站在白板前、面向教室
+    places: [{ floor: '1F', where: '太陽班', game: true, at: () => { const r = rooms.find((x) => x.name === '太陽班'); return [r.cx + 0.3, r.m.z2 - 1.35, 0]; } }],
+    look: {
+      // 依照片：棕色長髮綁馬尾、白色長袖上衣、深藍格紋背心連身裙
+      skin: '#f2d2bc', hair: '#5a3a28', top: '#2c3556', pants: '#2c3556', shoe: '#2a2a2a',
+      bun: true, tee: '#f7f5ef', sleeve: '#f7f5ef', longSleeve: true, skirt: '#2c3556',
+      pal: { H: '#5a3a28', h: '#6e4a34', S: '#f2d2bc', K: '#5a3a28', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSSSSHH',
+        'HHHHHHSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '雅如老師', title: '彩虹班老師', game: 'cubes',
+    hello: ['🌈 雅如老師：歡迎來彩虹班！你最喜歡哪一個顏色呢？', '🧊 雅如老師：方塊可以疊高高、也可以排長長，想一想要怎麼拼？', '🙋 雅如老師：有不會的地方，舉手問老師就好囉。'],
+    // 1F 幼兒園彩虹班（122 室）：白板在西牆，站在白板前、面向教室（東）
+    places: [{ floor: '1F', where: '彩虹班', game: true, at: () => { const r = rooms.find((x) => x.name === '彩虹班'); return [r.m.x1 + 1.35, r.cz + 0.3, -Math.PI / 2]; } }],
+    look: {
+      // 依照片：黑色長直髮有瀏海、圓框眼鏡；白色開襟毛衣＋黑色內搭、紅色長裙
+      skin: '#f2d2bc', hair: '#1c1616', top: '#f4f1ea', pants: '#c81e1e', shoe: '#2a2a2a',
+      longHair: true, longSleeve: true, collar: '#1c1c1e', buttonRow: '#d8d4cc', skirt: '#c81e1e',
+      pal: { H: '#1c1616', h: '#33282a', S: '#f2d2bc', K: '#b8a68a', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHKEEKKKKKKEEKHH',
+        'HHKEWKSSSSKEWKHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '何何老師', title: '月亮班老師', game: 'beads',
+    hello: ['🌙 何何老師：你好呀，月亮班的小朋友都很有耐心喔。', '📿 何何老師：串珠要一顆一顆來，紅色、黃色、再一顆紅色……你發現規律了嗎？', '😴 何何老師：午睡時間到了就要安靜躺好，養足精神再來玩。'],
+    // 1F 幼兒園月亮班（123 室）：白板在西牆，站在白板前、面向教室（東）
+    places: [{ floor: '1F', where: '月亮班', game: true, at: () => { const r = rooms.find((x) => x.name === '月亮班'); return [r.m.x1 + 1.35, r.cz + 0.3, -Math.PI / 2]; } }],
+    look: {
+      // 依照片：及肩棕黑短髮、米色毛衣、白色襯衫領、黑色長裙
+      skin: '#f2d2bc', hair: '#3a2a22', top: '#e6dccb', pants: '#1c1c1e', shoe: '#2a2a2a',
+      bob: true, longSleeve: true, collar: '#ffffff', skirt: '#1c1c1e',
+      pal: { H: '#3a2a22', h: '#4a362c', S: '#f2d2bc', K: '#3a2a22', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSSSSHH',
+        'HHHHHHSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '喵喵老師', title: '彩虹班老師', game: 'fold',
+    hello: ['🐱 喵喵老師：歡迎！今天我們來摺紙，你想摺什麼？', '📐 喵喵老師：角對角、邊對邊，壓平一點，作品會更漂亮喔。', '🎁 喵喵老師：做好的作品可以帶回家送給爸爸媽媽。'],
+    // 1F 幼兒園彩虹班：站在後面（東牆）綠色布告欄前、面向教室（西），跟雅如老師分開站
+    places: [{ floor: '1F', where: '彩虹班', game: true, at: () => { const r = rooms.find((x) => x.name === '彩虹班'); return [r.m.x2 - 1.35, r.cz - 0.6, Math.PI / 2]; } }],
+    look: {
+      // 依照片：黑色短鮑伯頭、細框眼鏡；酒紅色連帽拉鍊外套＋紅色內搭、咖啡色長褲
+      skin: '#f2d2bc', hair: '#1c1616', top: '#6e1a22', pants: '#6a4a34', shoe: '#2a2a2a',
+      bob: true, longSleeve: true, hoodie: '#e8e2d8', pocket: '#6e1a22', zip: '#c9cdd1', collar: '#d62828',
+      pal: { H: '#1c1616', h: '#33282a', S: '#f2d2bc', K: '#c9b8a8', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSSSSHH',
+        'HHHHHHSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHKEEKKKKKKEEKHH',
+        'HHKEWKSSSSKEWKHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
+  {
+    name: '高阿姨', title: '幼兒園廚房', game: 'cook',
+    hello: ['🍲 高阿姨：今天的菜很好吃喔，都要吃光光！', '🥬 高阿姨：青菜也要吃，不可以挑食，身體才會長高高。', '🧼 高阿姨：吃飯前記得先洗手，吃完把碗放回來，謝謝你！'],
+    // 1F 幼兒園中央廚房：站在北邊大灶前、面向中間的備料台
+    places: [{ floor: '1F', where: '幼兒園中央廚房', game: true, at: () => { const r = rooms.find((x) => x.name === '幼兒園中央廚房'); return [r.cx + 2.2, r.m.z1 + 1.75, Math.PI]; } }],
+    look: {
+      // 依照片：短髮、黑框眼鏡；咖啡色高領、黑色長袖上衣、灰色牛仔褲
+      skin: '#f0cdb4', hair: '#3a2620', top: '#1c1c22', pants: '#8a8e94', shoe: '#2a2a2a',
+      shortHair: true, longSleeve: true, collar: '#8a6a52',
+      pal: { H: '#3a2620', h: '#4a3228', S: '#f0cdb4', K: '#1a1a1a', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#eeb0a6', N: '#e0b096', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSSSSHH',
+        'HHHHHHSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHKEEKKKKKKEEKHH',
+        'HHKEWKSSSSKEWKHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHSSSSSSSSSSHHH',
+      ],
+    },
+  },
 ];
 // 把老師放到某一層的某個位置（名牌跟著走）
 function placeNPC(n, f, x, z, yaw) {
@@ -4129,6 +4279,11 @@ function updateAct(dt) {
     : sp.kind === 'zhuyin' ? T(`🔤 跟${sp.npc.name}玩注音符號大闖關 <kbd>F</kbd>`, `🔤 Zhuyin Challenge with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'life' ? T(`🏠 跟${sp.npc.name}玩生活大考驗 <kbd>F</kbd>`, `🏠 Everyday Life Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'blocks' ? T('🧩 玩電子積木 <kbd>F</kbd>', '🧩 Electronic blocks <kbd>F</kbd>')
+    : sp.kind === 'stack' ? T(`🐘 跟${sp.npc.name}玩動物疊疊樂 <kbd>F</kbd>`, `🐘 Animal stacking with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'cubes' ? T(`🧊 跟${sp.npc.name}玩空間方塊 <kbd>F</kbd>`, `🧊 Block counting with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'beads' ? T(`📿 跟${sp.npc.name}玩串珠遊戲 <kbd>F</kbd>`, `📿 Bead patterns with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'fold' ? T(`🐶 跟${sp.npc.name}玩摺紙遊戲 <kbd>F</kbd>`, `🐶 Origami with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'cook' ? T(`🍳 跟${sp.npc.name}玩炒菜遊戲 <kbd>F</kbd>`, `🍳 Cooking with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'puzzle3d' ? T(`🧩 跟${sp.npc.name}玩立體拼圖 <kbd>F</kbd>`, `🧩 3D puzzle with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'float' ? T(`🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`, `🧪 Sink or Float with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'glider' ? T(`🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`, `🐿️ "Can Sugar Gliders Eat It?" with ${sp.npc.name} <kbd>F</kbd>`)
@@ -4150,6 +4305,7 @@ function doAction() {
   else if (act.spot?.kind === 'words') startWords(act.spot.npc);
   else if (act.spot?.kind === 'listen') startListen(act.spot.npc);
   else if (act.spot?.kind === 'puzzle3d') startPuzzle3d(act.spot.npc);
+  else if (KG_GAMES[act.spot?.kind]) kgPlay(act.spot.npc, KG_GAMES[act.spot.kind]);
   else if (act.spot?.kind === 'rps') startRps(act.spot.npc);
   else if (act.spot?.kind === 'ooxx') startOoxx(act.spot.npc);
   else if (act.spot?.kind === 'recorder') startFlute(act.spot.npc);
@@ -6138,6 +6294,343 @@ function startPuzzle3d(n) {
   ready();
 }
 
+/* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
+   摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
+const kgBox = document.getElementById('kg');
+const kgShuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// G：{ key（紀錄）, title, label（玩的時候按鈕上的字）, bye（中途結束的話）, start(ctx) }
+function kgPlay(n, G) {
+  stopAuto();
+  const $ = (sel) => kgBox.querySelector(sel);
+  let done = false, best = 0;
+  try { best = +localStorage.getItem(G.key) || 0; } catch { /* 私密模式 */ }
+  n.playing = true;
+  faceTeacher(n);
+  const ctx = {
+    n, best, stage: $('.stage'),
+    prog: (t) => { $('.prog').textContent = t; },
+    ask: (t) => { $('.ask').innerHTML = t; },
+    msg: (t, cls = '') => { const m = $('.msg'); m.innerHTML = t; m.className = `msg ${cls}`; },
+    face: (ex, sec = 1.5) => npcFace(n, ex, sec),
+    // buttons：[{ html, on, cls }]；第 i 顆也可以按數字鍵 i+1
+    buttons: (list) => {
+      const box = $('.btns'); box.innerHTML = '';
+      ctx.btnEls = list.map((b, i) => {
+        const el = document.createElement('button'); el.innerHTML = b.html; if (b.cls) el.className = b.cls;
+        el.onclick = () => { if (!done && !el.disabled) b.on(el, i); }; box.appendChild(el); return el;
+      });
+      return ctx.btnEls;
+    },
+    later: (fn, ms) => setTimeout(() => { if (!done) fn(); }, ms),
+    // 玩完：score 比紀錄高就存起來，最後跳出老師的話
+    end: (score, text) => {
+      if (score > best) { best = score; try { localStorage.setItem(G.key, String(best)); } catch { /* 私密模式 */ } }
+      ctx.face('happy', 3); finish(); toast(text(best));
+    },
+    onKey: null, tick: null,
+  };
+  const finish = () => {
+    done = true; kgBox.hidden = true; ctx.stage.innerHTML = '';
+    updateVisibility();
+    removeEventListener('keydown', onKey, true);
+    n.playing = false; act.busy = null; duel = null;
+  };
+  const onKey = (e) => {
+    if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); duel?.quit(); return; }
+    const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
+    if (m && ctx.btnEls?.[+m[1] - 1]) { e.preventDefault(); e.stopPropagation(); ctx.btnEls[+m[1] - 1].click(); return; }
+    if (ctx.onKey?.(e)) { e.preventDefault(); e.stopPropagation(); }
+  };
+  addEventListener('keydown', onKey, true);
+  $('.quit').onclick = () => duel?.quit();
+  $('.ttl').textContent = `${T(...G.title)}・${n.name}`;
+  duel = { quit() { finish(); toast(G.bye(n)); } };
+  act.busy = { label: T(...G.label), tick(dt) { ctx.tick?.(dt); } };
+  ctx.prog(''); ctx.ask(''); ctx.msg(''); $('.btns').innerHTML = '';
+  kgBox.hidden = false;
+  G.start(ctx);
+}
+const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; } };
+const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
+
+/* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
+const STACK_ANIMALS = ['🐘', '🦒', '🐼', '🐰', '🐻', '🐷', '🐸', '🐱', '🐶', '🦁', '🐯', '🐨'];
+const STACK_COLS = ['#ffd166', '#06d6a0', '#ef476f', '#7fc8e8', '#f4a261', '#c3a6ff'];
+const KG_STACK = {
+  key: 'campus-kg-stack-best', title: ['🐘 動物疊疊樂', '🐘 Animal Stacking'], label: ['🐘 動物疊疊樂中…', '🐘 Stacking…'],
+  bye: (n) => T(`🐘 下次再來找${n.name}玩疊疊樂！`, `🐘 Come back to stack animals with ${n.name}!`),
+  start(ctx) {
+    const W = 300, H = 260, BW = 74, BH = 34, GOAL = 10;
+    const cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    const tower = [{ x: W / 2, a: '🧸', col: '#d9b98a' }];                // 最下面是木頭底座
+    let cur = null, falls = 0, fall = null, t = 0;
+    const next = () => { cur = { x: BW / 2, dir: 1, a: STACK_ANIMALS[tower.length % STACK_ANIMALS.length], col: STACK_COLS[tower.length % STACK_COLS.length], drop: null }; };
+    const speed = () => 70 + tower.length * 14;
+    const block = (x, y, a, col) => {
+      c.fillStyle = col; c.fillRect(x - BW / 2, y, BW, BH); c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 2; c.strokeRect(x - BW / 2 + 1, y + 1, BW - 2, BH - 2);
+      c.font = '24px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(a, x, y + BH / 2 + 1);
+    };
+    const draw = () => {
+      c.fillStyle = '#fff6e0'; c.fillRect(0, 0, W, H);
+      const shift = Math.max(0, tower.length - 5) * BH;                   // 疊高了畫面往下捲
+      c.fillStyle = '#e6d3b5'; c.fillRect(0, H - 14 + shift, W, 14);
+      tower.forEach((b, i) => block(b.x, H - 14 - (i + 1) * BH + shift, b.a, b.col));
+      if (fall) { c.save(); c.translate(fall.x, fall.y); c.rotate(fall.r); block(0, -BH / 2, fall.a, fall.col); c.restore(); }
+      if (cur) block(cur.x, cur.drop ? cur.drop.y : 16, cur.a, cur.col);
+    };
+    const place = () => {
+      if (!cur || cur.drop || fall) return;
+      cur.drop = { y: 16 };
+    };
+    const shift = () => Math.max(0, tower.length - 5) * BH;
+    ctx.tick = (dt) => {
+      t += dt;
+      if (cur && !cur.drop) { cur.x += cur.dir * speed() * dt; if (cur.x > W - BW / 2) { cur.x = W - BW / 2; cur.dir = -1; } if (cur.x < BW / 2) { cur.x = BW / 2; cur.dir = 1; } }
+      if (cur?.drop) {
+        cur.drop.y += 520 * dt;
+        const land = H - 14 - (tower.length + 1) * BH + shift();
+        if (cur.drop.y >= land) {
+          const top = tower[tower.length - 1], dx = cur.x - top.x;
+          if (Math.abs(dx) <= BW * 0.6) {                                  // 疊上去了
+            tower.push({ x: cur.x, a: cur.a, col: cur.col }); cur = null;
+            ctx.prog(T(`疊了 ${tower.length - 1} 層`, `${tower.length - 1} stacked`));
+            if (tower.length - 1 >= GOAL) {
+              ctx.msg(T('🎉 疊到 10 層了！好穩喔！', '🎉 10 animals high! So steady!'), 'ok'); ctx.face('happy', 2); draw();
+              return void ctx.later(() => ctx.end(GOAL, (b) => `${T('🐘 動物疊疊樂：疊到 10 層！', '🐘 Animal Stacking: 10 high!')}<br>${ctx.n.name}：好棒！玩完記得把玩具送回家，它們也要休息喔。`), 1400);
+            }
+            ctx.msg(Math.abs(dx) < 8 ? T('✨ 剛剛好！', '✨ Perfect!') : T('👍 疊上去了！', '👍 It stayed!'), 'ok');
+            next();
+          } else {                                                          // 歪太多，掉下去
+            fall = { x: cur.x, y: cur.drop.y + BH / 2, r: 0, vx: Math.sign(dx) * 90, vy: -40, a: cur.a, col: cur.col }; cur = null;
+            falls++; ctx.face('surprised', 1.2);
+            ctx.msg(T(`😮 倒了！倒了也沒關係，我們再試一次！（還有 ${3 - falls} 次）`, `😮 It fell! That's okay, let's try again! (${3 - falls} left)`), 'no');
+          }
+        }
+      }
+      if (fall) {
+        fall.vy += 600 * dt; fall.x += fall.vx * dt; fall.y += fall.vy * dt; fall.r += Math.sign(fall.vx) * 4 * dt;
+        if (fall.y > H + 60) {
+          fall = null;
+          if (falls >= 3) {
+            const h = tower.length - 1;
+            draw();
+            return void ctx.end(h, (b) => `${T(`🐘 疊了 ${h} 層（最高紀錄 ${b} 層）`, `🐘 ${h} stacked (best ${b})`)}<br>${ctx.n.name}：疊疊樂要慢慢放、輕輕放，下次一定更高！`);
+          }
+          next();
+        }
+      }
+      draw();
+    };
+    ctx.onKey = (e) => { if (e.code === 'KeyF' || e.code === 'Space') { place(); return true; } return false; };
+    cv.onclick = place;
+    ctx.buttons([{ html: T('⬇️ 放下 <small>F／空白鍵</small>', '⬇️ Drop <small>F / Space</small>'), on: place }]);
+    ctx.ask(T('動物積木左右移動，對準下面那塊再放下！疊到 10 層就成功', 'Line the animal up with the one below, then drop it! Stack 10 to win'));
+    ctx.prog(T('疊了 0 層', '0 stacked'));
+    next(); draw();
+  },
+};
+
+/* ---- 空間方塊（雅如老師，彩虹班）：方塊疊高高、排長長，數數看有幾個（一排看得到每一個）；一回 5 題 ---- */
+const KG_CUBES = {
+  key: 'campus-kg-cubes-best', title: ['🧊 空間方塊', '🧊 Block Count'], label: ['🧊 空間方塊中…', '🧊 Counting blocks…'],
+  bye: (n) => T(`🧊 下次再來找${n.name}數方塊！`, `🧊 Come back to count blocks with ${n.name}!`),
+  start(ctx) {
+    const cols = ['r', 'y', 'b', 'g', 'o'];
+    let i = 0, right = 0, tries = 0;
+    const make = (k) => {                                                   // 越後面越難：欄位越多、越高
+      const nc = Math.min(5, 2 + (k >> 1) + (Math.random() < 0.5 ? 1 : 0)), hs = [];
+      for (let j = 0; j < nc; j++) hs.push(1 + (Math.random() * Math.min(3, 1 + k) | 0));
+      if (Math.random() < 0.3) hs.fill(1);                                   // 有時候是排長長的一排
+      return hs;
+    };
+    const ask = () => {
+      tries = 0;
+      const hs = make(i), total = hs.reduce((a, b) => a + b, 0), col = cols[i % cols.length];
+      const cubes = hs.flatMap((h, x) => Array.from({ length: h }, (_, y) => [x, y, 0]));
+      ctx.stage.innerHTML = `<img alt="" src="${p3dImage(p3dGroup(cubes, col))}">`;
+      const opts = new Set([total]);
+      while (opts.size < 3) { const d = total + kgShuffle([-2, -1, 1, 2])[0]; if (d > 0) opts.add(d); }
+      const list = kgShuffle([...opts]);
+      ctx.prog(T(`第 ${i + 1} / 5 題`, `${i + 1} / 5`));
+      ctx.ask(hs.every((h) => h === 1) ? T('方塊排長長，一共有幾個？', 'The blocks are in a long row. How many?') : T('方塊疊高高，一共有幾個？', 'The blocks are stacked up. How many?'));
+      ctx.msg(T('一個一個慢慢數～', 'Count them one by one~'));
+      ctx.buttons(list.map((v) => ({ html: `${v}<small>${list.indexOf(v) + 1}</small>`, on: (el) => {
+        tries++;
+        if (v !== total) { el.disabled = true; el.className = 'wrong'; ctx.face('surprised', 1); return ctx.msg(T('再數一次看看，有不會的地方舉手問老師就好囉！', "Count again. If you're stuck, just ask the teacher!"), 'no'); }
+        el.className = 'right'; ctx.btnEls.forEach((b) => (b.disabled = true));
+        if (tries === 1) right++;
+        ctx.face('happy'); ctx.msg(T(`✅ 對！一共有 ${total} 個方塊`, `✅ Yes! ${total} blocks`), 'ok');
+        ctx.later(() => (++i < 5 ? ask() : ctx.end(right, (b) => `${T(`🧊 一次就數對 ${right} / 5 題（最好紀錄 ${b} 題）`, `🧊 ${right} / 5 right on the first try (best ${b})`)}<br>${ctx.n.name}：方塊可以疊高高、也可以排長長，你好會數！`)), 1400);
+      } })));
+    };
+    ask();
+  },
+};
+
+/* ---- 串珠遊戲（何何老師，月亮班）：看珠子的規律，下一顆是什麼顏色？一回 5 題（規律越來越難） ---- */
+const BEADS = { r: '#e53935', y: '#fbc02d', b: '#1e88e5', g: '#43a047', p: '#8e24aa' };
+const BEAD_NAME = { r: ['紅色', 'red'], y: ['黃色', 'yellow'], b: ['藍色', 'blue'], g: ['綠色', 'green'], p: ['紫色', 'purple'] };
+const KG_BEADS = {
+  key: 'campus-kg-beads-best', title: ['📿 串珠遊戲', '📿 Bead Patterns'], label: ['📿 串珠遊戲中…', '📿 Beading…'],
+  bye: (n) => T(`📿 下次再來找${n.name}串珠子！`, `📿 Come back to string beads with ${n.name}!`),
+  start(ctx) {
+    const PATS = [['A', 'B'], ['A', 'A', 'B'], ['A', 'B', 'B'], ['A', 'B', 'C'], ['A', 'A', 'B', 'B'], ['A', 'B', 'C', 'C']];
+    let i = 0, right = 0, tries = 0;
+    const bead = (k, q) => `<span class="bead${q ? ' q' : ''}" style="background:${q ? '#fff' : BEADS[k]}">${q ? '?' : ''}</span>`;
+    const ask = () => {
+      tries = 0;
+      const pat = PATS[Math.min(PATS.length - 1, i + (Math.random() < 0.4 ? 1 : 0))];
+      const keys = kgShuffle(Object.keys(BEADS)), map = { A: keys[0], B: keys[1], C: keys[2] };
+      const len = pat.length * 2 + 1 + (Math.random() * pat.length | 0), seq = Array.from({ length: len + 1 }, (_, j) => map[pat[j % pat.length]]);
+      const ans = seq[len];
+      ctx.stage.innerHTML = `<div class="string">${seq.slice(0, len).map((k) => bead(k)).join('')}${bead(ans, true)}</div>`;
+      const opts = kgShuffle([ans, ...kgShuffle(keys.filter((k) => k !== ans)).slice(0, 2)]);
+      ctx.prog(T(`第 ${i + 1} / 5 題`, `${i + 1} / 5`));
+      ctx.ask(T('串珠要一顆一顆來，下一顆是什麼顏色？', 'One bead at a time. What color comes next?'));
+      ctx.msg(T('看看顏色怎麼重複，你發現規律了嗎？', 'How do the colors repeat? Can you find the pattern?'));
+      ctx.buttons(opts.map((k, j) => ({ html: `${bead(k)}<small>${T(BEAD_NAME[k][0], BEAD_NAME[k][1])} ${j + 1}</small>`, on: (el) => {
+        tries++;
+        if (k !== ans) { el.disabled = true; el.className = 'wrong'; ctx.face('surprised', 1); return ctx.msg(T('沒關係，從頭再看一次規律！', "That's okay. Look at the pattern from the start again!"), 'no'); }
+        el.className = 'right'; ctx.btnEls.forEach((b) => (b.disabled = true));
+        if (tries === 1) right++;
+        ctx.stage.querySelector('.q').outerHTML = bead(ans);
+        ctx.face('happy'); ctx.msg(T(`✅ 對！是${BEAD_NAME[ans][0]}`, `✅ Right! It's ${BEAD_NAME[ans][1]}`), 'ok');
+        ctx.later(() => (++i < 5 ? ask() : ctx.end(right, (b) => `${T(`📿 一次就答對 ${right} / 5 題（最好紀錄 ${b} 題）`, `📿 ${right} / 5 right on the first try (best ${b})`)}<br>${ctx.n.name}：你好有耐心，規律都被你找到了！`)), 1400);
+      } })));
+    };
+    ask();
+  },
+};
+
+/* ---- 摺紙遊戲（喵喵老師，彩虹班）：跟著老師一步一步摺小狗、小貓，每一步選「摺好會變成哪一個」；兩隻都摺完就結束 ---- */
+const FOLD = (() => {
+  const P = (pts, dark) => ({ pts, dark });
+  const sq = [P([[50, 5], [95, 50], [50, 95], [5, 50]])];
+  const triDown = [P([[5, 25], [95, 25], [50, 90]])];
+  const triUp = [P([[50, 10], [95, 75], [5, 75]])];
+  const rect = [P([[10, 30], [90, 30], [90, 70], [10, 70]])];
+  const dogEars = [P([[5, 25], [95, 25], [50, 90]]), P([[5, 25], [28, 25], [16, 64]], true), P([[95, 25], [72, 25], [84, 64]], true)];
+  const catEars = [P([[15, 38], [85, 38], [50, 92]]), P([[15, 38], [34, 38], [18, 8]], true), P([[85, 38], [66, 38], [82, 8]], true)];
+  const dogChin = [P([[5, 25], [95, 25], [62, 76], [38, 76]]), P([[38, 76], [62, 76], [50, 64]], true), P([[5, 25], [28, 25], [16, 64]], true), P([[95, 25], [72, 25], [84, 64]], true)];
+  const catTop = [P([[15, 46], [85, 46], [50, 92]]), P([[15, 46], [34, 46], [18, 14]], true), P([[85, 46], [66, 46], [82, 14]], true)];
+  return {
+    dog: { n: ['小狗', 'puppy'], e: '🐶', col: '#f4a261', dk: '#c97a3c', face: [50, 48], steps: [
+      { say: ['角對角：上面的角摺到下面的角', 'Corner to corner: fold the top corner down to the bottom'], ok: triDown, wrong: [rect, triUp] },
+      { say: ['兩邊的角往下摺，變成垂垂的耳朵', 'Fold both side corners down to make floppy ears'], ok: dogEars, wrong: [catEars, triDown] },
+      { say: ['下面的尖角往上摺一點點，壓平', 'Fold the bottom tip up a little and press it flat'], ok: dogChin, wrong: [dogEars, catTop] },
+    ] },
+    cat: { n: ['小貓', 'kitty'], e: '🐱', col: '#f2a6c4', dk: '#c9739a', face: [50, 62], steps: [
+      { say: ['角對角：上面的角摺到下面的角', 'Corner to corner: fold the top corner down to the bottom'], ok: triDown, wrong: [triUp, rect] },
+      { say: ['兩邊的角往上摺，變成尖尖的耳朵', 'Fold both side corners up to make pointy ears'], ok: catEars, wrong: [dogEars, triDown] },
+      { say: ['上面的邊往後摺一點，邊對邊壓平', 'Fold the top edge back a little, edge to edge'], ok: catTop, wrong: [catEars, dogChin] },
+    ] },
+    sq,
+  };
+})();
+function drawFold(shape, craft, face = false) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 100;
+  const c = cv.getContext('2d');
+  for (const { pts, dark } of shape) {
+    c.beginPath(); pts.forEach(([x, y], k) => (k ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath();
+    c.fillStyle = dark ? craft.dk : craft.col; c.fill(); c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 1.5; c.stroke();
+  }
+  if (face) {                                                                // 畫上眼睛、鼻子、嘴巴
+    const [x, y] = craft.face;
+    c.fillStyle = '#222'; for (const s of [-1, 1]) { c.beginPath(); c.arc(x + s * 12, y - 6, 3.5, 0, 7); c.fill(); }
+    c.beginPath(); c.arc(x, y + 4, 3.5, 0, 7); c.fill();
+    c.strokeStyle = '#222'; c.lineWidth = 1.8; c.beginPath(); c.arc(x - 4, y + 9, 4, 0, Math.PI); c.stroke(); c.beginPath(); c.arc(x + 4, y + 9, 4, 0, Math.PI); c.stroke();
+  }
+  return cv.toDataURL();
+}
+const KG_FOLD = {
+  key: 'campus-kg-fold-best', title: ['🐶 摺紙遊戲', '🐶 Origami'], label: ['🐶 摺紙中…', '🐶 Folding…'],
+  bye: (n) => T(`🐶 下次再來找${n.name}摺紙！`, `🐶 Come back for origami with ${n.name}!`),
+  start(ctx) {
+    const crafts = kgShuffle(['dog', 'cat']).map((k) => FOLD[k]);
+    let ci = 0, si = 0, right = 0, tries = 0;
+    const total = crafts.reduce((a, cr) => a + cr.steps.length, 0);
+    const show = (shape, cr, face) => { ctx.stage.innerHTML = `<img class="fold" alt="" src="${drawFold(shape, cr, face)}">`; };
+    const step = () => {
+      tries = 0;
+      const cr = crafts[ci], st = cr.steps[si];
+      show(si ? cr.steps[si - 1].ok : FOLD.sq, cr);
+      ctx.prog(T(`${cr.e} 摺${cr.n[0]}・第 ${si + 1} / ${cr.steps.length} 步`, `${cr.e} Folding a ${cr.n[1]} · Step ${si + 1} / ${cr.steps.length}`));
+      ctx.ask(T(...st.say));
+      ctx.msg(T('摺好會變成哪一個？', 'What will it look like after folding?'));
+      const opts = kgShuffle([st.ok, ...st.wrong]);
+      ctx.buttons(opts.map((sh, j) => ({ html: `<img alt="" src="${drawFold(sh, cr)}"><small>${j + 1}</small>`, on: (el) => {
+        tries++;
+        if (sh !== st.ok) { el.disabled = true; el.className = 'wrong'; ctx.face('surprised', 1); return ctx.msg(T('再想一想～角對角、邊對邊喔！', 'Think again~ corner to corner, edge to edge!'), 'no'); }
+        el.className = 'right'; ctx.btnEls.forEach((b) => (b.disabled = true));
+        if (tries === 1) right++;
+        show(st.ok, cr); ctx.face('happy');
+        ctx.msg(T('✅ 對！壓平一點，作品會更漂亮喔', '✅ Right! Press it flat to make it neater'), 'ok');
+        ctx.later(() => {
+          if (++si < cr.steps.length) return step();
+          show(st.ok, cr, true); ctx.buttons([]);                              // 一隻摺好了：畫上臉
+          ctx.ask(T(`${cr.e} ${cr.n[0]}摺好了！畫上眼睛和鼻子～`, `${cr.e} The ${cr.n[1]} is done! Add eyes and a nose~`));
+          ctx.msg(T('做好的作品可以帶回家送給爸爸媽媽！', 'You can take it home for your family!'), 'ok');
+          ctx.later(() => {
+            if (++ci < crafts.length) { si = 0; return step(); }
+            ctx.end(right, (b) => `${T(`🐶 摺好小狗和小貓！一次就選對 ${right} / ${total} 步（最好紀錄 ${b} 步）`, `🐶 Puppy and kitty done! ${right} / ${total} steps right on the first try (best ${b})`)}<br>${ctx.n.name}：角對角、邊對邊，你摺得好漂亮！`);
+          }, 1800);
+        }, 1300);
+      } })));
+    };
+    step();
+  },
+};
+
+/* ---- 炒菜遊戲（高阿姨，廚房）：先洗手，再選這道菜要的材料放進鍋子，翻炒 5 下就上菜；一回 3 道菜 ---- */
+const COOK_DISHES = [
+  { n: ['番茄炒蛋', 'Tomato and egg'], need: ['🍅', '🥚'] },
+  { n: ['炒青菜', 'Stir-fried greens'], need: ['🥬', '🧄'] },
+  { n: ['蔬菜炒飯', 'Veggie fried rice'], need: ['🍚', '🥚', '🥕', '🌽'] },
+  { n: ['玉米炒蛋', 'Corn and egg'], need: ['🌽', '🥚'] },
+  { n: ['紅蘿蔔炒高麗菜', 'Cabbage and carrot'], need: ['🥬', '🥕'] },
+];
+const COOK_ALL = ['🍅', '🥚', '🥬', '🧄', '🍚', '🥕', '🌽', '🍄', '🧅', '🍌', '🍬', '🍦'];
+const KG_COOK = {
+  key: 'campus-kg-cook-best', title: ['🍳 炒菜遊戲', '🍳 Cooking'], label: ['🍳 炒菜中…', '🍳 Cooking…'],
+  bye: (n) => T(`🍳 下次再來找${n.name}炒菜！`, `🍳 Come back to cook with ${n.name}!`),
+  start(ctx) {
+    const dishes = kgShuffle(COOK_DISHES.slice()).slice(0, 3);
+    let di = 0, perfect = 0, miss = 0, inWok = [], stirs = 0, shake = 0;
+    const wok = () => {
+      ctx.stage.innerHTML = `<div class="wok${shake ? ' shake' : ''}"><div class="pan">${inWok.map((e) => `<span>${e}</span>`).join('')}</div></div>`;
+    };
+    const stir = () => {
+      if (stirs >= 5) return;
+      stirs++; shake = 1; wok(); setTimeout(() => { shake = 0; if (!kgBox.hidden) wok(); }, 160);
+      ctx.msg(T(`翻炒 ${stirs} / 5`, `Stir ${stirs} / 5`), 'ok');
+      if (stirs < 5) return;
+      const d = dishes[di]; if (!miss) perfect++;
+      ctx.buttons([]); ctx.face('happy');
+      ctx.ask(T(`🍽️「${d.n[0]}」上菜了！好香～`, `🍽️ "${d.n[1]}" is ready! Smells great~`));
+      ctx.msg(T('今天的菜很好吃喔，都要吃光光！', "Today's food is yummy. Eat it all up!"), 'ok');
+      ctx.later(() => (++di < dishes.length ? dish() : ctx.end(perfect, (b) => `${T(`🍳 做好 3 道菜！材料一次就全選對 ${perfect} 道（最好紀錄 ${b} 道）`, `🍳 3 dishes done! ${perfect} with all the right ingredients first try (best ${b})`)}<br>${ctx.n.name}：吃完把碗放回來，謝謝你！`)), 1700);
+    };
+    const dish = () => {
+      const d = dishes[di]; inWok = []; stirs = 0; miss = 0; wok();
+      ctx.prog(T(`第 ${di + 1} / 3 道`, `Dish ${di + 1} / 3`));
+      ctx.ask(T(`今天做「${d.n[0]}」，要放哪些材料？`, `Let's make "${d.n[1]}". Which ingredients go in?`));
+      ctx.msg(T('青菜也要吃，不可以挑食喔！', "Eat your veggies too, don't be picky!"));
+      const opts = kgShuffle([...d.need, ...kgShuffle(COOK_ALL.filter((e) => !d.need.includes(e))).slice(0, 6 - d.need.length)]);
+      ctx.buttons(opts.map((e, j) => ({ html: `${e}<small>${j + 1}</small>`, on: (el) => {
+        if (!d.need.includes(e)) { el.disabled = true; el.className = 'wrong'; miss++; ctx.face('surprised', 1); return ctx.msg(T(`「${d.n[0]}」不用放 ${e} 喔！`, `"${d.n[1]}" doesn't need ${e}!`), 'no'); }
+        el.disabled = true; el.className = 'right'; inWok.push(e); wok();
+        if (inWok.length < d.need.length) return ctx.msg(T(`放進 ${e} 了！還差 ${d.need.length - inWok.length} 樣`, `${e} is in! ${d.need.length - inWok.length} more`), 'ok');
+        ctx.msg(T('材料都放好了，開始炒！', 'All in. Start stir-frying!'), 'ok');
+        ctx.buttons([{ html: T('🍳 翻炒 <small>F</small>', '🍳 Stir <small>F</small>'), on: stir }]);
+      } })));
+    };
+    ctx.onKey = (e) => { if (e.code === 'KeyF' && stirs < 5 && ctx.btnEls?.length === 1 && inWok.length) { stir(); return true; } return false; };
+    wok();
+    ctx.ask(T('吃飯前、煮飯前都要先洗手！', 'Wash your hands before cooking and eating!'));
+    ctx.buttons([{ html: T('🧼 先洗手 <small>1</small>', '🧼 Wash hands <small>1</small>'), on: () => { ctx.msg(T('🫧 洗乾淨了！', '🫧 All clean!'), 'ok'); ctx.later(dish, 700); ctx.buttons([]); } }]);
+  },
+};
+
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
    看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
    偏掉的壞球不要揮，四壞球保送；三好球出局，三出局結束，記錄最高得分。 */
@@ -7274,6 +7767,10 @@ const GAME_INFO = {
   history: [['臺灣史地大考驗', 'Taiwan History & Geography'], 'campus-history-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
+  stack: [['動物疊疊樂', 'Animal Stacking'], 'campus-kg-stack-best', (v) => T(`疊了 ${v} 層`, `${v} stacked`)],
+  cubes: [['空間方塊', 'Block Count'], 'campus-kg-cubes-best', ans], beads: [['串珠遊戲', 'Bead Patterns'], 'campus-kg-beads-best', ans],
+  fold: [['摺紙遊戲', 'Origami'], 'campus-kg-fold-best', (v) => T(`一次就選對 ${v} 步`, `${v} steps right`)],
+  cook: [['炒菜遊戲', 'Cooking'], 'campus-kg-cook-best', (v) => T(`做對 ${v} 道菜`, `${v} perfect dishes`)],
 };
 // 小遊戲清單：照老師整理，同一個遊戲、同一份紀錄的老師合成一列（例如兩位老師都能打羽球）
 function passGames() {
