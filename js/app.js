@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=250';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=250';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=250';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=250';
-import { buildCampusWall } from './wall.js?v=250';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=250';
+import { PanoViewer } from './pano.js?v=251';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=251';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=251';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=251';
+import { buildCampusWall } from './wall.js?v=251';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=251';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4138,7 +4138,7 @@ const NPCS = [
   },
   {
     name: 'Anya 老師', title: '白雲班老師', game: 'animalcall',
-    hello: ['👋 Anya 老師：哈囉～抱抱！今天有沒有乖乖喝ㄋㄟㄋㄟ？', '🧻 Anya 老師：想尿尿要跟老師說喔！', '👏 Anya 老師：我們一起拍拍手～拍拍手！', '🐶 Anya 老師：汪汪汪～是誰在叫呀？一起來聽聽看！'],
+    hello: ['👋 Anya 老師：哈囉～小朋友早安！今天我們一起玩好不好？', '🙌 Anya 老師：玩具玩完要跟它說再見，放回家喔～', '👏 Anya 老師：我們一起拍拍手～拍拍手！', '🐶 Anya 老師：汪汪汪～是誰在叫呀？一起來聽聽看！'],
     // 1F 幼兒園白雲班（2 歲專班）：站在教室前段靠窗那邊、面向門口（西）
     places: [{ floor: '1F', where: '白雲班', game: true, at: () => { const r = rooms.find((x) => x.name.startsWith('白雲班')); return [r.cx + 2.0, r.m.z1 + 2.2, Math.PI / 2]; } }],
     look: {
