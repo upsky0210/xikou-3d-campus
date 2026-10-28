@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=249';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=249';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=249';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=249';
-import { buildCampusWall } from './wall.js?v=249';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=249';
+import { PanoViewer } from './pano.js?v=250';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=250';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=250';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=250';
+import { buildCampusWall } from './wall.js?v=250';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=250';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1101,7 +1101,9 @@ function floorMat(type, f, room) {
     return mat('tile', '#cfc8ba');                                                        // 其他頂樓：地磚
   }
   if (/^(星星|太陽|月亮|彩虹)班$/.test(room?.name)) return mat('planks', '#e6dccb');   // 幼兒園教室：淺色木紋地板（依照片）
-  if (room?.name === '科任教師辦公室') return mat('planks', '#d8cebc');   // 米色（深咖啡格子在家具那邊畫）
+  if (room?.name === '科任教師辦公室') return mat('planks', '#d8cebc');
+  if (room?.name === '英語教室一') return mat('planks', '#9a6a3a');   // 咖啡色木紋地板（依照片）
+  if (room?.name === '幼兒園辦公室') return mat('planks', '#ece6dc');   // 灰米色木紋地板（依照片）   // 米色（深咖啡格子在家具那邊畫）
   const kind = FLOOR_TEX[type] || 'tile';
   const color = BLOCKY && (kind === 'grass' || kind === 'terrazzo') ? '#ffffff' : (TYPE_COLORS[type] || '#eeeeee');
   return mat(kind, color);
@@ -4105,10 +4107,10 @@ const NPCS = [
     },
   },
   {
-    name: '球球老師', title: '彩虹班老師', game: 'shadow',
-    hello: ['🌈 球球老師：彩虹班的小朋友最棒了！', '💧 球球老師：玩完要記得喝水、上廁所喔。', '🧹 球球老師：用完的東西要放回原來的地方喔～', '🔦 球球老師：影子黑黑的，你猜得出來是什麼嗎？'],
-    // 1F 幼兒園彩虹班：站在教室中間走道（雅如老師在前面、喵喵老師在後面），面向窗戶那邊的桌子
-    places: [{ floor: '1F', where: '彩虹班', game: true, at: () => { const r = rooms.find((x) => x.name === '彩虹班'); return [r.m.x1 + 4.37, r.cz - 0.5, Math.PI]; } }],
+    name: '球球老師', title: '太陽班老師', game: 'shadow',
+    hello: ['☀️ 球球老師：太陽班的小朋友最棒了！', '💧 球球老師：玩完要記得喝水、上廁所喔。', '🧹 球球老師：用完的東西要放回原來的地方喔～', '🔦 球球老師：影子黑黑的，你猜得出來是什麼嗎？'],
+    // 1F 幼兒園太陽班（使用者 10-28 更正）：站在教室中間走道（小粉老師在前面、禎禎老師在後面），面向窗戶那邊的桌子
+    places: [{ floor: '1F', where: '太陽班', game: true, at: () => { const r = rooms.find((x) => x.name === '太陽班'); return [r.cx - 0.5, r.m.z2 - 4.37, -Math.PI / 2]; } }],
     look: {
       // 依照片：棕色齊肩鮑伯頭、旁分瀏海；米色高領、綠色連帽 T（白色抽繩）、深藍色牛仔褲
       skin: '#f0cdb4', hair: '#8a5a3a', top: '#2f7d4f', pants: '#2a3a5a', shoe: '#2a2a2a',
