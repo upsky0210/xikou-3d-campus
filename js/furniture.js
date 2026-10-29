@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=255';
+import { Batch, mat, SPOTS } from './blocks.js?v=257';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1366,7 +1366,7 @@ const woodCabMat = () => once('woodcab', () => new THREE.MeshLambertMaterial({ m
   c.fillStyle = '#d9d9d9'; for (const x of [w / 2 - 10, w / 2 + 6]) { c.fillRect(x, h * 0.55, 4, 12); c.fillRect(x, h * 0.66, 4, 12); }
 }) }));
 // 1F 學務處（依 10-29 九張照片重畫）：圓形崁燈、淺米色地磚
-//   中間兩區藍紫色屏風座位（下段灰、上段藍紫、鋁框），兩區中間一條東西向走道；北區 2×2、南區 2×4 座位
+//   藍紫色屏風座位（下段灰、上段藍紫、鋁框）：會議桌東邊單獨一個（面向西邊門口）、南區 2 排 × 3 個（都面向北邊會議桌那邊），中間一條東西向走道
 //   北牆（走廊、窗）：灰色捲簾、時鐘；西北角紅木色船形會議桌＋木頭椅，後面靠窗冰箱、咖啡機推車、碎紙機
 //   西牆：整排木色矮櫃（資料夾）、上面月份行事曆白板、冷氣；矮櫃前一條藍白格子地磚
 //   東牆：到頂木色高櫃、矮抽屜櫃上放獎盃和皮卡丘、東南角廣播機櫃；南牆：到頂木色高櫃（中間一根白柱子），西端白鐵門通司令臺
@@ -1382,27 +1382,35 @@ function studentAffairs(put, fr, room) {
     put(lav, du, dv, 0.58, u, v, 0.62);
     put(alu, Math.max(du, 0.06) + 0.01, Math.max(dv, 0.06) + 0.01, 0.04, u, v, 1.2);
   };
-  // 一區屏風座位：從 u0 往東 n 個座位（每個寬 sw），c 是中間隔板的 v；兩排背對背，椅子在外側
-  const block = (u0, n, sw, c) => {
-    const u1 = u0 + n * sw;
-    panel(u1 - u0, 0.05, (u0 + u1) / 2, c);
-    for (let i = 0; i <= n; i++) panel(0.05, 1.4, u0 + i * sw, c);
-    for (let i = 0; i < n; i++) for (const k of [-1, 1]) {
-      const u = u0 + sw * (i + 0.5), v = c + k * 0.36;
+  // 會議桌東邊：單獨一個座位，坐的人面向西邊（學生從西北角的門進來、會議桌那邊）；前面一道矮屏風（掛名牌）
+  { const u = 5.0, v = D * 2.1;
+    put(desk, 0.7, 1.4, 0.74, u, v, 0);
+    put(mat('wool', '#c9ccd1'), 0.6, 0.4, 0.62, u, v + A * 0.45, 0);
+    put(black, 0.05, 0.55, 0.34, u - 0.2, v, 0.76); put(screenMat(), 0.02, 0.5, 0.3, u - 0.17, v, 0.78);   // 螢幕朝東（對著坐的人）
+    put(black, 0.14, 0.4, 0.02, u + 0.05, v, 0.76);
+    officeChair(put, u + 0.6, v, -1, 0, '#2b2d31');
+    panel(0.05, 1.5, u - 0.38, v);                                                // 前面（西）
+    for (const k of [-1, 1]) panel(1.3, 0.05, u + 0.25, v + k * 0.73);           // 兩側
+    put(M.white(), 0.02, 0.34, 0.08, u - 0.41, v, 1.08); }                        // 名牌
+  // 南區：6 個座位排成兩排 × 3，全部面向北邊（會議桌那邊）：桌子前面一道屏風、座位之間有側板
+  const su = 2.4, sw = 1.3;
+  for (const v of [A * 0.8, A * 2.0]) {
+    panel(sw * 3, 0.05, su + sw * 1.5, v - A * 0.36);
+    for (let i = 0; i <= 3; i++) panel(0.05, 0.75, su + i * sw, v);
+    for (let i = 0; i < 3; i++) {
+      const u = su + sw * (i + 0.5);
       put(desk, sw - 0.1, 0.66, 0.74, u, v, 0);
-      put(mat('wool', '#c9ccd1'), 0.4, 0.5, 0.62, u + sw * 0.25, v, 0);        // 抽屜櫃
-      put(black, 0.55, 0.05, 0.34, u - 0.1, v - k * 0.2, 0.76); put(screenMat(), 0.5, 0.02, 0.3, u - 0.1, v - k * 0.18, 0.78);
-      put(black, 0.4, 0.14, 0.02, u - 0.1, v + k * 0.05, 0.76);                  // 鍵盤
-      officeChair(put, u - 0.1, v + k * 0.55, 0, -k, '#2b2d31');
+      put(mat('wool', '#c9ccd1'), 0.4, 0.5, 0.62, u + sw * 0.27, v, 0);
+      put(black, 0.55, 0.05, 0.34, u - 0.1, v - A * 0.2, 0.76); put(screenMat(), 0.5, 0.02, 0.3, u - 0.1, v - A * 0.18, 0.78);
+      put(black, 0.4, 0.14, 0.02, u - 0.1, v + A * 0.05, 0.76);
+      officeChair(put, u - 0.1, v + A * 0.55, 0, D, '#2b2d31');
     }
-  };
-  block(4.6, 2, 1.0, D * 1.95);                                                  // 北區（東邊留給東北角那扇門進來的走道）
-  block(2.3, 4, 1.2, A * 1.3);                                                   // 南區
+  }
   // 屏風端頭掛的雨傘
-  for (let k = 0; k < 4; k++) put(mat('wool', ['#2b2b33', '#5a6a8a', '#c9c9c9', '#7a3a3a'][k]), 0.04, 0.04, 0.85, 2.27, A * 1.3 - 0.45 + k * 0.3, 0.35);
+  for (let k = 0; k < 4; k++) put(mat('wool', ['#2b2b33', '#5a6a8a', '#c9c9c9', '#7a3a3a'][k]), 0.04, 0.04, 0.85, su - 0.04, A * 0.8 - 0.3 + k * 0.2, 0.35);
 
   /* ---- 西北角：船形會議桌＋木頭椅 ---- */
-  const tu = 3.2, tv = D * 1.8, top = mat('wool', '#8a4a32'), cw = mat('wool', '#5e2f1e');
+  const tu = 3.2, tv = D * 2.0, top = mat('wool', '#8a4a32'), cw = mat('wool', '#5e2f1e');
   put(top, 1.6, 1.0, 0.05, tu, tv, 0.72);
   for (const k of [-1, 1]) put.geo(top, new THREE.CylinderGeometry(0.5, 0.5, 0.05, 20), tu + k * 0.8, tv, 0.745);
   put(black, 1.0, 0.06, 0.01, tu, tv, 0.77);                                    // 中間的插座蓋

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=255';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=255';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=255';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=255';
-import { buildCampusWall } from './wall.js?v=255';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=255';
+import { PanoViewer } from './pano.js?v=257';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=257';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=257';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=257';
+import { buildCampusWall } from './wall.js?v=257';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=257';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4262,7 +4262,7 @@ function updateNPCs(t, dt) {
     if (n.playing) continue;                                          // 正在跟你玩小遊戲：由遊戲控制
     const { armL, armR } = n.g.userData.limbs;
     const dist = Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z);
-    const near = mode !== 'bird' && player.floor === n.f && dist < 2.2;
+    const near = mode !== 'bird' && player.floor === n.f && dist < 2.2 && sameRoom(n);   // 隔著牆不打招呼
     // 會換地方的老師：每 75 秒換一次（你不在旁邊、也不在同一層的時候才換，不會在眼前突然消失）
     if (n.places) {
       n.moveT = (n.moveT || 0) + dt;
