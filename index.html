@@ -629,6 +629,9 @@
   #cover .btns button { padding: 10px 18px; margin: 0 8px 8px 0; font-weight: 900; font-size: 16px; border: 3px solid #2b2b2b; border-radius: 0;
     box-shadow: 4px 4px 0 rgba(0,0,0,.25); background: #fbf6ea; color: #2b2b2b; text-shadow: none; }
   #cover .btns .primary { background: #c0392b; color: #fff; }
+  #cover .login { margin: 4px 0 0; }
+  #cover .login button { padding: 6px 12px; font-weight: 800; font-size: 14px; border: 2px solid #2b2b2b; background: #fff; color: #2b2b2b; text-shadow: none; cursor: pointer; }
+  #cover .login small { display: inline-block; margin-top: 4px; padding: 1px 6px; font-size: 12px; color: #444; background: rgba(255,255,255,.85); }
   #cover .guide { position: absolute; left: 4vw; bottom: 5vh; width: min(380px, calc(100vw - 32px)); background: #fbf6ea; border: 3px solid #2b2b2b;
     box-shadow: 8px 8px 0 rgba(0,0,0,.25); padding: 0 16px 14px; transform: rotate(-.6deg); }
   #cover .guide .hd { margin: 0 -16px 10px; background: #c0392b; color: #fff; padding: 6px 14px; font-size: 12px; letter-spacing: 3px; font-weight: 700; }
@@ -679,6 +682,7 @@
     <button data-mode="first" data-en="👀 First">👀 第一人稱</button>
   </div>
   <button class="iconbtn" id="avatarBtn" aria-label="選擇角色" data-en-aria="Choose character" data-en="👕 Avatar">👕 角色</button>
+  <button class="iconbtn" id="loginBtn" hidden>🔑 登入</button>
   <button class="iconbtn" id="passBtn" aria-label="校園護照" data-en-aria="Campus passport">📒<span data-en=" Passport"> 護照</span></button>
   <div class="timeWrap">
     <button class="iconbtn" id="timeBtn" aria-label="時間" data-en-aria="Time of day" aria-haspopup="true" aria-expanded="false"><i>☀️</i><span> 中午</span></button>
@@ -849,6 +853,7 @@
     <p class="sub" data-en="3D Campus · School Year 115">3D 校園 · 115 學年度</p>
     <p class="lead" data-en="Walk into Xikou Elementary,<br>find any room, follow the yellow line,<br>and explore 360° views.">走進溪口國小，<br>找教室、跟著黃線帶路、<br>看 360° 實景。</p>
     <div class="btns"><button class="primary" data-act="walk" data-en="Walk in">走進校園</button><button data-act="bird" data-en="Bird's-eye view">先看鳥瞰</button></div>
+    <p class="login"><button data-act="login" data-en="🔑 Sign in with school Google account">🔑 用學校 Google 帳號登入</button><small data-en="Or just walk in as a guest (progress stays on this computer)">不登入也可以逛（訪客），進度只留在這台電腦</small></p>
   </div>
   <div class="guide">
     <div class="hd" data-en="FIELD GUIDE · Campus Guide">FIELD GUIDE · 校園導覽</div>
@@ -990,8 +995,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=261"></script>
-<script src="js/pano-data.js?v=261"></script>
-<script type="module" src="js/app.js?v=261"></script>
+<script src="js/campus-data.js?v=262"></script>
+<script src="js/pano-data.js?v=262"></script>
+<script type="module" src="js/app.js?v=262"></script>
 </body>
 </html>
