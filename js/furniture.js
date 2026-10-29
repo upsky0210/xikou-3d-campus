@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=258';
+import { Batch, mat, SPOTS } from './blocks.js?v=259';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -225,11 +225,14 @@ function classroom(put, fr, room) {
   for (const s of [-1, 1]) put(corkMat(), 0.03, Math.min(1.0, (W - bw) / 2 - 0.2), 1.0, 0.03, s * (bw / 2 + 0.6), 1.0, true);
   teacherDesk(put, 1.25, A * (W / 2 - 1.0));
   const green = mat('wool', '#3f8f74'), wood = mat('planks', '#b98a5a');
-  const rows = Math.max(2, Math.floor((L - 1.7 - 2.3) / 1.15) + 1);
-  const cols = W > 6.5 ? 6 : 5;
-  const span = W - 1.4;
+  // 課桌椅 5 欄 × 4 排，以好走為主（原本 6 欄太擠，直走道只剩 0.5 m，試玩常卡住）：
+  //   直走道 0.75～0.9 m（人寬 0.56 m），排距依教室長度平均拉開，最後一排椅背離後櫃 0.8 m 可以橫著走
+  const cols = 5, span = W - 1.5;
+  const lastU = L - 1.9;
+  const rows = Math.max(2, Math.min(4, Math.floor((lastU - 2.3) / 1.2) + 1));
+  const pitch = Math.min(1.6, (lastU - 2.3) / (rows - 1));
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-    deskAndChair(put, 2.3 + r * 1.15, -span / 2 + (span * c) / (cols - 1), green, wood, wood);
+    deskAndChair(put, 2.3 + r * pitch, -span / 2 + (span * c) / (cols - 1), green, wood, wood);
   }
   // 後面的櫃子
   const cw = W - 0.4, u = L - 0.21;
