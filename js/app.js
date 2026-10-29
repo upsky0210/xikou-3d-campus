@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=253';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=253';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=253';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=253';
-import { buildCampusWall } from './wall.js?v=253';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=253';
+import { PanoViewer } from './pano.js?v=255';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=255';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=255';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=255';
+import { buildCampusWall } from './wall.js?v=255';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=255';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1102,6 +1102,7 @@ function floorMat(type, f, room) {
   }
   if (/^(星星|太陽|月亮|彩虹)班$/.test(room?.name)) return mat('planks', '#e6dccb');   // 幼兒園教室：淺色木紋地板（依照片）
   if (room?.name === '潛能教室三' || room?.name === '潛能教室四') return mat('tile', '#b4bcc8');   // 灰藍色塑膠地磚（依照片）
+  if (room?.name === '學務處') return mat('tile', '#ebe6dc');   // 淺米色地磚（依照片）
   if (room?.name === '科任教師辦公室') return mat('planks', '#d8cebc');
   if (room?.name === '英語教室一') return mat('planks', '#9a6a3a');   // 咖啡色木紋地板（依照片）
   if (room?.name === '幼兒園辦公室') return mat('planks', '#ece6dc');   // 灰米色木紋地板（依照片）   // 米色（深咖啡格子在家具那邊畫）
@@ -4560,10 +4561,13 @@ const badmintonNet = (() => {
 // 老師可不可以在這裡打：呂老師一直在操場；陳老師只有在活動中心的時候可以（教室裡不行）
 //（鄧老師的投籃比賽也用同一套：game＝'shootout'）
 const canPlayGame = (n) => !!n.game && !n.playing && (!n.places || !!n.places[n.placeIdx]?.game);
+// 隔著牆不算：老師和自己要在同一間教室（或都在教室外面）
+const roomOf = (f, x, z) => rooms.find((r) => r.f === f && !r.open && inRect(r.m, x, z)) || null;
+const sameRoom = (n) => roomOf(n.f, n.g.position.x, n.g.position.z) === roomOf(player.floor, player.x, player.z);
 function badmintonSpot() {
   if (mode === 'bird') return null;
   for (const n of NPCS) {
-    if (canPlayGame(n) && player.floor === n.f && Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z) < 2.6) return { kind: n.game, npc: n };
+    if (canPlayGame(n) && player.floor === n.f && Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z) < 2.6 && sameRoom(n)) return { kind: n.game, npc: n };
   }
   return null;
 }
