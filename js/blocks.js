@@ -680,6 +680,7 @@ export function animatePerson(g, phase, amount) {
  *   bun: 頭髮往後綁成低髮髻（臉旁留兩撮）, lanyard: 識別證掛繩顏色, sleeveless: 無袖
  *   cap: { color, logo } 棒球帽（帽簷朝前、前面一個勾勾標誌）, pocket: 連帽 T 口袋顏色
  *   vest: [背心色, 滾邊色] 針織 V 領背心（套在 top 那件短袖襯衫外面）
+ *   openShirt: 敞開穿的襯衫顏色（top 是裡面的 T 恤；袖子用 longSleeve＋sleeve）, minis: T 恤胸前小圖案的顏色 [...]
  * }
  */
 export function makeBlockNPC(look) {
@@ -807,6 +808,19 @@ export function makeBlockNPC(look) {
     for (const s of [-1, 1]) box(g, 0.16, 0.16, 0.27, vm, s * 0.155, 1.22, 0);
     for (const s of [-1, 1]) box(g, 0.02, 0.17, 0.012, tm, s * 0.075, 1.21, -0.137);
     box(g, 0.47, 0.03, 0.275, tm, 0, 0.71, 0);
+  }
+  if (look.openShirt) {                                     // 敞開穿的長袖襯衫：兩片前襟＋翻領，中間露出 top 那件 T 恤
+    const om = cloth(look.openShirt);
+    for (const s of [-1, 1]) {
+      box(g, 0.13, 0.62, 0.275, om, s * 0.17, 0.99, 0);
+      const lp = box(g, 0.07, 0.2, 0.02, om, s * 0.1, 1.2, -0.14); lp.rotation.z = s * 0.3;   // 翻領
+    }
+    box(g, 0.47, 0.62, 0.02, om, 0, 0.99, 0.135);            // 背面
+    box(g, 0.035, 0.035, 0.012, new THREE.MeshLambertMaterial({ color: '#d8c49a' }), 0.13, 0.95, -0.144);   // 前襟的扣子
+  }
+  if (look.minis) {                                         // T 恤胸前一排小圖案＋下面一行小字
+    look.minis.forEach((c, i) => box(g, 0.035, 0.04, 0.01, cloth(c), -0.04 + i * 0.04, 1.03, -0.135));
+    box(g, 0.13, 0.012, 0.01, cloth('#6a5a4a'), 0, 0.995, -0.135);
   }
   if (look.buttonRow) {                                     // 洋裝前面一整排扣子（上衣到裙子）
     const bm = new THREE.MeshLambertMaterial({ color: look.buttonRow });

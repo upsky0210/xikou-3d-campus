@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=260';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=260';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=260';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=260';
-import { buildCampusWall } from './wall.js?v=260';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=260';
+import { PanoViewer } from './pano.js?v=261';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=261';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=261';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=261';
+import { buildCampusWall } from './wall.js?v=261';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=261';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3478,6 +3478,39 @@ const NPCS = [
     },
   },
   {
+    name: 'Jack 老師', title: '英文老師', game: 'prep',
+    hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
+      '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
+    // 3 樓英語教室二（310）前面講台旁（Joanne 老師站北邊），面向學生
+    places: [
+      { floor: '3F', where: '英語教室二', game: true, at: () => { const r = rooms.find((x) => x.name === '英語教室二'); return [r.m.x1 + 1.3, r.cz + 1.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色短髮（瀏海蓋額頭）、細金屬圓框眼鏡、微笑；米白色短袖 T 恤（胸前一排小圖案）外面敞開穿灰色長袖襯衫
+      skin: '#f1cfb8', hair: '#1a1616', top: '#f1e8d6', pants: '#3a3d44', shoe: '#2a2a2a',
+      shortHair: true, longSleeve: true, sleeve: '#8b8f93', openShirt: '#8b8f93', minis: ['#4a8fd0', '#222222', '#e0602e'],
+      pal: { H: '#1a1616', h: '#2c2626', S: '#f1cfb8', K: '#b8a890', E: '#1e130d', W: '#ffffff', N: '#ddb096', M: '#a8504a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHHhHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'SHHHSHHHHSHHHHHS',
+        'SSSSSSSSSSSSSSSS',
+        'SKKKKKSSSSKKKKKS',
+        'SKSEESKKKKSEESKS',
+        'SKKKKKSSSSKKKKKS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSMSSSSSSMSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
     name: '林老師', title: '三年五班導師', game: 'pingpong',
     hello: ['🤫 林老師：請保持安靜～', '🤣 林老師：我昨天又夢到我在上數學課了🤣', '⛰️ 林老師：爬山很快樂喔！一起來爬山',
       '🏓 林老師：要不要一起去地下室打桌球？'],
@@ -4523,6 +4556,7 @@ function updateAct(dt) {
     : sp.kind === 'heat' ? T(`🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`, `🌡️ Heat & Cold with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'history' ? T(`🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`, `🗺️ Taiwan History & Geography with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'traffic' ? T(`🚦 跟${sp.npc.name}玩交通安全大考驗 <kbd>F</kbd>`, `🚦 Traffic Safety Quiz with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'prep' ? T(`📍 跟${sp.npc.name}玩 in・on・at 小文法 <kbd>F</kbd>`, `📍 in / on / at with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'farm' ? T(`🌱 跟${sp.npc.name}去小田園種菜 <kbd>F</kbd>`, `🌱 Little Farm with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'fraction' ? T(`🧮 幫${sp.npc.name}檢查分數計算 <kbd>F</kbd>`, `🧮 Check ${sp.npc.name}'s fractions <kbd>F</kbd>`)
     : sp.kind === 'blackjack' ? T(`🃏 跟${sp.npc.name}玩 21 點 <kbd>F</kbd>`, `🃏 Blackjack with ${sp.npc.name} <kbd>F</kbd>`)
@@ -6641,7 +6675,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -7364,6 +7398,56 @@ const KG_FARM = {
         if (o.ok) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${q.why}`, 'ok'); }
         else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${q.why}`, 'no'); }
         ctx.later(() => (++i < qs.length ? next() : ctx.end(right, (b) => `${T(`🌱 答對 ${right} / 5 題（最好紀錄 ${b} 題）`, `🌱 ${right} / 5 correct (best ${b})`)}<br>${n.name}：${right >= 4 ? '你是小田園的小農夫！' : '種菜要有耐心，我們下次再來照顧它們！'}回學務處囉～`)), 2800);
+      } })));
+    };
+    next();
+  },
+};
+
+/* ---- 英文小文法 in・on・at（Jack 老師，3F 英語教室二）：空間和時間的介系詞，一回 5 題，三個選項固定 in／on／at ---- */
+// a：正確答案（'in' | 'on' | 'at'）
+const PREP_ITEMS = [
+  { e: '📦🐱', q: 'The cat is ___ the box.', zh: '貓咪在箱子裡面。', a: 'in', why: '在「裡面」用 in。' },
+  { e: '📕', q: 'The book is ___ the desk.', zh: '書在桌子上面。', a: 'on', why: '放在「上面」、貼著表面用 on。' },
+  { e: '🚏', q: 'I wait ___ the bus stop.', zh: '我在公車站等車。', a: 'at', why: '一個「點」、一個地點用 at。' },
+  { e: '🖼️', q: 'The picture is ___ the wall.', zh: '照片掛在牆上。', a: 'on', why: '貼在表面上（牆壁）用 on。' },
+  { e: '🏙️', q: 'I live ___ Taipei.', zh: '我住在台北。', a: 'in', why: '城市、國家這種大範圍用 in。' },
+  { e: '🏫', q: 'We study ___ school.', zh: '我們在學校讀書。', a: 'at', why: '在學校上課這種「地點」用 at school。' },
+  { e: '🐟', q: 'The fish are ___ the water.', zh: '魚在水裡面。', a: 'in', why: '在「裡面」用 in。' },
+  { e: '🚪', q: 'Someone is ___ the door.', zh: '有人在門口。', a: 'at', why: '在某個「點」（門口）用 at。' },
+  { e: '🛋️', q: 'The dog is ___ the sofa.', zh: '狗狗在沙發上。', a: 'on', why: '在「上面」用 on。' },
+  { e: '⏰', q: 'School starts ___ 8 o\'clock.', zh: '學校 8 點上課。', a: 'at', why: '幾點幾分（時刻）用 at。' },
+  { e: '📅', q: 'I go swimming ___ Monday.', zh: '我星期一去游泳。', a: 'on', why: '星期幾用 on。' },
+  { e: '🎂', q: 'My birthday is ___ May.', zh: '我的生日在五月。', a: 'in', why: '月份用 in。' },
+  { e: '🌅', q: 'I get up early ___ the morning.', zh: '我早上很早起床。', a: 'in', why: '早上、下午、晚上用 in the morning / afternoon / evening。' },
+  { e: '🌙', q: 'I see the stars ___ night.', zh: '我晚上看星星。', a: 'at', why: '晚上要說 at night（固定用法）。' },
+  { e: '🎄', q: 'We open gifts ___ Christmas Day.', zh: '我們在聖誕節當天拆禮物。', a: 'on', why: '某一天（特定日子）用 on。' },
+  { e: '❄️', q: 'It snows ___ winter.', zh: '冬天會下雪。', a: 'in', why: '季節用 in。' },
+  { e: '🍱', q: 'We eat lunch ___ noon.', zh: '我們中午吃午餐。', a: 'at', why: '中午 at noon，跟時刻一樣用 at。' },
+  { e: '🗓️', q: 'Teachers\' Day is ___ September 28th.', zh: '教師節在 9 月 28 日。', a: 'on', why: '幾月幾日（日期）用 on。' },
+  { e: '🕰️', q: 'My grandpa was born ___ 1960.', zh: '我爺爺 1960 年出生。', a: 'in', why: '年份用 in。' },
+  { e: '🎒', q: 'My pencil is ___ my bag.', zh: '我的鉛筆在書包裡。', a: 'in', why: '在「裡面」用 in。' },
+];
+const KG_PREP = {
+  key: 'campus-prep-best', title: ['📍 英文小文法 in・on・at', '📍 in / on / at'], label: ['📍 in・on・at…', '📍 in / on / at…'],
+  bye: (n) => T(`📍 下次再來找${n.name}練英文！`, `📍 Come back to practice with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, qs = kgShuffle(PREP_ITEMS.slice()).slice(0, 5);
+    let i = 0, right = 0;
+    const next = () => {
+      const q = qs[i];
+      ctx.prog(T(`第 ${i + 1} / ${qs.length} 題`, `${i + 1} / ${qs.length}`));
+      ctx.stage.innerHTML = `<span class="big">${q.e}</span>`;
+      ctx.ask(`${q.q}<br><small>${q.zh}</small>`);
+      ctx.msg(i ? '' : T('Eyes on me! 小提示：裡面、大範圍用 in，上面、星期幾和日期用 on，一個點、幾點鐘用 at。', 'Eyes on me! in / on / at?'));
+      const opts = ['in', 'on', 'at'];
+      ctx.buttons(opts.map((t, j) => ({ html: `${t}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.indexOf(q.a)].className = 'opt right';
+        const full = q.q.replace('___', `<b>${q.a}</b>`);
+        if (t === q.a) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('Good job! ', 'Good job! ')}${full}　${q.why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${full}　${q.why}`, 'no'); }
+        ctx.later(() => (++i < qs.length ? next() : ctx.end(right, (b) => `${T(`📍 答對 ${right} / 5 題（最好紀錄 ${b} 題）`, `📍 ${right} / 5 correct (best ${b})`)}<br>${n.name}：${right >= 4 ? 'Excellent! in、on、at 你都分得很清楚！' : 'Good try! 多練習幾次就會了，Keep going!'}`)), 2800);
       } })));
     };
     next();
@@ -8505,6 +8589,7 @@ const GAME_INFO = {
   float: [['沉浮實驗', 'Sink or Float'], 'campus-float-best', ans], heat: [['熱脹冷縮', 'Heat & Cold'], 'campus-heat-best', ans],
   history: [['臺灣史地大考驗', 'Taiwan History & Geography'], 'campus-history-best', ans],
   traffic: [['交通安全大考驗', 'Traffic Safety Quiz'], 'campus-traffic-best', ans], farm: [['食農教育', 'Little Farm'], 'campus-farm-best', ans],
+  prep: [['英文小文法 in・on・at', 'in / on / at'], 'campus-prep-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
   stack: [['動物疊疊樂', 'Animal Stacking'], 'campus-kg-stack-best', (v) => T(`疊了 ${v} 層`, `${v} stacked`)],
