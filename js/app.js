@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=257';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=257';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=257';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=257';
-import { buildCampusWall } from './wall.js?v=257';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=257';
+import { PanoViewer } from './pano.js?v=258';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=258';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=258';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=258';
+import { buildCampusWall } from './wall.js?v=258';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=258';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3607,6 +3607,71 @@ const NPCS = [
     },
   },
   {
+    name: '陳老師', title: '生教組長', game: 'traffic',
+    hello: ['🚶 陳老師：走廊上不要奔跑喔！', '🪜 陳老師：上下樓梯要靠右走，注意安全！', '🚦 陳老師：過馬路要看紅綠燈、走斑馬線！', '🚦 陳老師：要不要來挑戰「交通安全大考驗」？'],
+    // 1 樓學務處：中間那條東西向走道，站在自己座位旁邊，面向東邊的走道
+    places: [
+      { floor: '1F', where: '學務處', game: true, at: () => { const r = rooms.find((x) => x.name === '學務處'); return [r.m.x1 + 4.6, r.m.z1 + 3.6, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色短髮、開口大笑；淺水藍色短袖 Polo 衫、深藍色識別證掛繩、卡其色長褲、深色鞋子
+      skin: '#e9c3a4', hair: '#151313', top: '#8ad6dc', pants: '#c9b48c', shoe: '#3a302c',
+      shortHair: true, collar: '#8ad6dc', lanyard: '#1e2f6a',
+      pal: { H: '#151313', h: '#2a2422', S: '#e9c3a4', B: '#1e1612', E: '#1e130d', N: '#d4a684', M: '#8a3a34', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHhHHHHHhHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'SHSSSSSSSSSSSSHS',
+        'SSSSSSSSSSSSSSSS',
+        'SSBBBSSSSSSBBBSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSEESSSSSSEESSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSMMMMMMMMSSSS',
+        'SSSSMTTTTTTMSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
+    name: '林老師', title: '衛生組長', game: 'farm',
+    hello: ['🍱 林老師：營養午餐有青菜、有魚肉，均衡飲食身體好！', '🧹 林老師：保持環境整潔，垃圾要做好分類喔！', '🦷 林老師：吃完午餐記得刷牙！', '🌱 林老師：要不要跟我去 2 樓小田園種菜？'],
+    // 1 樓學務處：東邊那條南北向走道（自己座位旁邊），面向北邊
+    places: [
+      { floor: '1F', where: '學務處', game: true, at: () => { const r = rooms.find((x) => x.name === '學務處'); return [r.m.x2 - 1.6, r.m.z1 + 5.6, 0]; } },
+    ],
+    look: {
+      // 依照片：深咖啡色及肩短髮（旁分）、細金屬框眼鏡、溫和微笑；淺粉膚色短袖襯衫（翻領）外面套灰褐色針織 V 領背心（米白滾邊）、
+      //   黑色細斜背帶、深咖啡色寬褲裙、灰色運動鞋
+      skin: '#f4d4bf', hair: '#2e211d', top: '#ead2bf', pants: '#2a2224', shoe: '#8e9298',
+      bob: true, collar: '#ead2bf', vest: ['#8b7e73', '#f3ebdf'], skirt: '#3d2224', bag: '#2a2a2a',
+      pal: { H: '#2e211d', h: '#3e2c26', S: '#f4d4bf', K: '#a89888', E: '#2a1610', W: '#ffffff', B: '#eeb0a6', N: '#e6b8a2', M: '#b8505a' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHSSSHH',
+        'HHHHHHHSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHKKKKKSSKKKKKHH',
+        'HHKEEWKKKKEEWKHH',
+        'HHKKKKKSSKKKKKHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: '高老師', title: '訓育組長', game: 'history',
     hello: ['📚 高老師：要認真學習唷！', '⚠️ 高老師：出去玩要注意安全！', '🗺️ 高老師：要不要來挑戰「臺灣史地大考驗」？'],
     // 1 樓學務處：西邊那扇北門進來，站在門和白板中間（辦公座位西邊），面向門口（北）
@@ -4457,6 +4522,8 @@ function updateAct(dt) {
     : sp.kind === 'baseball' ? T(`⚾ 跟${sp.npc.name}玩樂樂棒球 <kbd>F</kbd>`, `⚾ T-ball with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'heat' ? T(`🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`, `🌡️ Heat & Cold with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'history' ? T(`🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`, `🗺️ Taiwan History & Geography with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'traffic' ? T(`🚦 跟${sp.npc.name}玩交通安全大考驗 <kbd>F</kbd>`, `🚦 Traffic Safety Quiz with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'farm' ? T(`🌱 跟${sp.npc.name}去小田園種菜 <kbd>F</kbd>`, `🌱 Little Farm with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'fraction' ? T(`🧮 幫${sp.npc.name}檢查分數計算 <kbd>F</kbd>`, `🧮 Check ${sp.npc.name}'s fractions <kbd>F</kbd>`)
     : sp.kind === 'blackjack' ? T(`🃏 跟${sp.npc.name}玩 21 點 <kbd>F</kbd>`, `🃏 Blackjack with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'colors' ? T(`🎨 跟${sp.npc.name}玩顏色對對碰 <kbd>F</kbd>`, `🎨 Color Match with ${sp.npc.name} <kbd>F</kbd>`)
@@ -4504,6 +4571,7 @@ function doAction() {
   else if (act.spot?.kind === 'float') startFood(act.spot.npc, FLOAT_Q);
   else if (act.spot?.kind === 'heat') startFood(act.spot.npc, HEAT_Q);
   else if (act.spot?.kind === 'history') startFood(act.spot.npc, HISTORY_Q);
+  else if (act.spot?.kind === 'traffic') startFood(act.spot.npc, TRAFFIC_Q);
   else if (act.spot?.kind === 'fraction') startFood(act.spot.npc, FRACTION_Q);
   else if (act.spot?.kind === 'blackjack') startBlackjack(act.spot.npc);
   else if (act.spot?.kind === 'colors') startColors(act.spot.npc);
@@ -4566,10 +4634,12 @@ const roomOf = (f, x, z) => rooms.find((r) => r.f === f && !r.open && inRect(r.m
 const sameRoom = (n) => roomOf(n.f, n.g.position.x, n.g.position.z) === roomOf(player.floor, player.x, player.z);
 function badmintonSpot() {
   if (mode === 'bird') return null;
+  let best = null, bd = 2.6;                                          // 兩位老師都在附近（學務處）：找最近的那位
   for (const n of NPCS) {
-    if (canPlayGame(n) && player.floor === n.f && Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z) < 2.6 && sameRoom(n)) return { kind: n.game, npc: n };
+    const d = player.floor === n.f ? Math.hypot(player.x - n.g.position.x, player.z - n.g.position.z) : Infinity;
+    if (d < bd && canPlayGame(n) && sameRoom(n)) { best = n; bd = d; }
   }
-  return null;
+  return best && { kind: best.game, npc: best };
 }
 // 羽球／桌球共用的參數（startBadminton 的第二個參數）
 const BAD = { D: 6, Dmin: 3.5, net: badmintonNet, mine: myRacket, theirs: npcRacket, ball: shuttle, key: BADMINTON_KEY, icon: '🏸', ballName: '羽毛球', ballNameEn: 'shuttlecock',
@@ -6125,6 +6195,32 @@ const HISTORY_Q = { en: { title: 'Taiwan History & Geography', yes: 'True', no: 
   endTalk: (sc, n) => (sc === n ? '全部答對！你是臺灣史地小博士！' : sc >= 3 ? '很棒喔！要認真學習，出去玩也要注意安全唷！' : '沒關係，多看書、多出去走走，就會越來越認識臺灣！'),
   quitTalk: (n) => `🗺️ 下次再來找${n.name}挑戰！出去玩要注意安全唷！` };
 
+/* ---------------- 交通安全大考驗：在學務處遇到陳老師（生教組長），是非題一回 5 題 ---------------- */
+const TRAFFIC_ITEMS = [
+  { e: '🚸', n: '過馬路要走斑馬線（行人穿越道）', ok: 1, why: '走斑馬線，開車、騎車的人才看得到你、會讓你先過。' },
+  { e: '👀', n: '過馬路前先停下來，左右看清楚有沒有車', ok: 1, why: '「停、看、聽」：停下來、左右看、聽聽有沒有車子的聲音，再過馬路。' },
+  { e: '🚦', n: '綠燈亮了，也要注意有沒有轉彎的車子', ok: 1, why: '綠燈時還是會有轉彎的汽車、機車，要看清楚再走。' },
+  { e: '🪖', n: '騎腳踏車要戴安全帽', ok: 1, why: '戴安全帽可以保護頭部，跌倒時比較不會受重傷。' },
+  { e: '🚗', n: '坐汽車時，坐後座也要繫安全帶', ok: 1, why: '前座、後座都要繫安全帶，緊急煞車時才不會被甩出去。' },
+  { e: '🚌', n: '等公車要排隊，等車子停好再上車', ok: 1, why: '車子停好再上下車，才不會跌倒或被夾到。' },
+  { e: '🌙', n: '晚上出門穿淺色或有反光條的衣服', ok: 1, why: '淺色和反光的衣服，晚上開車的人比較容易看到你。' },
+  { e: '🚪', n: '下車開車門前，先回頭看後面有沒有機車、腳踏車', ok: 1, why: '突然開車門可能撞到後面來的機車，要先看清楚再慢慢開。' },
+  { e: '🚂', n: '平交道的警鈴響了、柵欄放下來，要停下來等', ok: 1, why: '警鈴響就是火車快來了，千萬不可以穿越平交道。' },
+  { e: '🏃', n: '小綠人在閃了，還沒走的人趕快衝過去', ok: 0, why: '小綠人閃了表示快變紅燈，還沒走的人要等下一個綠燈。' },
+  { e: '📱', n: '一邊滑手機一邊過馬路', ok: 0, why: '過馬路要專心看車子，不可以低頭滑手機。' },
+  { e: '🙈', n: '在停好的車子後面玩躲貓貓', ok: 0, why: '車子後面是駕駛看不到的地方，車子倒車會撞到人，很危險！' },
+  { e: '⚽', n: '球滾到馬路上，馬上衝出去撿', ok: 0, why: '先停下來看車子，請大人幫忙撿，不要直接衝到馬路上。' },
+  { e: '🛴', n: '在馬路上騎滑板車、溜直排輪', ok: 0, why: '馬路上有很多車子，要在公園或安全的空地玩。' },
+  { e: '🚲', n: '騎腳踏車時雙手放開龍頭，比較帥', ok: 0, why: '雙手要握好龍頭，才能控制方向、隨時煞車。' },
+  { e: '🔴', n: '紅燈時，左右看看沒有車就可以過馬路', ok: 0, why: '紅燈就要停下來等，就算沒有車也要遵守交通規則。' },
+  { e: '🪟', n: '坐車時把頭和手伸出窗外吹風', ok: 0, why: '頭和手伸出窗外，可能會撞到路邊的東西或其他車子。' },
+  { e: '🚌', n: '下公車後，從公車前面或後面突然跑出去過馬路', ok: 0, why: '公車擋住了視線，其他車子看不到你，要等公車開走再走斑馬線。' },
+];
+const TRAFFIC_Q = { en: { title: 'Traffic Safety Quiz', yes: 'Right', no: 'Wrong' }, list: TRAFFIC_ITEMS, key: 'campus-traffic-best', title: '🚦 交通安全大考驗', icon: '🚦', yes: ['⭕', '對'], no: ['❌', '不對'],
+  ask: (q) => `🚦「${q.n}」，這樣做對不對？`, intro: '走廊上不要奔跑，上下樓梯注意安全！我們來考考交通安全，看你知道多少！',
+  endTalk: (sc, n) => (sc === n ? '全部答對！你是交通安全小尖兵！' : sc >= 3 ? '很棒喔！上學、放學的路上也要注意安全！' : '沒關係，記住「停、看、聽」，過馬路就安全了！'),
+  quitTalk: (n) => `🚦 下次再來找${n.name}挑戰！走廊上不要奔跑喔！` };
+
 /* ---------------- 分數計算：在六年一班遇到黃老師，老師在黑板上算了一題，幫老師檢查「算對還是算錯」 ----------------
    每次隨機出題（異分母加減、分數乘法、分數除法、整數乘分數）；算錯的題目是常見的錯法（分子加分子、分母加分母、除法忘了倒過來…） */
 const FRACTION_KEY = 'campus-fraction-best';
@@ -6527,6 +6623,7 @@ function kgPlay(n, G) {
     updateVisibility();
     removeEventListener('keydown', onKey, true);
     n.playing = false; act.busy = null; duel = null;
+    ctx.onStop?.();                                                    // 食農教育：從小田園回學務處
   };
   const onKey = (e) => {
     if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); duel?.quit(); return; }
@@ -6544,7 +6641,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -7214,6 +7311,62 @@ const KG_TOYHOME = {
       ok: (q) => T(`放進${q.ans[0]}的籃子，玩具回家了！`, `Into the ${q.ans[1]} basket. The toy is home!`),
       end: (r) => (b) => `${T(`🧺 送 ${r} / 5 個玩具回家（最好紀錄 ${b} 個）`, `🧺 ${r} / 5 toys home (best ${b})`)}<br>${ctx.n.name}：玩具都回家了，好乾淨喔！謝謝你～`,
     });
+  },
+};
+
+/* ---- 食農教育（林老師，學務處衛生組長）：一起瞬間移動到 2 樓小田園，回答小黃瓜、番茄、小白菜…怎麼種，一回 5 題；玩完一起回學務處 ---- */
+// a[0] 是正確答案
+const FARM_ITEMS = [
+  { e: '🥒', q: '小黃瓜長大會長出藤蔓，種的時候要準備什麼？', a: ['搭支架或網子讓它往上爬', '用塑膠袋把它包起來', '把長出來的藤全部剪掉'], why: '小黃瓜會用捲鬚抓住支架往上爬，果實才不會躺在土上爛掉。' },
+  { e: '🥒', q: '小黃瓜什麼時候採收最好吃？', a: ['長到大約手掌長、還嫩嫩的時候', '放到變黃、變很大以後', '剛開花的時候'], why: '小黃瓜要趁嫩採收；放太久會變黃、變老，種子也會變硬。' },
+  { e: '🍅', q: '番茄長高、結了很多果實，莖快要倒下來了，怎麼辦？', a: ['插支柱，把莖輕輕綁在柱子上', '把果實全部摘掉', '把莖壓到土裡面'], why: '番茄結果實會越來越重，綁在支柱上才站得穩。' },
+  { e: '🍅', q: '番茄喜歡種在什麼樣的地方？', a: ['陽光充足、排水好的地方', '陰暗潮濕的角落', '一直泡在水裡'], why: '番茄很喜歡曬太陽；土太濕，根會爛掉。' },
+  { e: '🍅', q: '番茄的葉子和莖中間長出小小的「側芽」，常常會怎麼做？', a: ['把側芽摘掉，讓養分留給果實', '在側芽上撒鹽', '用膠帶把側芽包起來'], why: '摘掉太多的側芽，養分就能集中，番茄會長得比較大顆。' },
+  { e: '🥬', q: '小白菜要怎麼播種？', a: ['把種子撒在土上，再蓋一層薄薄的土', '把種子埋到很深很深的地方', '把種子泡在水裡就好'], why: '小白菜的種子很小，蓋太厚的土，芽會鑽不出來。' },
+  { e: '🥬', q: '小白菜從播種到可以採收，大概要多久？', a: ['大約一個月', '大約一年', '三天'], why: '小白菜長得很快，大約一個月左右就可以採收。' },
+  { e: '🥬', q: '小白菜的葉子上有很多小洞洞，可能是什麼原因？', a: ['有菜蟲在吃葉子', '被太陽曬出洞來', '被雨滴打出洞來'], why: '菜蟲最喜歡吃小白菜！可以把蟲抓走，或蓋上防蟲網。' },
+  { e: '🌱', q: '小苗長得太擠、太密了，要怎麼辦？', a: ['拔掉一些小苗，留空間給其他的苗', '再多撒一些種子', '全部拔掉重新種'], why: '這叫「疏苗」。每棵菜都有足夠的空間，才會長得又大又好。' },
+  { e: '💧', q: '怎麼知道菜園需不需要澆水？', a: ['摸摸看土，乾乾的再澆', '每個小時都澆一次', '等葉子枯掉了再澆'], why: '土乾了再澆水；水澆太多，根反而會爛掉。' },
+  { e: '☀️', q: '一天當中，什麼時候澆水比較好？', a: ['早上或傍晚', '中午太陽最大的時候', '半夜'], why: '早上或傍晚比較涼，水不會一下子就被曬乾。' },
+  { e: '🧅', q: '青蔥可以怎麼種？', a: ['把帶根的蔥白插進土裡', '把蔥的綠色葉子剪下來種', '把整把蔥曬乾再種'], why: '留下帶根的蔥白種進土裡，就會再長出新的蔥。' },
+  { e: '🥕', q: '胡蘿蔔要怎麼種比較好？', a: ['種子直接撒在菜園裡，不要移來移去', '把胡蘿蔔切片埋進土裡', '種在很硬、很多石頭的土裡'], why: '胡蘿蔔吃的是根，移植或土裡石頭多，根就會長得歪歪的、分岔。' },
+  { e: '🍠', q: '地瓜最常用什麼方法種？', a: ['剪一段地瓜藤，插進土裡', '把地瓜葉曬乾撒在土上', '把地瓜皮埋進土裡'], why: '地瓜藤插進土裡很快就會長根，這叫「扦插」。' },
+  { e: '🪱', q: '在菜園的土裡看到蚯蚓，代表什麼？', a: ['土壤很健康、很鬆軟', '菜快要死掉了', '要趕快噴農藥'], why: '蚯蚓會鬆土、幫忙分解落葉，是菜園的好朋友。' },
+  { e: '🍂', q: '落葉和果皮可以拿來做什麼，讓菜長得更好？', a: ['做成堆肥（有機肥料）', '燒掉', '丟進水溝'], why: '落葉、果皮慢慢分解，就變成有營養的堆肥。' },
+];
+const KG_FARM = {
+  key: 'campus-farm-best', title: ['🌱 食農教育：小田園種菜', '🌱 Little Farm'], label: ['🌱 在小田園種菜…', '🌱 Farming…'],
+  bye: (n) => T(`🌱 下次再來找${n.name}種菜！`, `🌱 Come back to farm with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, farm = rooms.find((x) => x.name === '露臺（小田園）');
+    // 瞬間移動到 2 樓小田園：老師站在第一、二排菜圃中間的走道，學生在東邊 1.9 公尺面向老師（都不要站在菜圃上）
+    const home = { f: n.f, x: n.g.position.x, z: n.g.position.z, yaw: n.yaw };
+    // 回來時：站在老師正前方 1.6 公尺、面向老師（學務處走道很窄，不要用遊戲開始時站的位置）
+    home.px = home.x - Math.sin(home.yaw) * 1.6; home.pz = home.z - Math.cos(home.yaw) * 1.6; home.pyaw = home.yaw + Math.PI;
+    const tx = farm.m.x1 + 2.55, tz = farm.m.z1 + 3.15;
+    placeNPC(n, farm.f, tx, tz, -Math.PI / 2); n.label.visible = false;
+    placeAt(farm.f, tx + 1.9, tz, Math.PI / 2); avatar.rotation.y = Math.PI / 2; player.yaw = Math.PI / 2 + 0.42; player.pitch = -0.15;
+    ctx.onStop = () => {
+      placeNPC(n, home.f, home.x, home.z, home.yaw); n.label.visible = true;
+      placeAt(home.f, home.px, home.pz, home.pyaw);
+    };
+    const qs = kgShuffle(FARM_ITEMS.slice()).slice(0, 5);
+    let i = 0, right = 0;
+    const next = () => {
+      const q = qs[i];
+      ctx.prog(T(`第 ${i + 1} / ${qs.length} 題`, `${i + 1} / ${qs.length}`));
+      ctx.stage.innerHTML = `<span class="big">${q.e}</span>`;
+      ctx.ask(q.q); ctx.msg(i ? '' : T('我們到 2 樓小田園了！一起來學怎麼種菜～', 'We are at the Little Farm!'));
+      const opts = kgShuffle(q.a.map((t, k) => ({ t, ok: !k })));
+      ctx.buttons(opts.map((o, j) => ({ html: `${o.t}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.findIndex((x) => x.ok)].className = 'opt right';
+        if (o.ok) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${q.why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${q.why}`, 'no'); }
+        ctx.later(() => (++i < qs.length ? next() : ctx.end(right, (b) => `${T(`🌱 答對 ${right} / 5 題（最好紀錄 ${b} 題）`, `🌱 ${right} / 5 correct (best ${b})`)}<br>${n.name}：${right >= 4 ? '你是小田園的小農夫！' : '種菜要有耐心，我們下次再來照顧它們！'}回學務處囉～`)), 2800);
+      } })));
+    };
+    next();
   },
 };
 
@@ -8351,6 +8504,7 @@ const GAME_INFO = {
   glider: [['蜜袋鼯能吃嗎？', 'Can Sugar Gliders Eat It?'], 'campus-glider-food-best', ans],
   float: [['沉浮實驗', 'Sink or Float'], 'campus-float-best', ans], heat: [['熱脹冷縮', 'Heat & Cold'], 'campus-heat-best', ans],
   history: [['臺灣史地大考驗', 'Taiwan History & Geography'], 'campus-history-best', ans],
+  traffic: [['交通安全大考驗', 'Traffic Safety Quiz'], 'campus-traffic-best', ans], farm: [['食農教育', 'Little Farm'], 'campus-farm-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
   stack: [['動物疊疊樂', 'Animal Stacking'], 'campus-kg-stack-best', (v) => T(`疊了 ${v} 層`, `${v} stacked`)],
