@@ -360,7 +360,64 @@ const TEES = {
   'basketball-white': { bg: '#f2f2ee', fg: '#1f5fbf', draw: basketballPrint },
   recorder: { bg: '#4b2486', fg: '#efe6d4', ink: '#1f1d2b', draw: recorderPrint },
   dance: { bg: '#f6dde3', fg: '#d6202a', ink: '#141414', draw: dancePrint },
+  swimteam: { bg: '#1b8fd2', fg: '#f4b41f', ink: '#141414', trim: '#123f86', draw: swimPrint },
 };
+//   游泳隊：藍色（淺色多邊形、亮點、下襬比較深），深藍圓領和袖口。左胸圓形「SWIMMING TEAM」鯊魚徽章，
+//           背後黃色咧嘴大笑的鯊魚衝浪花＋書法「溪口泳隊」（「泳」是黃色，黑字描白邊）
+function swimShark(c, x, y, s, { fg, ink }) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.lineJoin = c.lineCap = 'round'; c.strokeStyle = ink; c.lineWidth = 2.5;
+  c.fillStyle = fg;
+  c.beginPath(); c.moveTo(-6, -20); c.lineTo(6, -38); c.lineTo(14, -18); c.closePath(); c.fill(); c.stroke();   // 背鰭
+  c.beginPath(); c.moveTo(34, -2); c.lineTo(56, -18); c.lineTo(50, 2); c.lineTo(58, 16); c.closePath(); c.fill(); c.stroke();   // 尾巴
+  c.beginPath(); c.ellipse(0, 0, 40, 22, 0, 0, Math.PI * 2); c.fill(); c.stroke();   // 身體
+  // 咧嘴大笑：白色嘴巴＋一排鋸齒牙
+  c.fillStyle = '#ffffff';
+  c.beginPath(); c.moveTo(-30, -2); c.quadraticCurveTo(-4, 4, 22, -4); c.quadraticCurveTo(4, 26, -30, -2); c.closePath(); c.fill(); c.stroke();
+  c.lineWidth = 1.5; c.beginPath();
+  for (let i = 0; i <= 8; i++) { const t = i / 8, px = -28 + t * 48; c.lineTo(px, (i % 2 ? 8 : 2) + Math.sin(t * Math.PI) * 4); }
+  c.stroke();
+  c.fillStyle = ink; c.beginPath(); c.ellipse(-12, -10, 4, 3, -0.3, 0, Math.PI * 2); c.fill();   // 眼睛（瞇瞇眼）
+  c.lineWidth = 2.5; c.beginPath(); c.moveTo(-20, -16); c.lineTo(-6, -14); c.stroke();               // 眉毛
+  c.restore();
+}
+function swimPrint(c, w, front, P) {
+  const { fg, ink } = P;
+  // 底：上亮下深的藍、淺色多邊形、星星亮點
+  const gr = c.createLinearGradient(0, 0, 0, 240);
+  gr.addColorStop(0, '#2a9be0'); gr.addColorStop(0.7, '#1683c8'); gr.addColorStop(1, '#0c5aa6');
+  c.fillStyle = gr; c.fillRect(0, 0, w, 240);
+  c.fillStyle = 'rgba(255,255,255,.09)';
+  for (const pts of [[[0, 20], [70, 0], [40, 90]], [[w, 30], [120, 90], [w, 140]], [[10, 160], [90, 200], [0, 240]], [[100, 170], [w, 210], [140, 240]]]) {
+    c.beginPath(); pts.forEach(([px, py]) => c.lineTo(px, py)); c.closePath(); c.fill();
+  }
+  c.strokeStyle = 'rgba(255,255,255,.12)'; c.lineWidth = 0.8;
+  for (let i = 0; i < 7; i++) { c.beginPath(); c.moveTo(0, 120 + i * 6); c.bezierCurveTo(w * 0.4, 90 + i * 8, w * 0.6, 160 + i * 5, w, 110 + i * 7); c.stroke(); }
+  c.fillStyle = 'rgba(255,255,255,.8)';
+  for (const [px, py] of [[30, 40], [150, 24], [120, 120], [40, 140], [90, 210], [160, 180], [20, 200]]) c.fillRect(px, py, 2, 2);
+  if (front) {
+    // 左胸（看的人的右邊）圓形徽章
+    const cx = w * 0.7, cy = 56, r = 20;
+    c.fillStyle = '#1d4f9a'; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#ffffff'; c.lineWidth = 2; c.stroke();
+    swimShark(c, cx, cy + 2, 0.34, P);
+    c.fillStyle = '#ffffff'; c.font = '700 6px "Arial Black", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('SWIMMING', cx, cy - 12); c.fillText('TEAM', cx, cy + 14);
+  } else {
+    swimShark(c, w * 0.58, 70, 0.95, P);
+    // 浪花
+    c.strokeStyle = '#ffffff'; c.lineWidth = 3; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(w * 0.22, 100); c.quadraticCurveTo(w * 0.5, 84, w * 0.86, 100); c.stroke();
+    c.lineWidth = 2; c.beginPath(); c.moveTo(w * 0.3, 108); c.quadraticCurveTo(w * 0.55, 96, w * 0.8, 108); c.stroke();
+    // 書法「溪口泳隊」：黑字描白邊，「泳」黃色
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+    c.font = '900 44px "DFKai-SB", "BiauKai", "標楷體", "KaiTi", "STKaiti", serif';
+    for (const [ch, x, y, col] of [['溪', w * 0.2, 122, ink], ['口', w * 0.44, 118, ink], ['泳', w * 0.54, 158, fg], ['隊', w * 0.8, 146, ink]]) {
+      c.lineWidth = 5; c.strokeStyle = '#ffffff'; c.strokeText(ch, x, y);
+      c.fillStyle = col; c.fillText(ch, x, y);
+    }
+  }
+}
 //   舞蹈隊：淡粉紅色。左胸紅色草寫「Dance」（深色描邊），背後黑色書法「舞」＋跳芭蕾的女孩剪影＋紅色彩帶
 function dancePrint(c, w, front, { fg, ink }) {
   c.lineCap = c.lineJoin = 'round';
@@ -496,7 +553,7 @@ function teeTexture(kind, front) {
 
 /** 選角色畫面的服裝按鈕：key → [中文, English]（泳裝是游泳小遊戲自動換的，不在這裡）；
  *  籃球隊女生有三款（BB_GIRL，也可以穿男生的紅色款），男生只有紅色那款 */
-export const OUTFITS = { uniform: ['制服', 'Uniform'], basketball: ['籃球隊', 'Basketball team'], recorder: ['直笛隊', 'Recorder team'], dance: ['舞蹈隊', 'Dance team'] };
+export const OUTFITS = { uniform: ['制服', 'Uniform'], basketball: ['籃球隊', 'Basketball team'], recorder: ['直笛隊', 'Recorder team'], dance: ['舞蹈隊', 'Dance team'], swimteam: ['游泳隊', 'Swim team'] };
 export const BB_GIRL = { red: ['紅底白字', 'Red & white'], black: ['黑底橘字', 'Black & orange'], white: ['白底藍字', 'White & blue'] };
 /** 實際穿哪一套（女生的籃球隊要看選哪一款） */
 export const outfitFor = (o, gender, bbGirl = 'black') => (o === 'basketball' && gender === 'girl' && bbGirl !== 'red' ? `basketball-${bbGirl in BB_GIRL ? bbGirl : 'black'}` : o);
@@ -520,8 +577,9 @@ export function makeBlockPerson(gender = 'boy') {
   const navy = cloth('#1d2b57'), girl = gender === 'girl';
   const outfit = [];                                         // [方塊, 制服材質, { 服裝: 材質（null＝藏起來；沒寫＝跟制服一樣） }]
   const dress = (mesh, alt) => { outfit.push([mesh, mesh.material, alt]); return mesh; };
-  const teeKinds = girl ? ['basketball', 'basketball-black', 'basketball-white', 'recorder', 'dance'] : ['basketball', 'recorder', 'dance'];
+  const teeKinds = girl ? ['basketball', 'basketball-black', 'basketball-white', 'recorder', 'dance', 'swimteam'] : ['basketball', 'recorder', 'dance', 'swimteam'];
   const teeSide = Object.fromEntries(teeKinds.map((k) => [k, cloth(TEES[k].bg)]));
+  const teeTrim = Object.fromEntries(teeKinds.map((k) => [k, TEES[k].trim ? cloth(TEES[k].trim) : null]));   // 圓領、袖口另外一個顏色（游泳隊）
   const tees = (f) => Object.fromEntries(teeKinds.map((k) => [k, f(k)]));   // 每一套隊服各用什麼材質
   // swim(方塊, 泳裝材質, 隊服材質)：隊服材質可以是 (k) => 材質；沒給＝穿隊服時跟制服一樣
   const swim = (mesh, m, tee) => dress(mesh, { swim: m, ...(tee === undefined ? {} : tees(typeof tee === 'function' ? tee : () => tee)) });
@@ -560,13 +618,14 @@ export function makeBlockPerson(gender = 'boy') {
   swim(box(g, 0.06, 0.15, 0.02, collar, 0, 1.17, -0.135), null, null);        // 門襟
   swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.2, -0.147), null, null);       // 鈕扣（同色）
   swim(box(g, 0.025, 0.025, 0.02, collar, 0, 1.13, -0.147), null, null);
-  dress(box(g, 0.47, 0.03, 0.27, polo, 0, 1.3, 0), { swim: null, uniform: null, ...tees((k) => teeSide[k]) });   // 圓領（只有隊服有）
+  dress(box(g, 0.47, 0.03, 0.27, polo, 0, 1.3, 0), { swim: null, uniform: null, ...tees((k) => teeTrim[k] || teeSide[k]) });   // 圓領（只有隊服有）
 
   // 手臂：短袖（全紅）＋ 手臂（膚色）；左袖綠色小校徽
   const arm = (side) => {
     const p = pivot(side * 0.33, 1.3);
     swim(box(p, 0.2, 0.22, 0.22, polo, 0, -0.11, 0), girl ? skin : navy, (k) => teeSide[k]);   // 連身泳裝露手臂；水母衣是短袖
     if (side === -1) swim(box(p, 0.01, 0.06, 0.06, cloth('#2e9e4f'), -0.105, -0.08, 0), null, null);   // 校徽
+    dress(box(p, 0.21, 0.05, 0.23, polo, 0, -0.195, 0), { swim: null, uniform: null, ...tees((k) => teeTrim[k]) });   // 袖口深色滾邊
     box(p, 0.16, 0.36, 0.18, skin, 0, -0.4, 0);
     box(p, 0.17, 0.1, 0.19, skin, 0, -0.62, 0);
     return p;
