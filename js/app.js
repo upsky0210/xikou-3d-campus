@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=266';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=266';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=266';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=266';
-import { buildCampusWall } from './wall.js?v=266';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=266';
+import { PanoViewer } from './pano.js?v=268';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=268';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=268';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=268';
+import { buildCampusWall } from './wall.js?v=268';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=268';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3518,9 +3518,9 @@ const NPCS = [
     name: '姚姚老師', title: '教學組長', game: 'geo',
     hello: ['📚 姚姚老師：上課要專心聽，不懂的地方要舉手問老師喔！', '🗺️ 姚姚老師：臺灣雖然不大，卻有高高的山、長長的河，還有好多種地形！',
       '⛰️ 姚姚老師：臺灣最高的山是玉山，你去過嗎？', '🌊 姚姚老師：要不要來挑戰「臺灣地理大考驗」？五大山脈、五大地形、三大河流都考喔！'],
-    // 1 樓教務處門口（東牆那扇門外面的走廊），面向走廊
+    // 1 樓教務處門口（東牆那扇門外面的走廊）：站在門的南邊、貼著牆，不擋住進出的門，面向走廊
     places: [
-      { floor: '1F', where: '教務處門口', game: true, at: () => { const r = rooms.find((x) => x.name === '教務處'); const d = r.doorPts.find((p) => p.side === 'E'); return [d.x + 1.3, d.z, -Math.PI / 2]; } },
+      { floor: '1F', where: '教務處門口', game: true, at: () => { const r = rooms.find((x) => x.name === '教務處'); const d = r.doorPts.find((p) => p.side === 'E'); return [d.x + 0.85, d.z + 1.9, -Math.PI / 2]; } },
     ],
     look: {
       // 依照片：棕色長直髮（旁分瀏海）、淺淺的微笑；奶油色羅紋 V 領短袖上衣（中間一排金色鈕扣）、米色格紋寬褲
@@ -9360,6 +9360,67 @@ function buildPhotoScenes() {
       if (i % 2 === 0) { const h2 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.4, 0.03), steel); h2.position.set(x, fB.y + 0.75, z + 0.08); fB.group.add(h2); }
     });
   }
+  // ---- 丙梯、丁梯往 B1（依照片「往地下室樓梯海報」）：沿著樓梯斜度貼一張張彩色紙框的交通安全宣導海報；
+  //   往下走時右手邊的牆是黃褐色小磁磚腰牆＋白牆，牆上斜斜一排海報（黃、綠、藍、紅紙），樓梯底部平台牆上掛透明壓克力框的海報。
+  //   海報是照著照片上的標題用程式畫的示意圖，不是原圖 ----
+  {
+    const fB = floorById['B1'], H = FLOOR_H, FONT = '"Noto Sans TC","Microsoft JhengHei",sans-serif';
+    const rrect = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
+    // 一張海報：paper＝底下的彩色紙，body＝海報本體底色，title／sub＝標題、副標，icon＝簡單插圖
+    const poster = (paper, body, title, sub, icon, frame) => photoTex(200, 280, (c, w, h) => {
+      if (frame) { c.fillStyle = 'rgba(220,235,240,.55)'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6); c.fillStyle = '#8a8d90'; for (const [x, y] of [[10, 10], [w - 10, 10], [10, h - 10], [w - 10, h - 10]]) { c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); } }
+      c.fillStyle = paper; c.fillRect(frame ? 18 : 0, frame ? 18 : 0, frame ? w - 36 : w, frame ? h - 36 : h);
+      const bx = 30, by = 28, bw = w - 60, bh = h - 56;
+      c.fillStyle = body; c.fillRect(bx, by, bw, bh);
+      c.fillStyle = '#222'; c.font = `900 22px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      const lines = title.split('/'); lines.forEach((t, i) => c.fillText(t, w / 2, by + 24 + i * 26));
+      c.font = `600 11px ${FONT}`; c.fillStyle = '#3a3a3a'; sub.split('/').forEach((t, i) => c.fillText(t, w / 2, by + 28 + lines.length * 26 + i * 14));
+      const cy = by + bh * 0.68;
+      if (icon === 'truck') { c.fillStyle = '#e8773a'; c.fillRect(bx + 14, cy - 40, bw - 60, 70); c.fillStyle = '#2a6ac0'; c.fillRect(bx + bw - 50, cy - 20, 40, 50); c.fillStyle = '#222'; for (const x of [bx + 34, bx + bw - 34]) { c.beginPath(); c.arc(x, cy + 34, 10, 0, 7); c.fill(); } }
+      if (icon === 'bike') { c.strokeStyle = '#222'; c.lineWidth = 4; for (const x of [bx + 30, bx + bw - 30]) { c.beginPath(); c.arc(x, cy + 10, 20, 0, 7); c.stroke(); } c.beginPath(); c.moveTo(bx + 30, cy + 10); c.lineTo(w / 2, cy - 14); c.lineTo(bx + bw - 30, cy + 10); c.moveTo(w / 2, cy - 14); c.lineTo(w / 2 - 4, cy - 28); c.stroke(); for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; c.fillStyle = '#6a7078'; c.beginPath(); c.arc(w / 2 + Math.cos(a) * 52, cy - 80 + Math.sin(a) * 18 - 30, 7, 0, 7); c.fill(); } }
+      if (icon === 'zebra') { c.fillStyle = '#6f7479'; c.fillRect(bx, cy - 30, bw, 70); c.fillStyle = '#fff'; for (let i = 0; i < 6; i++) c.fillRect(bx + 8 + i * ((bw - 16) / 6), cy - 24, (bw - 16) / 6 * 0.6, 58); c.fillStyle = '#f2c9a0'; c.beginPath(); c.arc(w / 2 - 14, cy - 46, 11, 0, 7); c.arc(w / 2 + 16, cy - 40, 9, 0, 7); c.fill(); c.fillStyle = '#e8573a'; c.fillRect(w / 2 - 22, cy - 34, 16, 24); c.fillStyle = '#3a8fd0'; c.fillRect(w / 2 + 9, cy - 30, 14, 20); }
+      if (icon === 'bus') { c.fillStyle = '#f2c230'; c.fillRect(bx + 12, cy - 36, bw - 24, 66); c.fillStyle = '#cfe8f7'; for (let i = 0; i < 3; i++) c.fillRect(bx + 20 + i * 36, cy - 28, 26, 24); c.fillStyle = '#222'; for (const x of [bx + 34, bx + bw - 34]) { c.beginPath(); c.arc(x, cy + 32, 9, 0, 7); c.fill(); } }
+      if (icon === 'snake') { c.strokeStyle = '#222'; c.lineWidth = 12; c.lineCap = 'round'; c.beginPath(); c.moveTo(bx + 20, cy + 30); c.bezierCurveTo(bx + 90, cy + 30, bx + 10, cy - 10, bx + 80, cy - 20); c.stroke(); c.strokeStyle = '#d32f2f'; c.lineWidth = 4; for (const [x, y] of [[bx + 20, cy - 30], [bx + bw - 24, cy - 20], [bx + 24, cy + 6]]) { c.beginPath(); c.moveTo(x - 6, y - 6); c.lineTo(x + 6, y + 6); c.moveTo(x + 6, y - 6); c.lineTo(x - 6, y + 6); c.stroke(); } }
+      if (icon === 'elder') { c.fillStyle = '#6f7479'; c.fillRect(bx, cy - 6, bw, 50); c.fillStyle = '#fff'; for (let i = 0; i < 5; i++) c.fillRect(bx + 6 + i * 22, cy, 12, 38); c.fillStyle = '#f2c9a0'; c.beginPath(); c.arc(w / 2 - 12, cy - 30, 13, 0, 7); c.arc(w / 2 + 18, cy - 24, 10, 0, 7); c.fill(); c.fillStyle = '#d93a3a'; c.fillRect(w / 2 - 22, cy - 18, 20, 30); c.fillStyle = '#3a8fd0'; c.fillRect(w / 2 + 8, cy - 14, 16, 22); }
+      c.fillStyle = '#c0392b'; c.fillRect(bx, by + bh - 10, bw, 10);
+    }, {});
+    const SET = [
+      ['#f6e23a', '#eaf3fb', '守護你我安全', '車禍路口停讓行', 'zebra'], ['#4cc36a', '#f2b81c', '路口行車要禮讓/行人優先放心上', '', 'zebra'],
+      ['#4aa8e0', '#f2d44a', '行車有安/安全無虞', '', 'bus'], ['#e8573a', '#7a8a6a', '車輛有條/不要闖紅燈', '', 'bus'], ['#4cc36a', '#f2b81c', '行車安全/從我做起', '', 'truck'],
+    ];
+    const FRAMED = [
+      ['#6a6e72', '#f4f0e6', '看得見才安全', '大型車視線死角、內輪差', 'truck'], ['#4aa8e0', '#f2b81c', '騎乘要項做得好/安全無慮沒煩惱', 'Follow cycling safety tips.', 'bike'],
+      ['#4cc36a', '#f4f0e6', '自行車也是車', '遵守交通規則及禮讓行人', 'bike'], ['#6a6e72', '#f2b81c', '生命的長度/懂在一念之間', '', 'snake'], ['#f6e23a', '#f4f0e6', '行人安全行', '', 'elder'],
+    ];
+    const wainTex2 = photoTex(256, 256, (c, w, h) => {
+      c.fillStyle = '#c9b48a'; c.fillRect(0, 0, w, h);
+      for (let y = 0; y < h; y += 8) for (let x = (y / 8 % 2) * 4; x < w; x += 8) { c.fillStyle = ['#bfa878', '#d3c096', '#c4ae80'][(x + y) % 3]; c.fillRect(x, y, 7, 7); }
+    }, { repeat: [1, 1] });
+    const band2 = (m, g, u1, u2, yFn, y0, hh, v) => {
+      const pts = [], uvs = [], N = 10;
+      for (let i = 0; i <= N; i++) { const u = u1 + (u2 - u1) * i / N, [x, z] = g.toXZ(u, v), y = fB.y + yFn(u) + y0; pts.push(x, y, z, x, y + hh, z); uvs.push(u, 0, u, hh); }
+      const geo = new THREE.BufferGeometry(), idx = [];
+      for (let i = 0; i < N; i++) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+      m.side = THREE.DoubleSide; const mesh = new THREE.Mesh(geo, m); fB.group.add(mesh);
+    };
+    for (const sid of ['丙梯', '丁梯']) {
+      const st = fB.stairs.find((x) => x.id === sid); if (!st) continue;
+      const g = st.g, vN = WALL_T / 2 + 0.03, vS = g.Wd - WALL_T / 2 - 0.03;
+      const k01 = (u) => Math.max(0, Math.min(1, (u - g.s0) / (g.f1 - g.s0)));
+      const yA = (u) => (u <= g.s0 ? 0 : u >= g.f1 ? H / 2 : (H / 2) * k01(u));                  // A 道（北側）的階梯高度
+      const yB = (u) => H / 2 + (H / 2) * (1 - k01(u));                                           // B 道（南側）往上的階梯高度
+      band2(wainTex2, g, g.s0, g.f1, yA, 0, 0.95, vN); band2(wainTex2, g, g.s0, g.f1, yB, 0, 0.95, vS);
+      // 斜斜的一排海報（北牆沿 A 道、南牆沿 B 道）
+      SET.forEach(([paper, body, t, sb, ic], k) => { const u = g.s0 + 0.6 + k * 0.82, [x, z] = g.toXZ(u, vN + 0.012); wallPic(fB, poster(paper, body, t, sb, ic, false), x, fB.y + yA(u) + 1.72, z, 0.58, 0.82, 0); });
+      SET.slice().reverse().forEach(([paper, body, t, sb, ic], k) => { const u = g.s0 + 0.6 + k * 0.82, [x, z] = g.toXZ(u, vS - 0.012); wallPic(fB, poster(paper, body, t, sb, ic, false), x, fB.y + yB(u) + 1.72, z, 0.58, 0.82, Math.PI); });
+      // 樓梯底下平台（最裡面那面牆）：透明壓克力框的海報兩張
+      FRAMED.slice(0, 3).forEach(([paper, body, t, sb, ic], k) => {
+        const [x, z] = g.toXZ(g.L - WALL_T / 2 - 0.02, g.Wd * (0.25 + k * 0.25));
+        wallPic(fB, poster(paper, body, t, sb, ic, true), x, fB.y + H / 2 + 1.5, z, 0.52, 0.72, g.dir > 0 ? (g.alongX ? -Math.PI / 2 : Math.PI) : (g.alongX ? Math.PI / 2 : 0));
+      });
+    }
+  }
   // ---- 3F「秋天的信」壁畫（依照片）：團輔室東牆、正對潛能教室一和二的門；整面畫到天花板，下面三分之一是馬賽克小磁磚 ----
   //   左邊秋天的樹（兔子穿紅毛衣靠著樹、松鼠）、中間池塘＋踏腳石＋青蛙、遠方綠色山丘、紅屋頂小屋、柏樹、涼亭、蝴蝶；
   //   上面是詩（林武憲〈秋天的信〉）：只畫標題和作者，詩句用毛筆字的筆畫表示，不抄全文
@@ -10157,4 +10218,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=266').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=268').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

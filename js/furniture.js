@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=266';
+import { Batch, mat, SPOTS } from './blocks.js?v=268';
+import { trafficBasement } from './basement.js?v=268';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -3353,6 +3354,7 @@ function furnishRoom(room, fr, put) {
   if (n === '警衛室') return guardRoom(put, fr, room);                 // 依照片
   if (n === '學務處') return studentAffairs(put, fr, room);                  // 依照片
   if (n === '桌球教室') return tableTennisHall(put, fr);                // B1 敬業樓地下室，依照片
+  if (n === '交通安全教室') return trafficBasement(put, fr, room);      // B1 勤學樓地下室（丙梯～丁梯），依照片
   if (n.includes('活動中心')) return gym(put, fr);
   if (n.includes('舞蹈') || n.includes('律動')) return danceRoom(put, fr, room);
   if (n === '會議室' && room.no === '111') return meetingRoom(put, fr, room);   // 1F 會議室依照片
@@ -3377,7 +3379,7 @@ export const ROOM_EN = {   // 也給 app.js 的英文介面用
   '幼兒多功能活動室一': 'Kindergarten Activity Room 1', '幼兒多功能活動室二': 'Kindergarten Activity Room 2',
   '律動教室': 'Rhythm Room', '思科教室': 'Cisco Classroom', '溪口家園': 'Xikou Home', '幼兒園中央廚房': 'Kindergarten Central Kitchen', '教務處': 'Academic Affairs Office',
   '教師會辦公室': "Teachers' Association Office", '方陣教室': 'Science Discovery Room', '會議室': 'Meeting Room',
-  '校長室': "Principal's Office", '桌球教室': 'Table Tennis Room', '油印室': 'Printing Room', '活動中心': 'Activity Center',
+  '校長室': "Principal's Office", '桌球教室': 'Table Tennis Room', '交通安全教室': 'Traffic Safety Hall', '油印室': 'Printing Room', '活動中心': 'Activity Center',
   '潛能教室一': 'Resource Room 1', '潛能教室二': 'Resource Room 2', '潛能教室三': 'Resource Room 3', '潛能教室四': 'Resource Room 4',
   '科任教師辦公室': 'Subject Teachers\' Office', '穿堂': 'Entrance Hall', '總務處': 'General Affairs Office', '美勞教室': 'Art Room',
   '自然教室一': 'Science Room 1', '自然教室二': 'Science Room 2', '舞蹈教室': 'Dance Room', '英語教室一': 'English Room 1',
