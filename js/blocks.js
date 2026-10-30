@@ -680,6 +680,7 @@ export function animatePerson(g, phase, amount) {
  *   bun: 頭髮往後綁成低髮髻（臉旁留兩撮）, lanyard: 識別證掛繩顏色, sleeveless: 無袖
  *   cap: { color, logo } 棒球帽（帽簷朝前、前面一個勾勾標誌）, pocket: 連帽 T 口袋顏色
  *   vest: [背心色, 滾邊色] 針織 V 領背心（套在 top 那件短袖襯衫外面）
+ *   haori: [右半邊布色, 左半邊花紋色們…] 和服外褂（披在 top 外面到大腿：穿的人右邊是素色、左邊是方塊花紋，袖子寬大、袖口白邊）
  *   topButtons: 上衣中間一排扣子的顏色（只在上衣）
  *   openShirt: 敞開穿的襯衫顏色（top 是裡面的 T 恤；袖子用 longSleeve＋sleeve）, minis: T 恤胸前小圖案的顏色 [...]
  * }
@@ -827,6 +828,25 @@ export function makeBlockNPC(look) {
     const bm = new THREE.MeshLambertMaterial({ color: look.topButtons });
     for (const y of [1.14, 1.04, 0.94, 0.84]) box(g, 0.035, 0.035, 0.012, bm, 0, y, -0.136);
   }
+  let haoriL = null, haoriR = null;
+  if (look.haori) {                                         // 和服外褂：前後各兩片，右邊素色、左邊花紋，下襬到大腿
+    const [rc, ...pc] = look.haori;
+    haoriR = cloth(rc);
+    const [c1, c2, c3, c4] = [pc[0] || '#3f9a3a', pc[1] || '#f2a21c', pc[2] || '#1f5f6a', pc[3] || '#e8603a'];
+    haoriL = new THREE.MeshLambertMaterial({ map: px((c) => {                     // 一格一格立方體的花紋：綠、橘、深藍綠、紅橘
+      c.fillStyle = c1; c.fillRect(0, 0, 16, 16);
+      for (let y = 0; y < 16; y += 8) for (let x = 0; x < 16; x += 8) {
+        c.fillStyle = c2; c.beginPath(); c.moveTo(x + 4, y); c.lineTo(x + 8, y + 2); c.lineTo(x + 4, y + 4); c.lineTo(x, y + 2); c.fill();
+        c.fillStyle = c3; c.beginPath(); c.moveTo(x, y + 2); c.lineTo(x + 4, y + 4); c.lineTo(x + 4, y + 8); c.lineTo(x, y + 6); c.fill();
+        c.fillStyle = c4; c.fillRect(x + 5, y + 5, 2, 2);
+      }
+    }) });
+    for (const [mat2, x] of [[haoriL, -0.145], [haoriR, 0.145]]) {
+      box(g, 0.23, 0.78, 0.035, mat2, x, 0.9, -0.15);       // 前片
+      box(g, 0.23, 0.82, 0.035, mat2, x, 0.88, 0.15);       // 後片
+    }
+    box(g, 0.47, 0.06, 0.3, cloth('#16161a'), 0, 1.3, 0);   // 立領
+  }
   if (look.buttonRow) {                                     // 洋裝前面一整排扣子（上衣到裙子）
     const bm = new THREE.MeshLambertMaterial({ color: look.buttonRow });
     for (const y of [1.06, 0.95, 0.84]) box(g, 0.035, 0.035, 0.012, bm, 0, y, -0.136);
@@ -923,6 +943,13 @@ export function makeBlockNPC(look) {
 
   const arm = (side) => {
     const p = pivot(side * 0.33, 1.3);
+    if (look.haori) {                                       // 外褂的寬袖：-x 那隻手是花紋、+x 那隻是素色，袖口白邊、裡面黑色上衣袖子
+      box(p, 0.3, 0.34, 0.3, side < 0 ? haoriL : haoriR, 0, -0.17, 0);
+      box(p, 0.24, 0.06, 0.24, cloth('#f4f4f4'), 0, -0.37, 0);
+      box(p, 0.16, 0.3, 0.18, look.sleeve ? cloth(look.sleeve) : top, 0, -0.5, 0);
+      box(p, 0.16, 0.1, 0.18, skin, 0, -0.69, 0);
+      return p;
+    }
     if (look.longSleeve) {
       box(p, 0.19, 0.58, 0.21, look.sleeve ? cloth(look.sleeve) : top, 0, -0.29, 0);   // sleeve：背心底下的外套袖子
       if (look.topStripes) for (const y of [-0.2, -0.38]) box(p, 0.2, 0.035, 0.22, cloth(look.topStripes), 0, y, 0);

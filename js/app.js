@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=270';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=270';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=270';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=270';
-import { buildCampusWall } from './wall.js?v=270';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=270';
+import { PanoViewer } from './pano.js?v=271';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=271';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=271';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=271';
+import { buildCampusWall } from './wall.js?v=271';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=271';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3875,11 +3875,17 @@ const NPCS = [
   {
     name: '戴老師', title: '六年四班導師', game: 'pingpong', ppBack: '流完汗記得喝水，休息一下再上課！',
     hello: ['📸 戴老師：笑一個！老師幫你拍張照～', '🏃 戴老師：下課多出去走走，運動流汗身體好！', '🙌 戴老師：六年四班，一起加油！',
-      '🏓 戴老師：要不要一起去地下室打桌球？'],
+      '🏓 戴老師：要不要一起去地下室打桌球？', '🎭 戴老師：偶爾換個造型，換個心情！'],
     // 4 樓勤學樓六年四班（411 室）：跟五年一班一樣黑板在西邊，老師站講台旁、面向東邊的學生
+    //   兩套造型輪流出現（使用者 10-30：今天穿得特別帥，新版和舊版都留著）：平常的相機老師、鬼滅風的「半紅半花紋和服外褂」角色扮演
     places: [
       { floor: '4F', where: '六年四班', game: true, at: () => { const r = rooms.find((x) => x.code === '604'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+      { floor: '4F', where: '六年四班', game: true, outfit: 'cosplay', at: () => { const r = rooms.find((x) => x.code === '604'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
     ],
+    // 角色扮演造型（依照片）：黑色立領制服（金色扣子、白色腰帶）、黑色燈籠褲、黑色工作靴；外面披半紅半綠橘花紋的和服外褂
+    outfits: {
+      cosplay: { neckerchief: null, camera: false, top: '#17171b', collar: '#17171b', topButtons: '#d9b020', belt: '#f4f4f2', pants: '#17171b', shoe: '#1d1d20', haori: ['#c8102e', '#3f9a3a', '#f2a21c', '#1f5f6a', '#e8603a'], sleeve: '#17171b' },
+    },
     look: {
       // 依照片：黑色短髮（往上抓）、燦爛笑容；藍綠色短袖 T 恤、紅色變形蟲領巾、脖子掛著黑色相機（米灰色背帶）
       skin: '#eec7a6', hair: '#1a1614', top: '#1f9a96', pants: '#2a2a30', shoe: '#2a2a2a',
@@ -10395,4 +10401,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=270').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=271').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
