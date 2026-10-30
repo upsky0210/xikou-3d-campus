@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=269';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=269';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=269';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=269';
-import { buildCampusWall } from './wall.js?v=269';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=269';
+import { PanoViewer } from './pano.js?v=270';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=270';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=270';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=270';
+import { buildCampusWall } from './wall.js?v=270';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=270';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4661,6 +4661,9 @@ function updateAct(dt) {
     : !sp ? ''
     : sp.kind === 'hoop' ? T('🏀 投籃 <kbd>F</kbd>', '🏀 Shoot hoops <kbd>F</kbd>')
     : sp.kind === 'bus' ? (busSeat ? T('🚌 下車 <kbd>F</kbd>', '🚌 Get off <kbd>F</kbd>') : T('🚌 坐上溪口巴士的司機座位 <kbd>F</kbd>', '🚌 Sit in the Xikou Bus driver seat <kbd>F</kbd>'))
+    : sp.kind === 'blindquiz' ? T('🚌 視野死角大考驗 <kbd>F</kbd>', '🚌 Blind Spot Quiz <kbd>F</kbd>')
+    : sp.kind === 'busquiz' ? T('🚌 乘車安全小測驗 <kbd>F</kbd>', '🚌 Bus Safety Quiz <kbd>F</kbd>')
+    : sp.kind === 'gymrun' ? T('🏃 體操闖關 <kbd>F</kbd>', '🏃 Gym Course <kbd>F</kbd>')
     : sp.kind === 'gym' ? T(`${GYM[sp.gym].icon} 玩${sp.name} <kbd>F</kbd>`, `${GYM[sp.gym].icon} Try the ${GYM[sp.gym].en} <kbd>F</kbd>`)
     : sp.kind === 'toy' ? T(`${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`, `${TOYS[sp.toy].icon} Play: ${TOYS[sp.toy].en} <kbd>F</kbd>`)
     : sp.kind === 'sand' ? T('🏖️ 玩沙・堆沙堡 <kbd>F</kbd>', '🏖️ Build a sandcastle <kbd>F</kbd>')
@@ -4709,7 +4712,10 @@ function updateAct(dt) {
 }
 function doAction() {
   if (act.busy) { act.busy.press?.(); return; }
-  if (act.spot?.kind === 'bus') busToggle(act.spot);
+  if (act.spot?.kind === 'blindquiz') kgPlay(pseudoHost('溪口巴士', act.spot), KG_BLIND);
+  else if (act.spot?.kind === 'busquiz') kgPlay(pseudoHost('溪口巴士', act.spot), KG_BUSQ);
+  else if (act.spot?.kind === 'gymrun') kgPlay(pseudoHost('體操墊', act.spot), KG_GYMRUN);
+  else if (act.spot?.kind === 'bus') busToggle(act.spot);
   else if (act.spot?.kind === 'gym') startGym(act.spot);
   else if (act.spot?.kind === 'hoop') startShot(act.spot);
   else if (act.spot?.kind === 'slide') startSlide(act.spot);
@@ -6753,7 +6759,7 @@ function kgPlay(n, G) {
   let done = false, best = 0;
   try { best = +localStorage.getItem(G.key) || 0; } catch { /* 私密模式 */ }
   n.playing = true;
-  faceTeacher(n);
+  if (!G.noFace) faceTeacher(n);                                       // noFace：B1 的巴士、體操遊戲沒有老師，不用把人移到老師前面
   const ctx = {
     n, best, stage: $('.stage'),
     prog: (t) => { $('.prog').textContent = t; },
@@ -7678,6 +7684,122 @@ const KG_GEO = mcGame({
   intro: () => T('五大山脈、五大地形、三大河流，你都記得嗎？', 'Five mountain ranges, five landforms, three rivers. Do you remember them?'),
   good: '你對臺灣的山、地形和河流好熟悉，是地理小達人！', keep: '多看看地圖，下次一定更厲害！',
 });
+
+/* ================= B1 交通安全教室的三個小遊戲（沒有老師，主人是「溪口巴士」或「體操墊」，所以用 pseudoHost 假裝成一位 NPC） ================= */
+const pseudoHost = (name, sp) => ({ name, f: spotFloor(sp), yaw: 0, playing: false, g: { position: { x: sp.x, z: sp.z }, rotation: {}, userData: { setFace() {} } } });
+
+/* ---- 視野死角大考驗：從上往下看一輛巴士，三位小朋友站在不同的地方，選出「司機看不到」的那一位，一回 5 題 ---- */
+const BLIND_BLIND = [
+  { p: [150, 84], why: '貼著車頭正前面：被車頭和儀表板擋住，司機從座位上看不到！' }, { p: [124, 85], why: '貼著車頭正前面：被車頭和儀表板擋住，司機從座位上看不到！' },
+  { p: [174, 84], why: '貼著車頭正前面：被車頭和儀表板擋住，司機從座位上看不到！' },
+  { p: [202, 150], why: '右側靠近車身：被 A 柱和車身擋住，轉彎時最危險（這叫內輪差）！' }, { p: [202, 196], why: '右側靠近車身：被 A 柱和車身擋住，轉彎時最危險（這叫內輪差）！' },
+  { p: [150, 238], why: '車尾後面：貼著車尾，司機連後照鏡都看不到！' }, { p: [124, 238], why: '車尾後面：貼著車尾，司機連後照鏡都看不到！' },
+];
+const BLIND_SEEN = [[60, 60], [240, 60], [150, 22], [50, 130], [70, 200], [100, 34], [215, 26], [252, 150], [40, 240], [255, 215], [210, 60]];
+const KG_BLIND = {
+  key: 'campus-blindquiz-best', title: ['🚌 視野死角大考驗', '🚌 Blind Spot Quiz'], label: ['🚌 視野死角大考驗…', '🚌 Blind Spot Quiz…'], noFace: true,
+  bye: (n) => T('🚌 下次再來考考視野死角！', '🚌 Come back for another blind spot quiz!'),
+  start(ctx) {
+    const W = 300, H = 262, cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    let i = 0, right = 0, round = null;
+    const draw = (reveal, pick) => {
+      c.fillStyle = '#8d9298'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#fff'; for (let y = 6; y < H; y += 34) c.fillRect(W / 2 - 2, y, 4, 18);
+      if (reveal) {                                                             // 揭曉：死角（橘）和看得到的範圍（淺綠）
+        c.fillStyle = 'rgba(120,220,120,.22)'; c.fillRect(0, 0, W, 66); c.fillRect(0, 66, 100, H - 66); c.fillRect(218, 0, 82, 120);
+        c.fillStyle = 'rgba(255,140,0,.55)'; c.fillRect(100, 66, 100, 30); c.fillRect(180, 110, 38, 126); c.fillRect(108, 220, 84, 34);
+      }
+      c.fillStyle = '#f2c230'; c.fillRect(120, 96, 60, 124); c.strokeStyle = '#222'; c.lineWidth = 3; c.strokeRect(120, 96, 60, 124);   // 巴士（上面是車頭）
+      c.fillStyle = '#cfe8f7'; c.fillRect(126, 100, 48, 14); c.fillStyle = '#e6edf1'; for (let k = 0; k < 4; k++) c.fillRect(126, 126 + k * 22, 48, 14);
+      c.fillStyle = '#222'; c.beginPath(); c.arc(133, 108, 5, 0, 7); c.fill(); c.font = '700 11px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('司機', 150, 106 + 12); c.fillText('▲ 車頭', 150, 90);
+      round.kids.forEach((k, j) => {
+        c.font = '28px sans-serif'; c.textBaseline = 'middle'; c.fillText('🧒', k.p[0], k.p[1]);
+        c.fillStyle = reveal && k.blind ? '#e0480a' : '#1d4f91'; c.beginPath(); c.arc(k.p[0] + 16, k.p[1] - 14, 10, 0, 7); c.fill();
+        c.fillStyle = '#fff'; c.font = '900 12px sans-serif'; c.fillText('ABC'[j], k.p[0] + 16, k.p[1] - 14);
+      });
+    };
+    const next = () => {
+      const bl = BLIND_BLIND[(Math.random() * BLIND_BLIND.length) | 0];
+      const seen = kgShuffle(BLIND_SEEN.slice()).filter(([x, y]) => Math.hypot(x - bl.p[0], y - bl.p[1]) > 60).slice(0, 2);
+      round = { kids: kgShuffle([{ p: bl.p, blind: true, why: bl.why }, { p: seen[0] }, { p: seen[1] }]) };
+      ctx.prog(T(`第 ${i + 1} / 5 題`, `${i + 1} / 5`)); ctx.ask('哪一位小朋友，司機從座位上<b>看不到</b>？'); ctx.msg(i ? '' : '你是司機，仔細看看每個人站的位置！');
+      draw(false);
+      ctx.buttons(round.kids.map((k, j) => ({ html: `🧒 ${'ABC'[j]}<small>${j + 1}</small>`, on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        const ok = k.blind; draw(true);
+        ctx.btnEls[round.kids.findIndex((x) => x.blind)].className = 'right';
+        if (ok) { right++; ctx.msg(`⭕ 答對了！${round.kids.find((x) => x.blind).why}`, 'ok'); } else { el.className = 'wrong'; ctx.msg(`❌ 橘色是死角：${round.kids.find((x) => x.blind).why}`, 'no'); }
+        ctx.later(() => (++i < 5 ? next() : ctx.end(right, (b) => `${T(`🚌 答對 ${right} / 5 題（最好紀錄 ${b} 題）`, `🚌 ${right} / 5 correct (best ${b})`)}<br>${right >= 4 ? '你知道大型車的死角在哪裡了，要離它遠一點喔！' : '貼近車頭、右側車身、車尾後面都是死角，記起來！'}`)), 3000);
+      } })));
+    };
+    next();
+  },
+};
+
+/* ---- 體操闖關：跳箱、平衡木、前滾翻的圖示從右邊跑過來，在跑道標線附近按對應的動作（1 跳箱、2 平衡木、3 前滾翻）；10 個關卡 ---- */
+const KG_GYMRUN = {
+  key: 'campus-gymrun-best', title: ['🏃 體操闖關', '🏃 Gym Course'], label: ['🏃 體操闖關中…', '🏃 Gym Course…'], noFace: true,
+  bye: () => T('🏃 下次再來挑戰體操闖關！', '🏃 Come back for the gym course!'),
+  start(ctx) {
+    const W = 320, H = 200, GY = 150, HIT = 70, N = 10;
+    const cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    const KIND = [{ n: '跳箱', e: '🟦', col: '#1f56b8' }, { n: '平衡木', e: '➖', col: '#c0392b' }, { n: '前滾翻', e: '🟩', col: '#3fbf9a' }];
+    const obs = Array.from({ length: N }, (_, i) => ({ t: (Math.random() * 3) | 0, x: 330 + i * 120, done: 0 }));   // done：0 還沒、1 成功、-1 失敗
+    let ok = 0, moved = 0, anim = null, flash = 0, resolved = 0;
+    const press = (t) => {
+      const o = obs.find((q) => !q.done && q.x < 190 && q.x > 10);
+      if (!o) return;
+      if (Math.abs(o.x - HIT) <= 42 && o.t === t) { o.done = 1; ok++; anim = { t, k: 0 }; ctx.msg(['跳過去了！', '平衡木走穩了！', '漂亮的前滾翻！'][t], 'ok'); }
+      else { o.done = -1; flash = 0.35; ctx.msg(o.t === t ? '太早或太晚了，要在白線附近按！' : `這是${KIND[o.t].n}，要按 ${o.t + 1}！`, 'no'); }
+      resolved++;
+    };
+    ctx.buttons(KIND.map((k, j) => ({ html: `${['🤸', '🤸‍♀️', '🤾'][j]} ${k.n}<small>${j + 1}</small>`, on: () => press(j) })));
+    ctx.prog(T(`0 / ${N} 關`, `0 / ${N}`)); ctx.ask('東西到白線時，按對應的動作！'); ctx.msg('1 跳箱　2 平衡木　3 前滾翻');
+    ctx.tick = (dt) => {
+      const sp = 78 + moved * 0.012; moved += sp * dt;
+      for (const o of obs) { if (o.done) { o.x -= sp * dt; continue; } o.x -= sp * dt; if (o.x < 14) { o.done = -1; resolved++; flash = 0.35; ctx.msg('錯過了！', 'no'); } }
+      if (anim) { anim.k += dt; if (anim.k > 0.6) anim = null; }
+      flash = Math.max(0, flash - dt);
+      c.fillStyle = flash > 0 ? '#ffe3dc' : '#eaf6ff'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#d9d9d2'; c.fillRect(0, GY, W, H - GY); c.fillStyle = '#fff'; c.fillRect(HIT - 2, GY - 70, 4, 76);
+      c.fillStyle = '#666'; c.font = '700 11px sans-serif'; c.textAlign = 'center'; c.fillText('白線', HIT, GY + 18);
+      for (const o of obs) {
+        if (o.x < -40 || o.x > W + 40) continue; const k = KIND[o.t];
+        c.globalAlpha = o.done === 1 ? 0.3 : 1; c.fillStyle = k.col;
+        if (o.t === 0) c.fillRect(o.x - 22, GY - 34, 44, 34); else if (o.t === 1) { c.fillRect(o.x - 34, GY - 20, 68, 7); c.fillRect(o.x - 28, GY - 14, 6, 14); c.fillRect(o.x + 22, GY - 14, 6, 14); } else c.fillRect(o.x - 32, GY - 8, 64, 8);
+        c.globalAlpha = 1; c.fillStyle = '#222'; c.font = '700 12px sans-serif'; c.fillText(k.n, o.x, GY - 42 + (o.t === 1 ? 14 : 0));
+        if (o.done === 1) { c.font = '18px sans-serif'; c.fillText('✅', o.x, GY - 60); } else if (o.done === -1) { c.font = '18px sans-serif'; c.fillText('❌', o.x, GY - 60); }
+      }
+      let ry = GY - 22, rot = 0;
+      if (anim) { const k = anim.k / 0.6; if (anim.t === 0) ry -= Math.sin(k * Math.PI) * 52; else if (anim.t === 1) ry -= 8; else rot = k * Math.PI * 2; }
+      c.save(); c.translate(HIT, ry); c.rotate(rot); c.font = '34px sans-serif'; c.textBaseline = 'middle'; c.fillText('🧒', 0, 0); c.restore();
+      ctx.prog(T(`${ok} / ${N} 關成功`, `${ok} / ${N}`));
+      if (resolved >= N && !ctx.over) { ctx.over = true; ctx.later(() => ctx.end(ok, (b) => `${T(`🏃 闖過 ${ok} / ${N} 關（最好紀錄 ${b} 關）`, `🏃 ${ok} / ${N} (best ${b})`)}<br>${ok >= 8 ? '體操小達人！動作又準又穩！' : '再練習幾次，動作會更熟練喔！'}`), 700); }
+    };
+  },
+};
+
+/* ---- 乘車安全小測驗：搭公車、校車、遊覽車的安全禮儀（共用三選一題庫） ---- */
+const BUSQ_ITEMS = [
+  { e: '🚌', q: '公車來了，上車的時候要怎麼做？', a: ['排隊，讓下車的人先下，再依序上車', '大家一起擠，搶位子', '從後門衝上去'], why: '排隊上車、先下後上，大家都比較安全。' },
+  { e: '🤚', q: '公車開動的時候，站著的人要？', a: ['抓緊吊環或扶手', '雙手插口袋', '在車廂裡跑來跑去'], why: '車子突然煞車，沒有抓好的人很容易跌倒受傷。' },
+  { e: '🛑', q: '公車還沒停穩，可以站起來走到車門嗎？', a: ['不可以，等車子停穩再起身', '可以，先去門口占位置', '可以，邊走邊玩手機'], why: '車子還在動，起身很容易跌倒。' },
+  { e: '🔔', q: '想要下車，要怎麼通知司機？', a: ['在到站前先按下車鈴', '大聲尖叫', '站在司機旁邊一直敲'], why: '到站前就按下車鈴，司機才有時間靠站。' },
+  { e: '🙋', q: '在車廂裡可以大聲吵鬧、追逐嗎？', a: ['不可以，會讓司機分心', '可以，大家都開心', '沒人看到就可以'], why: '司機要專心開車，吵鬧會很危險。' },
+  { e: '👵', q: '看到老人、孕婦、抱小嬰兒的人上車，要？', a: ['主動讓座', '假裝睡著', '把書包放在座位上占位'], why: '讓座是一種貼心和禮貌。' },
+  { e: '🎒', q: '搭車的時候，書包要放哪裡？', a: ['放在腿上或座位下面，不擋走道', '放在走道中間', '掛在車門口'], why: '擋住走道會害別人跌倒，也影響緊急逃生。' },
+  { e: '🚗', q: '搭乘小客車、遊覽車，後座也要？', a: ['繫上安全帶', '不用，後座很安全', '站起來看風景'], why: '發生事故時，沒繫安全帶的人會被甩出去。' },
+  { e: '🪟', q: '手和頭可以伸出車窗外嗎？', a: ['不可以，很危險', '可以，吹吹風', '可以，向路人揮手'], why: '可能被路邊的東西或別的車撞到。' },
+  { e: '🚏', q: '下車以後，要過馬路，應該怎麼做？', a: ['等公車開走，看清楚兩邊都沒車再走', '從公車前面直接衝過去', '從公車屁股後面衝過去'], why: '公車會擋住視線，也可能有車從旁邊過來。' },
+  { e: '🧍', q: '下車以後，站在哪裡等最安全？', a: ['人行道上，離車子遠一點', '站在車頭的正前面', '站在車尾的正後面'], why: '車頭前面、車尾後面都是司機的視野死角。' },
+  { e: '🚌', q: '為什麼不要站在大型車的車頭前或車尾後？', a: ['那裡是司機的視野死角，看不到你', '因為地板很髒', '因為會被拍照'], why: '司機看不到你，一起步或倒車就可能撞到。' },
+];
+const KG_BUSQ = mcGame({
+  key: 'campus-busq-best', title: ['🚌 乘車安全小測驗', '🚌 Bus Safety Quiz'], label: ['🚌 乘車安全小測驗…', '🚌 Bus Safety…'], icon: '🚌', items: BUSQ_ITEMS,
+  intro: () => T('搭公車、校車的時候，怎麼做最安全？', 'How do you stay safe on the bus?'),
+  good: '你是乘車安全小達人，搭車一定平平安安！', keep: '多想一想怎麼做最安全，下次一定更棒！',
+});
+KG_BUSQ.noFace = true;
 
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
    看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
@@ -8871,6 +8993,8 @@ const GAME_INFO = {
   history: [['臺灣史地大考驗', 'Taiwan History & Geography'], 'campus-history-best', ans],
   traffic: [['交通安全大考驗', 'Traffic Safety Quiz'], 'campus-traffic-best', ans], farm: [['食農教育', 'Little Farm'], 'campus-farm-best', ans],
   prep: [['英文小文法 in・on・at', 'in / on / at'], 'campus-prep-best', ans],
+  blindquiz: [['視野死角大考驗', 'Blind Spot Quiz'], 'campus-blindquiz-best', ans], busquiz: [['乘車安全小測驗', 'Bus Safety Quiz'], 'campus-busq-best', ans],
+  gymrun: [['體操闖關', 'Gym Course'], 'campus-gymrun-best', (v) => T(`闖過 ${v} 關`, `${v} cleared`)],
   units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
@@ -10271,4 +10395,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=269').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=270').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
