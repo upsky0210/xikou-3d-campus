@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mat } from './blocks.js?v=268';
+import { mat } from './blocks.js?v=269';
 
 /* =========================================================
  * 勤學樓地下室（丙梯～丁梯）：交通安全教室
@@ -333,11 +333,13 @@ const floorSeatsMat = () => lam('b1floorseats', 1200, 540, (c, w, h) => {
   c.fillStyle = '#e8c850'; for (let i = 0; i < 4; i++) c.fillRect(600, 230 + i * 8, 120, 4);
 });
 // 地板：視野死角（深灰色路面上的黃色三角形）
-const wedgeMat = () => lam('b1wedge', 1024, 512, (c, w, h) => {
-  c.fillStyle = '#5b5f66'; c.fillRect(0, 0, w, h);
-  c.fillStyle = '#f2d23a'; c.beginPath(); c.moveTo(0, h * 0.5); c.lineTo(w, 0); c.lineTo(w, h * 0.78); c.closePath(); c.fill();
-  c.save(); c.translate(w * 0.55, h * 0.4); c.fillStyle = '#222'; c.font = `900 64px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('視野死角', 0, 0);
-  c.strokeStyle = '#d32f2f'; c.lineWidth = 6; c.beginPath(); c.moveTo(-190, -10); c.lineTo(-160, -50); c.lineTo(-130, -10); c.closePath(); c.stroke(); c.restore();
+const wedgeMat = () => lam('b1wedge3', 1024, 512, (c, w, h) => {
+  c.fillStyle = '#54585f'; c.fillRect(0, 0, w, h);                                                      // 深灰路面
+  c.fillStyle = '#f2d23a'; c.beginPath(); c.moveTo(w, h * 0.5); c.lineTo(0, h * 0.02); c.lineTo(0, h * 0.98); c.closePath(); c.fill();   // 黃色三角形：尖端在巴士司機這邊，往外變寬
+  c.save(); c.translate(w * 0.36, h * 0.5); c.rotate(Math.PI / 2); c.fillStyle = '#222'; c.font = `900 78px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('視野死角', 0, 0); c.restore();   // 字順著「面對巴士走過來」的方向讀
+  c.fillStyle = '#fff'; c.beginPath(); c.moveTo(w * 0.1, h * 0.8); c.lineTo(w * 0.17, h * 0.66); c.lineTo(w * 0.24, h * 0.8); c.closePath(); c.fill();
+  c.strokeStyle = '#d32f2f'; c.lineWidth = 7; c.stroke();
+  c.fillStyle = '#d32f2f'; c.font = `900 30px ${FONT}`; c.fillText('!', w * 0.17, h * 0.765);
 });
 // 竹林圖案的綠色折疊屏風
 const bambooMat = () => lam('b1bamboo', 256, 256, (c, w, h) => {
@@ -448,7 +450,9 @@ export function trafficBasement(put, fr, room) {
   /* 東牆：乘著希望的翅膀（巴士北邊） */
   put(pelicanMat(), 0.03, 3.4, 2.3, L - 0.06, N + 6.2, 0.06, true);
   // 視野死角：深灰路面＋黃色三角形（東端通往丁梯的路）
-  put(wedgeMat(), 6.0, 3.0, 0.014, L - 4.0, N + 3.2, 0.013, true);
+  // 真正的視野死角：從巴士司機座位往前、往外張開的黃色三角形（站在裡面，司機從座位上看不到你）
+  const wedgeV = S - 1.55, wedgeLen = 6.2, wedgeW = 3.0;
+  put(wedgeMat(), wedgeLen, wedgeW, 0.014, bx - wedgeLen / 2 - 0.1, wedgeV, 0.013, true);
   // 疊起來的兒童塑膠椅（藍、綠）、立在地上的白板、掃具
   [['#3fbf5a', 0], ['#3a6fc4', 1], ['#3fbf5a', 2], ['#3a6fc4', 3]].forEach(([col, k]) => { const u = L - 1.0 - k * 0.55; for (let i = 0; i < 6; i++) put(flat(col), 0.4, 0.4, 0.05, u, N + 7.7, 0.1 + i * 0.1); put(flat(col), 0.04, 0.4, 0.5, u + 0.2, N + 7.7, 0.1); });
 
@@ -503,4 +507,12 @@ export function trafficBasement(put, fr, room) {
   const fan = (u, v) => { put(flat('#6fb3e0'), 0.05, 0.05, 1.2, u, v, 0); for (const a of [-0.3, 0.3]) put(flat('#6fb3e0'), 0.04, 0.5, 0.04, u, v + a * 0.6, 0.0); put.geo(flat('#e8f0f6'), new THREE.CylinderGeometry(0.28, 0.28, 0.06, 18).rotateZ(Math.PI / 2), u, v, 1.35); };
   [[11.0, N + 1.0], [26.8, N + 1.0], [31.0, S - 1.0], [43.0, N + 1.0], [3.4, S - 2.0]].forEach(([u, v]) => fan(u, v));
   chair(1.2, N + 4.1, 0); chair(20.5, S - 0.8, 0);
+
+  /* ---- 互動（app.js 的 doAction 處理）：溪口巴士彩蛋、體操器材小遊戲 ---- */
+  const W2 = (u, v) => fr.toWorld(u, v);
+  put.spot({ kind: 'bus', name: '溪口巴士', r: 4.4, seat: W2(bx + 0.9, S - 1.2), out: W2(bx - 1.3, S - 1.4),
+    tri: [...W2(bx - 0.1, wedgeV), ...W2(bx - 0.1 - wedgeLen, wedgeV - wedgeW / 2), ...W2(bx - 0.1 - wedgeLen, wedgeV + wedgeW / 2)] }, bx - 1.0, S - 1.4, 0);
+  put.spot({ kind: 'gym', gym: 'vault', name: '跳箱', r: 1.9 }, 33.3, S - 1.9, 0);
+  put.spot({ kind: 'gym', gym: 'beam', name: '平衡木', r: 2.2 }, 37.0, S - 1.5, 0);
+  put.spot({ kind: 'gym', gym: 'mat', name: '體操墊', r: 2.4 }, 24.5, 0.4, 0);
 }

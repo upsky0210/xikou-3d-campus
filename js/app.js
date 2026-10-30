@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=268';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=268';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=268';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=268';
-import { buildCampusWall } from './wall.js?v=268';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=268';
+import { PanoViewer } from './pano.js?v=269';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=269';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=269';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=269';
+import { buildCampusWall } from './wall.js?v=269';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=269';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4591,6 +4591,54 @@ function nearestSpot() {
   }
   return best;
 }
+/* ---------------- B1 交通安全教室：溪口巴士彩蛋、視野死角、體操器材小遊戲 ----------------
+   巴士：按 F 坐上司機座位（叭叭按喇叭），從司機的角度看出去；巴士前面的黃色三角形是「視野死角」，站進去會被提醒。
+   體操器材：跳箱、平衡木、體操墊各一種動作，三種都玩過就是「體操小達人」（記在這台電腦）。 */
+let busSeat = null, busWasMode = 'third', busWarn = false, horn = null;
+const busHonk = () => {
+  try {
+    horn ||= new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = horn.currentTime;
+    for (const [dt, f] of [[0, 392], [0.28, 330]]) { const o = horn.createOscillator(), g = horn.createGain(); o.type = 'square'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t0 + dt); g.gain.exponentialRampToValueAtTime(0.12, t0 + dt + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.24); o.connect(g).connect(horn.destination); o.start(t0 + dt); o.stop(t0 + dt + 0.26); }
+  } catch { /* 沒有聲音就算了 */ }
+};
+function busToggle(sp) {
+  if (!busSeat) {
+    busSeat = sp; busWasMode = mode; busHonk();
+    setMode('first'); placeAt(player.floor, sp.seat[0], sp.seat[1], Math.PI / 2); player.pitch = -0.08;
+    toast(T('🚌 叭叭！你是司機了～<br>看看前面：地上<b>黃色三角形</b>裡的人，司機從座位上是<b>看不到</b>的！', '🚌 Beep beep! You are the driver.<br>People standing in the <b>yellow triangle</b> cannot be seen from this seat!'));
+  } else {
+    placeAt(player.floor, sp.out[0], sp.out[1], -Math.PI / 2); setMode(busWasMode); busSeat = null;
+    toast(T('🚌 下車囉！過馬路、等公車，都要離大型車遠一點～', '🚌 Off the bus! Stay away from big vehicles.'));
+  }
+}
+const inTri = (px, pz, t) => { const s = (ax, az, bx, bz) => (px - bx) * (az - bz) - (ax - bx) * (pz - bz); const d1 = s(t[0], t[1], t[2], t[3]), d2 = s(t[2], t[3], t[4], t[5]), d3 = s(t[4], t[5], t[0], t[1]); return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0)); };
+function busWedgeCheck() {
+  const bs = SPOTS.find((x) => x.kind === 'bus');
+  if (!bs || busSeat || mode === 'bird' || spotFloor(bs) !== player.floor) { busWarn = false; return; }
+  const inside = inTri(player.x, player.z, bs.tri);
+  if (inside && !busWarn) toast(T('⚠️ 你站在<b>視野死角</b>裡！<br>司機坐在座位上看不到你，千萬不要站在大型車旁邊。', '⚠️ You are in the <b>blind spot</b>! The driver cannot see you.'));
+  busWarn = inside;
+}
+const GYM = {
+  vault: { icon: '🤸', en: 'vaulting box', msgs: ['助跑、踩踏、雙手撐箱——跳過去！', '跳箱要用手撐，不要踩在箱子上喔！', '漂亮！落地時膝蓋要彎一點～'] },
+  beam: { icon: '🤸‍♀️', en: 'balance beam', msgs: ['平衡木：眼睛看前面，雙手張開保持平衡！', '一步一步慢慢走，不要低頭看腳～', '站穩了！核心用力就不會晃。'] },
+  mat: { icon: '🤾', en: 'mat', msgs: ['墊上運動：下巴靠胸口，背部圓圓的往前滾！', '前滾翻要在墊子上做，旁邊要留空位～', '轉一圈！頭暈暈的也很好玩。'] },
+};
+const GYM_KEY = 'campus-gym-count';
+function startGym(sp) {
+  const g = GYM[sp.gym];
+  let seen = []; try { seen = JSON.parse(localStorage.getItem(GYM_KEY) || '[]'); } catch { /* 私密模式 */ }
+  const first = !seen.includes(sp.gym);
+  if (first) { seen.push(sp.gym); try { localStorage.setItem(GYM_KEY, JSON.stringify(seen)); } catch { /* 私密模式 */ } }
+  const msg = g.msgs[(Math.random() * g.msgs.length) | 0];
+  if (sp.gym === 'mat') {
+    const t0 = performance.now(), spin = () => { const k = Math.min(1, (performance.now() - t0) / 900); avatar.rotation.x = -k * Math.PI * 2; if (k < 1) requestAnimationFrame(spin); else avatar.rotation.x = 0; };
+    spin(); player.vy = 3.2;
+  } else player.vy = sp.gym === 'vault' ? 6.2 : 3.8;
+  const done = seen.length >= 3;
+  toast(`${g.icon} ${msg}${done && first ? T('<br>🏅 三種器材都玩過了，你是<b>體操小達人</b>！', '<br>🏅 You tried all three: Gym Star!') : ''}`);
+}
 let actLabel = '';
 // 走近自然教室二的倉鼠飼養箱（大實驗桌靠門那端）時跳一次提示；走開再回來會再跳
 //（竹竹老師就站在旁邊，她打招呼的訊息會先跳；等那則消失再跳倉鼠的）
@@ -4606,11 +4654,14 @@ function hamsterHint() {
 function updateAct(dt) {
   hamsterHint();
   if (act.busy) act.busy.tick(dt);
+  busWedgeCheck();
   act.spot = act.busy ? null : badmintonSpot() || pondSpot() || nearestSpot();   // 靠近老師時打羽球優先（活動中心也有籃框）
   const sp = act.spot;
   const label = act.busy ? (act.busy.label ?? (act.busy.press ? T('🏀 出手！ <kbd>F</kbd>', '🏀 Shoot! <kbd>F</kbd>') : ''))
     : !sp ? ''
     : sp.kind === 'hoop' ? T('🏀 投籃 <kbd>F</kbd>', '🏀 Shoot hoops <kbd>F</kbd>')
+    : sp.kind === 'bus' ? (busSeat ? T('🚌 下車 <kbd>F</kbd>', '🚌 Get off <kbd>F</kbd>') : T('🚌 坐上溪口巴士的司機座位 <kbd>F</kbd>', '🚌 Sit in the Xikou Bus driver seat <kbd>F</kbd>'))
+    : sp.kind === 'gym' ? T(`${GYM[sp.gym].icon} 玩${sp.name} <kbd>F</kbd>`, `${GYM[sp.gym].icon} Try the ${GYM[sp.gym].en} <kbd>F</kbd>`)
     : sp.kind === 'toy' ? T(`${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`, `${TOYS[sp.toy].icon} Play: ${TOYS[sp.toy].en} <kbd>F</kbd>`)
     : sp.kind === 'sand' ? T('🏖️ 玩沙・堆沙堡 <kbd>F</kbd>', '🏖️ Build a sandcastle <kbd>F</kbd>')
     : sp.kind === 'badminton' ? T(`🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`, `🏸 Badminton with ${sp.npc.name} <kbd>F</kbd>`)
@@ -4658,7 +4709,9 @@ function updateAct(dt) {
 }
 function doAction() {
   if (act.busy) { act.busy.press?.(); return; }
-  if (act.spot?.kind === 'hoop') startShot(act.spot);
+  if (act.spot?.kind === 'bus') busToggle(act.spot);
+  else if (act.spot?.kind === 'gym') startGym(act.spot);
+  else if (act.spot?.kind === 'hoop') startShot(act.spot);
   else if (act.spot?.kind === 'slide') startSlide(act.spot);
   else if (act.spot?.kind === 'toy') startToy(act.spot);
   else if (act.spot?.kind === 'sand') startSand(act.spot);
@@ -10218,4 +10271,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=268').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=269').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
