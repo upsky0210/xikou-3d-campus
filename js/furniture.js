@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=262';
+import { Batch, mat, SPOTS } from './blocks.js?v=263';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1301,28 +1301,36 @@ function healthCenter2(put, fr) {
   for (let i = 0; i < 4; i++) put(mat('wool', ['#ffffff', '#7ab0d8', '#e74c3c', '#f2c81e'][i]), 0.1, 0.08, 0.14, cu - 0.15 + i * 0.1, cv, 0.93);
 }
 
-// 1F 油印室（依照片）：大型油印機、鋪桌布的工作桌、辦公桌＋電腦＋鐵櫃、電風扇、紙箱
+// 1F 油印室（依照片）：大型油印機、鋪桌布的工作桌、辦公桌＋電腦＋鐵櫃（靠東牆、坐的人面向牆）、影印機（原本是電風扇）、紙箱
+//   南牆靠西有一扇門通中庭那邊（使用者 10-30 指定）
 function mimeographRoom(put, fr) {
   const W = fr.W, L = fr.L, A = fr.away, D = -A;
   // 油印機（窗邊）
-  const mu = L / 2, mv = A * (W / 2 - 1.3);
+  const mu = L / 2 + 0.3, mv = A * (W / 2 - 1.3);                          // 偏東一點，南門進來才好走
   put(mat('wool', '#e9eaec'), 0.75, 1.15, 0.85, mu, mv, 0);
   put(mat('wool', '#7c8590'), 0.7, 0.5, 0.12, mu, mv - D * 0.25, 0.85);
   put(M.white(), 0.4, 0.35, 0.05, mu, mv + A * 0.45, 0.6);                 // 出紙盤
   put(mat('wool', '#35a0d8'), 0.05, 0.2, 0.08, mu - 0.39, mv, 0.75);      // 操作面板
   // 辦公桌＋電腦＋鐵製抽屜櫃（窗邊另一張）
-  const ou = L / 2, ov = A * (W / 2 - 2.9);
+  const ou = L - 0.4, ov = A * (W / 2 - 2.9);                              // 靠東牆：電腦在桌子東邊（貼牆），坐的人在西邊、面向牆
   put(M.desk(), 0.75, 1.4, 0.75, ou, ov, 0);
   put(M.grey(), 0.6, 0.45, 0.7, ou, ov + D * 0.45, 0);
-  put(M.dark(), 0.05, 0.5, 0.32, ou - 0.2, ov - A * 0.2, 0.8); put(screenMat(), 0.02, 0.46, 0.28, ou - 0.225, ov - A * 0.2, 0.82);
-  chairAt(put, ou + 0.6, ov, true);
+  put(M.dark(), 0.05, 0.5, 0.32, ou + 0.2, ov, 0.8); put(screenMat(), 0.02, 0.46, 0.28, ou + 0.175, ov, 0.82);
+  put(M.grey(), 0.16, 0.42, 0.02, ou - 0.1, ov, 0.75);                    // 鍵盤
+  chairAt(put, ou - 0.6, ov, false);
   // 鋪格紋桌布的長工作桌，上面有紙張與文具
   put(mat('wool', '#efe6c8'), 0.9, 2.4, 0.75, 0.75, 0.2, 0);
   for (let i = 0; i < 4; i++) put(M.white(), 0.3, 0.4, 0.06 + i * 0.03, 0.7, -0.6 + i * 0.5, 0.75);
-  // 電風扇
-  put(M.grey(), 0.35, 0.35, 0.05, L - 0.6, A * (W / 2 - 4.2), 0);
-  put(M.grey(), 0.04, 0.04, 1.1, L - 0.6, A * (W / 2 - 4.2), 0.05);
-  put.geo(M.white(), new THREE.CylinderGeometry(0.22, 0.22, 0.1, 18).rotateZ(Math.PI / 2), L - 0.6, A * (W / 2 - 4.2), 1.25);
+  // 影印機（靠東牆）：下面是紙匣櫃、中間出紙、上面掃描台＋進稿器、側邊出紙盤、藍色操作面板
+  { const cu = L - 0.45, cv = A * (W / 2 - 4.2), body = mat('wool', '#e4e6e8'), dark = mat('wool', '#6b727a');
+    put(dark, 0.75, 1.0, 0.1, cu, cv, 0);                                                    // 底座
+    put(body, 0.75, 1.0, 0.5, cu, cv, 0.1);                                                  // 紙匣櫃
+    for (const dy of [0.16, 0.32]) put(mat('wool', '#b9bec4'), 0.02, 0.9, 0.012, cu - 0.385, cv, 0.1 + dy);   // 紙匣門縫
+    put(body, 0.75, 1.0, 0.25, cu, cv, 0.6);                                                 // 主機
+    put(dark, 0.72, 0.95, 0.06, cu, cv, 0.85);                                               // 掃描台
+    put(mat('wool', '#f5f6f7'), 0.62, 0.9, 0.1, cu, cv, 0.91);                              // 進稿器
+    put(mat('wool', '#2f6fd0'), 0.1, 0.3, 0.04, cu - 0.3, cv + 0.3, 0.85);                  // 操作面板
+    put(mat('wool', '#b9bec4'), 0.28, 0.6, 0.03, cu - 0.5, cv, 0.66); }                     // 出紙盤
   // 紙箱（A4 影印紙）
   for (let i = 0; i < 5; i++) put(mat('wool', '#d8b77a'), 0.45, 0.32, 0.28, L - 0.35, D * (W / 2 - 0.4 - (i % 3) * 0.4), Math.floor(i / 3) * 0.28);
 }
@@ -1921,6 +1929,12 @@ const rackMat = () => once('rack', () => new THREE.MeshLambertMaterial({ emissiv
     if (i % 3 === 1) { c.fillStyle = '#4b535c'; for (let k = 0; k < 12; k++) c.fillRect(56 + k * 5, y + 4, 3, 5); }   // 交換器網路孔
   }
 }) }));
+// 椅背在 v 方向的椅子（backDir：+1／-1＝椅背在 v 的哪一邊）
+function chairAtV(put, u, v, backDir) {
+  put(M.desk(), 0.38, 0.38, 0.04, u, v, 0.4);
+  put(M.desk(), 0.38, 0.04, 0.32, u, v + backDir * 0.19, 0.46);
+  put(M.metal(), 0.3, 0.3, 0.4, u, v, 0);
+}
 function infoRoom(put, fr) {
   const W = fr.W, L = fr.L, A = -fr.away;
   // 機房在 v 的一半（依使用者更正：和辦公區對調，機房在靠南那側）
@@ -1929,8 +1943,15 @@ function infoRoom(put, fr) {
   const nR = Math.max(2, Math.floor((L - 1.2) / 0.75));
   for (let i = 0; i < nR; i++) put(rackMat(), 0.65, 0.9, 2.0, 0.7 + i * 0.75, A * (W / 2 - 0.6), 0, true);   // 機櫃（含交換器）
   put(mat('wool', '#e9edf0'), 0.5, 0.5, 1.6, L - 0.4, A * (W / 2 - 2.0), 0);   // 冷氣（機房空調）
-  // 前半：兩組辦公桌 + 電腦
-  for (let k = 0; k < 2; k++) deskSet(put, 1.0 + k * (L > 4 ? 1.9 : 1.6), -A * (W / 4) );
+  // 前半：兩組辦公桌 + 電腦，坐的人面向南邊中庭那扇門（使用者 10-30 指定）：人在北（背對機房）、桌子和螢幕在南，門在兩張桌子中間
+  const dv = -A * (W / 4), du = L > 4 ? 1.2 : 1.0;
+  for (const s of [-1, 1]) {
+    const u = L / 2 + s * du;
+    put(M.desk(), 1.3, 0.7, 0.75, u, dv, 0);
+    put(M.dark(), 0.5, 0.05, 0.32, u, dv - A * 0.2, 0.8); put(screenMat(), 0.46, 0.02, 0.28, u, dv - A * 0.175, 0.82);   // 螢幕朝北（對著坐的人）
+    put(M.grey(), 0.42, 0.16, 0.02, u, dv + A * 0.05, 0.75);                    // 鍵盤
+    chairAtV(put, u, dv + A * 0.6, A);                                          // 椅背在北邊
+  }
   put(cabinetMat(), 0.45, 0.9, 1.8, L - 0.24, -A * (W / 2 - 1.0), 0, true);
 }
 
@@ -2022,7 +2043,8 @@ function principalOffice(put, fr, room) {
 }
 
 // 1F 總務處（依 10-27 九張照片重畫）：
-//   中間兩區橘色屏風隔間（上半橘色、下半灰色、鋁框），每區 4 個座位背對背，中間一條走道（地上藍色條紋）
+//   中間兩區橘色屏風隔間（上半橘色、下半灰色、鋁框），中間一條走道（地上藍色條紋）；
+//   10-30 使用者指定：西區靠牆那排 2→1 個、東區靠門那排 2 個不要、西區走道那排轉 180° 面向東邊的門（所有座位都面向門）
 //   北牆：上方一整排木色吊櫃、兩片白板（貼公告）、上面掛時鐘，兩側到頂木櫃
 //   南牆：木色吊櫃＋玻璃書櫃（一排排資料夾），西南角紅色 LED 用電顯示器（77 kW）和監控小螢幕，前面一張深色長桌＋木頭圓凳
 //   西牆（窗）：灰色捲簾、窗下一整排木矮櫃放粉紅色資料夾；東牆（走廊）：灰色捲簾、紅色春聯、壁扇、兩扇門中間木抽屜櫃
@@ -2034,24 +2056,32 @@ function generalOffice(put, fr, room) {
   const doorU = (room.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]);
   // 屏風：下半灰、上半橘、頂上鋁條
   const screen = (u, v, du, dv) => { put(panel, du, dv, 0.6, u, v, 0); put(orange, du, dv, 0.62, u, v, 0.6); put(alu, du + 0.02, dv + 0.02, 0.03, u, v, 1.22); };
-  // 一區 4 個座位：兩張桌子沿 u 排、背對背（中間一道屏風），c＝這區中心的 v
-  const cluster = (c) => {
+  // 一區的座位：兩張桌子沿 u 排（中間一道屏風），c＝這區中心的 v，k＝-1／+1 是屏風的兩側，i＝沿 u 的第幾個
+  //   seat(k, i)：0＝不放、1＝人坐在外側面向屏風、2＝轉 180°（人坐屏風這邊、面向外側，桌子和螢幕在外側）
+  const cluster = (c, seat) => {
     const u0 = 2.7, n = 2, du = 1.45;
     screen(u0 + (n * du) / 2 - du / 2, c, n * du, 0.05);                       // 中間那道
-    for (const k of [-1, 1]) screen(u0 - du / 2 - 0.03, c + k * 0.36, 0.05, 0.72);   // 兩端側板
-    for (const k of [-1, 1]) screen(u0 + (n - 0.5) * du + 0.03, c + k * 0.36, 0.05, 0.72);
+    for (const k of [-1, 1]) if (seat(k, 0) || seat(k, 1)) {                   // 兩端側板（那一側沒座位就不放）
+      screen(u0 - du / 2 - 0.03, c + k * 0.36, 0.05, 0.72);
+      screen(u0 + (n - 0.5) * du + 0.03, c + k * 0.36, 0.05, 0.72);
+    }
     for (let i = 0; i < n; i++) for (const k of [-1, 1]) {
-      const u = u0 + i * du, v = c + k * 0.37;
+      const mode = seat(k, i);
+      if (!mode) continue;
+      const m = mode === 2 ? -1 : 1;                                           // 轉 180° 時，桌子上的東西左右對調
+      const u = u0 + i * du, v = c + k * (mode === 2 ? 0.99 : 0.37);
       put(deskTop, du - 0.08, 0.68, 0.04, u, v, 0.72);
-      put(drawer, 0.42, 0.55, 0.68, u + 0.45, v + k * 0.03, 0);              // 抽屜櫃
+      put(drawer, 0.42, 0.55, 0.68, u + 0.45, v + m * k * 0.03, 0);          // 抽屜櫃
       put(drawer, 0.04, 0.6, 0.72, u - 0.62, v, 0);
-      put(black, 0.32, 0.22, 0.02, u - 0.1, v - k * 0.22, 0.76);             // 螢幕底座
-      put(black, 0.55, 0.04, 0.34, u - 0.1, v - k * 0.25, 0.84); put(screenMat(), 0.5, 0.02, 0.3, u - 0.1, v - k * 0.23, 0.86);
-      put(black, 0.45, 0.15, 0.02, u - 0.1, v - k * 0.02, 0.76);             // 鍵盤
-      officeChair(put, u - 0.1, v + k * 0.62, 0, -k, '#202226');
+      put(black, 0.32, 0.22, 0.02, u - 0.1, v - m * k * 0.22, 0.76);         // 螢幕底座
+      put(black, 0.55, 0.04, 0.34, u - 0.1, v - m * k * 0.25, 0.84); put(screenMat(), 0.5, 0.02, 0.3, u - 0.1, v - m * k * 0.23, 0.86);
+      put(black, 0.45, 0.15, 0.02, u - 0.1, v - m * k * 0.02, 0.76);         // 鍵盤
+      officeChair(put, u - 0.1, mode === 2 ? c + k * 0.37 : v + k * 0.62, 0, -m * k, '#202226');
     }
   };
-  cluster(A * 1.75); cluster(D * 1.7);
+  // 西區（窗邊，k＝-1 靠牆、k＝+1 靠走道）、東區（門那邊，k＝-1 靠走道、k＝+1 靠門）；i＝1 是北邊那個座位
+  cluster(A * 1.75, (k, i) => (k === -1 ? (i === 1 ? 1 : 0) : 2));
+  cluster(D * 1.7, (k) => (k === -1 ? 1 : 0));
   // 走道地上的藍色條紋（從門口往裡面）
   for (const du of [1.6, 6.9]) put(mat('wool', '#2f6fc0'), 0.35, 2.2, 0.01, du, D * (s - 1.15), 0);
   put(mat('wool', '#2f6fc0'), L - 2.2, 0.3, 0.01, L / 2, A * 0.05, 0);
