@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=271';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=271';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=271';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=271';
-import { buildCampusWall } from './wall.js?v=271';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=271';
+import { PanoViewer } from './pano.js?v=272';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=272';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=272';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=272';
+import { buildCampusWall } from './wall.js?v=272';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=272';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3548,6 +3548,40 @@ const NPCS = [
     },
   },
   {
+    name: '雅雅老師', title: '輔導老師', game: 'mood',
+    hello: ['💗 雅雅老師：每天都要保持好心情喔！', '💬 雅雅老師：不開心的事情，都可以來跟我說～', '🫶 雅雅老師：每一種心情都是正常的，說出來會比較輕鬆。',
+      '🌈 雅雅老師：要不要來做「情緒覺察」？看看今天的心情是什麼顏色！'],
+    // 隨機出現：3 樓輔導室（327）裡面靠門這邊（南牆邊），或 3 樓諮商室（309）外面的走廊；兩個地方都可以做情緒覺察
+    places: [
+      { floor: '3F', where: '輔導室', game: true, at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 + 3.05, r.m.z2 - 0.63, Math.PI / 2]; } },    // 輔導室很擠，這是靠南牆、門（西邊）旁邊少數放得下人的地方，面向西邊的門
+      { floor: '3F', where: '諮商室外走廊', game: true, at: () => { const r = rooms.find((x) => x.name === '諮商室'); return [r.m.x1 + 0.9, r.m.z1 - 0.95, Math.PI]; } },
+    ],
+    look: {
+      // 依照片：咖啡棕色及肩中長髮（有瀏海、旁分）、圓框深色眼鏡、溫柔的微笑；黑色短袖 T 恤（袖子微微蓬）、卡其色長褲
+      skin: '#f2d2bc', hair: '#6a4330', top: '#1b1b1e', pants: '#b8996f', shoe: '#e8e2d6',
+      bob: true, collar: '#1b1b1e',
+      pal: { H: '#6a4330', h: '#7d5240', S: '#f2d2bc', K: '#8a766a', E: '#2a1610', W: '#ffffff', B: '#eeb0a6', N: '#e6b8a2', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHKEEWKSSKEEWKHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -4686,6 +4720,7 @@ function updateAct(dt) {
     : sp.kind === 'heat' ? T(`🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`, `🌡️ Heat & Cold with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'history' ? T(`🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`, `🗺️ Taiwan History & Geography with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'traffic' ? T(`🚦 跟${sp.npc.name}玩交通安全大考驗 <kbd>F</kbd>`, `🚦 Traffic Safety Quiz with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'mood' ? T(`💗 跟${sp.npc.name}做情緒覺察 <kbd>F</kbd>`, `💗 Mood check-in with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'units' ? T(`📏 跟${sp.npc.name}玩數學單位量詞大考驗 <kbd>F</kbd>`, `📏 Math Units Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'geo' ? T(`🗺️ 跟${sp.npc.name}玩臺灣地理大考驗 <kbd>F</kbd>`, `🗺️ Taiwan Geography Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'prep' ? T(`📍 跟${sp.npc.name}玩 in・on・at 小文法 <kbd>F</kbd>`, `📍 in / on / at with ${sp.npc.name} <kbd>F</kbd>`)
@@ -6812,7 +6847,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -7806,6 +7841,51 @@ const KG_BUSQ = mcGame({
   good: '你是乘車安全小達人，搭車一定平平安安！', keep: '多想一想怎麼做最安全，下次一定更棒！',
 });
 KG_BUSQ.noFace = true;
+
+/* ---- 情緒覺察（雅雅老師，輔導老師）：「今天心情如何？」不計分、沒有對錯。
+   先選心理感受（舒服／不舒服），再選生理能量（充滿活力／無力），落在四個顏色圈圈的哪一個：
+   紅＝不舒服＋充滿活力、黃＝舒服＋充滿活力、藍＝不舒服＋無力、綠＝舒服＋無力。護照只記「做了幾次」，不記心情 ---- */
+const MOOD_Q = {
+  'bad-high': { col: '#ff5a5a', name: '紅色', face: '😠', msg: '心裡不舒服、身體卻很有力氣——可能是生氣、緊張或著急。先深呼吸：吸 4 秒、吐 6 秒，做 3 次。再把感覺說出來，或找信任的大人聊聊。' },
+  'good-high': { col: '#ffd84d', name: '黃色', face: '😄', msg: '心裡舒服、身體也充滿活力——可能是開心、興奮、期待！把這份好心情分享給朋友，也可以幫身邊的人加油。' },
+  'bad-low': { col: '#33b4ff', name: '藍色', face: '😢', msg: '心裡不舒服、身體也沒力氣——可能是難過、疲累或失望。先休息一下、喝點水。想說的時候，隨時可以來輔導室找我，或跟信任的大人說。' },
+  'good-low': { col: '#7ed957', name: '綠色', face: '😌', msg: '心裡舒服、身體放鬆——可能是平靜、滿足、安心。好好享受這種感覺，記得它是什麼樣子，不舒服的時候就可以想起來。' },
+};
+const KG_MOOD = {
+  key: 'campus-mood-count', title: ['💗 情緒覺察', '💗 Mood Check-in'], label: ['💗 情緒覺察中…', '💗 Mood check-in…'],
+  bye: (n) => T(`💗 隨時歡迎再來找${n.name}聊聊～`, `💗 Come back and talk with ${n.name} anytime!`),
+  start(ctx) {
+    const W = 300, H = 250, cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    let plays = 0;
+    const spots = { 'bad-high': [106, 76], 'good-high': [194, 76], 'bad-low': [106, 182], 'good-low': [194, 182] };
+    const draw = (sel) => {
+      c.fillStyle = '#fffaf3'; c.fillRect(0, 0, W, H);
+      c.strokeStyle = '#222'; c.lineWidth = 2; c.beginPath(); c.moveTo(150, 14); c.lineTo(150, H - 14); c.moveTo(14, 129); c.lineTo(W - 14, 129); c.stroke();
+      c.font = '700 11px sans-serif'; c.fillStyle = '#222'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('⚡ 充滿活力', 150, 10); c.fillText('🔋 無力', 150, H - 8); c.textAlign = 'left'; c.fillText('💔 不舒服', 6, 118); c.textAlign = 'right'; c.fillText('💗 舒服', W - 6, 118);
+      for (const [k, [x, y]] of Object.entries(spots)) {
+        const q = MOOD_Q[k], on = sel === k;
+        c.globalAlpha = !sel || on ? 1 : 0.28; c.fillStyle = q.col; c.beginPath(); c.arc(x, y, on ? 50 : 44, 0, 7); c.fill();
+        if (on) { c.strokeStyle = '#222'; c.lineWidth = 4; c.stroke(); c.font = '44px sans-serif'; c.textAlign = 'center'; c.fillText(q.face, x, y + 2); }
+        c.globalAlpha = 1;
+      }
+    };
+    const step1 = () => {
+      draw(null); ctx.prog(''); ctx.ask('你的<b>心理感受</b>是舒服，還是不舒服？'); ctx.msg(plays ? '' : '先深呼吸一下，感受自己現在的狀態。沒有對錯，每一種感覺都可以。');
+      ctx.buttons([{ html: '💗 舒服<small>1</small>', on: () => step2('good') }, { html: '💔 不舒服<small>2</small>', on: () => step2('bad') }]);
+    };
+    const step2 = (feel) => {
+      ctx.ask('你的<b>身體能量</b>是充滿活力，還是無力？'); ctx.msg(feel === 'good' ? '心裡舒服的感覺，很好～' : '心裡不舒服也沒關係，我們一起看看。');
+      ctx.buttons([{ html: '⚡ 充滿活力<small>1</small>', on: () => result(`${feel}-high`) }, { html: '🔋 無力<small>2</small>', on: () => result(`${feel}-low`) }]);
+    };
+    const result = (k) => {
+      const q = MOOD_Q[k]; plays++; draw(k);
+      ctx.ask(`你現在在<b>${q.name}</b>圈圈 ${q.face}`); ctx.msg(q.msg);
+      ctx.buttons([{ html: '🔁 再做一次<small>1</small>', on: step1 }, { html: '👋 結束<small>2</small>', on: () => ctx.end(ctx.best + plays, () => `${T('💗 謝謝你說出現在的心情！', '💗 Thank you for sharing!')}<br>${ctx.n.name}：${T('每一種心情都是正常的，想聊聊隨時來找我。', 'Every feeling is okay. Come talk to me anytime.')}`) }]);
+    };
+    step1();
+  },
+};
 
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
    看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
@@ -9001,6 +9081,7 @@ const GAME_INFO = {
   prep: [['英文小文法 in・on・at', 'in / on / at'], 'campus-prep-best', ans],
   blindquiz: [['視野死角大考驗', 'Blind Spot Quiz'], 'campus-blindquiz-best', ans], busquiz: [['乘車安全小測驗', 'Bus Safety Quiz'], 'campus-busq-best', ans],
   gymrun: [['體操闖關', 'Gym Course'], 'campus-gymrun-best', (v) => T(`闖過 ${v} 關`, `${v} cleared`)],
+  mood: [['情緒覺察', 'Mood Check-in'], 'campus-mood-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
@@ -10401,4 +10482,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=271').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=272').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
