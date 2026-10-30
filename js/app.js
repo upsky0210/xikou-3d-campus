@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=264';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=264';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=264';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=264';
-import { buildCampusWall } from './wall.js?v=264';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=264';
+import { PanoViewer } from './pano.js?v=265';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=265';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=265';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=265';
+import { buildCampusWall } from './wall.js?v=265';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=265';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3481,6 +3481,73 @@ const NPCS = [
     },
   },
   {
+    name: '陳老師', title: '六年三班導師', game: 'units',
+    hello: ['🏠 陳老師：我家有 100 坪，回家像爬山！', '🤔 陳老師：試試看，再想一想，是這樣算的嗎…', '📏 陳老師：公分、公尺、公里，單位不一樣，差很多喔！',
+      '⚖️ 陳老師：算數學要先看清楚單位，再開始算！', '📐 陳老師：要不要來挑戰「數學單位量詞大考驗」？'],
+    // 4 樓思源樓六年三班（603 室）教室前面，面向學生
+    places: [
+      { floor: '4F', where: '六年三班', game: true, at: () => { const r = rooms.find((x) => x.code === '603'); return D_CLASS_FRONT(r); } },
+    ],
+    look: {
+      // 依照片：黑色短髮（照使用者要求，不戴帽子）、笑得很開心；做成卡通愛探險的 Dora 風格——齊下巴的鮑伯頭＋整齊的直瀏海；
+      //   青綠色短袖 T 恤、卡其色長褲
+      skin: '#ecc5a4', hair: '#18120f', top: '#47c4b0', pants: '#c8b28a', shoe: '#6b4a33',
+      bob: true,
+      pal: { H: '#18120f', h: '#2c211b', S: '#ecc5a4', E: '#1e130d', e: '#4a2a1c', W: '#ffffff', B: '#f2a89a', N: '#d9a98a', M: '#a8453f', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHhHHHHHhHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSMTTTTTTMSSHH',
+        'HHHSSMMMMMMSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '姚姚老師', title: '教學組長', game: 'geo',
+    hello: ['📚 姚姚老師：上課要專心聽，不懂的地方要舉手問老師喔！', '🗺️ 姚姚老師：臺灣雖然不大，卻有高高的山、長長的河，還有好多種地形！',
+      '⛰️ 姚姚老師：臺灣最高的山是玉山，你去過嗎？', '🌊 姚姚老師：要不要來挑戰「臺灣地理大考驗」？五大山脈、五大地形、三大河流都考喔！'],
+    // 1 樓教務處門口（東牆那扇門外面的走廊），面向走廊
+    places: [
+      { floor: '1F', where: '教務處門口', game: true, at: () => { const r = rooms.find((x) => x.name === '教務處'); const d = r.doorPts.find((p) => p.side === 'E'); return [d.x + 1.3, d.z, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：棕色長直髮（旁分瀏海）、淺淺的微笑；奶油色羅紋 V 領短袖上衣（中間一排金色鈕扣）、米色格紋寬褲
+      skin: '#f4d4bf', hair: '#6a4030', top: '#efdcae', pants: '#dccdab', shoe: '#8a8478',
+      longHair: true, topButtons: '#c9a24a', skirt: '#d9c9a8', skirtPlaid: ['#e0d2b2', '#c9b690'],
+      pal: { H: '#6a4030', h: '#85553c', S: '#f4d4bf', E: '#2a1810', e: '#6b3a26', W: '#ffffff', B: '#f2b2a8', N: '#e3b39c', M: '#c0605a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHSSHHH',
+        'HHHHHHHSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMSSSSMSSSHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -4559,6 +4626,8 @@ function updateAct(dt) {
     : sp.kind === 'heat' ? T(`🌡️ 跟${sp.npc.name}玩熱脹冷縮 <kbd>F</kbd>`, `🌡️ Heat & Cold with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'history' ? T(`🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`, `🗺️ Taiwan History & Geography with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'traffic' ? T(`🚦 跟${sp.npc.name}玩交通安全大考驗 <kbd>F</kbd>`, `🚦 Traffic Safety Quiz with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'units' ? T(`📏 跟${sp.npc.name}玩數學單位量詞大考驗 <kbd>F</kbd>`, `📏 Math Units Quiz with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'geo' ? T(`🗺️ 跟${sp.npc.name}玩臺灣地理大考驗 <kbd>F</kbd>`, `🗺️ Taiwan Geography Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'prep' ? T(`📍 跟${sp.npc.name}玩 in・on・at 小文法 <kbd>F</kbd>`, `📍 in / on / at with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'farm' ? T(`🌱 跟${sp.npc.name}去小田園種菜 <kbd>F</kbd>`, `🌱 Little Farm with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'fraction' ? T(`🧮 幫${sp.npc.name}檢查分數計算 <kbd>F</kbd>`, `🧮 Check ${sp.npc.name}'s fractions <kbd>F</kbd>`)
@@ -6678,7 +6747,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -7456,6 +7525,97 @@ const KG_PREP = {
     next();
   },
 };
+
+/* ---- 三選一題庫遊戲（共用）：一回 5 題，答完說明為什麼；items 的 a[0] 是正確答案（按鈕順序會打亂） ---- */
+function mcGame({ key, title, label, icon, items, intro, good, keep }) {
+  return {
+    key, title, label,
+    bye: (n) => T(`${icon} 下次再來找${n.name}玩！`, `${icon} Come back and play with ${n.name}!`),
+    start(ctx) {
+      const n = ctx.n, qs = kgShuffle(items.slice()).slice(0, 5);
+      let i = 0, right = 0;
+      const next = () => {
+        const q = qs[i];
+        ctx.prog(T(`第 ${i + 1} / ${qs.length} 題`, `${i + 1} / ${qs.length}`));
+        ctx.stage.innerHTML = `<span class="big">${q.e}</span>`;
+        ctx.ask(q.q); ctx.msg(i ? '' : intro());
+        const opts = kgShuffle(q.a.map((t, k) => ({ t, ok: !k })));
+        ctx.buttons(opts.map((o, j) => ({ html: `${o.t}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+          ctx.btnEls.forEach((b) => (b.disabled = true));
+          ctx.btnEls[opts.findIndex((x) => x.ok)].className = 'opt right';
+          if (o.ok) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${q.why}`, 'ok'); }
+          else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${q.why}`, 'no'); }
+          ctx.later(() => (++i < qs.length ? next() : ctx.end(right, (b) => `${T(`${icon} 答對 ${right} / 5 題（最好紀錄 ${b} 題）`, `${icon} ${right} / 5 correct (best ${b})`)}<br>${n.name}：${right >= 4 ? good : keep}`)), 2800);
+        } })));
+      };
+      next();
+    },
+  };
+}
+
+/* ---- 數學單位量詞大考驗（陳老師，六年三班導師） ---- */
+const UNITS_ITEMS = [
+  { e: '📏', q: '教室的長度大約是 8 ＿＿', a: ['公尺', '公分', '公里'], why: '教室大約 8 公尺長；8 公分只有手指那麼長，8 公里要走很久很久。' },
+  { e: '✏️', q: '一枝鉛筆大約長 18 ＿＿', a: ['公分', '公尺', '公里'], why: '鉛筆大約 18 公分長，比一個手掌再長一點。' },
+  { e: '🚄', q: '從臺北到高雄，高鐵的路程大約 350 ＿＿', a: ['公里', '公尺', '公分'], why: '很遠的距離用公里；1 公里就是 1000 公尺。' },
+  { e: '🏃', q: '操場跑道跑一圈大約 400 ＿＿', a: ['公尺', '公分', '公里'], why: '標準跑道一圈是 400 公尺，跑 2.5 圈就是 1 公里。' },
+  { e: '📄', q: '一張 A4 紙的長邊大約 30 ＿＿', a: ['公分', '公尺', '公里'], why: 'A4 紙的長邊大約 30 公分，跟一把 30 公分的直尺差不多長。' },
+  { e: '🧃', q: '一瓶礦泉水大約有 600 ＿＿', a: ['毫升', '公升', '公克'], why: '一瓶礦泉水 600 毫升，也就是 0.6 公升。' },
+  { e: '🥛', q: '一杯牛奶大約有 240 ＿＿', a: ['毫升', '公升', '公斤'], why: '一杯牛奶 240 毫升；1 公升 ＝ 1000 毫升，大約是四杯多。' },
+  { e: '🪣', q: '一桶大桶裝飲用水大約有 19 ＿＿', a: ['公升', '毫升', '公克'], why: '大桶裝的水大約 19 公升，也就是 19000 毫升。' },
+  { e: '🍎', q: '一顆蘋果大約重 200 ＿＿', a: ['公克', '公斤', '公噸'], why: '一顆蘋果大約 200 公克；5 顆蘋果才有 1 公斤。' },
+  { e: '🥚', q: '一顆雞蛋大約重 60 ＿＿', a: ['公克', '公斤', '公噸'], why: '雞蛋大約 60 公克，一盒 10 顆大約 600 公克。' },
+  { e: '🎒', q: '一個書包大約重 3 ＿＿', a: ['公斤', '公克', '公噸'], why: '書包大約 3 公斤；3 公克只有一顆小小的紐扣那麼輕。' },
+  { e: '🐘', q: '一頭大象大約重 5 ＿＿', a: ['公噸', '公斤', '公克'], why: '大象很重，大約 5 公噸；1 公噸 ＝ 1000 公斤。' },
+  { e: '🚗', q: '一輛小客車大約重 1.5 ＿＿', a: ['公噸', '公斤', '公克'], why: '小客車大約 1.5 公噸，也就是 1500 公斤。' },
+  { e: '⏱️', q: '學校一堂課大約 40 ＿＿', a: ['分鐘', '秒', '小時'], why: '一堂課大約 40 分鐘；40 秒太短，40 小時比一天還長。' },
+  { e: '🧱', q: '一塊邊長 30 公分的方形磁磚，面積是 900 ＿＿', a: ['平方公分', '平方公尺', '公分'], why: '30 × 30 ＝ 900，面積的單位要用「平方」，所以是 900 平方公分。' },
+  { e: '⚽', q: '一個足球場的面積大約 7000 ＿＿', a: ['平方公尺', '公尺', '公升'], why: '足球場約 105 公尺 × 68 公尺，面積大約 7000 平方公尺。' },
+  { e: '🧊', q: '邊長 1 公分的小方塊，體積是 1 ＿＿', a: ['立方公分', '平方公分', '公分'], why: '立體的大小（體積）要用「立方」；1 立方公分的水剛好是 1 毫升。' },
+  { e: '🛣️', q: '1 公里 ＝ ＿＿ 公尺', a: ['1000', '100', '10'], why: '1 公里 ＝ 1000 公尺。' },
+  { e: '📐', q: '1 公尺 ＝ ＿＿ 公分', a: ['100', '10', '1000'], why: '1 公尺 ＝ 100 公分。' },
+  { e: '⚖️', q: '1 公斤 ＝ ＿＿ 公克', a: ['1000', '100', '10'], why: '1 公斤 ＝ 1000 公克。' },
+  { e: '🥤', q: '1 公升 ＝ ＿＿ 毫升', a: ['1000', '100', '10'], why: '1 公升 ＝ 1000 毫升。' },
+  { e: '🚛', q: '1 公噸 ＝ ＿＿ 公斤', a: ['1000', '100', '10000'], why: '1 公噸 ＝ 1000 公斤。' },
+  { e: '🌾', q: '1 公頃 ＝ ＿＿ 平方公尺', a: ['10000', '100', '1000'], why: '1 公頃是邊長 100 公尺的正方形，100 × 100 ＝ 10000 平方公尺。' },
+  { e: '🏠', q: '「坪」是臺灣常用的面積單位，1 坪大約是 ＿＿ 平方公尺', a: ['3.3', '33', '0.33'], why: '1 坪約 3.3 平方公尺；100 坪就是 330 平方公尺，真的很大，回家像爬山！' },
+];
+const KG_UNITS = mcGame({
+  key: 'campus-units-best', title: ['📏 數學單位量詞大考驗', '📏 Math Units Quiz'], label: ['📏 數學單位大考驗…', '📏 Math Units…'], icon: '📏', items: UNITS_ITEMS,
+  intro: () => T('想一想，這個東西大概有多長、多重、多大？先看清楚單位喔！', 'Think: how long, heavy or big is it? Check the unit first!'),
+  good: '你的單位觀念很棒，算數學不會被單位騙到！', keep: '試試看，再想一想，單位多看幾次就記住了！',
+});
+
+/* ---- 臺灣地理大考驗（姚姚老師，教學組長）：五大山脈、五大地形、三大河流 ---- */
+const GEO_ITEMS = [
+  { e: '⛰️', q: '臺灣最長的山脈是哪一條？', a: ['中央山脈', '雪山山脈', '海岸山脈'], why: '中央山脈像臺灣的「脊梁」，從北到南縱貫全島，是最長的山脈。' },
+  { e: '🏔️', q: '玉山是臺灣的最高峰，它在哪一條山脈？', a: ['玉山山脈', '中央山脈', '阿里山山脈'], why: '玉山主峰海拔約 3952 公尺，位在玉山山脈，是臺灣最高的山峰。' },
+  { e: '❄️', q: '雪山是臺灣第二高峰，它在哪一條山脈？', a: ['雪山山脈', '玉山山脈', '海岸山脈'], why: '雪山在雪山山脈，海拔約 3886 公尺，冬天有時會下雪。' },
+  { e: '🌊', q: '位在臺灣東部、靠近太平洋的山脈是？', a: ['海岸山脈', '雪山山脈', '阿里山山脈'], why: '海岸山脈在花蓮、臺東的東邊，面對太平洋。' },
+  { e: '🌲', q: '有名的阿里山神木、森林鐵路，在哪一條山脈？', a: ['阿里山山脈', '玉山山脈', '雪山山脈'], why: '阿里山位在嘉義，屬於阿里山山脈。' },
+  { e: '🧭', q: '下面哪一個「不是」臺灣的五大山脈？', a: ['大屯山脈', '海岸山脈', '中央山脈'], why: '五大山脈是中央山脈、雪山山脈、玉山山脈、阿里山山脈、海岸山脈。大屯山是火山群。' },
+  { e: '🔢', q: '臺灣一共有幾大山脈？', a: ['五條', '三條', '七條'], why: '臺灣有五大山脈：中央、雪山、玉山、阿里山、海岸山脈。' },
+  { e: '🏞️', q: '下面哪一個「不是」臺灣的五大地形？', a: ['沙漠', '盆地', '臺地'], why: '臺灣五大地形是山地、丘陵、臺地、平原、盆地，沒有沙漠。' },
+  { e: '⛺', q: '四周被山圍著、中間比較低的地形，叫做什麼？', a: ['盆地', '平原', '臺地'], why: '像臺北盆地，四周高、中間低，就是盆地。' },
+  { e: '🌾', q: '地勢平坦、適合種稻和蓋房子的地形是？', a: ['平原', '山地', '丘陵'], why: '平原地勢平坦，臺灣的城市和稻田大多在平原上。' },
+  { e: '🏘️', q: '桃園的林口，頂部平坦、四周比較陡的地形，叫做什麼？', a: ['臺地', '盆地', '平原'], why: '頂部平坦、像一座高高的平台，叫做臺地，林口臺地就是代表。' },
+  { e: '🌄', q: '高度比山地矮、坡度比較平緩的地形是？', a: ['丘陵', '平原', '盆地'], why: '丘陵比山地矮、坡度比較緩，像苗栗、新竹一帶就有很多丘陵。' },
+  { e: '🧗', q: '海拔高、坡度陡，像中央山脈這樣的地形叫做？', a: ['山地', '臺地', '平原'], why: '海拔高、坡度又陡的地方是山地。' },
+  { e: '🧭', q: '宜蘭平原在臺灣的哪個方向？', a: ['東北部', '西南部', '西北部'], why: '宜蘭在臺灣的東北部，那裡有一片三角形的蘭陽平原。' },
+  { e: '🌅', q: '花蓮、臺東之間，夾在海岸山脈和中央山脈中間、又長又窄的地方叫什麼？', a: ['花東縱谷', '嘉南平原', '臺北盆地'], why: '花東縱谷在海岸山脈和中央山脈中間，是一條又長又窄的平坦谷地。' },
+  { e: '🌊', q: '臺灣最長的河流是？', a: ['濁水溪', '淡水河', '高屏溪'], why: '濁水溪全長約 187 公里，是臺灣最長的河流。' },
+  { e: '🗾', q: '臺灣流域面積最大的河流是？', a: ['高屏溪', '濁水溪', '淡水河'], why: '高屏溪流經高雄、屏東，流域面積是臺灣最大的。' },
+  { e: '🏙️', q: '流經臺北盆地，出海口在新北淡水的河流是？', a: ['淡水河', '濁水溪', '高屏溪'], why: '淡水河流經臺北、新北，在淡水流入臺灣海峽。' },
+  { e: '📍', q: '高屏溪流經哪兩個縣市？', a: ['高雄、屏東', '臺北、新北', '臺中、彰化'], why: '高屏溪的名字就是「高雄」加「屏東」。' },
+  { e: '🧭', q: '濁水溪大部分的河水往哪裡流？', a: ['西邊的臺灣海峽', '東邊的太平洋', '北邊的東海'], why: '濁水溪流經南投、彰化、雲林，往西流進臺灣海峽。' },
+  { e: '💦', q: '臺灣的河流為什麼大多又短又急？', a: ['山高、地形陡，河水很快從山上流到海邊', '因為臺灣很少下雨', '因為河流被水壩全部攔住'], why: '臺灣山高坡陡，島又很窄，河水從山上很快就流到海邊，所以又短又急。' },
+  { e: '🗻', q: '下面哪一個是臺灣的最高峰？', a: ['玉山', '雪山', '阿里山'], why: '玉山主峰海拔約 3952 公尺，是臺灣最高的山。' },
+];
+const KG_GEO = mcGame({
+  key: 'campus-geo-best', title: ['🗺️ 臺灣地理大考驗', '🗺️ Taiwan Geography Quiz'], label: ['🗺️ 臺灣地理大考驗…', '🗺️ Taiwan Geography…'], icon: '🗺️', items: GEO_ITEMS,
+  intro: () => T('五大山脈、五大地形、三大河流，你都記得嗎？', 'Five mountain ranges, five landforms, three rivers. Do you remember them?'),
+  good: '你對臺灣的山、地形和河流好熟悉，是地理小達人！', keep: '多看看地圖，下次一定更厲害！',
+});
 
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
    看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
@@ -8593,6 +8753,7 @@ const GAME_INFO = {
   history: [['臺灣史地大考驗', 'Taiwan History & Geography'], 'campus-history-best', ans],
   traffic: [['交通安全大考驗', 'Traffic Safety Quiz'], 'campus-traffic-best', ans], farm: [['食農教育', 'Little Farm'], 'campus-farm-best', ans],
   prep: [['英文小文法 in・on・at', 'in / on / at'], 'campus-prep-best', ans],
+  units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
   stack: [['動物疊疊樂', 'Animal Stacking'], 'campus-kg-stack-best', (v) => T(`疊了 ${v} 層`, `${v} stacked`)],
@@ -9931,4 +10092,4 @@ window.__campus = { THREE, NPCS, movePlacesNPC, isWalkable, startListen, rendere
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=264').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=265').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
