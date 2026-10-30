@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=263';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=263';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=263';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=263';
-import { buildCampusWall } from './wall.js?v=263';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=263';
+import { PanoViewer } from './pano.js?v=264';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=264';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=264';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=264';
+import { buildCampusWall } from './wall.js?v=264';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=264';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -132,7 +132,9 @@ for (const s of stairs) {
   }
 }
 
+let pondBlock = null;   // 生態池水面（池邊矮牆圍起來的範圍）：不能走進去，掉進去會被四面矮牆困住（使用者 10-30 回報）
 function isWalkable(f, x, z, pad = 0.12) {
+  if (pondBlock && f.level === 0 && x > pondBlock.x1 && x < pondBlock.x2 && z > pondBlock.z1 && z < pondBlock.z2) return false;
   for (const w of f.walk) if (inRect(w.m, x, z, pad)) return true;
   return false;
 }
@@ -2934,6 +2936,7 @@ function meetGlider(gl) { passMark('eggs', 'glider'); toast(T(gl.hello, gl.hello
 
 const TURTLE_KEY = 'campus-turtle-feed', FEED_MAX = 2;
 const pondM = D.outdoor.pond ? rectM(D.outdoor.pond) : null;
+pondBlock = pondM; floors[1].grid = null;            // 池子裡面算不能走（找路、走路、被困住時的救援都看這個）
 const turtles = [];
 let feed = null;                                     // 正在吃：{ x, z, pellets: [...], t }
 if (pondM) {
@@ -9928,4 +9931,4 @@ window.__campus = { THREE, NPCS, movePlacesNPC, isWalkable, startListen, rendere
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=263').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=264').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
