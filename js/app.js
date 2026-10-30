@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=272';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=272';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=272';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=272';
-import { buildCampusWall } from './wall.js?v=272';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=272';
+import { PanoViewer } from './pano.js?v=273';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=273';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=273';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=273';
+import { buildCampusWall } from './wall.js?v=273';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=273';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -897,40 +897,141 @@ function inRoomNow() {
   const f = player.floor, x = player.x, z = player.z;
   return rooms.some((r) => r.f === f && !r.hidden && !r.open && r.type !== 'garden' && r.type !== 'hall' && inRect(r.m, x, z));
 }
-let timeKey = (() => { try { const v = localStorage.getItem(TIME_KEY); return v in TIMES ? v : 'noon'; } catch { return 'noon'; } })();
+// 「同步現實」：台灣時間＋Open-Meteo 即時天氣（免 key、不傳任何個人資料）。位置是學校；連不上網就當作晴天，時間照台灣時間
+const LIVE = { lat: 24.99404, lon: 121.53909, key: 'noon', code: 0, cloud: 0, sr: 6 * 60, ss: 17 * 60 + 45, fakeMin: null, sig: '', last: 0 };
+function wxOf(code, cloud = 0) {          // WMO 天氣代碼 → 名稱、圖示、陰暗程度、雨量、霧、打雷
+  let w = { zh: '晴', en: 'Clear', icon: '☀️', gray: 0, rain: 0, fog: 0, thunder: false };
+  if (code === 1 || code === 2) w = { ...w, zh: '多雲', en: 'Partly cloudy', icon: '⛅', gray: 0.2 };
+  else if (code === 3) w = { ...w, zh: '陰天', en: 'Overcast', icon: '☁️', gray: 0.6 };
+  else if (code === 45 || code === 48) w = { ...w, zh: '起霧', en: 'Foggy', icon: '🌫️', gray: 0.5, fog: 1 };
+  else if (code >= 51 && code <= 57) w = { ...w, zh: '毛毛雨', en: 'Drizzle', icon: '🌦️', gray: 0.6, rain: 0.35 };
+  else if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) {
+    const big = code === 65 || code === 67 || code >= 81;
+    w = { ...w, zh: big ? '大雨' : '下雨', en: big ? 'Heavy rain' : 'Rain', icon: '🌧️', gray: 0.8, rain: big ? 1 : 0.6 };
+  } else if (code >= 95) w = { ...w, zh: '雷雨', en: 'Thunderstorm', icon: '⛈️', gray: 1, rain: 1, thunder: true };
+  w.gray = Math.max(w.gray, Math.min(0.5, cloud / 200));
+  return w;
+}
+function liveKeyNow() {                    // 清晨＝日出前 30 分到後 60 分、傍晚＝日落前 60 分到後 30 分
+  const d = new Date(Date.now() + 8 * 3600e3), m = LIVE.fakeMin ?? d.getUTCHours() * 60 + d.getUTCMinutes();   // 一律用台灣時間（UTC+8）
+  return m >= LIVE.sr - 30 && m < LIVE.sr + 60 ? 'dawn' : m >= LIVE.sr + 60 && m < LIVE.ss - 60 ? 'noon' : m >= LIVE.ss - 60 && m < LIVE.ss + 30 ? 'dusk' : 'night';
+}
+let timeKey = (() => { try { const v = localStorage.getItem(TIME_KEY); return v in TIMES || v === 'live' ? v : 'live'; } catch { return 'live'; } })();   // 沒選過就同步現實
+LIVE.key = liveKeyNow();
+const curKey = () => (timeKey === 'live' ? LIVE.key : timeKey);
+const curWx = () => (timeKey === 'live' ? wxOf(LIVE.code, LIVE.cloud) : wxOf(0));
 const LOOKS = Object.fromEntries(Object.entries(TIMES).map(([k, p]) => [k, lookOf(p)]));
-const lookNow = lookOf(TIMES[timeKey]), lookFrom = lookOf(TIMES[timeKey]);
+const lookNow = lookOf(TIMES[curKey()]), lookFrom = lookOf(TIMES[curKey()]), tgtLook = lookOf(TIMES.noon);
 let timeK = 1;                                                           // 轉換進度：1＝已經到了
-showLook(lookNow);
-function setTime(k) {
-  if (!(k in TIMES)) return;
-  timeKey = k;
-  try { localStorage.setItem(TIME_KEY, k); } catch { /* 私密模式，忽略 */ }
+let rainTarget = 0;
+const _grey = new THREE.Color();
+function retarget() {                                                    // 依「時段＋天氣」算出要轉去的樣子，再慢慢轉過去
+  const k = curKey(), wx = curWx(), g = wx.gray;
+  mixLook(tgtLook, LOOKS[k], LOOKS[k], 0);
+  if (g) {
+    const lum = tgtLook.sky.r * 0.3 + tgtLook.sky.g * 0.55 + tgtLook.sky.b * 0.15;
+    _grey.setRGB(lum * 0.85, lum * 0.9, lum * 0.95);
+    tgtLook.sky.lerp(_grey, 0.65 * g); tgtLook.cc.lerp(_grey, 0.7 * g);
+    tgtLook.si *= 1 - 0.6 * g; tgtLook.hi *= 1 - 0.3 * g; tgtLook.ai *= 1 - 0.15 * g; tgtLook.fogF *= 1 - 0.3 * g;
+    if (wx.fog) { tgtLook.fogN = 8; tgtLook.fogF = 85; tgtLook.sky.lerp(_grey, 0.5); }
+  }
+  rainTarget = wx.rain;
   mixLook(lookFrom, lookNow, lookNow, 0);                                // 從畫面現在的樣子開始轉（轉到一半又換也不會跳）
   timeK = 0;
+}
+retarget(); mixLook(lookNow, tgtLook, tgtLook, 0); timeK = 1;
+showLook(lookNow);
+function setTime(k) {
+  if (!(k in TIMES) && k !== 'live') return;
+  timeKey = k;
+  try { localStorage.setItem(TIME_KEY, k); } catch { /* 私密模式，忽略 */ }
+  if (k === 'live') liveFetch();
+  retarget();
   timeLabel();
+}
+function liveTick() {                                                    // 每分鐘看一次：時段或天氣變了才轉
+  LIVE.key = liveKeyNow();
+  const sig = LIVE.key + LIVE.code + Math.round(LIVE.cloud / 25);
+  if (sig === LIVE.sig) return;
+  LIVE.sig = sig;
+  if (timeKey === 'live') { retarget(); timeLabel(); }
+}
+async function liveFetch() {
+  if (Date.now() - LIVE.last < 15 * 60e3) return;                        // 15 分鐘內不重抓
+  LIVE.last = Date.now();
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LIVE.lat}&longitude=${LIVE.lon}&current=weather_code,cloud_cover&daily=sunrise,sunset&forecast_days=1&timezone=Asia%2FTaipei`);
+    const j = await r.json();
+    const mn = (t) => +t.slice(11, 13) * 60 + +t.slice(14, 16);
+    LIVE.code = j.current.weather_code | 0; LIVE.cloud = j.current.cloud_cover || 0;
+    LIVE.sr = mn(j.daily.sunrise[0]); LIVE.ss = mn(j.daily.sunset[0]);
+  } catch { LIVE.last = Date.now() - 10 * 60e3; }                        // 失敗：5 分鐘後再試
+  liveTick();
+}
+liveFetch();
+setInterval(() => { if (timeKey === 'live') liveFetch(); liveTick(); }, 60e3);
+// 雨：跟著鏡頭的一堆細線往下掉（只在戶外、非鳥瞰；進房間就停）。打雷：偶爾閃一下
+const rain = (() => {
+  const N = 900, base = new Float32Array(N * 3), pos = new Float32Array(N * 6);
+  for (let i = 0; i < N; i++) { base[i * 3] = (Math.random() - 0.5) * 44; base[i * 3 + 1] = Math.random() * 26 - 8; base[i * 3 + 2] = (Math.random() - 0.5) * 44; }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const m = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: '#e4eeff', transparent: true, opacity: 0.8, fog: false, depthWrite: false }));
+  m.frustumCulled = false; m.visible = false; m.renderOrder = 5;
+  scene.add(m);
+  return { m, base, pos, geo, N, amt: 0, slow: 0 };
+})();
+let bolt = 6, flash = 0;
+function stepRain(dt) {
+  const R = rain;
+  R.amt += Math.sign(rainTarget - R.amt) * Math.min(Math.abs(rainTarget - R.amt), dt * 0.5);
+  R.slow = R.slow * 0.95 + (dt > 0.04 ? 1 : 0) * 0.05;                  // 畫面變慢就少下一點
+  const show = R.amt > 0.01 && mode !== 'bird' && inK < 0.3;
+  R.m.visible = show;
+  if (curWx().thunder && R.amt > 0.5 && inK < 0.6 && mode !== 'bird') { if ((bolt -= dt) <= 0) { flash = 1; bolt = 6 + Math.random() * 10; } }
+  if (!show) return;
+  const n = Math.max(120, Math.floor(R.N * R.amt * (R.slow > 0.4 ? 0.4 : 1)));
+  const b = R.base, p = R.pos, fall = 22 * dt;
+  for (let i = 0; i < n; i++) {
+    const j = i * 3, k = i * 6;
+    if ((b[j + 1] -= fall) < -8) b[j + 1] += 26;
+    p[k] = b[j]; p[k + 1] = b[j + 1]; p[k + 2] = b[j + 2];
+    p[k + 3] = b[j] - 0.15; p[k + 4] = b[j + 1] + 1.3; p[k + 5] = b[j + 2] - 0.06;
+  }
+  R.geo.attributes.position.needsUpdate = true; R.geo.setDrawRange(0, n * 2);
+  R.m.position.copy(camera.position);
 }
 let inCheck = 0, inTarget = 0;
 function stepTime(dt) {
   if ((inCheck -= dt) <= 0) { inCheck = 0.25; inTarget = inRoomNow() ? 1 : 0; }   // 每 0.25 秒看一次在不在房間裡
-  const k0 = inK;
+  const k0 = inK, fl = flash;
   inK += Math.sign(inTarget - inK) * Math.min(Math.abs(inTarget - inK), dt * 2.5);
   nightSky.g.position.copy(camera.position);
   nightSky.moon.lookAt(camera.position);
-  if (timeK >= 1 && inK === k0) return;
+  stepRain(dt);
+  if (flash > 0) flash = Math.max(0, flash - dt * 4);
+  if (timeK >= 1 && inK === k0 && fl === 0 && flash === 0) return;
   if (timeK < 1) {
     timeK = Math.min(1, timeK + dt / 1.5);
-    mixLook(lookNow, lookFrom, LOOKS[timeKey], timeK * timeK * (3 - 2 * timeK));
+    mixLook(lookNow, lookFrom, tgtLook, timeK * timeK * (3 - 2 * timeK));
   }
   showLook(lookNow);
+  if (flash > 0) {                                                       // 閃電：整個畫面瞬間變亮再慢慢退
+    const f = flash * (1 - 0.7 * inK);
+    hemi.intensity += f * 2.2; amb.intensity += f * 0.8;
+    scene.background.lerp(_white, f * 0.5);
+  }
 }
+const _white = new THREE.Color('#ffffff');
+window.__weather = { LIVE, set(o) { Object.assign(LIVE, o); LIVE.sig = ''; liveTick(); }, rain };   // 測試用：__weather.set({code: 95, fakeMin: 600})
 const timeBtn = document.getElementById('timeBtn'), timeMenu = document.getElementById('timeMenu');
-timeMenu.innerHTML = Object.entries(TIMES).map(([k, p]) => `<button data-time="${k}" role="menuitemradio" data-en="${p.icon} ${p.en}">${p.icon} ${p.zh}</button>`).join('');
+timeMenu.innerHTML = `<button data-time="live" role="menuitemradio" data-en="🌐 Live (real weather)">🌐 同步現實</button>` + Object.entries(TIMES).map(([k, p]) => `<button data-time="${k}" role="menuitemradio" data-en="${p.icon} ${p.en}">${p.icon} ${p.zh}</button>`).join('');
 function timeLabel() {
-  const p = TIMES[timeKey];
-  timeBtn.querySelector('i').textContent = p.icon;
-  timeBtn.querySelector('span').textContent = ' ' + T(p.zh, p.en);
-  timeBtn.title = T('時間：', 'Time: ') + T(p.zh, p.en);
+  const p = TIMES[curKey()], live = timeKey === 'live', wx = curWx();
+  const icon = live ? (curKey() === 'night' && wx.gray < 0.3 ? '🌙' : wx.icon) : p.icon;
+  timeBtn.querySelector('i').textContent = icon;
+  timeBtn.querySelector('span').textContent = ' ' + (live ? T('同步・' + wx.zh, 'Live · ' + wx.en) : T(p.zh, p.en));
+  timeBtn.title = T('時間：', 'Time: ') + (live ? T(`同步現實（${p.zh}・${wx.zh}）`, `Live (${p.en}, ${wx.en})`) : T(p.zh, p.en));
   for (const b of timeMenu.children) { const on = b.dataset.time === timeKey; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }
 }
 function showTimeMenu(on) { timeMenu.hidden = !on; timeBtn.setAttribute('aria-expanded', String(on)); }
@@ -10482,4 +10583,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=272').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=273').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
