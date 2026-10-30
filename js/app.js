@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=265';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=265';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=265';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=265';
-import { buildCampusWall } from './wall.js?v=265';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=265';
+import { PanoViewer } from './pano.js?v=266';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=266';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=266';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=266';
+import { buildCampusWall } from './wall.js?v=266';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=266';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -7587,6 +7587,15 @@ const KG_UNITS = mcGame({
 });
 
 /* ---- 臺灣地理大考驗（姚姚老師，教學組長）：五大山脈、五大地形、三大河流 ---- */
+// 臺灣的輪廓（簡化的經緯度折線；沒有臺灣的表情符號，🗾 是日本）
+const TAIWAN_SVG = (() => {
+  const P = [[121.54, 25.30], [121.75, 25.28], [121.92, 25.13], [122.00, 25.00], [121.92, 24.80], [121.85, 24.60], [121.75, 24.30], [121.62, 24.00], [121.55, 23.70],
+    [121.45, 23.30], [121.35, 23.00], [121.20, 22.75], [121.05, 22.55], [120.88, 22.30], [120.85, 22.00], [120.75, 21.90], [120.65, 22.05], [120.60, 22.35], [120.45, 22.55],
+    [120.30, 22.62], [120.20, 22.85], [120.10, 23.10], [120.10, 23.35], [120.15, 23.55], [120.18, 23.75], [120.25, 23.95], [120.40, 24.15], [120.55, 24.35], [120.70, 24.55],
+    [120.85, 24.78], [121.00, 25.00], [121.25, 25.12], [121.45, 25.25]];
+  const pts = P.map(([lo, la]) => `${((lo - 120) * 0.917 * 52 + 8).toFixed(1)},${((25.4 - la) * 52 + 6).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 112 196" height="96" style="vertical-align:middle"><polygon points="${pts}" fill="#58c08a" stroke="#2f7d57" stroke-width="4" stroke-linejoin="round"/></svg>`;
+})();
 const GEO_ITEMS = [
   { e: '⛰️', q: '臺灣最長的山脈是哪一條？', a: ['中央山脈', '雪山山脈', '海岸山脈'], why: '中央山脈像臺灣的「脊梁」，從北到南縱貫全島，是最長的山脈。' },
   { e: '🏔️', q: '玉山是臺灣的最高峰，它在哪一條山脈？', a: ['玉山山脈', '中央山脈', '阿里山山脈'], why: '玉山主峰海拔約 3952 公尺，位在玉山山脈，是臺灣最高的山峰。' },
@@ -7601,10 +7610,10 @@ const GEO_ITEMS = [
   { e: '🏘️', q: '桃園的林口，頂部平坦、四周比較陡的地形，叫做什麼？', a: ['臺地', '盆地', '平原'], why: '頂部平坦、像一座高高的平台，叫做臺地，林口臺地就是代表。' },
   { e: '🌄', q: '高度比山地矮、坡度比較平緩的地形是？', a: ['丘陵', '平原', '盆地'], why: '丘陵比山地矮、坡度比較緩，像苗栗、新竹一帶就有很多丘陵。' },
   { e: '🧗', q: '海拔高、坡度陡，像中央山脈這樣的地形叫做？', a: ['山地', '臺地', '平原'], why: '海拔高、坡度又陡的地方是山地。' },
-  { e: '🧭', q: '宜蘭平原在臺灣的哪個方向？', a: ['東北部', '西南部', '西北部'], why: '宜蘭在臺灣的東北部，那裡有一片三角形的蘭陽平原。' },
+  { e: TAIWAN_SVG, q: '宜蘭平原在臺灣的哪個方向？', a: ['東北部', '西南部', '西北部'], why: '宜蘭在臺灣的東北部，那裡有一片三角形的蘭陽平原。' },
   { e: '🌅', q: '花蓮、臺東之間，夾在海岸山脈和中央山脈中間、又長又窄的地方叫什麼？', a: ['花東縱谷', '嘉南平原', '臺北盆地'], why: '花東縱谷在海岸山脈和中央山脈中間，是一條又長又窄的平坦谷地。' },
   { e: '🌊', q: '臺灣最長的河流是？', a: ['濁水溪', '淡水河', '高屏溪'], why: '濁水溪全長約 187 公里，是臺灣最長的河流。' },
-  { e: '🗾', q: '臺灣流域面積最大的河流是？', a: ['高屏溪', '濁水溪', '淡水河'], why: '高屏溪流經高雄、屏東，流域面積是臺灣最大的。' },
+  { e: TAIWAN_SVG, q: '臺灣流域面積最大的河流是？', a: ['高屏溪', '濁水溪', '淡水河'], why: '高屏溪流經高雄、屏東，流域面積是臺灣最大的。' },
   { e: '🏙️', q: '流經臺北盆地，出海口在新北淡水的河流是？', a: ['淡水河', '濁水溪', '高屏溪'], why: '淡水河流經臺北、新北，在淡水流入臺灣海峽。' },
   { e: '📍', q: '高屏溪流經哪兩個縣市？', a: ['高雄、屏東', '臺北、新北', '臺中、彰化'], why: '高屏溪的名字就是「高雄」加「屏東」。' },
   { e: '🧭', q: '濁水溪大部分的河水往哪裡流？', a: ['西邊的臺灣海峽', '東邊的太平洋', '北邊的東海'], why: '濁水溪流經南投、彰化、雲林，往西流進臺灣海峽。' },
@@ -8525,11 +8534,64 @@ function unstick(dt) {
   stuckT = bad ? stuckT + dt : 0;
   if (stuckT < 0.5) return;
   stuckT = 0;
-  const g = getGrid(f), c = nearestFree(g, Math.floor((player.x - g.minx) / CELL), Math.floor((player.z - g.minz) / CELL));
-  if (!c) return;
-  player.x = g.minx + (c[0] + 0.5) * CELL; player.z = g.minz + (c[1] + 0.5) * CELL;
-  followStairs();
+  rescuePlayer(false);
 }
+
+// 這個位置「走得出去」嗎？照真的碰撞往外找（每 0.12 公尺一格），能走到 reach 公尺以外就算走得出去；
+// 被課桌椅、書櫃、矮牆圍成的小空隙裡面走不出去（使用者 10-30 在六年三班卡住）
+function canEscape(f, x, z, reach = 2.2) {
+  const st = 0.12, seen = new Set([0]), q = [[0, 0]], og = player.gy;
+  player.gy = groundAt(f, x, z);
+  let ok = false;
+  while (q.length && seen.size < 2500 && !ok) {
+    const [i, j] = q.pop();
+    for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const ni = i + a, nj = j + b, k = ni * 4096 + nj;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const px = x + ni * st, pz = z + nj * st;
+      if (!isWalkable(f, px, pz, 0.05)) continue;
+      const [qx, qz] = collide(f, px, pz);
+      if (Math.abs(qx - px) > 0.02 || Math.abs(qz - pz) > 0.02) continue;
+      if (Math.hypot(ni * st, nj * st) >= reach) { ok = true; break; }
+      q.push([ni, nj]);
+    }
+  }
+  player.gy = og;
+  return ok;
+}
+// 把卡住的人送到最近的、真的放得下一個人而且走得出去的位置；附近都不行就送到這間教室最近的門口外面
+function rescuePlayer(announce = true) {
+  const f = player.floor, g = getGrid(f);
+  const ci = Math.floor((player.x - g.minx) / CELL), cj = Math.floor((player.z - g.minz) / CELL);
+  let spot = null;
+  for (let r = 0; r <= 14 && !spot; r++) {
+    for (let dj = -r; dj <= r && !spot; dj++) for (let di = -r; di <= r && !spot; di++) {
+      if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+      const a = ci + di, b = cj + dj;
+      if (a < 0 || b < 0 || a >= g.W || b >= g.H || !g.free[b * g.W + a]) continue;
+      const x = g.minx + (a + 0.5) * CELL, z = g.minz + (b + 0.5) * CELL;
+      const [qx, qz] = collide(f, x, z);
+      if (Math.hypot(qx - x, qz - z) > 0.02 || !isWalkable(f, x, z)) continue;
+      if (canEscape(f, x, z, 3)) spot = [x, z];
+    }
+  }
+  if (!spot) {
+    const room = rooms.find((r) => r.f === f && !r.open && inRect(r.m, player.x, player.z));
+    let best = null, bd = Infinity;
+    for (const d of room?.doorPts || []) {
+      const dd = Math.hypot(d.x - player.x, d.z - player.z), o = { N: [0, -1], S: [0, 1], W: [-1, 0], E: [1, 0] }[d.side];
+      if (dd < bd) { bd = dd; best = [d.x + o[0] * 0.9, d.z + o[1] * 0.9]; }
+    }
+    spot = best;
+  }
+  if (!spot) return;
+  player.x = spot[0]; player.z = spot[1];
+  player.gy = groundAt(f, player.x, player.z);
+  followStairs();
+  if (announce) toast(T('👣 你被家具卡住了，已經帶你到旁邊的空地！', 'You were stuck between furniture. Moved you to a free spot!'));
+}
+let pushT = 0;                                                   // 一直想走卻動不了的秒數
 
 function update(dt) {
   const t = clock.elapsedTime;
@@ -8554,6 +8616,9 @@ function update(dt) {
       const ox = player.x, oz = player.z;
       tryMove(dx, dz);
       moved = Math.hypot(player.x - ox, player.z - oz);
+      // 想走卻幾乎動不了超過 1.5 秒：看看是不是被圍住了，走不出去就救出來（單純頂著牆不會被送走）
+      if (moved < speed * dt * 0.05) { pushT += dt; if (pushT > 1.5) { pushT = 0; if (!canEscape(player.floor, player.x, player.z)) rescuePlayer(); } }
+      else pushT = Math.max(0, pushT - dt * 2);
       avatar.rotation.y = Math.atan2(-dx, -dz);
       if (auto.pts) stopAuto();                                 // 自己動方向鍵就取消自動走
     } else if (auto.pts) {
@@ -10088,8 +10153,8 @@ if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { THREE, NPCS, movePlacesNPC, isWalkable, startListen, renderer, scene, togglePerf, applyQuality, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
+window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen, renderer, scene, togglePerf, applyQuality, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=265').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=266').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

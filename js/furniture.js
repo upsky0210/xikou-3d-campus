@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=265';
+import { Batch, mat, SPOTS } from './blocks.js?v=266';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -227,7 +227,7 @@ function classroom(put, fr, room) {
   const green = mat('wool', '#3f8f74'), wood = mat('planks', '#b98a5a');
   // 課桌椅 5 欄 × 4 排，以好走為主（原本 6 欄太擠，直走道只剩 0.5 m，試玩常卡住）：
   //   直走道 0.75～0.9 m（人寬 0.56 m），排距依教室長度平均拉開，最後一排椅背離後櫃 0.8 m 可以橫著走
-  const cols = 5, span = W - 1.5;
+  const cols = 5, span = W - 1.84;                       // 最外排課桌離牆約 0.6 m：剛好走得進去的走道（太窄的縫會讓人卡進去出不來）
   const lastU = L - 1.9;
   const rows = Math.max(2, Math.min(4, Math.floor((lastU - 2.3) / 1.2) + 1));
   const pitch = Math.min(1.6, (lastU - 2.3) / (rows - 1));
