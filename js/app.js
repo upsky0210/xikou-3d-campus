@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=273';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=273';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=273';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=273';
-import { buildCampusWall } from './wall.js?v=273';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=273';
+import { PanoViewer } from './pano.js?v=277';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=277';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=277';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=277';
+import { buildCampusWall } from './wall.js?v=277';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=277';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1809,15 +1809,36 @@ function collide(f, x, z) {
   return [x, z];
 }
 
+// 推完之後真的沒有卡在家具、牆裡面嗎？兩件家具幾乎貼在一起（並排的課桌、櫃子）時，collide 把人推出這張又推進那張，
+//   推幾次以後人會留在家具裡面（使用者 10-31 在潛能教室一、思科教室、電腦教室一卡住），這種位置不能走過去
+function clearAt(f, x, z) {
+  const cell = cellAt(f, x, z), py = player.gy || 0, r = PLAYER_R - 0.03;
+  for (const o of cell.obs) {
+    const y1 = o.y1 - f.y, y2 = o.y2 - f.y;
+    if (y2 < py + 0.25 || y1 > py + 1.4) continue;
+    if (Math.hypot(x - Math.max(o.x1, Math.min(x, o.x2)), z - Math.max(o.z1, Math.min(z, o.z2))) < r) return false;
+  }
+  const min = PLAYER_R + WALL_T / 2 - 0.03;
+  for (const s of cell.segs) {
+    if (s.overhead) continue;
+    const dx = s.bx - s.ax, dz = s.bz - s.az, t = Math.max(0, Math.min(1, ((x - s.ax) * dx + (z - s.az) * dz) / (dx * dx + dz * dz)));
+    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < min) return false;
+  }
+  return true;
+}
+const canGo = (f, x, z) => isWalkable(f, x, z) && clearAt(f, x, z);
+
 // 一次走太遠（電腦比較慢、又按 Shift 跑步時一格畫面會超過半公尺）會直接穿過牆，所以切成小步一步一步算
 function tryMove(dx, dz) {
   const n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.1));
   for (let k = 0; k < n; k++) {
     const f = player.floor, sx = dx / n, sz = dz / n;
+    // 現在已經在家具裡面（剛被傳送過來之類）：先照舊只看地板，讓人走得出來
+    const go = clearAt(f, player.x, player.z) ? canGo : isWalkable;
     let ok = false;
     for (const [ddx, ddz] of [[sx, sz], [sx, 0], [0, sz]]) {
       const [nx, nz] = collide(f, player.x + ddx, player.z + ddz);
-      if (isWalkable(f, nx, nz)) {
+      if (go(f, nx, nz)) {
         // 正面頂到門框、柱子幾乎走不動：試試斜一點的方向，會順著滑進門口（不用對得很準）
         const L = Math.hypot(sx, sz), fwd = ((nx - player.x) * sx + (nz - player.z) * sz) / L;
         if (fwd < L * 0.25) {
@@ -1834,14 +1855,14 @@ function tryMove(dx, dz) {
             const tgt = lat > 0.18 ? { x: door.x + door.nx * side * 0.9, z: door.z + door.nz * side * 0.9 } : { x: door.x - door.nx * side * 0.6, z: door.z - door.nz * side * 0.6 };
             const ex = tgt.x - player.x, ez = tgt.z - player.z, dist = Math.hypot(ex, ez) || 1;
             const [qx, qz] = collide(f, player.x + ex / dist * L, player.z + ez / dist * L);
-            if (isWalkable(f, qx, qz) && Math.hypot(tgt.x - qx, tgt.z - qz) < dist - L * 0.05) { player.x = qx; player.z = qz; ok = true; break; }
+            if (go(f, qx, qz) && Math.hypot(tgt.x - qx, tgt.z - qz) < dist - L * 0.05) { player.x = qx; player.z = qz; ok = true; break; }
           }
           // 往兩側試著移一點，再看從那裡能不能往前走（看前面 0.5 公尺），挑往前最多的那一邊
           let best = [nx, nz, fwd];
           for (const a of [0.8, -0.8, 1.3, -1.3]) {
             const c = Math.cos(a), sn = Math.sin(a), rx = (sx * c - sz * sn), rz = (sx * sn + sz * c);
             const [qx, qz] = collide(f, player.x + rx, player.z + rz);
-            if (!isWalkable(f, qx, qz)) continue;
+            if (!go(f, qx, qz)) continue;
             const [px, pz] = collide(f, qx + sx / L * 0.5, qz + sz / L * 0.5);
             const g = ((px - player.x) * sx + (pz - player.z) * sz) / L;
             if (g > best[2] + 0.02) best = [qx, qz, g];
@@ -4732,9 +4753,9 @@ function nearestSpot() {
   }
   return best;
 }
-/* ---------------- B1 交通安全教室：溪口巴士彩蛋、視野死角、體操器材小遊戲 ----------------
+/* ---------------- B1 交通安全教室：溪口巴士彩蛋、視野死角 ----------------
    巴士：按 F 坐上司機座位（叭叭按喇叭），從司機的角度看出去；巴士前面的黃色三角形是「視野死角」，站進去會被提醒。
-   體操器材：跳箱、平衡木、體操墊各一種動作，三種都玩過就是「體操小達人」（記在這台電腦）。 */
+   跳箱、平衡木、體操墊旁邊按 F 都是開「體操闖關」（以前只會原地往上跳，小朋友看不懂）。 */
 let busSeat = null, busWasMode = 'third', busWarn = false, horn = null;
 const busHonk = () => {
   try {
@@ -4761,25 +4782,6 @@ function busWedgeCheck() {
   if (inside && !busWarn) toast(T('⚠️ 你站在<b>視野死角</b>裡！<br>司機坐在座位上看不到你，千萬不要站在大型車旁邊。', '⚠️ You are in the <b>blind spot</b>! The driver cannot see you.'));
   busWarn = inside;
 }
-const GYM = {
-  vault: { icon: '🤸', en: 'vaulting box', msgs: ['助跑、踩踏、雙手撐箱——跳過去！', '跳箱要用手撐，不要踩在箱子上喔！', '漂亮！落地時膝蓋要彎一點～'] },
-  beam: { icon: '🤸‍♀️', en: 'balance beam', msgs: ['平衡木：眼睛看前面，雙手張開保持平衡！', '一步一步慢慢走，不要低頭看腳～', '站穩了！核心用力就不會晃。'] },
-  mat: { icon: '🤾', en: 'mat', msgs: ['墊上運動：下巴靠胸口，背部圓圓的往前滾！', '前滾翻要在墊子上做，旁邊要留空位～', '轉一圈！頭暈暈的也很好玩。'] },
-};
-const GYM_KEY = 'campus-gym-count';
-function startGym(sp) {
-  const g = GYM[sp.gym];
-  let seen = []; try { seen = JSON.parse(localStorage.getItem(GYM_KEY) || '[]'); } catch { /* 私密模式 */ }
-  const first = !seen.includes(sp.gym);
-  if (first) { seen.push(sp.gym); try { localStorage.setItem(GYM_KEY, JSON.stringify(seen)); } catch { /* 私密模式 */ } }
-  const msg = g.msgs[(Math.random() * g.msgs.length) | 0];
-  if (sp.gym === 'mat') {
-    const t0 = performance.now(), spin = () => { const k = Math.min(1, (performance.now() - t0) / 900); avatar.rotation.x = -k * Math.PI * 2; if (k < 1) requestAnimationFrame(spin); else avatar.rotation.x = 0; };
-    spin(); player.vy = 3.2;
-  } else player.vy = sp.gym === 'vault' ? 6.2 : 3.8;
-  const done = seen.length >= 3;
-  toast(`${g.icon} ${msg}${done && first ? T('<br>🏅 三種器材都玩過了，你是<b>體操小達人</b>！', '<br>🏅 You tried all three: Gym Star!') : ''}`);
-}
 let actLabel = '';
 // 走近自然教室二的倉鼠飼養箱（大實驗桌靠門那端）時跳一次提示；走開再回來會再跳
 //（竹竹老師就站在旁邊，她打招呼的訊息會先跳；等那則消失再跳倉鼠的）
@@ -4805,7 +4807,6 @@ function updateAct(dt) {
     : sp.kind === 'blindquiz' ? T('🚌 視野死角大考驗 <kbd>F</kbd>', '🚌 Blind Spot Quiz <kbd>F</kbd>')
     : sp.kind === 'busquiz' ? T('🚌 乘車安全小測驗 <kbd>F</kbd>', '🚌 Bus Safety Quiz <kbd>F</kbd>')
     : sp.kind === 'gymrun' ? T('🏃 體操闖關 <kbd>F</kbd>', '🏃 Gym Course <kbd>F</kbd>')
-    : sp.kind === 'gym' ? T(`${GYM[sp.gym].icon} 玩${sp.name} <kbd>F</kbd>`, `${GYM[sp.gym].icon} Try the ${GYM[sp.gym].en} <kbd>F</kbd>`)
     : sp.kind === 'toy' ? T(`${TOYS[sp.toy].icon} 玩${sp.name} <kbd>F</kbd>`, `${TOYS[sp.toy].icon} Play: ${TOYS[sp.toy].en} <kbd>F</kbd>`)
     : sp.kind === 'sand' ? T('🏖️ 玩沙・堆沙堡 <kbd>F</kbd>', '🏖️ Build a sandcastle <kbd>F</kbd>')
     : sp.kind === 'badminton' ? T(`🏸 跟${sp.npc.name}打羽球 <kbd>F</kbd>`, `🏸 Badminton with ${sp.npc.name} <kbd>F</kbd>`)
@@ -4858,7 +4859,6 @@ function doAction() {
   else if (act.spot?.kind === 'busquiz') kgPlay(pseudoHost('溪口巴士', act.spot), KG_BUSQ);
   else if (act.spot?.kind === 'gymrun') kgPlay(pseudoHost('體操墊', act.spot), KG_GYMRUN);
   else if (act.spot?.kind === 'bus') busToggle(act.spot);
-  else if (act.spot?.kind === 'gym') startGym(act.spot);
   else if (act.spot?.kind === 'hoop') startShot(act.spot);
   else if (act.spot?.kind === 'slide') startSlide(act.spot);
   else if (act.spot?.kind === 'toy') startToy(act.spot);
@@ -8934,7 +8934,7 @@ function rescuePlayer(announce = true) {
       if (a < 0 || b < 0 || a >= g.W || b >= g.H || !g.free[b * g.W + a]) continue;
       const x = g.minx + (a + 0.5) * CELL, z = g.minz + (b + 0.5) * CELL;
       const [qx, qz] = collide(f, x, z);
-      if (Math.hypot(qx - x, qz - z) > 0.02 || !isWalkable(f, x, z)) continue;
+      if (Math.hypot(qx - x, qz - z) > 0.02 || !canGo(f, x, z)) continue;      // canGo：兩件貼在一起的家具中間也不行
       if (canEscape(f, x, z, 3)) spot = [x, z];
     }
   }
@@ -10583,4 +10583,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=273').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=277').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

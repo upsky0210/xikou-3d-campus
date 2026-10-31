@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mat } from './blocks.js?v=273';
+import { mat } from './blocks.js?v=277';
 
 /* =========================================================
  * 勤學樓地下室（丙梯～丁梯）：交通安全教室
@@ -508,14 +508,15 @@ export function trafficBasement(put, fr, room) {
   [[11.0, N + 1.0], [26.8, N + 1.0], [31.0, S - 1.0], [43.0, N + 1.0], [3.4, S - 2.0]].forEach(([u, v]) => fan(u, v));
   chair(1.2, N + 4.1, 0); chair(20.5, S - 0.8, 0);
 
-  /* ---- 互動（app.js 的 doAction 處理）：溪口巴士彩蛋、體操器材小遊戲 ---- */
+  /* ---- 互動（app.js 的 doAction 處理）：溪口巴士彩蛋、體操闖關 ---- */
   const W2 = (u, v) => fr.toWorld(u, v);
   put.spot({ kind: 'blindquiz', name: '視野死角大考驗', r: 2.4 }, bx - 5.4, wedgeV, 0);
   put.spot({ kind: 'busquiz', name: '乘車安全小測驗', r: 2.3 }, bx + 4.2, S - 3.5, 0);
   put.spot({ kind: 'gymrun', name: '體操闖關', r: 1.7 }, 35.2, S - 3.7, 0);
   put.spot({ kind: 'bus', name: '溪口巴士', r: 2.7, seat: W2(bx + 0.9, S - 1.2), out: W2(bx - 1.3, S - 1.4),
     tri: [...W2(bx - 0.1, wedgeV), ...W2(bx - 0.1 - wedgeLen, wedgeV - wedgeW / 2), ...W2(bx - 0.1 - wedgeLen, wedgeV + wedgeW / 2)] }, bx - 1.0, S - 1.4, 0);
-  put.spot({ kind: 'gym', gym: 'vault', name: '跳箱', r: 1.9 }, 33.3, S - 1.9, 0);
-  put.spot({ kind: 'gym', gym: 'beam', name: '平衡木', r: 2.2 }, 37.0, S - 1.5, 0);
-  put.spot({ kind: 'gym', gym: 'mat', name: '體操墊', r: 2.4 }, 24.5, 0.4, 0);
+  // 跳箱、平衡木、場中間的體操墊旁邊也都能開「體操闖關」
+  put.spot({ kind: 'gymrun', name: '體操闖關', r: 1.9 }, 33.3, S - 1.9, 0);
+  put.spot({ kind: 'gymrun', name: '體操闖關', r: 2.2 }, 37.0, S - 1.5, 0);
+  put.spot({ kind: 'gymrun', name: '體操闖關', r: 2.4 }, 24.5, 0.4, 0);
 }
