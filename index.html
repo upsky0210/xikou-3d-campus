@@ -75,6 +75,9 @@
   #navbar { position: fixed; top: 74px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff;
     border-radius: 14px; padding: 9px 10px 9px 16px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow); z-index: 3; max-width: calc(100vw - 24px); }
   #navbar b { color: var(--yellow); }
+  #navbar { padding-bottom: 14px; }
+  #navbar .prog { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); overflow: hidden; }
+  #navbar .prog i { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .3s; }
   #navbar button { background: rgba(255,255,255,.15); color: #fff; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
 
   /* 樓梯面板 */
@@ -721,7 +724,7 @@
   </div>
 </div>
 
-<div id="navbar" hidden><span class="msg"></span><button data-en="End">結束導航</button><button id="revealNav" hidden data-en="Show route">顯示路線</button></div>
+<div id="navbar" hidden><span class="msg"></span><div class="prog" hidden><i></i></div><button data-en="End">結束導航</button><button id="revealNav" hidden data-en="Show route">顯示路線</button></div>
 <div id="stairPanel" hidden></div>
 <div id="joy"><div class="knob"></div></div>
 <div id="panoPrompt" hidden></div>
@@ -996,8 +999,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=277"></script>
-<script src="js/pano-data.js?v=277"></script>
-<script type="module" src="js/app.js?v=277"></script>
+<script src="js/campus-data.js?v=279"></script>
+<script src="js/pano-data.js?v=279"></script>
+<script type="module" src="js/app.js?v=279"></script>
 </body>
 </html>

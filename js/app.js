@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=277';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=277';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=277';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=277';
-import { buildCampusWall } from './wall.js?v=277';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=277';
+import { PanoViewer } from './pano.js?v=279';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=279';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=279';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=279';
+import { buildCampusWall } from './wall.js?v=279';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=279';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2198,8 +2198,24 @@ function updateNavBar() {
     const d = remainingLen() ?? Math.hypot(player.x - r.cx, player.z - r.cz);
     msg = T(`沿黃線前往 <b>${r.display}</b>（還有約 ${Math.round(d)} 公尺）`, `Follow the yellow line to <b>${rName(r)}</b> (about ${Math.round(d)} m)`);
   }
+  const tot = nav.legs.reduce((s, l) => s + l.p.len, 0), rem = remainingTotal(), prog = bar.querySelector('.prog');
+  if (rem != null && tot > 0) {
+    const pct = Math.max(0, Math.min(100, Math.round((1 - rem / tot) * 100)));
+    msg += T(`・全程約 ${Math.round(tot)} 公尺・已走 ${pct}%`, ` · ${Math.round(tot)} m total · ${pct}% done`);
+    prog.querySelector('i').style.width = pct + '%';
+    prog.hidden = false;
+  } else prog.hidden = true;
   bar.querySelector('.msg').innerHTML = msg;
   bar.hidden = false;
+}
+
+// 全程還剩多長：這一層黃線剩下的，加上後面還沒走的樓層
+function remainingTotal() {
+  const i = nav.legs.findIndex((l) => l.f === player.floor);
+  if (i < 0) return null;
+  const cur = remainingLen();
+  if (cur == null) return null;
+  return cur + nav.legs.slice(i + 1).reduce((s, l) => s + l.p.len, 0);
 }
 
 // 這一層黃線還剩多長：找出角色在黃線上最近的位置，從那裡加到這一段的終點
@@ -2701,7 +2717,7 @@ function teleportTo(room) {
 }
 
 function shareRoom(room) {
-  const url = `${location.origin}${location.pathname}?room=${encodeURIComponent(room.id)}`;
+  const url = `${location.origin}${location.pathname}?go=${encodeURIComponent(room.id)}`;   // 對方打開就直接帶路
   navigator.clipboard?.writeText(url).then(() => toast(T('連結已複製！', 'Link copied!')), () => prompt(T('複製這個連結：', 'Copy this link:'), url));
 }
 
@@ -10422,7 +10438,7 @@ updateVisibility(); updateFloorButtons();
 const params = new URLSearchParams(location.search);
 const qRoom = params.get('room') || params.get('go');
 if (qRoom) {
-  const r = rooms.find((x) => x.id === qRoom || x.code === qRoom || x.no === qRoom || x.name === qRoom);
+  const r = rooms.find((x) => x.id === qRoom || x.code === qRoom || x.no === qRoom || x.name === qRoom || x.display === qRoom);
   if (r) params.get('go') ? navigateTo(r) : focusRoom(r);
 }
 if (params.get('pano') && viewer.byImg[params.get('pano')]) openPano(viewer.byImg[params.get('pano')]);
@@ -10583,4 +10599,4 @@ window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=277').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=279').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
