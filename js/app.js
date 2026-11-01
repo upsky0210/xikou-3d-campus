@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=280';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=280';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=280';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=280';
-import { buildCampusWall } from './wall.js?v=280';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=280';
+import { PanoViewer } from './pano.js?v=281';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=281';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=281';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=281';
+import { buildCampusWall } from './wall.js?v=281';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=281';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2192,6 +2192,7 @@ function navigateTo(room) {
     let bestElev = null;
     for (const s of stairs) {
       if (!s.floors.includes(pf.id) || !s.floors.includes(tf.id)) continue;
+      if (s.elevator && !preferElevator) continue;          // 電梯有管制（學生、外賓不能搭），只有勾「需要搭電梯」才走電梯
       const sx = s.ex ?? s.cx, sz = s.ez ?? s.cz;           // 樓梯：走到入口那段平地
       const a = findPath(pf, player.x, player.z, sx, sz);
       const b = findPath(tf, sx, sz, room.cx, room.cz);
@@ -10652,4 +10653,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=280').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=281').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
