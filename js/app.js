@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=279';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=279';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=279';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=279';
-import { buildCampusWall } from './wall.js?v=279';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=279';
+import { PanoViewer } from './pano.js?v=280';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=280';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=280';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=280';
+import { buildCampusWall } from './wall.js?v=280';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=280';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -2097,7 +2097,54 @@ const pathMat = new THREE.MeshBasicMaterial({ color: '#ffd400' });
 function clearNav() {
   for (const f of floors) f.navGroup.clear();
   nav.target = null; nav.legs = []; nav.stair = null; nav.reveal = true; nav.gaveUp = false;
+  if (guide.on) setGuide(false);
   document.getElementById('navbar').hidden = true;
+}
+
+// 自動帶路（參考大勇國小的「自動前往」）：沿導航路線自己走，到樓梯就自己爬、到電梯就自己搭；可以 2 倍速。
+//   每次只走「眼前這一段」：自動走停下來時才決定下一段（走到樓梯 → 爬樓梯／搭電梯 → 走到教室），不另外做一套移動
+//   挑戰尋路沒按「顯示路線」時不給用；自己按方向鍵、搖桿就交還給玩家
+const guide = { on: false, fast: false, wait: 0, fails: 0, lastD: Infinity };
+function setGuide(on) {
+  guide.on = on && !!nav.target && nav.reveal;
+  guide.wait = 0; guide.fails = 0; guide.lastD = Infinity;
+  if (!guide.on) stopAuto();
+  updateGuideBtns();
+}
+function updateGuideBtns() {
+  const a = document.getElementById('autoNav'), f = document.getElementById('fastNav');
+  a.hidden = !nav.target || !nav.reveal;
+  a.textContent = guide.on ? T('⏸ 停止帶路', '⏸ Stop') : T('🚶 自動帶路', '🚶 Auto-walk');
+  a.classList.toggle('on', guide.on);
+  f.hidden = !guide.on;
+  f.textContent = guide.fast ? T('⏩ 2 倍速', '⏩ 2×') : T('⏩ 加速', '⏩ Faster');
+  f.classList.toggle('on', guide.fast);
+}
+// 每一格畫面：自動走停下來了，就排下一段
+function stepGuide(dt) {
+  if (!guide.on || auto.pts || act.busy || mode === 'bird') return;
+  if ((guide.wait -= dt) > 0) return;                       // 搭電梯換場、剛換樓層：等一下再走
+  const r = nav.target, s = nav.stair;
+  let tx, tz;
+  if (player.floor !== r.f) {
+    if (!s) { setGuide(false); return; }
+    if (stairAt() === s || Math.hypot((s.ex ?? s.cx) - player.x, (s.ez ?? s.cz) - player.z) < 1) {   // 到樓梯口了
+      const n = s.floors.indexOf(r.f.id) - s.floors.indexOf(player.floor.id);
+      if (s.g) climbStairs(s, Math.sign(n), Math.abs(n));
+      else { gotoFloor(r.f); guide.wait = 0.5; }
+      guide.fails = 0; guide.lastD = Infinity;
+      return;
+    }
+    tx = s.ex ?? s.cx; tz = s.ez ?? s.cz;
+  } else { tx = r.cx; tz = r.cz; }
+  // 上一段走完卻沒有更靠近（被擋住）：再試兩次，還是不行就交還給玩家
+  const d = Math.hypot(tx - player.x, tz - player.z);
+  if (d > guide.lastD - 0.5 && ++guide.fails > 2) { setGuide(false); toast(T('自動帶路走不過去，換你自己走走看 🙂', 'Auto-walk got stuck — try walking yourself 🙂')); return; }
+  if (d <= guide.lastD - 0.5) guide.fails = 0;
+  guide.lastD = d;
+  walkTo(tx, tz);
+  if (!auto.pts) { setGuide(false); return; }               // 找不到路（walkTo 已經提示）
+  destMark.visible = false;                                   // 已經有黃線和光柱，不用再畫落點
 }
 
 function drawLeg(f, pts) {
@@ -2134,7 +2181,7 @@ function addBeacon(f, x, z, color = '#ffd400') {
 }
 
 function navigateTo(room) {
-  const again = nav.target === room, t0 = nav.t0, gaveUp = nav.gaveUp;   // 同一個目的地重算路線（換電梯、換模式）：計時不重來
+  const again = nav.target === room, t0 = nav.t0, gaveUp = nav.gaveUp, guiding = guide.on;   // 同一個目的地重算路線（換電梯、換模式）：計時不重來、自動帶路繼續
   clearNav();
   const pf = player.floor, tf = room.f;
   let best = null;
@@ -2168,6 +2215,7 @@ function navigateTo(room) {
   nav.t0 = again ? t0 : performance.now(); nav.gaveUp = again && gaveUp;
   nav.reveal = !navChallenge || nav.gaveUp;
   if (nav.reveal) drawRoute();
+  if (again && guiding) setGuide(true);
   updateNavBar();
   if (mode === 'bird') setMode('third');
 }
@@ -2175,6 +2223,7 @@ function navigateTo(room) {
 function updateNavBar() {
   const bar = document.getElementById('navbar');
   if (!nav.target) { bar.hidden = true; return; }
+  updateGuideBtns();
   const r = nav.target;
   let msg;
   revealBtn.hidden = nav.reveal;
@@ -2516,7 +2565,7 @@ function stepAuto(dt) {
   const [tx, tz] = auto.pts[auto.i];
   const dx = tx - player.x, dz = tz - player.z, d = Math.hypot(dx, dz);
   if (d < 0.25) { if (++auto.i >= auto.pts.length) stopAuto(); return 0; }
-  const step = Math.min(d, 4 * settings.speed * dt);
+  const step = Math.min(d, 4 * settings.speed * (guide.on && guide.fast ? 2 : 1) * dt);
   const ox = player.x, oz = player.z;
   tryMove(dx / d * step, dz / d * step);
   const moved = Math.hypot(player.x - ox, player.z - oz);
@@ -2791,7 +2840,9 @@ function focusRoom(r) {
 
 document.getElementById('openSearch').onclick = openSearch;
 document.getElementById('closeSearch').onclick = closeSearch;
-document.getElementById('navbar').querySelector('button').onclick = clearNav;
+document.getElementById('endNav').onclick = clearNav;
+document.getElementById('autoNav').onclick = () => setGuide(!guide.on);
+document.getElementById('fastNav').onclick = () => { guide.fast = !guide.fast; updateGuideBtns(); };
 const revealBtn = document.getElementById('revealNav');
 revealBtn.onclick = revealNav;
 document.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
@@ -8999,8 +9050,10 @@ function update(dt) {
       else pushT = Math.max(0, pushT - dt * 2);
       avatar.rotation.y = Math.atan2(-dx, -dz);
       if (auto.pts) stopAuto();                                 // 自己動方向鍵就取消自動走
-    } else if (auto.pts) {
-      moved = stepAuto(dt);
+      if (guide.on) setGuide(false);
+    } else {
+      stepGuide(dt);
+      if (auto.pts) moved = stepAuto(dt);
     }
     // 方塊人走路擺手擺腳
     if (avatar.userData.limbs) {
@@ -10595,8 +10648,8 @@ if (!qRoom && !params.get('pano')) openCover();
 loop();
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
-window.__campus = { THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen, renderer, scene, togglePerf, applyQuality, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
+window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalkable, startListen, renderer, scene, togglePerf, applyQuality, shuttle, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=279').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=280').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

@@ -79,6 +79,7 @@
   #navbar .prog { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); overflow: hidden; }
   #navbar .prog i { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .3s; }
   #navbar button { background: rgba(255,255,255,.15); color: #fff; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+  #navbar button.on { background: var(--yellow); color: var(--ink); }
 
   /* 樓梯面板 */
   #stairPanel { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); background: #fff; border-radius: 16px;
@@ -607,7 +608,8 @@
     .seg button { padding: 6px 8px; font-size: 13px; }
     #search { top: auto; bottom: 0; right: 0; left: 0; width: 100%; max-height: 70vh; border-radius: 16px 16px 0 0; }
     #floors button { width: 40px; height: 34px; font-size: 13px; }
-    #navbar { top: auto; bottom: 160px; }
+    #navbar { top: auto; bottom: 160px; flex-wrap: wrap; gap: 6px 8px; }
+    #navbar .msg { flex-basis: 100%; }
   }
   /* 首頁封面放在 @layer 外面，才不會被方塊風的按鈕樣式蓋掉 */
   /*（參考 DSLab）：米白紙色背景、等角全景、紙條標籤 */
@@ -724,7 +726,7 @@
   </div>
 </div>
 
-<div id="navbar" hidden><span class="msg"></span><div class="prog" hidden><i></i></div><button data-en="End">結束導航</button><button id="revealNav" hidden data-en="Show route">顯示路線</button></div>
+<div id="navbar" hidden><span class="msg"></span><div class="prog" hidden><i></i></div><button id="autoNav" hidden></button><button id="fastNav" hidden></button><button id="endNav" data-en="End">結束導航</button><button id="revealNav" hidden data-en="Show route">顯示路線</button></div>
 <div id="stairPanel" hidden></div>
 <div id="joy"><div class="knob"></div></div>
 <div id="panoPrompt" hidden></div>
@@ -999,8 +1001,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=279"></script>
-<script src="js/pano-data.js?v=279"></script>
-<script type="module" src="js/app.js?v=279"></script>
+<script src="js/campus-data.js?v=280"></script>
+<script src="js/pano-data.js?v=280"></script>
+<script type="module" src="js/app.js?v=280"></script>
 </body>
 </html>
