@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=282';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=282';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=282';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=282';
-import { buildCampusWall } from './wall.js?v=282';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=282';
+import { PanoViewer } from './pano.js?v=283';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=283';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=283';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=283';
+import { buildCampusWall } from './wall.js?v=283';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=283';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3872,6 +3872,106 @@ const NPCS = [
     },
   },
   {
+    name: '黃老師', title: '四年二班導師', game: 'decimal',
+    hello: ['😊 黃老師：快樂開心每一天！', '🌞 黃老師：早安！今天也要笑咪咪的喔～', '🔢 黃老師：0.5 和 0.45 哪個比較大？想一想再回答！',
+      '📐 黃老師：要不要來玩小數點的遊戲？'],
+    // 3 樓思源樓四年二班（315 室）：思源樓教室黑板在南，老師站講台旁、面向學生
+    places: [
+      { floor: '3F', where: '四年二班', game: true, at: () => { const r = rooms.find((x) => x.code === '402'); return D_CLASS_FRONT(r); } },
+    ],
+    look: {
+      // 依照片：咖啡棕色齊下巴鮑伯頭（厚厚的齊瀏海）、溫柔的微笑；黑色鏤空針織短袖上衣
+      skin: '#efc9ae', hair: '#6e4128', top: '#1a1a1d', pants: '#2b2b30', shoe: '#3a3030',
+      bob: true, collar: '#1a1a1d',
+      pal: { H: '#6e4128', h: '#8a5636', S: '#efc9ae', E: '#2a1610', e: '#6a4430', W: '#ffffff', B: '#eeb0a6', N: '#e0b49c', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHhHHHHHHHHhHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '楊老師', title: '潛能老師', game: 'shapes',
+    hello: ['🌱 楊老師：每一顆小種子，都有長成大樹的力量！', '😄 楊老師：慢慢來沒關係，我們一步一步來～', '👏 楊老師：你今天好棒，給自己拍拍手！',
+      '🔷 楊老師：要不要來玩「形狀顏色對對碰」？'],
+    // 3 樓潛能教室四（306）
+    places: [
+      { floor: '3F', where: '潛能教室四', game: true, at: () => { const r = rooms.find((x) => x.name === '潛能教室四'); return [r.cx + 0.25, r.cz - 2.3, 0]; } },    // 一進門右手邊的空地（中間長桌、兩側櫃子都不擋），面向門口
+    ],
+    look: {
+      // 依照片：深棕色微捲短鮑伯頭（短短的齊瀏海）、開心大笑露出牙齒；黑色皮外套（翻領、拉鍊）、裡面白色高領上衣
+      skin: '#e8c0a0', hair: '#3a2418', top: '#1c1a1a', pants: '#2f3a4a', shoe: '#2a2a2a',
+      bob: true, longSleeve: true, collar: '#f2f0ea', zip: '#8a8a8a',
+      pal: { H: '#3a2418', h: '#5a3424', S: '#e8c0a0', E: '#1e130d', e: '#5a3424', W: '#ffffff', B: '#eaa898', N: '#d9a98a', M: '#b04848', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHhHHHHHHHhHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHSHHSHHHSHHSHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSMTTTTTTMSSHH',
+        'HHHSSMMMMMMSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '李老師', title: '實習老師', game: 'throw',
+    hello: ['💪 李老師：每一次練習，都是在為更好的自己熱身！', '⚾ 李老師：下課要不要一起去操場投球？', '😊 李老師：我是實習老師，請多多指教！',
+      '🏃 李老師：跑跳之前，記得先暖身喔！'],
+    // 2 樓勤學樓一年一班（220 室）：實習老師站在教室前面幫忙；按 F 一起瞬間移動到操場投球，玩完再回教室
+    places: [
+      { floor: '2F', where: '一年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '101'); return [r.cx - 3.0, r.cz - 2.0, -Math.PI / 2]; } },    // 教室前面靠窗那頭（林老師站另一頭），面向學生；後面走道太窄不站
+    ],
+    look: {
+      // 依照片：黑色短髮（兩側推短、上面有層次）、表情淡定；深橄欖棕色羅紋短袖 Henley 衫（領口幾顆扣子）、
+      //   米白色寬褲、黑色編織皮帶、銀色項鍊、咖啡色斜背包
+      skin: '#e8bf9c', hair: '#141212', top: '#5a5245', pants: '#f1ede2', shoe: '#e8e2d6',
+      shortHair: true, topButtons: '#e8e2d6', belt: '#1a1a1a', necklace: '#d9d9df', bag: '#6b4a32',
+      pal: { H: '#141212', h: '#2a2424', S: '#e8bf9c', E: '#1e130d', e: '#4a2e20', W: '#ffffff', N: '#d6a888', M: '#b86a5e' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHhHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'SHHHHHHHHHHHHHHS',
+        'SSSHHSSSSHSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSEEESSSSSSEEESS',
+        'SSEWeSSSSSSEWeSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -4994,6 +5094,9 @@ function updateAct(dt) {
     : sp.kind === 'library' ? T(`📚 幫${sp.npc.name}整理圖書館 <kbd>F</kbd>`, `📚 Shelve books with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'notes' ? T(`🎼 跟${sp.npc.name}玩音符小遊戲 <kbd>F</kbd>`, `🎼 Music notes with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'weather' ? T(`🌤️ 跟${sp.npc.name}玩心情晴雨天 <kbd>F</kbd>`, `🌤️ Weather mood with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'decimal' ? T(`🔢 跟${sp.npc.name}玩小數點的遊戲 <kbd>F</kbd>`, `🔢 Decimals with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'shapes' ? T(`🔷 跟${sp.npc.name}玩形狀顏色對對碰 <kbd>F</kbd>`, `🔷 Shape match with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'throw' ? T(`⚾ 跟${sp.npc.name}去操場投球 <kbd>F</kbd>`, `⚾ Ball toss on the field with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'units' ? T(`📏 跟${sp.npc.name}玩數學單位量詞大考驗 <kbd>F</kbd>`, `📏 Math Units Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'geo' ? T(`🗺️ 跟${sp.npc.name}玩臺灣地理大考驗 <kbd>F</kbd>`, `🗺️ Taiwan Geography Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'prep' ? T(`📍 跟${sp.npc.name}玩 in・on・at 小文法 <kbd>F</kbd>`, `📍 in / on / at with ${sp.npc.name} <kbd>F</kbd>`)
@@ -7119,7 +7222,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -8264,6 +8367,147 @@ const KG_WEATHER = {
     };
     const done = () => ctx.end(ctx.best + plays, () => `${T('🌈 謝謝你說出心裡的天氣！', '🌈 Thank you for sharing!')}<br>${ctx.n.name}：${T('不管今天是晴天還是雨天，都可以來找我聊聊。', 'Sunny or rainy, you can always come talk to me.')}`);
     step1();
+  },
+};
+
+/* ---- 小數點的遊戲（黃老師，四年二班）：四年級的小數（讀法、位值、比大小、加減、單位換算），一回 5 題 ---- */
+const DECIMAL_ITEMS = [
+  { e: '⚖️', q: '0.5 和 0.45，哪一個比較大？', a: ['0.5', '0.45', '一樣大'], why: '0.5 ＝ 0.50，50 個 0.01 比 45 個 0.01 多，所以 0.5 比較大。不是位數多就比較大喔！' },
+  { e: '🔍', q: '3.27 的「2」在哪一位？', a: ['十分位', '個位', '百分位'], why: '小數點右邊第一位是十分位，第二位是百分位。3.27 的 2 在十分位，代表 0.2。' },
+  { e: '🔍', q: '12.34 的百分位是哪一個數字？', a: ['4', '3', '2'], why: '小數點右邊第二位是百分位，所以是 4，代表 0.04。' },
+  { e: '🗣️', q: '0.07 要怎麼讀？', a: ['零點零七', '零點七', '七點零'], why: '小數點後面一個一個數字讀：零點零七。' },
+  { e: '➕', q: '1.5 ＋ 2.3 ＝ ？', a: ['3.8', '3.5', '4.8'], why: '小數點對齊再加：1.5 ＋ 2.3 ＝ 3.8。' },
+  { e: '➕', q: '1.9 ＋ 0.1 ＝ ？', a: ['2', '1.10', '2.1'], why: '9 個 0.1 再加 1 個 0.1 是 10 個 0.1，就是 1，所以 1.9 ＋ 0.1 ＝ 2。' },
+  { e: '➖', q: '5 － 1.2 ＝ ？', a: ['3.8', '4.2', '4.8'], why: '把 5 想成 5.0，小數點對齊：5.0 － 1.2 ＝ 3.8。' },
+  { e: '➖', q: '0.8 － 0.35 ＝ ？', a: ['0.45', '0.55', '0.5'], why: '0.8 ＝ 0.80，0.80 － 0.35 ＝ 0.45。' },
+  { e: '📏', q: '2.5 公尺 ＝ ＿＿ 公分', a: ['250', '25', '2500'], why: '1 公尺 ＝ 100 公分，2.5 公尺就是 250 公分。' },
+  { e: '🎒', q: '4.5 公斤 ＝ ＿＿ 公克', a: ['4500', '450', '45'], why: '1 公斤 ＝ 1000 公克，4.5 公斤就是 4500 公克。' },
+  { e: '🍕', q: '一個披薩平分成 10 片，吃掉 3 片，吃掉的是幾個披薩？', a: ['0.3', '3.0', '0.03'], why: '10 片裡的 3 片是十分之三，寫成小數是 0.3。' },
+  { e: '🪙', q: '0.25 寫成分數是多少？', a: ['四分之一', '二十五分之一', '五分之二'], why: '0.25 ＝ 一百分之二十五 ＝ 四分之一。' },
+  { e: '🟰', q: '0.6 和 0.60 比，結果是？', a: ['一樣大', '0.60 比較大', '0.6 比較大'], why: '小數最後面的 0 可以拿掉，0.60 ＝ 0.6，一樣大。' },
+  { e: '📶', q: '0.8、0.08、0.88 裡面，最小的是哪一個？', a: ['0.08', '0.8', '0.88'], why: '先比十分位：0.08 的十分位是 0，最小。' },
+  { e: '🏃', q: '跑 100 公尺，小明花 15.8 秒，小華花 16.2 秒，誰比較快？', a: ['小明', '小華', '一樣快'], why: '跑一樣的距離，花的時間越少越快：15.8 比 16.2 少，小明比較快。' },
+  { e: '💯', q: '1 裡面有幾個 0.01？', a: ['100 個', '10 個', '1000 個'], why: '1 ＝ 100 個 0.01，就像 1 元 ＝ 100 個 1 分。' },
+];
+const KG_DECIMAL = mcGame({
+  key: 'campus-decimal-best', title: ['🔢 小數點的遊戲', '🔢 Decimals'], label: ['🔢 小數點的遊戲…', '🔢 Decimals…'], icon: '🔢', items: DECIMAL_ITEMS,
+  intro: () => T('小數點像一道小小的門，門右邊是十分位、百分位。仔細看清楚再回答！', 'The decimal point is a little door: tenths and hundredths live on the right!'),
+  good: '你是小數點高手，快樂開心每一天！', keep: '慢慢來，把小數點對齊，就不會算錯了！',
+});
+
+/* ---- 形狀顏色對對碰（楊老師，潛能老師）：12 張牌翻兩張，形狀「和」顏色都一樣才是一對（同形狀不同色、同色不同形狀都不算）。
+   沒有時間限制；全部配完看翻錯幾次給星星（3 次以內 3 顆、6 次以內 2 顆、其他 1 顆） ---- */
+const SHAPE_KINDS = { circle: '圓形', square: '正方形', triangle: '三角形', star: '星形', heart: '愛心', diamond: '菱形' };
+const SHAPE_COLS = { red: ['#e8505b', '紅色'], blue: ['#4a8fd8', '藍色'], yellow: ['#f2c94c', '黃色'], green: ['#5cbf5a', '綠色'] };
+const shapeSvg = (k, col) => {
+  const s = { stroke: '#2b2b2b', w: 3 }, fill = `fill="${col}" stroke="${s.stroke}" stroke-width="${s.w}" stroke-linejoin="round"`;
+  const g = k === 'circle' ? `<circle cx="30" cy="30" r="20" ${fill}/>`
+    : k === 'square' ? `<rect x="11" y="11" width="38" height="38" ${fill}/>`
+    : k === 'triangle' ? `<polygon points="30,8 52,50 8,50" ${fill}/>`
+    : k === 'star' ? `<polygon points="30,6 36,23 54,23 40,34 45,52 30,41 15,52 20,34 6,23 24,23" ${fill}/>`
+    : k === 'heart' ? `<path d="M30 52 C8 36 6 22 16 15 C23 10 29 14 30 20 C31 14 37 10 44 15 C54 22 52 36 30 52 Z" ${fill}/>`
+    : `<polygon points="30,6 52,30 30,54 8,30" ${fill}/>`;
+  return `<svg viewBox="0 0 60 60" width="46" height="46">${g}</svg>`;
+};
+const KG_SHAPES = {
+  key: 'campus-shapes-best', title: ['🔷 形狀顏色對對碰', '🔷 Shape & Color Match'], label: ['🔷 形狀顏色對對碰…', '🔷 Shape match…'],
+  bye: (n) => T(`🔷 下次再來找${n.name}玩對對碰！`, `🔷 Come back and match with ${n.name}!`),
+  start(ctx) {
+    const kinds = kgShuffle(Object.keys(SHAPE_KINDS)).slice(0, 3), cols = kgShuffle(Object.keys(SHAPE_COLS)).slice(0, 2);
+    const pairs = kinds.flatMap((k) => cols.map((c) => ({ k, c })));       // 3 種形狀 × 2 種顏色 ＝ 6 對：一定會有同形狀不同色的牌來考驗
+    const cards = kgShuffle([...pairs, ...pairs].map((p) => ({ ...p, up: false, done: false })));
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,58px);gap:6px;justify-content:center;margin:2px auto';
+    ctx.stage.innerHTML = ''; ctx.stage.appendChild(grid);
+    let open = [], miss = 0, matched = 0, lock = false;
+    const paint = (cd) => {
+      cd.el.innerHTML = cd.up || cd.done ? shapeSvg(cd.k, SHAPE_COLS[cd.c][0]) : '<span style="font-size:26px">🌱</span>';
+      cd.el.style.cssText = `width:58px;height:58px;padding:0;border:3px solid #2b2b2b;border-radius:8px;cursor:pointer;display:grid;place-items:center;background:${cd.done ? '#e8f7e4' : cd.up ? '#fffdf6' : '#8fc7a8'};opacity:${cd.done ? 0.75 : 1}`;
+    };
+    const flip = (cd) => {
+      if (lock || cd.up || cd.done) return;
+      cd.up = true; paint(cd); open.push(cd);
+      if (open.length < 2) return;
+      const [a, b] = open; open = [];
+      if (a.k === b.k && a.c === b.c) {
+        a.done = b.done = true; paint(a); paint(b); matched++; ctx.face('happy');
+        ctx.msg(`⭕ ${SHAPE_COLS[a.c][1]}的${SHAPE_KINDS[a.k]}，配對成功！`, 'ok'); ctx.prog(T(`配對 ${matched} / 6`, `${matched} / 6 pairs`));
+        if (matched === 6) {
+          const stars = miss <= 3 ? 3 : miss <= 6 ? 2 : 1;
+          ctx.later(() => ctx.end(stars, (bst) => `${T(`🔷 全部配對完成！翻錯 ${miss} 次，得到 ${'⭐'.repeat(stars)}（最好紀錄 ${bst} 顆星）`, `🔷 All matched! ${miss} misses, ${stars} star(s) (best ${bst})`)}<br>${ctx.n.name}：${stars === 3 ? '眼睛好利！每一顆小種子都有長成大樹的力量！' : '你很專心喔！多玩幾次，記憶力會越來越好！'}`), 1200);
+        }
+      } else {
+        miss++; lock = true; ctx.face('surprised', 1);
+        const why = a.k === b.k ? '形狀一樣，可是顏色不一樣喔！' : a.c === b.c ? '顏色一樣，可是形狀不一樣喔！' : '形狀和顏色都不一樣，再記一記位置！';
+        ctx.msg(`❌ ${why}`, 'no');
+        ctx.later(() => { a.up = b.up = false; paint(a); paint(b); lock = false; }, 1000);
+      }
+    };
+    for (const cd of cards) { cd.el = document.createElement('button'); cd.el.onclick = () => flip(cd); paint(cd); grid.appendChild(cd.el); }
+    ctx.prog(T('配對 0 / 6', '0 / 6 pairs'));
+    ctx.ask(T('翻兩張牌：<b>形狀和顏色都一樣</b>才是一對！', 'Flip two cards: same <b>shape and color</b> make a pair!'));
+    ctx.msg(T('先記住每張牌的位置，慢慢來沒關係～', 'Remember where each card is. Take your time!'));
+    ctx.buttons([]);
+  },
+};
+
+/* ---- 操場投球（李老師，實習老師）：在一年一班找李老師，一起瞬間移動到操場；玩完回教室。
+   瞄準器先左右移動（按一次固定左右），再上下移動（再按一次投出去）；離靶心越近分數越高，一回 5 球 ---- */
+const KG_THROW = {
+  key: 'campus-throw-best', title: ['⚾ 操場投球', '⚾ Ball Toss'], label: ['⚾ 在操場投球…', '⚾ Ball toss…'],
+  bye: (n) => T(`⚾ 下次再來找${n.name}練投球！`, `⚾ Come back and practice with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, Tk = D.outdoor.track;
+    const home = { f: n.f, x: n.g.position.x, z: n.g.position.z, yaw: n.yaw };
+    home.px = home.x - Math.sin(home.yaw) * 1.6; home.pz = home.z - Math.cos(home.yaw) * 1.6; home.pyaw = home.yaw + Math.PI;
+    const tx = mx(Tk.center[0]) - 4, tz = mz(Tk.center[1]) + 3;
+    placeNPC(n, floors[1], tx, tz, -Math.PI / 2); n.label.visible = false;
+    placeAt(floors[1], tx + 1.9, tz, Math.PI / 2); avatar.rotation.y = Math.PI / 2; player.yaw = Math.PI / 2 + 0.42; player.pitch = -0.1;
+    ctx.onStop = () => { placeNPC(n, home.f, home.x, home.z, home.yaw); n.label.visible = true; placeAt(home.f, home.px, home.pz, home.pyaw); };
+
+    const W = 300, H = 220, CX = 150, CY = 100, RINGS = [[18, 10, '#e8505b'], [36, 8, '#ffffff'], [54, 6, '#4a8fd8'], [72, 4, '#ffffff'], [90, 2, '#2b2b2b']];
+    const cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    let ball = 0, total = 0, phase = 'x', t = 0, ax = CX, ay = CY, fly = null, marks = [];
+    const speed = () => 2.2 + ball * 0.35;
+    const draw = () => {
+      c.fillStyle = '#7cc46a'; c.fillRect(0, 0, W, H); c.fillStyle = '#b8865a'; c.fillRect(0, H - 22, W, 22);
+      for (let i = RINGS.length - 1; i >= 0; i--) { const [r, , col] = RINGS[i]; c.fillStyle = col; c.beginPath(); c.arc(CX, CY, r, 0, 7); c.fill(); c.strokeStyle = '#2b2b2b'; c.lineWidth = 1.5; c.stroke(); }
+      for (const [x, y] of marks) { c.fillStyle = '#f4e9c8'; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); c.strokeStyle = '#7a5a2a'; c.stroke(); }
+      if (!fly && ball < 5) {
+        c.strokeStyle = '#ffde3b'; c.lineWidth = 3;
+        if (phase === 'x') { c.beginPath(); c.moveTo(ax, 4); c.lineTo(ax, H - 26); c.stroke(); }
+        else { c.beginPath(); c.moveTo(ax, 4); c.lineTo(ax, H - 26); c.moveTo(4, ay); c.lineTo(W - 4, ay); c.stroke(); c.beginPath(); c.arc(ax, ay, 9, 0, 7); c.stroke(); }
+      }
+      if (fly) { const k = fly.k, x = CX + (fly.x - CX) * k, y = (H - 10) + (fly.y - (H - 10)) * k - Math.sin(k * Math.PI) * 60; c.fillStyle = '#fffdf2'; c.beginPath(); c.arc(x, y, 12 - k * 6, 0, 7); c.fill(); c.strokeStyle = '#c0392b'; c.lineWidth = 2; c.stroke(); }
+    };
+    const press = () => {
+      if (fly || ball >= 5) return;
+      if (phase === 'x') { phase = 'y'; t = 0; ctx.msg(T('左右固定了！再按一次，上下對準就投出去！', 'Locked left-right! Press again to throw!')); return; }
+      fly = { x: ax, y: ay, k: 0 };
+    };
+    ctx.tick = (dt) => {
+      t += dt;
+      if (!fly && ball < 5) { if (phase === 'x') ax = CX + 125 * Math.sin(t * speed()); else ay = CY + 88 * Math.sin(t * speed() * 1.15); }
+      if (fly) {
+        fly.k = Math.min(1, fly.k + dt * 2.2);
+        if (fly.k >= 1) {
+          const d = Math.hypot(fly.x - CX, fly.y - CY), hit = RINGS.find(([r]) => d <= r), pt = hit ? hit[1] : 0;
+          marks.push([fly.x, fly.y]); total += pt; ball++; fly = null; phase = 'x'; t = Math.random() * 3;
+          ctx.prog(T(`第 ${ball} / 5 球・${total} 分`, `Ball ${ball} / 5 · ${total} pts`));
+          if (pt >= 10) { ctx.face('happy'); ctx.msg(T('🎯 正中靶心！10 分！', '🎯 Bullseye! 10 points!'), 'ok'); }
+          else if (pt) ctx.msg(T(`👍 ${pt} 分！`, `👍 ${pt} points!`), 'ok');
+          else { ctx.face('surprised', 1); ctx.msg(T('😮 沒投中，沒關係，再熱身一次！', '😮 Missed! Warm up and try again!'), 'no'); }
+          if (ball >= 5) ctx.later(() => ctx.end(total, (b) => `${T(`⚾ 5 球共 ${total} 分（最好紀錄 ${b} 分）`, `⚾ ${total} points in 5 balls (best ${b})`)}<br>${n.name}：${total >= 30 ? '投得真準！每一次練習都有進步！' : '每一次練習，都是在為更好的自己熱身！'}`), 1300);
+        }
+      }
+      draw();
+    };
+    ctx.onKey = (e) => { if (e.code === 'KeyF' || e.code === 'Space') { press(); return true; } return false; };
+    cv.onclick = press;
+    ctx.buttons([{ html: T('⚾ 投球 <small>F／空白鍵</small>', '⚾ Throw <small>F / Space</small>'), on: press }]);
+    ctx.ask(T('我們到操場了！黃線移到靶心時按一次，再按一次就投出去', 'We are at the field! Press when the line is on the bullseye, then press again to throw'));
+    ctx.prog(T('第 0 / 5 球・0 分', 'Ball 0 / 5 · 0 pts'));
+    draw();
   },
 };
 
@@ -9466,6 +9710,8 @@ const GAME_INFO = {
   mood: [['情緒覺察', 'Mood Check-in'], 'campus-mood-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   library: [['整理圖書館', 'Shelve the Books'], 'campus-library-best', ans], notes: [['音符小遊戲', 'Music Notes'], 'campus-notes-best', ans],
   weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
+  decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
+  throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
   units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
@@ -10866,4 +11112,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=282').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=283').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
