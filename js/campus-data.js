@@ -153,8 +153,8 @@
   R('2F', 'C', [1355, 1105, 1510, 1245], { no: '222', code: '103', type: 'class', doors: 'N' });
 
   // 3F
-  R('3F', 'A', [705, 195, 945, 330], { no: '303', name: '音樂教室一', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.15] } });
-  R('3F', 'A', [945, 195, 1105, 330], { no: '304', name: '音樂教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { S: [0.7], N: [0.7] } });   // 11-03 教室前後鏡射：門跟著鋼琴、電視到東邊
+  R('3F', 'A', [705, 195, 920, 330], { no: '303', name: '音樂教室一', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.17], S: [0.2] } });   // 11-03：南邊只有西端一扇門（東端那扇拿掉）；東牆往西移，讓音樂教室二大一點
+  R('3F', 'A', [920, 195, 1105, 330], { no: '304', name: '音樂教室二', type: 'special', doors: 'NS', mainDoor: 'N', frameDoors: 'S', doorAt: { S: [0.74], N: [0.74] } });   // 11-03 教室前後鏡射：門跟著鋼琴、電視到東邊
   R('3F', 'A', [1105, 195, 1345, 398], { no: '305', name: '電腦教室二', type: 'special', doors: 'N', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.52] } });   // 往南擴大到原本的光廊；光廊那邊沒有門
   R('3F', 'A', [1345, 195, 1425, 330], { no: '306', name: '潛能教室四', type: 'special', doors: 'N', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.28] }, doorW: { N: 1.3 } });   // 只有北邊一扇門、靠電視牆（照片 10-28）
   R('3F', 'A', [1425, 195, 1510, 330], { no: '306', name: '潛能教室三', type: 'special', doors: 'N', mainDoor: 'N', frameDoors: 'S', doorAt: { N: [0.72] }, doorW: { N: 1.3 } });   // 跟四左右鏡射：門靠東邊電視牆
