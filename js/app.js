@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=281';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=281';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=281';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=281';
-import { buildCampusWall } from './wall.js?v=281';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=281';
+import { PanoViewer } from './pano.js?v=282';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=282';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=282';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=282';
+import { buildCampusWall } from './wall.js?v=282';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=282';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3772,6 +3772,106 @@ const NPCS = [
     },
   },
   {
+    name: '方老師', title: '圖書館管理員', game: 'library',
+    // 聽障的老師：話很少，用比手語、簡短的字條跟你說話
+    hello: ['📚 方老師：（比手語）記得要準時還書唷！', '🆕 方老師：（指著新書區）有新的書籍入館囉！', '🤫 方老師：（食指放在嘴邊）圖書館請小聲～',
+      '📖 方老師：（比著書架）要不要幫我整理圖書館？'],
+    // 1 樓圖書館（103）：借還櫃台旁邊的空地
+    places: [
+      { floor: '1F', where: '圖書館', game: true, at: () => { const r = rooms.find((x) => x.name === '圖書館'); return [r.m.x1 + 3.0, r.cz + 0.3, Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色短髮（瀏海斜斜蓋額頭）、黑色粗框眼鏡、淡淡的微笑；淺灰藍色圓領短袖 T 恤（左胸一小塊藍色布標）、淺藍色牛仔褲
+      skin: '#eac4a4', hair: '#2b221d', top: '#c4d2e0', pants: '#a9c3dc', shoe: '#e8e2d6',
+      shortHair: true, minis: ['#4a8fd0'],
+      pal: { H: '#2b221d', h: '#3d322b', S: '#eac4a4', K: '#2a2a30', E: '#1e130d', W: '#ffffff', N: '#d9a98a', M: '#a8504a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHHhHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHKKKKKSSKKKKKHH',
+        'HHKSEESKKSEESKHH',
+        'HHKKKKKSSKKKKKHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSMMSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '吳老師', title: '音樂老師', game: 'notes',
+    hello: ['🎵 吳老師：認識自己，接納自己。', '🌱 吳老師：積極學習，喜樂成長！', '🎶 吳老師：音樂可以讓心情變得很好喔～',
+      '🎼 吳老師：要不要來玩音符小遊戲？看看你認不認得這些音符！'],
+    // 3 樓音樂教室一（303）前面
+    places: [
+      { floor: '3F', where: '音樂教室一', game: true, at: () => { const r = rooms.find((x) => x.name === '音樂教室一'); return [r.m.x1 + 1.9, r.cz + 0.9, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色及肩直髮（旁分）、細框眼鏡、開心的微笑；黑色 V 領洋裝（袖子短短蓬蓬的、長到腳踝）、黑色鞋子
+      skin: '#f0cdb4', hair: '#1c1614', top: '#16161a', pants: '#16161a', shoe: '#16161a',
+      longHair: true, skirt: '#16161a', collar: '#16161a',
+      pal: { H: '#1c1614', h: '#30262a', S: '#f0cdb4', K: '#7a6e66', E: '#2a1610', W: '#ffffff', B: '#eeb0a6', N: '#e0b49c', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHKEEWKSSKEEWKHH',
+        'HHKKKKSSSSKKKKHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSSTTTTSSSSHH',
+        'HHHSSSSMMSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '林老師', title: '專輔老師', game: 'weather',
+    hello: ['🌤️ 林老師：生命中的裂痕，都是為了讓光可以照入。', '🌈 林老師：下雨的日子，後面也會有彩虹喔。', '💬 林老師：不管今天是晴天還是雨天，都可以來跟我說說。',
+      '☁️ 林老師：要不要來玩「心情晴雨天」？看看今天心裡的天氣是什麼！'],
+    // 3 樓輔導室（327）外面的走廊（門在西邊，走廊在輔導室西側）
+    places: [
+      { floor: '3F', where: '輔導室外走廊', game: true, at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 - 1.0, r.cz - 1.6, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深棕黑色超長捲髮（披過胸前）、淺淺的微笑；黑色無袖上衣、細項鍊
+      skin: '#f3d8c6', hair: '#2e2019', top: '#17171a', pants: '#2b2b30', shoe: '#e8e2d6',
+      longHair: true, sleeveless: true, necklace: '#c9c9d2',
+      pal: { H: '#2e2019', h: '#43302a', S: '#f3d8c6', E: '#2a1610', e: '#6a4430', W: '#ffffff', B: '#f2b6a8', N: '#e4b8a2', M: '#c0645a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSEeeSSSSEeeSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSSMTTMSSSSHH',
+        'HHHSSSSMMSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -4891,6 +4991,9 @@ function updateAct(dt) {
     : sp.kind === 'history' ? T(`🗺️ 跟${sp.npc.name}玩臺灣史地大考驗 <kbd>F</kbd>`, `🗺️ Taiwan History & Geography with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'traffic' ? T(`🚦 跟${sp.npc.name}玩交通安全大考驗 <kbd>F</kbd>`, `🚦 Traffic Safety Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'mood' ? T(`💗 跟${sp.npc.name}做情緒覺察 <kbd>F</kbd>`, `💗 Mood check-in with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'library' ? T(`📚 幫${sp.npc.name}整理圖書館 <kbd>F</kbd>`, `📚 Shelve books with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'notes' ? T(`🎼 跟${sp.npc.name}玩音符小遊戲 <kbd>F</kbd>`, `🎼 Music notes with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'weather' ? T(`🌤️ 跟${sp.npc.name}玩心情晴雨天 <kbd>F</kbd>`, `🌤️ Weather mood with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'units' ? T(`📏 跟${sp.npc.name}玩數學單位量詞大考驗 <kbd>F</kbd>`, `📏 Math Units Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'geo' ? T(`🗺️ 跟${sp.npc.name}玩臺灣地理大考驗 <kbd>F</kbd>`, `🗺️ Taiwan Geography Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'prep' ? T(`📍 跟${sp.npc.name}玩 in・on・at 小文法 <kbd>F</kbd>`, `📍 in / on / at with ${sp.npc.name} <kbd>F</kbd>`)
@@ -7016,7 +7119,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -8052,6 +8155,114 @@ const KG_MOOD = {
       ctx.ask(`你現在在<b>${q.name}</b>圈圈 ${q.face}`); ctx.msg(q.msg);
       ctx.buttons([{ html: '🔁 再做一次<small>1</small>', on: step1 }, { html: '👋 結束<small>2</small>', on: () => ctx.end(ctx.best + plays, () => `${T('💗 謝謝你說出現在的心情！', '💗 Thank you for sharing!')}<br>${ctx.n.name}：${T('每一種心情都是正常的，想聊聊隨時來找我。', 'Every feeling is okay. Come talk to me anytime.')}`) }]);
     };
+    step1();
+  },
+};
+
+/* ---- 整理圖書館（方老師，圖書館管理員）：把書放回正確的書架區。分區照「中國圖書分類法」的大類，用小朋友看得懂的說法 ---- */
+const LIB_ITEMS = [
+  { e: '🦕', q: '《神奇的恐龍化石》要放回哪一區？', a: ['科學', '藝術', '語文'], why: '動物、植物、恐龍、天文、數學都放在「科學」區。' },
+  { e: '🌌', q: '《宇宙與星星》要放回哪一區？', a: ['科學', '史地', '社會'], why: '天文、宇宙是自然科學，放在「科學」區。' },
+  { e: '🔢', q: '《數學小偵探》要放回哪一區？', a: ['科學', '語文', '藝術'], why: '數學也是科學的一種，放在「科學」區。' },
+  { e: '🍳', q: '《兒童烹飪食譜》要放回哪一區？', a: ['應用科技', '史地', '語文'], why: '烹飪、種植、電腦、醫藥這些生活裡的技術，放在「應用科技」區。' },
+  { e: '💻', q: '《Scratch 程式入門》要放回哪一區？', a: ['應用科技', '藝術', '史地'], why: '電腦和程式屬於「應用科技」區。' },
+  { e: '🌱', q: '《種菜小達人》要放回哪一區？', a: ['應用科技', '語文', '藝術'], why: '種菜、養動物（農業）放在「應用科技」區。' },
+  { e: '🚦', q: '《交通安全小百科》要放回哪一區？', a: ['社會', '科學', '藝術'], why: '交通、法律、教育、禮儀這些和人與社會有關的，放在「社會」區。' },
+  { e: '🎓', q: '《臺灣的學校生活》要放回哪一區？', a: ['社會', '科學', '語文'], why: '教育、學校、風俗放在「社會」區。' },
+  { e: '🏯', q: '《臺灣歷史故事》要放回哪一區？', a: ['史地', '科學', '藝術'], why: '歷史、地理、旅遊放在「史地」區。' },
+  { e: '🗺️', q: '《世界地圖大冒險》要放回哪一區？', a: ['史地', '應用科技', '語文'], why: '地圖、各國的介紹屬於「史地」區。' },
+  { e: '📖', q: '《國語注音小學堂》要放回哪一區？', a: ['語文', '科學', '史地'], why: '國語、英語、文字、文學、童話都放在「語文」區。' },
+  { e: '🧚', q: '《格林童話》要放回哪一區？', a: ['語文', '藝術', '社會'], why: '童話、小說、詩是文學，放在「語文」區。' },
+  { e: '🎹', q: '《認識樂器》要放回哪一區？', a: ['藝術', '科學', '語文'], why: '音樂、繪畫、攝影、美勞放在「藝術」區。' },
+  { e: '🎨', q: '《水彩畫入門》要放回哪一區？', a: ['藝術', '應用科技', '社會'], why: '畫畫、美勞屬於「藝術」區。' },
+  { e: '📕', q: '《兒童百科全書》要放回哪一區？', a: ['總類', '科學', '語文'], why: '百科全書、字典、辭典、報紙雜誌這種什麼都有的工具書，放在「總類」區。' },
+  { e: '📚', q: '《國語辭典》要放回哪一區？', a: ['總類', '語文', '史地'], why: '辭典是查資料用的工具書，放在「總類」區。' },
+];
+const KG_LIB = mcGame({
+  key: 'campus-library-best', title: ['📚 整理圖書館', '📚 Shelve the Books'], label: ['📚 整理圖書館…', '📚 Shelving books…'], icon: '📚', items: LIB_ITEMS,
+  intro: () => T('（方老師比著書架）幫我把書放回正確的書架區，看書名想一想它在講什麼！', 'Put each book back on the right shelf. Think about what it is about!'),
+  good: '（豎起大拇指 👍）你整理得又快又準，是圖書館小幫手！', keep: '（笑著點點頭）沒關係，多看幾次分類牌就記住了。',
+});
+
+/* ---- 音符小遊戲（吳老師，音樂老師）：看五線譜上的音符，說出是 Do Re Mi 的哪一個；再認識音符是幾拍 ---- */
+const NOTE_NAMES = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si', '高音 Do'];
+const noteSvg = (step, wide = 150) => {          // step：從 Do（第一線下面的 C4）算起往上第幾格（半格＝一個音）
+  const y = (s) => 80 - s * 5, cx = 92;
+  const lines = [70, 60, 50, 40, 30].map((ly) => `<line x1="8" y1="${ly}" x2="${wide - 8}" y2="${ly}" stroke="#222" stroke-width="1.5"/>`).join('');
+  const ledger = step === 0 ? `<line x1="${cx - 14}" y1="80" x2="${cx + 14}" y2="80" stroke="#222" stroke-width="1.5"/>` : '';
+  return `<svg viewBox="0 0 ${wide} 100" width="${wide}" height="100" style="vertical-align:middle;background:#fffdf6;border:2px solid #222;border-radius:4px">${lines}${ledger}<text x="12" y="62" font-size="11" font-weight="700" fill="#555">高音譜表</text><ellipse cx="${cx}" cy="${y(step)}" rx="8" ry="6" fill="#222" transform="rotate(-18 ${cx} ${y(step)})"/><line x1="${cx + 7}" y1="${y(step)}" x2="${cx + 7}" y2="${y(step) - 28}" stroke="#222" stroke-width="2"/></svg>`;
+};
+const noteLen = (kind) => {                       // 音符的樣子：全音符（空心、沒有桿）、二分（空心＋桿）、四分（實心＋桿）、八分（實心＋桿＋旗子）
+  const hollow = kind === 'whole' || kind === 'half', stem = kind !== 'whole', flag = kind === 'eighth';
+  return `<svg viewBox="0 0 80 80" width="80" height="80" style="vertical-align:middle;background:#fffdf6;border:2px solid #222;border-radius:4px"><ellipse cx="36" cy="56" rx="${kind === 'whole' ? 14 : 11}" ry="${kind === 'whole' ? 9 : 8}" fill="${hollow ? '#fffdf6' : '#222'}" stroke="#222" stroke-width="3" transform="rotate(-18 36 56)"/>${stem ? '<line x1="46" y1="54" x2="46" y2="14" stroke="#222" stroke-width="3"/>' : ''}${flag ? '<path d="M46 14 Q64 20 58 40" fill="none" stroke="#222" stroke-width="3"/>' : ''}</svg>`;
+};
+const NOTES_ITEMS = [
+  ...NOTE_NAMES.map((nm, i) => ({
+    e: noteSvg(i), q: '這個音符唱起來是哪一個音？',
+    a: [nm, ...NOTE_NAMES.filter((x) => x !== nm).sort((p, q) => Math.abs(NOTE_NAMES.indexOf(p) - i) - Math.abs(NOTE_NAMES.indexOf(q) - i)).slice(0, 2)],
+    why: `這是「${nm}」。音符在五線譜上的位置越高，聲音就越高；Do Re Mi Fa Sol La Si 一格一格往上爬。`,
+  })),
+  { e: noteLen('whole'), q: '這個空心、沒有桿子的音符叫什麼？', a: ['全音符', '二分音符', '四分音符'], why: '全音符是空心的、沒有桿子，要唱 4 拍。' },
+  { e: noteLen('half'), q: '這個空心、有桿子的音符叫什麼？', a: ['二分音符', '全音符', '八分音符'], why: '二分音符是空心、有桿子，要唱 2 拍。' },
+  { e: noteLen('quarter'), q: '這個實心、有桿子的音符叫什麼？', a: ['四分音符', '二分音符', '全音符'], why: '四分音符是實心、有桿子，要唱 1 拍，像走路的一步。' },
+  { e: noteLen('eighth'), q: '這個實心、桿子上還有旗子的音符叫什麼？', a: ['八分音符', '四分音符', '二分音符'], why: '八分音符有一面小旗子，只要唱半拍，是四分音符的一半。' },
+  { e: '🥁', q: '二分音符要唱幾拍？', a: ['2 拍', '1 拍', '4 拍'], why: '全音符 4 拍、二分音符 2 拍、四分音符 1 拍、八分音符半拍。' },
+  { e: '🎼', q: '一首歌每一小節有 4 拍，一個全音符剛好唱幾個小節？', a: ['1 小節', '2 小節', '半個小節'], why: '全音符 4 拍，剛好一整個 4 拍的小節。' },
+];
+const KG_NOTES = mcGame({
+  key: 'campus-notes-best', title: ['🎼 音符小遊戲', '🎼 Music Notes'], label: ['🎼 音符小遊戲…', '🎼 Music notes…'], icon: '🎼', items: NOTES_ITEMS,
+  intro: () => T('看看五線譜上的音符，是 Do Re Mi 的哪一個？還有它要唱幾拍呢？', 'Which note is it, and how many beats?'),
+  good: '你的音感很棒，積極學習、喜樂成長！', keep: '沒關係，認識自己、接納自己，多看幾次就會了！',
+});
+
+/* ---- 心情晴雨天（林老師，專輔老師）：「今天心裡的天氣是什麼？」不計分、沒有對錯，也不記心情，只記做了幾次。
+   選一種天氣 → 老師用天氣的比喻回應；下雨、打雷、起霧的話，可以再按「等雨停」看到雨過天晴出彩虹 ---- */
+const WX_SKY = {
+  sun:   { icon: '☀️', name: '晴天', sky: ['#7fd0ff', '#cdeeff'], msg: '今天心裡是大晴天！把這份好心情記下來，也可以分享給身邊的人，讓他們也暖暖的。' },
+  cloud: { icon: '⛅', name: '多雲', sky: ['#a9c9e6', '#e4eef6'], msg: '有一點悶、有一點不確定。多雲的日子很普通也很正常，不用急著變晴，慢慢來就好。' },
+  rain:  { icon: '🌧️', name: '下雨', sky: ['#7b8da3', '#b9c4d1'], msg: '心裡下著雨，可能是難過或委屈。哭一哭沒關係，雨會把心裡的灰塵洗乾淨。願意的話，跟我說說發生什麼事。', clear: true },
+  storm: { icon: '⛈️', name: '雷雨', sky: ['#4a5568', '#8591a3'], msg: '心裡在打雷，可能是很生氣或很害怕。先找個安全的地方，慢慢深呼吸。雷雨很大，但都會過去，我陪你。', clear: true },
+  fog:   { icon: '🌫️', name: '起霧', sky: ['#aeb7bf', '#dfe3e6'], msg: '心裡起霧了，看不清楚自己怎麼了。沒關係，霧會慢慢散，我們可以一起把它看清楚。', clear: true },
+};
+const KG_WEATHER = {
+  key: 'campus-weather-count', title: ['🌤️ 心情晴雨天', '🌤️ Weather Mood'], label: ['🌤️ 心情晴雨天…', '🌤️ Weather mood…'],
+  bye: (n) => T(`🌈 隨時歡迎再來找${n.name}聊聊～`, `🌈 Come back and talk with ${n.name} anytime!`),
+  start(ctx) {
+    const W = 300, H = 190, cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    let plays = 0;
+    const cloud = (x, y, s, col) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, 18 * s, 0, 7); c.arc(x + 20 * s, y + 4 * s, 14 * s, 0, 7); c.arc(x - 20 * s, y + 5 * s, 13 * s, 0, 7); c.fillRect(x - 22 * s, y + 4 * s, 44 * s, 14 * s); c.fill(); };
+    const draw = (k, rainbow) => {
+      const s = WX_SKY[k] || WX_SKY.cloud, g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, s.sky[0]); g.addColorStop(1, s.sky[1]);
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      if (rainbow) { ['#ff5a5a', '#ff9f43', '#ffd84d', '#7ed957', '#33b4ff', '#7a5cff'].forEach((col, i) => { c.strokeStyle = col; c.lineWidth = 9; c.beginPath(); c.arc(150, 170, 120 - i * 9, Math.PI, 0); c.stroke(); }); }
+      if (rainbow || k === 'sun') { c.fillStyle = '#ffd84d'; c.beginPath(); c.arc(rainbow ? 252 : 220, 52, 30, 0, 7); c.fill(); }
+      if (k === 'cloud') { cloud(100, 70, 1.2, '#fff'); cloud(210, 100, 1, '#fdfdfd'); }
+      if (k === 'rain' || k === 'storm') {
+        cloud(110, 54, 1.4, k === 'storm' ? '#4b5362' : '#8e99a8'); cloud(210, 70, 1.2, k === 'storm' ? '#5a6272' : '#a0aab8');
+        c.strokeStyle = '#d9ecff'; c.lineWidth = 3; for (let i = 0; i < 26; i++) { const x = 20 + (i * 37) % 270, y = 90 + (i * 53) % 90; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 5, y + 12); c.stroke(); }
+        if (k === 'storm') { c.fillStyle = '#ffe14d'; c.beginPath(); c.moveTo(165, 82); c.lineTo(145, 122); c.lineTo(162, 122); c.lineTo(150, 160); c.lineTo(188, 108); c.lineTo(168, 108); c.closePath(); c.fill(); }
+      }
+      if (k === 'fog') { for (let i = 0; i < 5; i++) { c.fillStyle = `rgba(255,255,255,${0.35 + i * 0.08})`; c.fillRect(10 + (i % 2) * 24, 30 + i * 28, W - 40 - (i % 2) * 24, 16); } }
+      if (rainbow) cloud(60, 160, 0.8, '#fff');
+      c.font = '40px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; if (!rainbow) c.fillText(s.icon, 44, 40);
+    };
+    const step1 = () => {
+      draw('cloud'); ctx.prog(''); ctx.ask('<b>今天你心裡的天氣</b>是什麼？'); ctx.msg(plays ? '' : '閉上眼睛想一想，現在心裡是什麼天氣？沒有對錯，每一種天氣都是正常的。');
+      ctx.buttons(Object.entries(WX_SKY).map(([k, s], i) => ({ html: `${s.icon} ${s.name}<small>${i + 1}</small>`, on: () => result(k) })));
+    };
+    const result = (k) => {
+      const s = WX_SKY[k]; plays++; draw(k);
+      ctx.ask(`你心裡的天氣是 <b>${s.name}</b> ${s.icon}`); ctx.msg(s.msg);
+      const bs = [];
+      if (s.clear) bs.push({ html: '🌈 等雨停<small>1</small>', on: () => clearUp() });
+      bs.push({ html: `🔁 再選一次<small>${bs.length + 1}</small>`, on: step1 }, { html: `👋 結束<small>${bs.length + 2}</small>`, on: done });
+      ctx.buttons(bs);
+    };
+    const clearUp = () => {
+      draw('sun', true); ctx.ask('雨過天晴 🌈'); ctx.msg('生命中的裂痕，都是為了讓光可以照入。壞天氣會過去，你也會慢慢變好。');
+      ctx.buttons([{ html: '🔁 再選一次<small>1</small>', on: step1 }, { html: '👋 結束<small>2</small>', on: done }]);
+    };
+    const done = () => ctx.end(ctx.best + plays, () => `${T('🌈 謝謝你說出心裡的天氣！', '🌈 Thank you for sharing!')}<br>${ctx.n.name}：${T('不管今天是晴天還是雨天，都可以來找我聊聊。', 'Sunny or rainy, you can always come talk to me.')}`);
     step1();
   },
 };
@@ -9253,6 +9464,8 @@ const GAME_INFO = {
   blindquiz: [['視野死角大考驗', 'Blind Spot Quiz'], 'campus-blindquiz-best', ans], busquiz: [['乘車安全小測驗', 'Bus Safety Quiz'], 'campus-busq-best', ans],
   gymrun: [['體操闖關', 'Gym Course'], 'campus-gymrun-best', (v) => T(`闖過 ${v} 關`, `${v} cleared`)],
   mood: [['情緒覺察', 'Mood Check-in'], 'campus-mood-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
+  library: [['整理圖書館', 'Shelve the Books'], 'campus-library-best', ans], notes: [['音符小遊戲', 'Music Notes'], 'campus-notes-best', ans],
+  weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
@@ -10653,4 +10866,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=281').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=282').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
