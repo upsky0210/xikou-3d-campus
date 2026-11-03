@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=285';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=285';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=285';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=285';
-import { buildCampusWall } from './wall.js?v=285';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=285';
+import { PanoViewer } from './pano.js?v=286';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=286';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=286';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=286';
+import { buildCampusWall } from './wall.js?v=286';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=286';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3974,6 +3974,39 @@ const NPCS = [
     },
   },
   {
+    name: '顏老師', title: '一年二班導師', game: 'tones',
+    hello: ['💗 顏老師：以愛築基，用耐心陪伴你們成長！', '✨ 顏老師：點亮童心，跟孩子一同前進～', '😊 顏老師：慢慢來沒關係，老師陪你一起練習！',
+      '🔤 顏老師：一聲平平、二聲往上、三聲彎彎、四聲往下，要不要來玩注音聲調大挑戰？'],
+    // 2 樓勤學樓一年二班（221 室）：跟一年一班一樣，老師站講台旁、面向學生
+    places: [
+      { floor: '2F', where: '一年二班', game: true, at: () => { const r = rooms.find((x) => x.code === '102'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深棕色頭髮往後綁成低馬尾（額頭露出來、旁分）、開心的笑容；深藍色短袖 T 恤、深藍色寬褲、白色條紋襪、灰色球鞋
+      skin: '#efc6aa', hair: '#4a2c20', top: '#1b2440', pants: '#1b2440', shoe: '#c8c8cc',
+      bun: true, collar: '#1b2440',
+      pal: { H: '#4a2c20', h: '#5e3a2a', S: '#efc6aa', E: '#2a1610', e: '#5a3424', W: '#ffffff', B: '#eeb0a6', N: '#dfb094', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHSSSSSHH',
+        'HHHHSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMMMMMMMMSSHH',
+        'HHSSSMTTTTMSSSHH',
+        'HHHSSSMMMMSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -5099,6 +5132,7 @@ function updateAct(dt) {
     : sp.kind === 'decimal' ? T(`🔢 跟${sp.npc.name}玩小數點的遊戲 <kbd>F</kbd>`, `🔢 Decimals with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'shapes' ? T(`🔷 跟${sp.npc.name}玩形狀顏色對對碰 <kbd>F</kbd>`, `🔷 Shape match with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'throw' ? T(`⚾ 跟${sp.npc.name}去操場投球 <kbd>F</kbd>`, `⚾ Ball toss on the field with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'tones' ? T(`🔤 跟${sp.npc.name}玩注音聲調大挑戰 <kbd>F</kbd>`, `🔤 Zhuyin tones with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'units' ? T(`📏 跟${sp.npc.name}玩數學單位量詞大考驗 <kbd>F</kbd>`, `📏 Math Units Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'geo' ? T(`🗺️ 跟${sp.npc.name}玩臺灣地理大考驗 <kbd>F</kbd>`, `🗺️ Taiwan Geography Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'prep' ? T(`📍 跟${sp.npc.name}玩 in・on・at 小文法 <kbd>F</kbd>`, `📍 in / on / at with ${sp.npc.name} <kbd>F</kbd>`)
@@ -7237,7 +7271,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -8526,6 +8560,46 @@ const KG_THROW = {
   },
 };
 
+/* ---- 注音聲調大挑戰（顏老師，一年二班）：看字和注音，選它是第幾聲（一聲不標、二聲ˊ、三聲ˇ、四聲ˋ、輕聲˙），一回 6 題 ---- */
+// t：1～4 聲、0 是輕聲；w 有兩個字的時候，hi 是要問的那個字
+const TONE_ITEMS = [
+  { e: '👩', w: '媽', zy: 'ㄇㄚ', t: 1 }, { e: '🌾', w: '麻', zy: 'ㄇㄚ', t: 2 }, { e: '🐴', w: '馬', zy: 'ㄇㄚ', t: 3 }, { e: '😠', w: '罵', zy: 'ㄇㄚ', t: 4 },
+  { e: '🌸', w: '花', zy: 'ㄏㄨㄚ', t: 1 }, { e: '🐟', w: '魚', zy: 'ㄩ', t: 2 }, { e: '🐶', w: '狗', zy: 'ㄍㄡ', t: 3 }, { e: '🐰', w: '兔', zy: 'ㄊㄨ', t: 4 },
+  { e: '🐱', w: '貓', zy: 'ㄇㄠ', t: 1 }, { e: '🐑', w: '羊', zy: 'ㄧㄤ', t: 2 }, { e: '🐦', w: '鳥', zy: 'ㄋㄧㄠ', t: 3 }, { e: '🐘', w: '象', zy: 'ㄒㄧㄤ', t: 4 },
+  { e: '📕', w: '書', zy: 'ㄕㄨ', t: 1 }, { e: '🐮', w: '牛', zy: 'ㄋㄧㄡ', t: 2 }, { e: '💧', w: '水', zy: 'ㄕㄨㄟ', t: 3 }, { e: '🌙', w: '月', zy: 'ㄩㄝ', t: 4 },
+  { e: '⛰️', w: '山', zy: 'ㄕㄢ', t: 1 }, { e: '⚪', w: '白', zy: 'ㄅㄞ', t: 2 }, { e: '🍚', w: '米', zy: 'ㄇㄧ', t: 3 }, { e: '💪', w: '大', zy: 'ㄉㄚ', t: 4 },
+  { e: '🪑', w: '桌子', hi: 1, zy: 'ㄗ', t: 0 }, { e: '👩', w: '媽媽', hi: 1, zy: 'ㄇㄚ', t: 0 }, { e: '🧑‍🤝‍🧑', w: '我們', hi: 1, zy: 'ㄇㄣ', t: 0 },
+];
+const TONE_NAME = ['輕聲', '一聲', '二聲', '三聲', '四聲'], TONE_MARK = ['˙', '', 'ˊ', 'ˇ', 'ˋ'];
+const TONE_HINT = ['輕輕短短地唸', '平平的，像飛機飛直直', '往上揚，像在問問題', '先下來再上去，彎彎的', '從高往下，像在生氣'];
+const toneZy = (q) => (q.t === 0 ? `˙${q.zy}` : q.zy + TONE_MARK[q.t]);
+const KG_TONES = {
+  key: 'campus-tones-best', title: ['🔤 注音聲調大挑戰', '🔤 Zhuyin Tones'], label: ['🔤 注音聲調大挑戰…', '🔤 Zhuyin tones…'],
+  bye: (n) => T(`🔤 下次再來找${n.name}練聲調！`, `🔤 Come back and practice tones with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, N = 6, qs = kgShuffle(TONE_ITEMS.slice()).slice(0, N);
+    let i = 0, right = 0;
+    const word = (q) => [...q.w].map((ch, k) => (q.w.length === 1 || k === q.hi ? `<b style="color:#d63a3a">${ch}</b>` : ch)).join('');
+    const next = () => {
+      const q = qs[i];
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = `<span class="big">${q.e}</span><div style="font-size:30px;font-weight:700;margin-top:4px">${word(q)}　<span style="color:#1f5f9a">${q.zy}</span><span style="color:#999">？</span></div>`;
+      ctx.ask(q.w.length > 1 ? `「${q.w}」的「${q.w[q.hi]}」是第幾聲？` : `「${q.w}」是第幾聲？`);
+      ctx.msg(i ? '' : T('唸唸看，聲音是平平的、往上的、彎彎的，還是往下的？', 'Say it out loud: flat, rising, dipping or falling?'));
+      const order = [1, 2, 3, 4, 0];
+      ctx.buttons(order.map((t, j) => ({ html: `${TONE_NAME[t]} ${t === 1 ? '（不標）' : TONE_MARK[t]}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[order.indexOf(q.t)].className = 'opt right';
+        const why = `「${q.w.length > 1 ? q.w[q.hi] : q.w}」唸 ${toneZy(q)}，是${TONE_NAME[q.t]}：${TONE_HINT[q.t]}。`;
+        if (t === q.t) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${why}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`🔤 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `🔤 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 5 ? '聲調唸得好準！點亮童心，我們一起前進！' : '慢慢來，老師用耐心陪你，多唸幾次就會了！'}`)), 2600);
+      } })));
+    };
+    next();
+  },
+};
+
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
    看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
    偏掉的壞球不要揮，四壞球保送；三好球出局，三出局結束，記錄最高得分。 */
@@ -9727,6 +9801,7 @@ const GAME_INFO = {
   weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
   throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
+  tones: [['注音聲調大挑戰', 'Zhuyin Tones'], 'campus-tones-best', ans],
   units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
   puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
@@ -11127,4 +11202,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=285').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=286').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
