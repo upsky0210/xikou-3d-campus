@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=286';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=286';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=286';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=286';
-import { buildCampusWall } from './wall.js?v=286';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=286';
+import { PanoViewer } from './pano.js?v=288';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=288';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=288';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=288';
+import { buildCampusWall } from './wall.js?v=288';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=288';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4007,6 +4007,39 @@ const NPCS = [
     },
   },
   {
+    name: '黃老師', title: '三年一班導師', game: 'add4',
+    hello: ['🎯 黃老師：做事要專心、細心、還要有耐心喔！', '😊 黃老師：算數學不用急，一位一位慢慢來～', '✏️ 黃老師：算完記得驗算，細心就不會粗心！',
+      '➕ 黃老師：要不要來挑戰四位數的加減法？'],
+    // 3 樓勤學樓三年一班（321 室）：跟一年二班一樣的教室，老師站講台旁、面向學生
+    places: [
+      { floor: '3F', where: '三年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '301'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色及肩直髮（旁分、沒有瀏海）、黑色細框圓眼鏡、開心露齒的笑容；白色短袖 T 恤（袖口反摺）、米白色寬褲（鞋子照片沒拍到）
+      skin: '#f1cdb6', hair: '#231a16', top: '#f7f7f4', pants: '#ece5d6', shoe: '#e6e6e6',
+      lob: true,
+      pal: { H: '#231a16', h: '#33261f', S: '#f1cdb6', K: '#34343a', E: '#2a1610', W: '#ffffff', B: '#f0aca4', N: '#e2b29a', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHhHHHHHH',
+        'HHHHHHHHHSHHHHHH',
+        'HHHHHHHSSSSHHHHH',
+        'HHHHSSSSSSSSSHHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSKKKSSSSKKKSHH',
+        'HHKSSSKKKKSSSKHH',
+        'HHKSESKSSKSESKHH',
+        'HHSKKKSSSSKKKSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMWWWWWWMSSHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -5132,6 +5165,7 @@ function updateAct(dt) {
     : sp.kind === 'decimal' ? T(`🔢 跟${sp.npc.name}玩小數點的遊戲 <kbd>F</kbd>`, `🔢 Decimals with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'shapes' ? T(`🔷 跟${sp.npc.name}玩形狀顏色對對碰 <kbd>F</kbd>`, `🔷 Shape match with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'throw' ? T(`⚾ 跟${sp.npc.name}去操場投球 <kbd>F</kbd>`, `⚾ Ball toss on the field with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'add4' ? T(`➕ 跟${sp.npc.name}算四位數的加減法 <kbd>F</kbd>`, `➕ 4-digit math with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'tones' ? T(`🔤 跟${sp.npc.name}玩注音聲調大挑戰 <kbd>F</kbd>`, `🔤 Zhuyin tones with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'units' ? T(`📏 跟${sp.npc.name}玩數學單位量詞大考驗 <kbd>F</kbd>`, `📏 Math Units Quiz with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'geo' ? T(`🗺️ 跟${sp.npc.name}玩臺灣地理大考驗 <kbd>F</kbd>`, `🗺️ Taiwan Geography Quiz with ${sp.npc.name} <kbd>F</kbd>`)
@@ -7271,7 +7305,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -8600,6 +8634,68 @@ const KG_TONES = {
   },
 };
 
+/* ---- 四位數的加減法（黃老師，三年一班）：每回隨機出 6 題（加法 3 題、減法 3 題，其中 2 題是應用題），
+   一定有進位或退位；錯的選項是「忘了進位／退位」「大減小倒過來減」這些常見的算錯 ---- */
+const ADD4_STORY = {
+  add: [(a, b) => `圖書館原本有 ${a} 本書，又買了 ${b} 本，現在一共有幾本？`, (a, b) => `早上賣出 ${a} 張票，下午賣出 ${b} 張票，一天賣出幾張？`],
+  sub: [(a, b) => `存錢筒有 ${a} 元，買文具花了 ${b} 元，還剩下幾元？`, (a, b) => `一條路長 ${a} 公尺，已經走了 ${b} 公尺，還要走幾公尺？`],
+};
+const add4Gen = (op) => {
+  const rnd = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+  const dig = (x) => [...String(x).padStart(4, '0')].map(Number);
+  for (;;) {
+    let a, b, ans, slip;
+    if (op === 'add') {
+      a = rnd(1000, 8000); b = rnd(1000, 9999 - a); ans = a + b;
+      const A = dig(a), B = dig(b);
+      if (!A.some((d, k) => d + B[k] >= 10)) continue;                               // 要有進位
+      slip = Number(A.map((d, k) => (d + B[k]) % 10).join(''));                          // 忘了進位
+    } else {
+      a = rnd(2000, 9999); b = rnd(1000, a - 1); ans = a - b;
+      const A = dig(a), B = dig(b);
+      if (!A.some((d, k) => d < B[k])) continue;                                         // 要有退位
+      slip = Number(A.map((d, k) => Math.abs(d - B[k])).join(''));                        // 不夠減就倒過來大減小
+    }
+    const opts = [ans], add = (x) => { if (x > 0 && x <= 9999 && !opts.includes(x)) opts.push(x); };
+    add(slip);
+    for (const d of kgShuffle([10, -10, 100, -100, 1000, -1000])) { if (opts.length >= 3) break; add(ans + d); }
+    if (opts.length < 3) continue;
+    return { a, b, op, ans, opts };
+  }
+};
+const KG_ADD4 = {
+  key: 'campus-add4-best', title: ['➕ 四位數的加減法', '➕ 4-Digit Add & Subtract'], label: ['➕ 四位數的加減法…', '➕ 4-digit math…'],
+  bye: (n) => T(`➕ 下次再來找${n.name}算數學！`, `➕ Come back and do math with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, N = 6;
+    const story = kgShuffle([0, 1, 2, 3, 4, 5]).slice(0, 2);
+    const qs = kgShuffle(['add', 'add', 'add', 'sub', 'sub', 'sub']).map((op, k) => ({ ...add4Gen(op), story: story.includes(k) }));
+    let i = 0, right = 0;
+    const sign = (q) => (q.op === 'add' ? '＋' : '－');
+    const next = () => {
+      const q = qs[i], col = (x) => String(x).padStart(4, ' ').replace(/ /g, '&nbsp;');
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = `${q.story ? `<div style="font-size:16px;margin-bottom:6px">${ADD4_STORY[q.op][Math.floor(Math.random() * 2)](q.a, q.b)}</div>` : ''}`
+        + `<div style="display:inline-block;font:700 30px/1.25 ui-monospace,Consolas,monospace;text-align:right;letter-spacing:4px">`
+        + `${col(q.a)}<br><span style="color:#1f5f9a">${sign(q)}</span>${col(q.b)}<div style="border-top:3px solid #2b2b2b;margin-top:2px">？</div></div>`;
+      ctx.ask(T(`${q.a} ${sign(q)} ${q.b} ＝ ？`, `${q.a} ${q.op === 'add' ? '+' : '-'} ${q.b} = ?`));
+      ctx.msg(i ? '' : T('從個位開始，一位一位對齊來算！', 'Line up the digits and start from the ones place!'));
+      const opts = kgShuffle(q.opts.slice());
+      ctx.buttons(opts.map((v, j) => ({ html: `${v}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.indexOf(q.ans)].className = 'opt right';
+        const why = q.op === 'add'
+          ? `${q.a} ＋ ${q.b} ＝ ${q.ans}。滿十要進位到前一位，可以用 ${q.ans} － ${q.b} ＝ ${q.a} 驗算。`
+          : `${q.a} － ${q.b} ＝ ${q.ans}。不夠減要向前一位借 1 當 10，可以用 ${q.ans} ＋ ${q.b} ＝ ${q.a} 驗算。`;
+        if (v === q.ans) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${why}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`➕ 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `➕ ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 5 ? '好專心、好細心！你是加減法高手！' : '有耐心再算一次，記得驗算就會越來越準！'}`)), 3000);
+      } })));
+    };
+    next();
+  },
+};
+
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
    看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
    偏掉的壞球不要揮，四壞球保送；三好球出局，三出局結束，記錄最高得分。 */
@@ -9801,6 +9897,7 @@ const GAME_INFO = {
   weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
   throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
+  add4: [['四位數的加減法', '4-Digit Add & Subtract'], 'campus-add4-best', ans],
   tones: [['注音聲調大挑戰', 'Zhuyin Tones'], 'campus-tones-best', ans],
   units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
   fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
@@ -11202,4 +11299,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=286').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=288').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

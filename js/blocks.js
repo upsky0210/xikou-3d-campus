@@ -672,7 +672,7 @@ export function animatePerson(g, phase, amount) {
  * look = {
  *   face: 16 行 × 16 字的像素臉，pal: 字元 → 顏色（'H' 要是頭髮色）
  *   skin, hair, top（上衣）, pants, stripe（褲子側條，可省略）, shoe
- *   longHair: 長髮披到胸前, shortHair: 短髮露耳朵, spiky: 刺刺頭
+ *   longHair: 長髮披到胸前, lob: 及肩直髮（垂到肩膀、不披到胸前）, shortHair: 短髮露耳朵, spiky: 刺刺頭
  *   longSleeve: 長袖, whistle: 胸前掛哨子, collar: 襯衫領顏色, zip: 外套拉鍊顏色
  *   cat: 貓頭（虎斑條紋、貓耳、鬍鬚、尾巴；pal.h 是條紋色）
  *   patches: 毛色色塊 [[顏色, x, y, w, h], ...]（取代條紋）, ears: [左耳色, 右耳色], whisker: 鬍鬚色
@@ -789,6 +789,11 @@ export function makeBlockNPC(look) {
     box(g, 0.5, 0.44, 0.08, hair, 0, 1.56, 0.25);
     box(g, 0.07, 0.4, 0.44, hair, -0.255, 1.56, 0.02);
     box(g, 0.07, 0.4, 0.44, hair, 0.255, 1.56, 0.02);
+  }
+  if (look.lob) {                                           // 及肩直髮：後面、兩側垂到肩膀
+    box(g, 0.5, 0.58, 0.08, hair, 0, 1.49, 0.25);
+    box(g, 0.07, 0.54, 0.44, hair, -0.255, 1.51, 0.02);
+    box(g, 0.07, 0.54, 0.44, hair, 0.255, 1.51, 0.02);
   }
   if (look.bun) {                                           // 往後綁的低髮髻＋臉旁兩撮
     box(g, 0.22, 0.2, 0.14, hair, 0, 1.42, 0.29);

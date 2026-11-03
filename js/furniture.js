@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=286';
-import { trafficBasement } from './basement.js?v=286';
+import { Batch, mat, SPOTS } from './blocks.js?v=288';
+import { trafficBasement } from './basement.js?v=288';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
