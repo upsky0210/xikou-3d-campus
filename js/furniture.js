@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=283';
-import { trafficBasement } from './basement.js?v=283';
+import { Batch, mat, SPOTS } from './blocks.js?v=284';
+import { trafficBasement } from './basement.js?v=284';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -363,25 +363,23 @@ function groupTables(put, fr, startU = 2.3) {
 }
 
 function musicRoom(put, fr) {
-  frontWall(put, fr);
+  frontWall(put, fr, { tv: false });                          // 黑板上沒有電視（使用者 11-03），跟音樂教室二一樣用推車電視
+  const A = fr.away;
+  put(M.dark(), 0.5, 0.6, 0.06, 0.9, -A * 1.5, 0.05); put(M.grey(), 0.06, 0.06, 1.2, 0.9, -A * 1.5, 0.1);
+  put(M.dark(), 0.08, 2.0, 1.2, 0.9, -A * 1.5, 1.05); put(tvMat(), 0.02, 1.9, 1.1, 0.85, -A * 1.5, 1.1, true);
   // 直立式鋼琴 + 琴椅（放在不靠門的那一側）
   const pv = fr.away * (fr.W / 2 - 1.1);
   put(M.dark(), 0.6, 1.5, 1.25, 1.0, pv, 0);
   put(M.white(), 0.25, 1.4, 0.05, 1.38, pv, 0.72);           // 白鍵
   put(M.dark(), 0.12, 1.4, 0.03, 1.4, pv, 0.77);             // 黑鍵
   put(M.dark(), 0.35, 0.9, 0.45, 1.85, pv, 0);               // 琴椅
-  // 階梯座位：後半部三層，椅子放在台階上
-  const start = fr.L * 0.42, step = (fr.L - start - 0.2) / 3;
-  for (let k = 0; k < 3; k++) {
-    const h = 0.2 * (k + 1), u0 = start + k * step;
-    put(M.wood(), fr.L - 0.2 - u0, fr.W - 0.4, h, (u0 + fr.L - 0.2) / 2, 0, 0);
-    const n = Math.floor((fr.W - 1) / 0.75);
-    for (let i = 0; i < n; i++) {
-      const v = -((n - 1) * 0.75) / 2 + i * 0.75, u = u0 + step * 0.45;
-      put(M.red(), 0.38, 0.38, 0.06, u, v, h + 0.4);
-      put(M.red(), 0.05, 0.38, 0.36, u + 0.19, v, h + 0.46);
-      put(M.metal(), 0.3, 0.3, 0.4, u, v, h);
-    }
+  // 階梯：跟音樂教室二一樣四層（淺色木頭踏面、綠色踢腳），從原本的位置（後半部）開始，最上層一路到後牆
+  const green = mat('wool', '#2f9a4a'), tread = mat('planks', '#f3dcb0');
+  const start = fr.L * 0.42, sd = 0.55, sh = 0.18;
+  for (let k = 0; k < 4; k++) {
+    const u0 = start + k * sd, h = sh * (k + 1);
+    put(green, fr.L - u0, fr.W - 0.1, h - 0.04, (u0 + fr.L) / 2, 0, 0);
+    put(tread, fr.L - u0, fr.W - 0.1, 0.04, (u0 + fr.L) / 2, 0, h - 0.04);
   }
 }
 
@@ -2905,10 +2903,10 @@ function counselingRoom(put, fr, room) {
   panel(su, E(0.4) + D * 0.4, cw, 0.05); for (const s of [-1, 1]) panel(su + s * cw / 2, E(0.4), 0.05, 0.8);
   desk(su, E(0.4), false);
   put(white, 0.5, 0.5, 0.7, L - 0.3, E(0.45), 0); put(mat('wool', '#d9d9d9'), 0.3, 0.45, 0.1, L - 0.3, E(0.45), 0.7);
-  // ---- 西邊：窗下木矮櫃（兩扇門中間）、窗戶上的雪人貼紙 ----
+  // ---- 西邊：窗戶上的雪人貼紙 ----
   const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
   const c0 = (doorU[0] ?? 1.5) + 1.05, c1 = (doorU[1] ?? L - 1.5) - 1.05;
-  if (c1 - c0 > 1) { put(lightWood, c1 - c0, 0.42, 0.85, (c0 + c1) / 2, D * (W / 2 - 0.23), 0); put(white, c1 - c0 + 0.05, 0.45, 0.03, (c0 + c1) / 2, D * (W / 2 - 0.23), 0.85); }
+  // 窗下木矮櫃拿掉了（使用者 11-03：跟辦公桌之間太窄會卡住）
   ['#4fb3c8', '#d63a3a', '#4fb3c8', '#d63a3a'].forEach((col, i) => put(snowmanMat(col), 0.32, 0.01, 0.62, c0 + 0.3 + i * (c1 - c0 - 0.6) / 3, D * (W / 2 - 0.05), 1.35, true));
 }
 
@@ -3332,7 +3330,7 @@ function furnishRoom(room, fr, put) {
   if (t === 'class') return classroom(put, fr, room);
   if (n.includes('圖書館')) return library(put, fr, room);                     // 依 360 照片 04、05
   if (n.startsWith('幸運方塘')) return makerRoom(put, fr, room);                 // 依 360 照片 06
-  if (n === '音樂教室二') return musicRoom2(put, fr);
+  if (n === '音樂教室二') return musicRoom2(...flipU(put, fr));                // 前後鏡射（使用者 11-03）：電視、鋼琴在東邊，階梯在西邊
   if (n === '美勞教室') return artRoom3(put, fr, room);
   if (n === '方陣教室') return phalanxRoom(put, fr, room);                      // 3F 方陣教室（科學情境教室），依 360 照片
   if (n === '客語教室') return hakkaRoom(put, fr, room);                        // 4F 客語教室（鄉土教室），依 360 照片

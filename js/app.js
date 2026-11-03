@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=283';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=283';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=283';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=283';
-import { buildCampusWall } from './wall.js?v=283';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=283';
+import { PanoViewer } from './pano.js?v=284';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=284';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=284';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=284';
+import { buildCampusWall } from './wall.js?v=284';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=284';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3361,9 +3361,9 @@ const NPCS = [
     name: '小瑜老師', title: '音樂老師', game: 'recorder',
     hello: ['🎵 小瑜老師：今天一起來吹直笛吧！', '🎶 小瑜老師：上課前先把直笛擦乾淨唷！', '👍 小瑜老師：唱得很好聽，讚！',
       '🎵 小瑜老師：要不要來玩直笛記憶？老師吹一段，你照著吹回去！'],
-    // 3 樓音樂教室二（304）前面、鋼琴旁邊，面向學生（東）；在這裡可以玩直笛記憶
+    // 3 樓音樂教室二（304）前面、鋼琴旁邊（11-03 前後鏡射：電視、鋼琴在東邊，階梯在西邊），面向學生（西）；在這裡可以玩直笛記憶
     places: [
-      { floor: '3F', where: '音樂教室二', game: true, at: () => { const r = rooms.find((x) => x.name === '音樂教室二'); return [r.m.x1 + 1.9, r.cz + 0.9, -Math.PI / 2]; } },
+      { floor: '3F', where: '音樂教室二', game: true, at: () => { const r = rooms.find((x) => x.name === '音樂教室二'); return [r.m.x2 - 1.9, r.cz + 0.9, Math.PI / 2]; } },
     ],
     look: {
       // 依圖：棕色貝雷帽（白色 H）、橘棕色長直髮（旁分瀏海）、大大的棕色眼睛、腮紅、開口笑；
@@ -3564,12 +3564,13 @@ const NPCS = [
     },
   },
   {
-    name: '張校長', title: '校長', game: 'baseball',
+    name: '張校長', title: '校長', game: 'throw',
+    throwAt: () => [-22.5, 72.5],                                       // 操場遊樂場（螺旋、直管溜滑梯）西邊的草地
     hello: ['😊 張校長：小朋友好！', '👍 張校長：你好棒！今天也要開開心心學習喔！', '🌟 張校長：遇到困難不要怕，努力就是最棒的！',
       '📚 張校長：多讀書、多運動，健康又快樂！', '🤝 張校長：有禮貌、會幫助別人，就是溪口的好孩子！'],
     // 隨機出現：1 樓穿堂（從正門進來，面向校門迎接小朋友），或操場遊戲場西邊的草地（換上棒球裝，在投手丘上，可以玩樂樂棒球）
     places: [
-      { floor: '1F', where: '穿堂', at: () => { const r = rooms.find((x) => x.name === '穿堂'); return [r.cx - 1.2, r.cz + 1.8, Math.PI / 2]; } },
+      { floor: '1F', where: '穿堂', game: true, at: () => { const r = rooms.find((x) => x.name === '穿堂'); return [r.cx - 1.2, r.cz + 1.8, Math.PI / 2]; } },
       // 樂樂棒球先保留（使用者測過覺得太難揮棒、學生站姿要改成側對校長）：之後要開放就把這行加回去
       // { floor: '1F', where: '樂樂棒球場', game: true, outfit: 'baseball', at: () => [BB.mound.x, BB.mound.z, Math.PI] },
     ],
@@ -3773,35 +3774,35 @@ const NPCS = [
   },
   {
     name: '方老師', title: '圖書館管理員', game: 'library',
-    // 聽障的老師：話很少，用比手語、簡短的字條跟你說話
-    hello: ['📚 方老師：（比手語）記得要準時還書唷！', '🆕 方老師：（指著新書區）有新的書籍入館囉！', '🤫 方老師：（食指放在嘴邊）圖書館請小聲～',
-      '📖 方老師：（比著書架）要不要幫我整理圖書館？'],
+    // 話很少，每一句都很短
+    hello: ['📚 方老師：記得要準時還書唷！', '🆕 方老師：有新的書籍入館囉！', '🤫 方老師：圖書館請小聲～', '📖 方老師：要不要幫我整理圖書館？'],
     // 1 樓圖書館（103）：借還櫃台旁邊的空地
     places: [
       { floor: '1F', where: '圖書館', game: true, at: () => { const r = rooms.find((x) => x.name === '圖書館'); return [r.m.x1 + 3.0, r.cz + 0.3, Math.PI / 2]; } },
     ],
     look: {
-      // 依照片：黑色短髮（瀏海斜斜蓋額頭）、黑色粗框眼鏡、淡淡的微笑；淺灰藍色圓領短袖 T 恤（左胸一小塊藍色布標）、淺藍色牛仔褲
+      // 依照片：黑色短髮（瀏海斜斜蓋額頭、露耳朵）、黑色粗框眼鏡、淡淡的微笑、臉乾乾淨淨沒有鬍子；
+      //   淺灰藍色圓領短袖 T 恤（左胸一小塊藍色布標）、淺藍色牛仔褲
       skin: '#eac4a4', hair: '#2b221d', top: '#c4d2e0', pants: '#a9c3dc', shoe: '#e8e2d6',
       shortHair: true, minis: ['#4a8fd0'],
-      pal: { H: '#2b221d', h: '#3d322b', S: '#eac4a4', K: '#2a2a30', E: '#1e130d', W: '#ffffff', N: '#d9a98a', M: '#a8504a', T: '#ffffff' },
+      pal: { H: '#2b221d', h: '#3d322b', S: '#eac4a4', K: '#2a2a30', E: '#1e130d', W: '#ffffff', N: '#d9a98a', M: '#a8504a' },
       face: [
         'HHHHHHHHHHHHHHHH',
         'HHHHHhHHHHHHhHHH',
         'HHHHHHHHHHHHHHHH',
-        'HHHHHHHHHHHHSSHH',
-        'HHHSSSSSSSSSSSHH',
-        'HHSSSSSSSSSSSSHH',
-        'HHKKKKKSSKKKKKHH',
-        'HHKSEESKKSEESKHH',
-        'HHKKKKKSSKKKKKHH',
-        'HHSSSSSSSSSSSSHH',
-        'HHSSSSSNNSSSSSHH',
-        'HHSSSSSSSSSSSSHH',
-        'HHSSSSSMMSSSSSHH',
-        'HHSSSSSSSSSSSSHH',
-        'HHHSSSSSSSSSSHHH',
-        'HHHHSSSSSSSSHHHH',
+        'SHHHHHHHHHHHSSHS',
+        'SSSHHSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SKKKKKSSSSKKKKKS',
+        'SKSEESKKKKSEESKS',
+        'SKKKKKSSSSKKKKKS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSMMMMMSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
       ],
     },
   },
@@ -3938,12 +3939,13 @@ const NPCS = [
     },
   },
   {
-    name: '李老師', title: '實習老師', game: 'throw',
-    hello: ['💪 李老師：每一次練習，都是在為更好的自己熱身！', '⚾ 李老師：下課要不要一起去操場投球？', '😊 李老師：我是實習老師，請多多指教！',
+    name: '李老師', title: '實習老師', game: 'shootout',
+    hello: ['💪 李老師：每一次練習，都是在為更好的自己熱身！', '🏀 李老師：下課要不要一起去操場比投籃？', '😊 李老師：我是實習老師，請多多指教！',
       '🏃 李老師：跑跳之前，記得先暖身喔！'],
-    // 2 樓勤學樓一年一班（220 室）：實習老師站在教室前面幫忙；按 F 一起瞬間移動到操場投球，玩完再回教室
+    // 2 樓勤學樓一年一班（220 室）：實習老師站在教室後面看大家上課；按 F 一起瞬間移動到操場籃球場比投籃（跟鄧老師一樣），玩完再回教室
+    shootAt: () => { const T = D.outdoor.track; return [mx(T.center[0]) - 3, mz(T.center[1]) - 5.3, Math.PI]; },
     places: [
-      { floor: '2F', where: '一年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '101'); return [r.cx - 3.0, r.cz - 2.0, -Math.PI / 2]; } },    // 教室前面靠窗那頭（林老師站另一頭），面向學生；後面走道太窄不站
+      { floor: '2F', where: '一年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '101'); return [r.m.x2 - 1.0, r.cz, Math.PI / 2]; } },    // 教室後面（對齊中間那排課桌，不擋桌子間的走道），面向黑板
     ],
     look: {
       // 依照片：黑色短髮（兩側推短、上面有層次）、表情淡定；深橄欖棕色羅紋短袖 Henley 衫（領口幾顆扣子）、
@@ -5402,6 +5404,18 @@ const SHOOTOUT_KEY = 'campus-shootout-wins', SHOOTOUT_N = 5;
 let duel = null;
 function startShootout(n) {
   stopAuto();
+  // shootAt：老師在教室裡（李老師），先一起瞬間移動到操場籃球場；比完（或中止）再回教室
+  let home = null;
+  if (n.shootAt && n.f !== floors[1]) {
+    home = { f: n.f, x: n.g.position.x, z: n.g.position.z, yaw: n.yaw };
+    const [x, z, yaw] = n.shootAt(); placeNPC(n, floors[1], x, z, yaw); n.label.visible = false;
+  }
+  const goHome = () => {
+    if (!home) return;
+    placeNPC(n, home.f, home.x, home.z, home.yaw); n.label.visible = true;
+    placeAt(home.f, home.x - Math.sin(home.yaw) * 1.6, home.z - Math.cos(home.yaw) * 1.6, home.yaw + Math.PI);
+    home = null;
+  };
   const f = n.f, T0 = n.g.position.clone(), yaw0 = n.yaw;
   // 找老師附近（同一層）最近的籃框
   let sp = null, bd = Infinity;
@@ -5434,6 +5448,7 @@ function startShootout(n) {
     n.playing = false; n.g.position.copy(T0); n.g.rotation.y = yaw0;
     for (const key of ['armL', 'armR']) nL[key].rotation.set(0, 0, 0);
     act.busy = null;
+    goHome();
   };
   const myTurn = () => {
     k++;
@@ -8283,8 +8298,8 @@ const LIB_ITEMS = [
 ];
 const KG_LIB = mcGame({
   key: 'campus-library-best', title: ['📚 整理圖書館', '📚 Shelve the Books'], label: ['📚 整理圖書館…', '📚 Shelving books…'], icon: '📚', items: LIB_ITEMS,
-  intro: () => T('（方老師比著書架）幫我把書放回正確的書架區，看書名想一想它在講什麼！', 'Put each book back on the right shelf. Think about what it is about!'),
-  good: '（豎起大拇指 👍）你整理得又快又準，是圖書館小幫手！', keep: '（笑著點點頭）沒關係，多看幾次分類牌就記住了。',
+  intro: () => T('幫我把書放回正確的書架區。看書名，想一想它在講什麼！', 'Put each book back on the right shelf. Think about what it is about!'),
+  good: '謝謝你，你是圖書館小幫手！', keep: '沒關係，多看幾次分類牌就記住了。',
 });
 
 /* ---- 音符小遊戲（吳老師，音樂老師）：看五線譜上的音符，說出是 Do Re Mi 的哪一個；再認識音符是幾拍 ---- */
@@ -8451,7 +8466,7 @@ const KG_SHAPES = {
   },
 };
 
-/* ---- 操場投球（李老師，實習老師）：在一年一班找李老師，一起瞬間移動到操場；玩完回教室。
+/* ---- 操場投球（張校長）：在穿堂找校長，一起瞬間移動到操場溜滑梯旁的草地（throwAt）；玩完回穿堂。
    瞄準器先左右移動（按一次固定左右），再上下移動（再按一次投出去）；離靶心越近分數越高，一回 5 球 ---- */
 const KG_THROW = {
   key: 'campus-throw-best', title: ['⚾ 操場投球', '⚾ Ball Toss'], label: ['⚾ 在操場投球…', '⚾ Ball toss…'],
@@ -8460,7 +8475,7 @@ const KG_THROW = {
     const n = ctx.n, Tk = D.outdoor.track;
     const home = { f: n.f, x: n.g.position.x, z: n.g.position.z, yaw: n.yaw };
     home.px = home.x - Math.sin(home.yaw) * 1.6; home.pz = home.z - Math.cos(home.yaw) * 1.6; home.pyaw = home.yaw + Math.PI;
-    const tx = mx(Tk.center[0]) - 4, tz = mz(Tk.center[1]) + 3;
+    const [tx, tz] = n.throwAt ? n.throwAt() : [mx(Tk.center[0]) - 4, mz(Tk.center[1]) + 3];
     placeNPC(n, floors[1], tx, tz, -Math.PI / 2); n.label.visible = false;
     placeAt(floors[1], tx + 1.9, tz, Math.PI / 2); avatar.rotation.y = Math.PI / 2; player.yaw = Math.PI / 2 + 0.42; player.pitch = -0.1;
     ctx.onStop = () => { placeNPC(n, home.f, home.x, home.z, home.yaw); n.label.visible = true; placeAt(home.f, home.px, home.pz, home.pyaw); };
@@ -8497,7 +8512,7 @@ const KG_THROW = {
           if (pt >= 10) { ctx.face('happy'); ctx.msg(T('🎯 正中靶心！10 分！', '🎯 Bullseye! 10 points!'), 'ok'); }
           else if (pt) ctx.msg(T(`👍 ${pt} 分！`, `👍 ${pt} points!`), 'ok');
           else { ctx.face('surprised', 1); ctx.msg(T('😮 沒投中，沒關係，再熱身一次！', '😮 Missed! Warm up and try again!'), 'no'); }
-          if (ball >= 5) ctx.later(() => ctx.end(total, (b) => `${T(`⚾ 5 球共 ${total} 分（最好紀錄 ${b} 分）`, `⚾ ${total} points in 5 balls (best ${b})`)}<br>${n.name}：${total >= 30 ? '投得真準！每一次練習都有進步！' : '每一次練習，都是在為更好的自己熱身！'}`), 1300);
+          if (ball >= 5) ctx.later(() => ctx.end(total, (b) => `${T(`⚾ 5 球共 ${total} 分（最好紀錄 ${b} 分）`, `⚾ ${total} points in 5 balls (best ${b})`)}<br>${n.name}：${total >= 30 ? '投得真準！校長給你拍拍手！' : '多練習幾次，一定會越投越準！'}`), 1300);
         }
       }
       draw();
@@ -11112,4 +11127,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=283').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=284').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
