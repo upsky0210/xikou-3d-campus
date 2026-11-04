@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=288';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=288';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=288';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=288';
-import { buildCampusWall } from './wall.js?v=288';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=288';
+import { PanoViewer } from './pano.js?v=290';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=290';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=290';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=290';
+import { buildCampusWall } from './wall.js?v=290';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=290';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4040,6 +4040,139 @@ const NPCS = [
     },
   },
   {
+    name: '李老師', title: '五年二班導師', game: 'perim',
+    hello: ['🌱 李老師：我也是新老師，我們一起學習、一起進步！', '😊 李老師：有不懂的地方儘管問，問問題一點都不丟臉！', '📏 李老師：周長是繞一圈的長度，面積是裡面有多大，別搞混囉～',
+      '📐 李老師：要不要來挑戰周長和面積？'],
+    // 4 樓勤學樓五年二班（414 室）：黑板在西邊，老師站講台旁、面向東邊的學生
+    places: [
+      { floor: '4F', where: '五年二班', game: true, at: () => { const r = rooms.find((x) => x.code === '502'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深咖啡色長直髮（中分、兩側順著臉）、淺淺的微笑；米白色針織毛衣（褲子、鞋子照片沒拍到）
+      skin: '#f3d3bd', hair: '#4a2f20', top: '#efe8da', pants: '#5a6478', shoe: '#e6e6e6',
+      longHair: true, longSleeve: true,
+      pal: { H: '#4a2f20', h: '#5e3d2b', S: '#f3d3bd', E: '#2a1610', e: '#5a3424', W: '#ffffff', B: '#efb4a8', N: '#e4b8a0', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHSHHHHHHHH',
+        'HHHHHHSSSHHHHHHH',
+        'HHHHHSSSSSHHHHHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '方老師', title: '資料組長', game: 'weave',
+    hello: ['🌟 方老師：每一件作品都是獨一無二的，你的也是！', '💪 方老師：做錯沒關係，重來一次又多學會一招！', '👏 方老師：你今天又比昨天進步一點點了，真棒！',
+      '🧵 方老師：要不要來編一個紙杯墊？'],
+    // 隨機出現：3 樓輔導室外走廊（南邊那扇門再過去一點，面向走廊北邊），或 3 樓美勞教室（東邊展示架前、面向長桌）
+    places: [
+      { floor: '3F', where: '輔導室外走廊', game: true, at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 - 1.0, r.cz + 4.2, 0]; } },
+      { floor: '3F', where: '美勞教室', game: true, at: () => { const r = rooms.find((x) => x.name === '美勞教室'); return [r.cx + 3.2, r.cz, Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：紅棕色過肩頭髮（旁分、側邊瀏海）、細的淺金色框眼鏡、淺淺的微笑；白色短上衣、敞開的深灰色薄外套、淺藍牛仔褲、米白色斜背包（鞋子照片沒拍到）
+      skin: '#f0cdb4', hair: '#6b3a24', top: '#f4f2ec', pants: '#a9c4da', shoe: '#e6e6e6',
+      longHair: true, longSleeve: true, openShirt: '#4a4c52', sleeve: '#4a4c52', bag: '#d9d8cf',
+      pal: { H: '#6b3a24', h: '#814a30', S: '#f0cdb4', K: '#b09a70', E: '#2a1610', W: '#ffffff', B: '#efb4a8', N: '#e0b49c', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHhHHHHHHHHHH',
+        'HHHHHSHHHHHHHHHH',
+        'HHHHSSSSHHHHHHHH',
+        'HHHSSSSSSSHHHHHH',
+        'HHSSSSSSSSSSSHHH',
+        'HHSKKKSSSSKKKSHH',
+        'HHKSSSKKKKSSSKHH',
+        'HHKSESKSSKSESKHH',
+        'HHSKKKSSSSKKKSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
+    name: '吳老師', title: '實習老師', game: 'arts',
+    hello: ['🙋 吳老師：我是來實習的吳老師，請大家多多指教！', '🎭 吳老師：音樂、美術、表演，你最喜歡哪一種？', '✨ 吳老師：聽一首歌、看一幅畫，心情都會變好喔！',
+      '🎨 吳老師：要不要來玩藝文分類？'],
+    // 4 樓勤學樓六年五班（412 室）：導師丁老師在前面講台，實習老師站教室後面、面向黑板（跟一年一班的李老師一樣）
+    places: [
+      { floor: '4F', where: '六年五班', game: true, at: () => { const r = rooms.find((x) => x.code === '605'); return [r.m.x2 - 1.0, r.cz, Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：黑色短髮、細框眼鏡；白色短袖 T 恤、藍色識別證掛繩、黑色寬版工作褲、灰白色球鞋
+      skin: '#edc8aa', hair: '#17130f', top: '#f4f4f0', pants: '#1c1c20', shoe: '#c8c8cc',
+      shortHair: true, lanyard: '#27408b',
+      pal: { H: '#17130f', h: '#2a241e', S: '#edc8aa', K: '#34343a', E: '#1e130d', W: '#ffffff', N: '#d9ab8c', M: '#a8504a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHhHHHHHHHHhHHHH',
+        'SSSSSSSSSSSSSSSS',
+        'SSSKKKSSSSKKKSSS',
+        'SSKSSSKKKKSSSKSS',
+        'SSKSESKSSKSESKSS',
+        'SSSKKKSSSSKKKSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
+    name: '陳主任', title: '輔導主任', game: 'cut',
+    hello: ['👍 陳主任：你很棒唷，繼續努力！', '💪 陳主任：加加油，你一定可以的！', '🌟 陳主任：慢慢來，你已經做得很好了！',
+      '✂️ 陳主任：要不要來剪紙？猜猜打開以後是什麼樣子！'],
+    // 3 樓輔導室（327）裡面：南邊那扇門進來的空地，面向辦公室
+    places: [
+      { floor: '3F', where: '輔導室', game: true, at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 + 1.0, r.cz + 1.75, -Math.PI / 2]; } },
+    ],
+    look: {
+      // 還沒有照片：先用簡單的造型（黑色短髮、淺藍襯衫、深色長褲），之後有照片再換
+      skin: '#efc9ae', hair: '#1c1816', top: '#bcd3e8', pants: '#2f3440', shoe: '#2b2622',
+      shortHair: true, longSleeve: true, collar: '#dce8f4',
+      pal: { H: '#1c1816', h: '#2e2824', S: '#efc9ae', E: '#2a1610', W: '#ffffff', N: '#dfb094', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHhHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSEESSSSSSEESSS',
+        'SSSEWSSSSSSEWSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSNNSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSMSSSSSSMSSSS',
+        'SSSSSMMMMMMSSSSS',
+        'SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -5165,6 +5298,10 @@ function updateAct(dt) {
     : sp.kind === 'decimal' ? T(`🔢 跟${sp.npc.name}玩小數點的遊戲 <kbd>F</kbd>`, `🔢 Decimals with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'shapes' ? T(`🔷 跟${sp.npc.name}玩形狀顏色對對碰 <kbd>F</kbd>`, `🔷 Shape match with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'throw' ? T(`⚾ 跟${sp.npc.name}去操場投球 <kbd>F</kbd>`, `⚾ Ball toss on the field with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'perim' ? T(`📐 跟${sp.npc.name}算周長和面積 <kbd>F</kbd>`, `📐 Perimeter & area with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'weave' ? T(`🧵 跟${sp.npc.name}編紙杯墊 <kbd>F</kbd>`, `🧵 Paper weaving with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'arts' ? T(`🎭 跟${sp.npc.name}玩藝文分類 <kbd>F</kbd>`, `🎭 Arts categories with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'cut' ? T(`✂️ 跟${sp.npc.name}玩剪紙猜一猜 <kbd>F</kbd>`, `✂️ Paper cutting with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'add4' ? T(`➕ 跟${sp.npc.name}算四位數的加減法 <kbd>F</kbd>`, `➕ 4-digit math with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'tones' ? T(`🔤 跟${sp.npc.name}玩注音聲調大挑戰 <kbd>F</kbd>`, `🔤 Zhuyin tones with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'units' ? T(`📏 跟${sp.npc.name}玩數學單位量詞大考驗 <kbd>F</kbd>`, `📏 Math Units Quiz with ${sp.npc.name} <kbd>F</kbd>`)
@@ -7305,7 +7442,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get weave() { return KG_WEAVE; }, get arts() { return KG_ARTS; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -8696,6 +8833,208 @@ const KG_ADD4 = {
   },
 };
 
+/* ---- 周長和面積（李老師，五年二班）：六種圖形各一題，數字隨機、周長和面積各半，一回 6 題；圖是示意、不照比例。
+   三角形、梯形、平行四邊形的邊長用 3-4-5 的倍數，斜邊和高才會是整數；錯的選項是「忘了除以 2」「拿斜邊當高」這些常見的算錯 ---- */
+const PERIM_NUM = (x) => String(Number(x.toFixed(2)));
+const perimSvg = (body) => `<svg viewBox="0 0 220 120" width="220" height="120" font-size="13" font-weight="700" fill="#333" text-anchor="middle">${body}</svg>`;
+const PERIM_SHAPE = 'fill="#cfe6f7" stroke="#1f5f9a" stroke-width="3" stroke-linejoin="round"';
+const PERIM_DASH = 'stroke="#d63a3a" stroke-width="2" stroke-dasharray="5 4"';
+const PERIM_GEN = {
+  square() {
+    const s = 4 + (Math.random() * 12 | 0);
+    return { name: '正方形', svg: perimSvg(`<rect x="65" y="15" width="90" height="90" ${PERIM_SHAPE}/><text x="110" y="65">邊長 ${s}</text>`),
+      p: 4 * s, a: s * s, pw: [s * s, 2 * s], aw: [4 * s, 2 * s], pf: `邊長 × 4 ＝ ${s} × 4`, af: `邊長 × 邊長 ＝ ${s} × ${s}` };
+  },
+  rect() {
+    const a = 7 + (Math.random() * 9 | 0), b = 3 + (Math.random() * 4 | 0);
+    return { name: '長方形', svg: perimSvg(`<rect x="35" y="25" width="150" height="70" ${PERIM_SHAPE}/><text x="110" y="18">長 ${a}</text><text x="110" y="65">寬 ${b}</text>`),
+      p: 2 * (a + b), a: a * b, pw: [a * b, a + b], aw: [2 * (a + b), a + b], pf: `（長 ＋ 寬）× 2 ＝（${a} ＋ ${b}）× 2`, af: `長 × 寬 ＝ ${a} × ${b}` };
+  },
+  tri() {
+    const k = 1 + (Math.random() * 3 | 0), b = 6 * k, s = 5 * k, h = 4 * k;
+    return { name: '三角形', svg: perimSvg(`<polygon points="110,12 35,100 185,100" ${PERIM_SHAPE}/><line x1="110" y1="12" x2="110" y2="100" ${PERIM_DASH}/><text x="124" y="66" fill="#d63a3a">高 ${h}</text><text x="110" y="116">底 ${b}</text><text x="48" y="52">邊 ${s}</text><text x="172" y="52">邊 ${s}</text>`),
+      p: b + 2 * s, a: b * h / 2, pw: [b + s, b + 2 * h], aw: [b * h, b + h], pf: `三個邊加起來 ＝ ${b} ＋ ${s} ＋ ${s}`, af: `底 × 高 ÷ 2 ＝ ${b} × ${h} ÷ 2` };
+  },
+  trap() {
+    const k = 1 + (Math.random() * 2 | 0), t = 2 * (1 + (Math.random() * 4 | 0)), b = t + 6 * k, s = 5 * k, h = 4 * k;
+    return { name: '梯形', svg: perimSvg(`<polygon points="75,20 145,20 190,100 30,100" ${PERIM_SHAPE}/><line x1="110" y1="20" x2="110" y2="100" ${PERIM_DASH}/><text x="124" y="66" fill="#d63a3a">高 ${h}</text><text x="110" y="14">上底 ${t}</text><text x="110" y="116">下底 ${b}</text><text x="34" y="60">腰 ${s}</text><text x="186" y="60">腰 ${s}</text>`),
+      p: t + b + 2 * s, a: (t + b) * h / 2, pw: [t + b + 2 * h, t + b + s], aw: [(t + b) * h, t * h], pf: `四個邊加起來 ＝ ${t} ＋ ${b} ＋ ${s} ＋ ${s}`, af: `（上底 ＋ 下底）× 高 ÷ 2 ＝（${t} ＋ ${b}）× ${h} ÷ 2` };
+  },
+  para() {
+    const k = 1 + (Math.random() * 2 | 0), b = 6 + (Math.random() * 10 | 0), s = 5 * k, h = 4 * k;
+    return { name: '平行四邊形', svg: perimSvg(`<polygon points="70,20 195,20 150,100 25,100" ${PERIM_SHAPE}/><line x1="110" y1="20" x2="110" y2="100" ${PERIM_DASH}/><text x="124" y="66" fill="#d63a3a">高 ${h}</text><text x="88" y="116">底 ${b}</text><text x="28" y="56">邊 ${s}</text>`),
+      p: 2 * (b + s), a: b * h, pw: [2 * (b + h), b + s], aw: [b * s, b * h / 2], pf: `（底 ＋ 斜邊）× 2 ＝（${b} ＋ ${s}）× 2`, af: `底 × 高 ＝ ${b} × ${h}（是高，不是斜邊喔）` };
+  },
+  circle() {
+    const r = [3, 4, 5, 6, 10][Math.random() * 5 | 0];
+    return { name: '圓形', svg: perimSvg(`<circle cx="110" cy="60" r="48" ${PERIM_SHAPE}/><line x1="110" y1="60" x2="158" y2="60" ${PERIM_DASH}/><text x="134" y="52" fill="#d63a3a">半徑 ${r}</text>`),
+      p: 2 * r * 3.14, a: r * r * 3.14, pw: [r * 3.14, r * r * 3.14], aw: [2 * r * 3.14, 4 * r * r * 3.14], pf: `直徑 × 圓周率 ＝ ${2 * r} × 3.14`, af: `半徑 × 半徑 × 圓周率 ＝ ${r} × ${r} × 3.14`, pi: true };
+  },
+};
+const KG_PERIM = {
+  key: 'campus-perim-best', title: ['📐 周長和面積', '📐 Perimeter & Area'], label: ['📐 周長和面積…', '📐 Perimeter & area…'],
+  bye: (n) => T(`📐 下次再來找${n.name}算周長和面積！`, `📐 Come back and practice with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, kinds = kgShuffle(Object.keys(PERIM_GEN)), N = kinds.length;
+    const asks = kgShuffle(['p', 'p', 'p', 'a', 'a', 'a']);
+    let i = 0, right = 0;
+    const next = () => {
+      const q = PERIM_GEN[kinds[i]](), isP = asks[i] === 'p', word = isP ? '周長' : '面積', unit = isP ? '公分' : '平方公分', ansV = isP ? q.p : q.a;
+      const opts = [ansV];
+      for (const w of [...(isP ? q.pw : q.aw), ansV + (q.pi ? 3.14 : 2), ansV + (q.pi ? 6.28 : 4)]) if (opts.length < 3 && w > 0 && !opts.some((v) => Math.abs(v - w) < 0.001)) opts.push(w);
+      kgShuffle(opts);
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = q.svg;
+      ctx.ask(`這個${q.name}的${word}是多少？（單位：公分${q.pi ? '，圓周率用 3.14' : ''}）`);
+      ctx.msg(i ? '' : T('周長是繞一圈的長度，面積是裡面有多大。圖只是示意，要看標的數字喔！', 'Perimeter goes around; area fills the inside. Read the numbers!'));
+      ctx.buttons(opts.map((v, j) => ({ html: `${PERIM_NUM(v)} ${unit}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.indexOf(ansV)].className = 'opt right';
+        const why = `${word} ＝ ${isP ? q.pf : q.af} ＝ ${PERIM_NUM(ansV)} ${unit}。`;
+        if (v === ansV) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${why}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`📐 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `📐 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 5 ? '太厲害了，連老師都要跟你學！' : '沒關係，老師也是一步一步學的，我們再練一次！'}`)), 3200);
+      } })));
+    };
+    next();
+  },
+};
+
+/* ---- 紙編織杯墊（方老師）：照著左邊的範本，點右邊的格子翻面（直條在上／橫條在上），編完 3 個杯墊。
+   不會失敗，多翻幾次也編得出來；全部編完看多翻了幾次給星星（4 次以內 3 顆、10 次以內 2 顆、其他 1 顆） ---- */
+const WEAVE_PATTERNS = [
+  ['平紋', '10101/01010/10101/01010/10101'], ['斜紋', '11001/01100/00110/10011/11001'], ['菱形', '00100/01110/11111/01110/00100'],
+  ['叉叉', '10001/01010/00100/01010/10001'], ['回字', '11111/10001/10101/10001/11111'], ['條紋', '11111/00000/11111/00000/11111'],
+];
+const WEAVE_COLS = [['#e8505b', '#fbe3a0'], ['#2f7fc1', '#f6efe0'], ['#3f9a5a', '#f6d44c'], ['#8a5ac0', '#f3c6d8']];
+const weaveCell = (on, col, px) => `width:${px}px;height:${px}px;padding:0;border:0;border-radius:0;background:${on
+  ? `linear-gradient(90deg,${col[0]} 12%,rgba(255,255,255,.25) 50%,${col[0]} 88%),${col[0]}`
+  : `linear-gradient(0deg,${col[1]} 12%,rgba(0,0,0,.12) 50%,${col[1]} 88%),${col[1]}`};box-shadow:inset 0 0 0 1px rgba(0,0,0,.28)`;
+const KG_WEAVE = {
+  key: 'campus-weave-best', title: ['🧵 紙編織杯墊', '🧵 Paper Weaving'], label: ['🧵 編紙杯墊…', '🧵 Weaving…'],
+  bye: (n) => T(`🧵 下次再來找${n.name}編杯墊！`, `🧵 Come back and weave with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, N = 3, pats = kgShuffle(WEAVE_PATTERNS.slice()).slice(0, N), cols = kgShuffle(WEAVE_COLS.slice());
+    let i = 0, extra = 0;
+    const next = () => {
+      const [pname, str] = pats[i], want = str.split('/').map((r) => [...r].map((c) => c === '1')), col = cols[i];
+      const mine = want.map((r) => r.map(() => false));
+      const need = want.flat().filter(Boolean).length;
+      let clicks = 0;
+      const grid = (px) => { const g = document.createElement('div'); g.style.cssText = `display:grid;grid-template-columns:repeat(5,${px}px);border:3px solid #6b4a2a;border-radius:4px`; return g; };
+      const sample = grid(20); want.flat().forEach((v) => { const d = document.createElement('div'); d.style.cssText = weaveCell(v, col, 20); sample.appendChild(d); });
+      const board = grid(36);
+      const check = () => want.every((r, y) => r.every((v, x) => v === mine[y][x]));
+      mine.forEach((r, y) => r.forEach((_, x) => {
+        const b = document.createElement('button'); b.style.cssText = weaveCell(false, col, 36) + ';cursor:pointer';
+        b.onclick = () => {
+          if (check()) return;
+          mine[y][x] = !mine[y][x]; b.style.cssText = weaveCell(mine[y][x], col, 36) + ';cursor:pointer'; clicks++;
+          if (!check()) return;
+          extra += Math.max(0, clicks - need); ctx.face('happy');
+          ctx.msg(`⭕ ${T(`${pname}杯墊編好了！`, 'Mat finished!')}`, 'ok');
+          ctx.later(() => {
+            if (++i < N) return next();
+            const stars = extra <= 4 ? 3 : extra <= 10 ? 2 : 1;
+            ctx.end(stars, (bst) => `${T(`🧵 編好 ${N} 個杯墊，得到 ${'⭐'.repeat(stars)}（最好紀錄 ${bst} 顆星）`, `🧵 ${N} mats woven: ${stars} star(s) (best ${bst})`)}<br>${n.name}：每一個都是獨一無二的作品，你好棒！`);
+          }, 1500);
+        };
+        board.appendChild(b);
+      }));
+      const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:14px;align-items:center;justify-content:center';
+      const lab = (txt, el) => { const d = document.createElement('div'); d.style.cssText = 'text-align:center;font-size:12px;color:#666'; d.textContent = txt; d.appendChild(el); return d; };
+      wrap.append(lab('範本', sample), lab('我的杯墊', board));
+      ctx.stage.innerHTML = ''; ctx.stage.appendChild(wrap);
+      ctx.prog(T(`第 ${i + 1} / ${N} 個杯墊`, `Mat ${i + 1} / ${N}`));
+      ctx.ask(`照著範本編「${pname}」杯墊：點格子把紙條翻面！`);
+      ctx.msg(i ? '' : T('編錯沒關係，再點一次就翻回來了。', 'Made a mistake? Click again to flip it back.'));
+      ctx.buttons([]);
+    };
+    next();
+  },
+};
+
+/* ---- 藝文分類（吳老師，六年五班）：藝術領域的三大類，看到一個活動，選它屬於視覺藝術、音樂、還是表演藝術，一回 8 題 ---- */
+const ARTS_CATS = ['視覺藝術', '音樂', '表演藝術'];
+const ARTS_ITEMS = [
+  { e: '🎨', w: '水彩畫', c: 0, why: '用眼睛欣賞的畫作' }, { e: '✏️', w: '素描', c: 0, why: '用線條和明暗畫出來的畫' }, { e: '🖼️', w: '版畫', c: 0, why: '刻好版再印出來的畫' },
+  { e: '🗿', w: '雕塑', c: 0, why: '用眼睛欣賞的立體作品' }, { e: '🏺', w: '陶藝', c: 0, why: '用陶土做出來的作品' }, { e: '🖌️', w: '書法', c: 0, why: '欣賞文字線條的美' }, { e: '📷', w: '攝影', c: 0, why: '用相機創作的影像作品' },
+  { e: '🎤', w: '合唱', c: 1, why: '用歌聲表現的音樂' }, { e: '🎹', w: '鋼琴演奏', c: 1, why: '用樂器表現的音樂' }, { e: '🪈', w: '直笛吹奏', c: 1, why: '用樂器表現的音樂' }, { e: '🎼', w: '作曲', c: 1, why: '創作旋律和節奏' }, { e: '🎻', w: '國樂團', c: 1, why: '用二胡、笛子等傳統樂器合奏' }, { e: '🥁', w: '打擊樂', c: 1, why: '用鼓等樂器敲出節奏' },
+  { e: '💃', w: '舞蹈', c: 2, why: '用身體動作來表演' }, { e: '🎭', w: '戲劇', c: 2, why: '由演員在舞臺上演出故事' }, { e: '🎎', w: '布袋戲', c: 2, why: '操作戲偶來演出故事' }, { e: '🏮', w: '歌仔戲', c: 2, why: '臺灣的傳統戲曲，邊唱邊演故事' }, { e: '😂', w: '相聲', c: 2, why: '用說學逗唱來表演' }, { e: '🤐', w: '默劇', c: 2, why: '不說話，只用動作和表情來表演' },
+];
+const KG_ARTS = {
+  key: 'campus-arts-best', title: ['🎭 藝文分類', '🎭 Arts Categories'], label: ['🎭 藝文分類…', '🎭 Arts categories…'],
+  bye: (n) => T(`🎭 下次再來找${n.name}玩藝文分類！`, `🎭 Come back and play with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, N = 8, qs = kgShuffle(ARTS_ITEMS.slice()).slice(0, N);
+    let i = 0, right = 0;
+    const next = () => {
+      const q = qs[i];
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = `<span class="big">${q.e}</span><div style="font-size:26px;font-weight:700;margin-left:10px">${q.w}</div>`;
+      ctx.ask(`「${q.w}」屬於哪一類？`);
+      ctx.msg(i ? '' : T('視覺藝術用眼睛看、音樂用耳朵聽、表演藝術有人在臺上演！', 'Visual art you see, music you hear, performing arts happen on stage!'));
+      ctx.buttons(ARTS_CATS.map((c, j) => ({ html: `${c}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[q.c].className = 'opt right';
+        const why = `${q.w}是${ARTS_CATS[q.c]}：${q.why}。`;
+        if (j === q.c) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${why}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`🎭 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `🎭 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 6 ? '你對藝文好熟悉！' : '多看多聽就會越來越熟悉，下次再來！'}`)), 2400);
+      } })));
+    };
+    next();
+  },
+};
+
+/* ---- 剪紙猜一猜（陳主任，輔導室）：紙對摺後剪掉幾格，猜打開以後是哪一張（正確的是沿摺線左右對稱），一回 6 題。
+   另外兩個選項：右半邊沒有鏡射、整張上下顛倒 ---- */
+const cutSvg = (cells, w, cellPx, fold) => {
+  const h = cells.length;
+  let s = `<svg viewBox="0 0 ${w * cellPx} ${h * cellPx}" width="${w * cellPx}" height="${h * cellPx}"><rect width="${w * cellPx}" height="${h * cellPx}" fill="#d6333f"/>`;
+  cells.forEach((r, y) => r.forEach((v, x) => { if (v) s += `<rect x="${x * cellPx}" y="${y * cellPx}" width="${cellPx}" height="${cellPx}" fill="#fffdf6"/>`; }));
+  s += `<rect x="1" y="1" width="${w * cellPx - 2}" height="${h * cellPx - 2}" fill="none" stroke="#8a1c25" stroke-width="2"/>`;   // 紙的外框：剪到邊邊時才看得出紙的形狀
+  if (fold) s += `<line x1="${w * cellPx - 1}" y1="0" x2="${w * cellPx - 1}" y2="${h * cellPx}" stroke="#222" stroke-width="2" stroke-dasharray="5 4"/>`;
+  return s + '</svg>';
+};
+const cutRound = () => {
+  const W = 3, H = 5;
+  for (;;) {
+    const half = Array.from({ length: H }, () => Array.from({ length: W }, () => Math.random() < 0.38));
+    const good = half.map((r) => [...r, ...[...r].reverse()]);
+    const noMirror = half.map((r) => [...r, ...r]);
+    const upside = [...good].reverse();
+    const key = (g) => g.map((r) => r.map(Number).join('')).join('/');
+    if (new Set([key(good), key(noMirror), key(upside)]).size < 3) continue;
+    const holes = half.flat().filter(Boolean).length;
+    if (holes < 4 || holes > 9) continue;
+    return { half, good, noMirror, upside };
+  }
+};
+const KG_CUT = {
+  key: 'campus-cut-best', title: ['✂️ 剪紙猜一猜', '✂️ Paper Cutting'], label: ['✂️ 剪紙猜一猜…', '✂️ Paper cutting…'],
+  bye: (n) => T(`✂️ 你很棒唷！下次再來找${n.name}剪紙！`, `✂️ Great job! Come back to ${n.name} for more!`),
+  start(ctx) {
+    const n = ctx.n, N = 6;
+    let i = 0, right = 0;
+    const next = () => {
+      const q = cutRound(), opts = kgShuffle([q.good, q.noMirror, q.upside]);
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = `<div style="text-align:center;font-size:12px;color:#666">虛線是摺線，白色是剪掉的地方<br>${cutSvg(q.half, 3, 14, true)}</div>`;
+      ctx.ask('沿著虛線打開以後，會是哪一張？');
+      ctx.msg('');
+      ctx.buttons(opts.map((g, j) => ({ html: `${cutSvg(g, 6, 12, false)}<small>${j + 1}</small>`, on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.indexOf(q.good)].classList.add('right');
+        if (g === q.good) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！你很棒唷！摺線兩邊就像照鏡子一樣。', 'Correct! Both sides mirror each other.')}`, 'ok'); }
+        else { el.classList.add('wrong'); ctx.face('surprised', 1); ctx.msg(`❌ ${T('加加油！摺線兩邊會像照鏡子一樣，上面和下面的位置不會變。', 'Keep going! Both sides mirror across the fold.')}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`✂️ 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `✂️ ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 5 ? '你很棒唷，繼續努力！' : '加加油，你一定可以的！'}`)), 2200);
+      } })));
+    };
+    next();
+  },
+};
+
 /* ---------------- 樂樂棒球（投打對決）：操場遊戲場西邊草地，張校長投球、你來打 ----------------
    看準球飛到本壘的時機按 F（或「揮棒」）：越準打越遠（全壘打、二壘安打、一壘安打），太早太晚是界外或揮空；
    偏掉的壞球不要揮，四壞球保送；三好球出局，三出局結束，記錄最高得分。 */
@@ -9897,6 +10236,8 @@ const GAME_INFO = {
   weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
   throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
+  perim: [['周長和面積', 'Perimeter & Area'], 'campus-perim-best', ans], arts: [['藝文分類', 'Arts Categories'], 'campus-arts-best', ans], cut: [['剪紙猜一猜', 'Paper Cutting'], 'campus-cut-best', ans],
+  weave: [['紙編織杯墊', 'Paper Weaving'], 'campus-weave-best', (v) => T(`${v} 顆星`, `${v} star(s)`)],
   add4: [['四位數的加減法', '4-Digit Add & Subtract'], 'campus-add4-best', ans],
   tones: [['注音聲調大挑戰', 'Zhuyin Tones'], 'campus-tones-best', ans],
   units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
@@ -11299,4 +11640,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=288').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=290').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
