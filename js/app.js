@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=290';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=290';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=290';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=290';
-import { buildCampusWall } from './wall.js?v=290';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=290';
+import { PanoViewer } from './pano.js?v=291';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=291';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=291';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=291';
+import { buildCampusWall } from './wall.js?v=291';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=291';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4107,9 +4107,9 @@ const NPCS = [
     },
   },
   {
-    name: '吳老師', title: '實習老師', game: 'arts',
-    hello: ['🙋 吳老師：我是來實習的吳老師，請大家多多指教！', '🎭 吳老師：音樂、美術、表演，你最喜歡哪一種？', '✨ 吳老師：聽一首歌、看一幅畫，心情都會變好喔！',
-      '🎨 吳老師：要不要來玩藝文分類？'],
+    name: '吳老師', title: '實習老師', game: 'go',
+    hello: ['🙋 吳老師：我是來實習的吳老師，請大家多多指教！', '⚫ 吳老師：我的專長是圍棋，沒下過也沒關係，我來教你！', '⚪ 吳老師：下圍棋要先學會看「氣」喔！',
+      '🤔 吳老師：要不要來學圍棋？先從吃子開始！'],
     // 4 樓勤學樓六年五班（412 室）：導師丁老師在前面講台，實習老師站教室後面、面向黑板（跟一年一班的李老師一樣）
     places: [
       { floor: '4F', where: '六年五班', game: true, at: () => { const r = rooms.find((x) => x.code === '605'); return [r.m.x2 - 1.0, r.cz, Math.PI / 2]; } },
@@ -4148,27 +4148,27 @@ const NPCS = [
       { floor: '3F', where: '輔導室', game: true, at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 + 1.0, r.cz + 1.75, -Math.PI / 2]; } },
     ],
     look: {
-      // 還沒有照片：先用簡單的造型（黑色短髮、淺藍襯衫、深色長褲），之後有照片再換
-      skin: '#efc9ae', hair: '#1c1816', top: '#bcd3e8', pants: '#2f3440', shoe: '#2b2622',
-      shortHair: true, longSleeve: true, collar: '#dce8f4',
-      pal: { H: '#1c1816', h: '#2e2824', S: '#efc9ae', E: '#2a1610', W: '#ffffff', N: '#dfb094', M: '#b8505a', T: '#ffffff' },
+      // 依照片：棕色帶紅的及肩短髮（旁分）、深色細框眼鏡、開心的笑容；寬鬆的白色短袖 T 恤（褲子、鞋子照片沒拍到）
+      skin: '#efc9ae', hair: '#74452c', top: '#f6f6f2', pants: '#3a4252', shoe: '#e6e6e6',
+      lob: true,
+      pal: { H: '#74452c', h: '#8a5636', S: '#efc9ae', K: '#34343a', E: '#2a1610', W: '#ffffff', B: '#eeb0a6', N: '#dfb094', M: '#b8505a', T: '#ffffff' },
       face: [
         'HHHHHHHHHHHHHHHH',
-        'HHHHHHHhHHHHHHHH',
-        'HHHHHHHHHHHHHHHH',
-        'HHHHHHHHHHHHHHHH',
-        'HHHHHHHHHHHHHHHH',
-        'SSSSSSSSSSSSSSSS',
-        'SSSSSSSSSSSSSSSS',
-        'SSSEESSSSSSEESSS',
-        'SSSEWSSSSSSEWSSS',
-        'SSSSSSSSSSSSSSSS',
-        'SSSSSSSNNSSSSSSS',
-        'SSSSSSSSSSSSSSSS',
-        'SSSSMSSSSSSMSSSS',
-        'SSSSSMMMMMMSSSSS',
-        'SSSSSSSSSSSSSSSS',
-        'SSSSSSSSSSSSSSSS',
+        'HHHHHHhHHHHHHHHH',
+        'HHHHHHSHHHHHHHHH',
+        'HHHHHSSSSHHHHHHH',
+        'HHHHSSSSSSSSHHHH',
+        'HHHSSSSSSSSSSSHH',
+        'HHSKKKSSSSKKKSHH',
+        'HHKSSSKKKKSSSKHH',
+        'HHKSESKSSKSESKHH',
+        'HHSKKKSSSSKKKSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMWWWWWWMSSHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
       ],
     },
   },
@@ -5300,7 +5300,7 @@ function updateAct(dt) {
     : sp.kind === 'throw' ? T(`⚾ 跟${sp.npc.name}去操場投球 <kbd>F</kbd>`, `⚾ Ball toss on the field with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'perim' ? T(`📐 跟${sp.npc.name}算周長和面積 <kbd>F</kbd>`, `📐 Perimeter & area with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'weave' ? T(`🧵 跟${sp.npc.name}編紙杯墊 <kbd>F</kbd>`, `🧵 Paper weaving with ${sp.npc.name} <kbd>F</kbd>`)
-    : sp.kind === 'arts' ? T(`🎭 跟${sp.npc.name}玩藝文分類 <kbd>F</kbd>`, `🎭 Arts categories with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'go' ? T(`⚫ 跟${sp.npc.name}學圍棋 <kbd>F</kbd>`, `⚫ Learn Go with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'cut' ? T(`✂️ 跟${sp.npc.name}玩剪紙猜一猜 <kbd>F</kbd>`, `✂️ Paper cutting with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'add4' ? T(`➕ 跟${sp.npc.name}算四位數的加減法 <kbd>F</kbd>`, `➕ 4-digit math with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'tones' ? T(`🔤 跟${sp.npc.name}玩注音聲調大挑戰 <kbd>F</kbd>`, `🔤 Zhuyin tones with ${sp.npc.name} <kbd>F</kbd>`)
@@ -7442,7 +7442,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get weave() { return KG_WEAVE; }, get arts() { return KG_ARTS; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -8954,36 +8954,147 @@ const KG_WEAVE = {
   },
 };
 
-/* ---- 藝文分類（吳老師，六年五班）：藝術領域的三大類，看到一個活動，選它屬於視覺藝術、音樂、還是表演藝術，一回 8 題 ---- */
-const ARTS_CATS = ['視覺藝術', '音樂', '表演藝術'];
-const ARTS_ITEMS = [
-  { e: '🎨', w: '水彩畫', c: 0, why: '用眼睛欣賞的畫作' }, { e: '✏️', w: '素描', c: 0, why: '用線條和明暗畫出來的畫' }, { e: '🖼️', w: '版畫', c: 0, why: '刻好版再印出來的畫' },
-  { e: '🗿', w: '雕塑', c: 0, why: '用眼睛欣賞的立體作品' }, { e: '🏺', w: '陶藝', c: 0, why: '用陶土做出來的作品' }, { e: '🖌️', w: '書法', c: 0, why: '欣賞文字線條的美' }, { e: '📷', w: '攝影', c: 0, why: '用相機創作的影像作品' },
-  { e: '🎤', w: '合唱', c: 1, why: '用歌聲表現的音樂' }, { e: '🎹', w: '鋼琴演奏', c: 1, why: '用樂器表現的音樂' }, { e: '🪈', w: '直笛吹奏', c: 1, why: '用樂器表現的音樂' }, { e: '🎼', w: '作曲', c: 1, why: '創作旋律和節奏' }, { e: '🎻', w: '國樂團', c: 1, why: '用二胡、笛子等傳統樂器合奏' }, { e: '🥁', w: '打擊樂', c: 1, why: '用鼓等樂器敲出節奏' },
-  { e: '💃', w: '舞蹈', c: 2, why: '用身體動作來表演' }, { e: '🎭', w: '戲劇', c: 2, why: '由演員在舞臺上演出故事' }, { e: '🎎', w: '布袋戲', c: 2, why: '操作戲偶來演出故事' }, { e: '🏮', w: '歌仔戲', c: 2, why: '臺灣的傳統戲曲，邊唱邊演故事' }, { e: '😂', w: '相聲', c: 2, why: '用說學逗唱來表演' }, { e: '🤐', w: '默劇', c: 2, why: '不說話，只用動作和表情來表演' },
+/* ---- 圍棋入門（吳老師，六年五班）：先一步一步教「氣」和「吃子」，再用 7 路小棋盤下吃子棋，先吃到 3 顆就贏。
+   真正的圍棋是比誰圍的地多，吃子棋是初學者常用的入門玩法；吃到顆數就結束，所以不用處理打劫 ---- */
+const goNeighbors = (x, y, N) => [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].filter(([a, b]) => a >= 0 && b >= 0 && a < N && b < N);
+const goGroup = (bd, x, y) => {      // 連在一起的整塊棋和它的氣
+  const N = bd.length, c = bd[y][x], seen = new Set([`${x},${y}`]), stones = [[x, y]], libs = new Set();
+  for (let i = 0; i < stones.length; i++) for (const [a, b] of goNeighbors(stones[i][0], stones[i][1], N)) {
+    if (!bd[b][a]) libs.add(`${a},${b}`);
+    else if (bd[b][a] === c && !seen.has(`${a},${b}`)) { seen.add(`${a},${b}`); stones.push([a, b]); }
+  }
+  return { stones, libs };
+};
+// 試下一步：回傳新棋盤和吃掉幾顆；沒有氣又吃不到子（自殺）就回傳 null
+const goPlay = (bd, x, y, c) => {
+  if (bd[y][x]) return null;
+  const nb = bd.map((r) => r.slice()), N = bd.length, foe = c === 'X' ? 'O' : 'X';
+  nb[y][x] = c;
+  let took = 0;
+  for (const [a, b] of goNeighbors(x, y, N)) {
+    if (nb[b][a] !== foe) continue;
+    const g = goGroup(nb, a, b);
+    if (!g.libs.size) { g.stones.forEach(([u, v]) => { nb[v][u] = ''; }); took += g.stones.length; }
+  }
+  if (!goGroup(nb, x, y).libs.size) return null;
+  return { bd: nb, took };
+};
+const goSvg = (bd, { marks = [], last = null } = {}) => {
+  const N = bd.length, size = 238, cell = size / N, at = (i) => cell * (i + 0.5);
+  let h = `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" style="background:#e3b76a;border-radius:6px;display:block;cursor:pointer">`;
+  for (let i = 0; i < N; i++) h += `<line x1="${at(0)}" y1="${at(i)}" x2="${at(N - 1)}" y2="${at(i)}" stroke="#5a3a18" stroke-width="1.5"/><line x1="${at(i)}" y1="${at(0)}" x2="${at(i)}" y2="${at(N - 1)}" stroke="#5a3a18" stroke-width="1.5"/>`;
+  const r = cell * 0.43;
+  bd.forEach((row, y) => row.forEach((c, x) => {
+    if (c) h += `<circle cx="${at(x)}" cy="${at(y)}" r="${r}" fill="${c === 'X' ? '#222' : '#f8f8f4'}" stroke="${c === 'X' ? '#000' : '#888'}" stroke-width="1.5"/>`;
+  }));
+  // 記號：green 氣、red 不能下、ring 被叫吃
+  for (const [x, y, kind] of marks) {
+    if (kind === 'green') h += `<circle cx="${at(x)}" cy="${at(y)}" r="${cell * 0.2}" fill="#3fbf5a" stroke="#176b2c" stroke-width="1.5"/>`;
+    else if (kind === 'ring') h += `<circle cx="${at(x)}" cy="${at(y)}" r="${r}" fill="none" stroke="#e8352a" stroke-width="3"/>`;
+    else h += `<path d="M${at(x) - cell * 0.2} ${at(y) - cell * 0.2}L${at(x) + cell * 0.2} ${at(y) + cell * 0.2}M${at(x) + cell * 0.2} ${at(y) - cell * 0.2}L${at(x) - cell * 0.2} ${at(y) + cell * 0.2}" stroke="#e8352a" stroke-width="4" stroke-linecap="round"/>`;
+  }
+  if (last) h += `<circle cx="${at(last[0])}" cy="${at(last[1])}" r="${cell * 0.12}" fill="${bd[last[1]][last[0]] === 'X' ? '#fff' : '#222'}"/>`;
+  bd.forEach((row, y) => row.forEach((_, x) => { h += `<rect data-x="${x}" data-y="${y}" x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="transparent"/>`; }));
+  return h + '</svg>';
+};
+const goBoard = (rows) => rows.map((r) => [...r].map((c) => (c === '.' ? '' : c)));
+const GO_LESSONS = [
+  { ask: '第一步：棋子下在哪裡？', msg: '圍棋黑棋先下，兩個人輪流下。棋子要下在線和線的交叉點上，不是格子裡面，下了就不能移動。點棋盤任何一個交叉點試試看！', rows: ['.....', '.....', '.....', '.....', '.....'], any: true, done: '對了，下在交叉點上！' },
+  { ask: '什麼是「氣」？', msg: '棋子上下左右相鄰的空點就是它的「氣」，斜的不算。綠點就是這顆白棋的氣，在中間有 4 口氣。', rows: ['.....', '.....', '..O..', '.....', '.....'], marks: [[2, 1, 'green'], [2, 3, 'green'], [1, 2, 'green'], [3, 2, 'green']] },
+  { ask: '在邊邊和角落，氣比較少', msg: '上面那顆白棋靠邊，只有 3 口氣；左下角那顆只有 2 口氣。所以棋子在角落比較容易被吃掉。', rows: ['..O..', '.....', '.....', '.....', 'O....'], marks: [[1, 0, 'green'], [3, 0, 'green'], [2, 1, 'green'], [0, 3, 'green'], [1, 4, 'green']] },
+  { ask: '吃子：把氣全部堵住！', msg: '棋子的氣全部被堵住，就會被吃掉、拿出棋盤。這顆白棋只剩一口氣了，點那個位置把它吃掉！', rows: ['.....', '..X..', '.XO..', '..X..', '.....'], target: [3, 2], done: '吃到了！白棋沒有氣，就被拿走了。' },
+  { ask: '角落的棋更好吃', msg: '角落的白棋只剩一口氣。找找看，要下在哪裡才吃得到？', rows: ['OX...', '.....', '.....', '.....', '.....'], target: [0, 1], done: '沒錯！角落只要兩顆就能把它圍住。' },
+  { ask: '連在一起的棋，氣是一起算的', msg: '兩顆白棋連在一起是一家人，要把整塊的氣都堵住才吃得掉。它們只剩一口氣了，一次吃兩顆！', rows: ['.....', '.XX..', 'XOO..', '.XX..', '.....'], target: [3, 2], done: '太棒了，一次吃掉兩顆！' },
+  { ask: '被「叫吃」了，快逃！', msg: '只剩一口氣的棋叫「被叫吃」。你的黑棋快被吃掉了！往那口氣的方向接一顆棋出去，氣就變多了。', rows: ['.....', '..O..', '.OXO.', '.....', '.....'], target: [2, 3], done: '逃出來了！兩顆黑棋連起來，現在有 3 口氣。' },
+  { ask: '不能下的地方', msg: '紅叉的位置四周都被白棋堵住，下去馬上沒有氣，所以不能下。不過，如果下去可以吃掉對方的棋，就可以下。', rows: ['.O...', 'O....', '.....', '.....', '.....'], marks: [[0, 0, 'x']] },
 ];
-const KG_ARTS = {
-  key: 'campus-arts-best', title: ['🎭 藝文分類', '🎭 Arts Categories'], label: ['🎭 藝文分類…', '🎭 Arts categories…'],
-  bye: (n) => T(`🎭 下次再來找${n.name}玩藝文分類！`, `🎭 Come back and play with ${n.name}!`),
+const KG_GO = {
+  key: 'campus-go-wins', title: ['⚫ 圍棋入門', '⚫ Intro to Go'], label: ['⚫ 學圍棋中…', '⚫ Learning Go…'],
+  bye: (n) => T(`⚫ 下次再來找${n.name}下圍棋！`, `⚫ Come back for Go with ${n.name}!`),
   start(ctx) {
-    const n = ctx.n, N = 8, qs = kgShuffle(ARTS_ITEMS.slice()).slice(0, N);
-    let i = 0, right = 0;
-    const next = () => {
-      const q = qs[i];
-      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
-      ctx.stage.innerHTML = `<span class="big">${q.e}</span><div style="font-size:26px;font-weight:700;margin-left:10px">${q.w}</div>`;
-      ctx.ask(`「${q.w}」屬於哪一類？`);
-      ctx.msg(i ? '' : T('視覺藝術用眼睛看、音樂用耳朵聽、表演藝術有人在臺上演！', 'Visual art you see, music you hear, performing arts happen on stage!'));
-      ctx.buttons(ARTS_CATS.map((c, j) => ({ html: `${c}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
-        ctx.btnEls.forEach((b) => (b.disabled = true));
-        ctx.btnEls[q.c].className = 'opt right';
-        const why = `${q.w}是${ARTS_CATS[q.c]}：${q.why}。`;
-        if (j === q.c) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${why}`, 'ok'); }
-        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${why}`, 'no'); }
-        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`🎭 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `🎭 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 6 ? '你對藝文好熟悉！' : '多看多聽就會越來越熟悉，下次再來！'}`)), 2400);
-      } })));
+    const n = ctx.n, GOAL = 3;
+    const show = (bd, opt, onPick) => {
+      ctx.stage.innerHTML = goSvg(bd, opt);
+      ctx.stage.firstChild.onclick = (e) => { const d = e.target.dataset; if (d?.x !== undefined) onPick(+d.x, +d.y); };
     };
-    next();
+    const lesson = (i) => {
+      if (i >= GO_LESSONS.length) return game();
+      const L = GO_LESSONS[i], bd = goBoard(L.rows), go = () => lesson(i + 1);
+      ctx.prog(T(`教學 ${i + 1} / ${GO_LESSONS.length}`, `Lesson ${i + 1} / ${GO_LESSONS.length}`));
+      ctx.ask(L.ask); ctx.msg(L.msg);
+      const nextBtn = () => ctx.buttons([{ html: i + 1 < GO_LESSONS.length ? '下一步' : '開始下棋！', cls: 'wide', on: go }]);
+      if (!L.any && !L.target) { show(bd, { marks: L.marks }, () => {}); return nextBtn(); }
+      ctx.buttons([]);
+      let solved = false;
+      show(bd, { marks: L.marks }, (x, y) => {
+        if (solved) return;
+        if (L.target && (x !== L.target[0] || y !== L.target[1])) { ctx.face('surprised', 1); return ctx.msg(`不是這裡喔，再找找看！${L.msg}`, 'no'); }
+        const r = goPlay(bd, x, y, 'X');
+        if (!r) return;
+        solved = true; ctx.face('happy');
+        ctx.stage.innerHTML = goSvg(r.bd, { last: [x, y] }); ctx.msg(`⭕ ${L.done}`, 'ok'); nextBtn();
+      });
+    };
+    const game = () => {
+      const N = 7;
+      let bd = Array.from({ length: N }, () => Array(N).fill('')), mine = 0, foe = 0, last = null, busy = false, over = false;
+      const moves = (b, c) => { const out = []; b.forEach((row, y) => row.forEach((_, x) => { const r = goPlay(b, x, y, c); if (r) out.push({ x, y, ...r }); })); return out; };
+      const atari = (b, c) => { const hit = []; b.forEach((row, y) => row.forEach((v, x) => { if (v === c && goGroup(b, x, y).libs.size === 1) hit.push([x, y]); })); return hit; };
+      const draw = () => {
+        const rings = [...atari(bd, 'X'), ...atari(bd, 'O')].map(([x, y]) => [x, y, 'ring']);
+        show(bd, { marks: rings, last }, pick);
+        ctx.prog(T(`你吃 ${mine} 顆・老師吃 ${foe} 顆（先吃到 ${GOAL} 顆贏）`, `You ${mine} · Teacher ${foe} (first to ${GOAL})`));
+      };
+      const finish = (txt, won) => {
+        over = true; draw(); ctx.face(won ? 'surprised' : 'happy', 2);
+        ctx.later(() => ctx.end(won ? ctx.best + 1 : 0, (b) => `${txt}（贏老師 ${b} 次）<br>${n.name}：${won ? '好厲害！你已經會看氣了！' : '沒關係，多看幾次「氣」就會越來越強！'}`), 1200);
+      };
+      const noMove = () => finish(mine === foe ? '⚫ 棋盤下滿了，平手！' : mine > foe ? '⚫ 棋盤下滿了，你吃得比較多，你贏了！' : '⚫ 棋盤下滿了，老師吃得比較多。', mine > foe);
+      // 老師：能吃就吃、自己被叫吃就逃、再來才叫吃對方；偶爾會看漏，小朋友才有機會贏
+      const teacher = () => {
+        const list = moves(bd, 'O');
+        if (!list.length) return noMove();
+        const sloppy = Math.random() < 0.3, mineAtari = atari(bd, 'O').length;
+        let bestM = null, bestS = -Infinity;
+        for (const m of list) {
+          const libs = goGroup(m.bd, m.x, m.y).libs.size;
+          let sc = Math.random() * 4 + (goNeighbors(m.x, m.y, N).length === 4 ? 2 : 0);
+          if (goNeighbors(m.x, m.y, N).some(([a, b]) => bd[b][a] === 'X')) sc += 3;
+          if (libs === 1 && !m.took) sc -= 30;
+          if (!sloppy) {
+            if (m.took) sc += 100 + m.took;
+            if (mineAtari && atari(m.bd, 'O').length < mineAtari) sc += 50;
+            if (libs >= 2 && atari(m.bd, 'X').length > atari(bd, 'X').length) sc += 20;
+          }
+          if (sc > bestS) { bestS = sc; bestM = m; }
+        }
+        bd = bestM.bd; foe += bestM.took; last = [bestM.x, bestM.y]; busy = false;
+        if (foe >= GOAL) { ctx.msg(`老師吃到 ${GOAL} 顆了！`, 'no'); return finish(`⚫ 這盤老師贏了（你吃 ${mine} 顆）`, false); }
+        draw();
+        if (!moves(bd, 'X').length) return noMove();
+        ctx.msg(bestM.took ? `老師吃掉你 ${bestM.took} 顆！` : atari(bd, 'X').length ? '紅圈的黑棋被叫吃了，快救它！' : atari(bd, 'O').length ? '紅圈的白棋只剩一口氣，吃掉它！' : '換你下。', bestM.took || atari(bd, 'X').length ? 'no' : 'ok');
+      };
+      function pick(x, y) {
+        if (busy || over) return;
+        if (bd[y][x]) return ctx.msg('這裡已經有棋子了。', 'no');
+        const r = goPlay(bd, x, y, 'X');
+        if (!r) return ctx.msg('這裡下去會沒有氣，不能下喔！', 'no');
+        bd = r.bd; mine += r.took; last = [x, y];
+        if (r.took) ctx.face('surprised', 1);
+        if (mine >= GOAL) { ctx.msg(`你吃到 ${GOAL} 顆了！`, 'ok'); return finish(`⚫ 你贏了！吃到 ${mine} 顆（老師吃 ${foe} 顆）`, true); }
+        busy = true; draw(); ctx.msg(r.took ? `⭕ 吃掉 ${r.took} 顆！老師想想…` : '老師想想…', r.took ? 'ok' : '');
+        ctx.later(teacher, 700);
+      }
+      ctx.ask('吃子棋：你下黑棋，先吃到 3 顆就贏！');
+      ctx.msg('紅圈代表那塊棋只剩一口氣。');
+      ctx.buttons([{ html: '再看一次教學', cls: 'wide', on: () => lesson(0) }]);
+      draw();
+    };
+    ctx.prog('');
+    ctx.ask('圍棋入門：吃子棋');
+    ctx.msg('真正的圍棋是比誰圍的地比較大，初學者通常先從「吃子」開始學。沒下過的話，先看教學喔！');
+    ctx.stage.innerHTML = '<span class="big">⚫⚪</span>';
+    ctx.buttons([{ html: '先看教學', cls: 'wide', on: () => lesson(0) }, { html: '直接下棋', cls: 'wide', on: game }]);
   },
 };
 
@@ -10236,7 +10347,7 @@ const GAME_INFO = {
   weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
   throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
-  perim: [['周長和面積', 'Perimeter & Area'], 'campus-perim-best', ans], arts: [['藝文分類', 'Arts Categories'], 'campus-arts-best', ans], cut: [['剪紙猜一猜', 'Paper Cutting'], 'campus-cut-best', ans],
+  perim: [['周長和面積', 'Perimeter & Area'], 'campus-perim-best', ans], go: [['圍棋入門', 'Intro to Go'], 'campus-go-wins', win], cut: [['剪紙猜一猜', 'Paper Cutting'], 'campus-cut-best', ans],
   weave: [['紙編織杯墊', 'Paper Weaving'], 'campus-weave-best', (v) => T(`${v} 顆星`, `${v} star(s)`)],
   add4: [['四位數的加減法', '4-Digit Add & Subtract'], 'campus-add4-best', ans],
   tones: [['注音聲調大挑戰', 'Zhuyin Tones'], 'campus-tones-best', ans],
@@ -11640,4 +11751,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=290').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=291').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
