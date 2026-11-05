@@ -1,0 +1,38 @@
+rules_version = '2';
+// 溪口國小 3D 校園：只有學校網域、email 已驗證的帳號能存取，而且每個人只能讀寫自己的那一份進度
+//   老師 @skps.tp.edu.tw → role 'teacher'；學生 @st.skps.tp.edu.tw → role 'student'
+// 這個檔案不會自動生效：改完要貼到 Firebase 主控台 → Firestore Database → 規則 → 發布
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function emailMatches(re) { return request.auth.token.email.lower().matches(re); }
+    function isTeacher() { return signedIn() && emailMatches('[^@]+@skps[.]tp[.]edu[.]tw'); }
+    function isStudent() { return signedIn() && emailMatches('[^@]+@st[.]skps[.]tp[.]edu[.]tw'); }
+    function isSchool() { return isTeacher() || isStudent(); }
+    function myRole() { return isTeacher() ? 'teacher' : 'student'; }
+
+    // 進度大小上限：目前約 60 個 key，護照最多幾千字；留足夠的空間給之後的新遊戲，但擋住灌大量資料
+    function savedIsSmall(saved) {
+      return saved is map
+        && saved.size() <= 300
+        && saved.keys().join('').size() <= 10000
+        && saved.values().join('').size() <= 50000;
+    }
+
+    match /users/{uid} {
+      allow read: if isSchool() && request.auth.uid == uid;
+      allow create, update: if isSchool() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['email', 'role', 'saved', 'updatedAt'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == myRole()
+        && savedIsSmall(request.resource.data.saved)
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    // 其他一律不行
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
