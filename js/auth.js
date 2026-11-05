@@ -39,6 +39,8 @@ const SCORE = /^campus-(cat-found|sand-castles|rps-wins.*|.+-(best|wins|count))$
 const FEWER_IS_BETTER = new Set(['campus-colors-best']);
 const PASSPORT = 'campus-passport';
 const DIRTY_KEY = 'campus-sync-dirty';
+const isProgress = (k) => !/^campus-(avatar|outfit|outfit-bbgirl)$/.test(k);   // 角色、服裝不算進度
+const hasProgress = (saved) => Object.keys(saved).some((k) => SYNC.test(k) && isProgress(k));
 const positive = (v) => { const n = Number(v); return n > 0 ? n : 0; };   // 壞掉的值、0 都當作沒有紀錄
 function mergeScore(k, a, b) {
   const x = positive(a), y = positive(b);
@@ -159,7 +161,16 @@ export async function initLogin({ T, toast }) {
     }
     const before = JSON.stringify(snapshot());
     // 上次沒傳完的（關掉分頁、斷網）是這個帳號自己的，先合併進來；別的帳號留下的不算
-    const pending = loadDirty(u.uid);
+    let pending = loadDirty(u.uid);
+    // 帳號第一次使用（雲端還沒有進度）：問要不要把這台電腦的訪客進度帶進帳號；角色、服裝是剛選的，不用問，直接留著
+    if (!pending.length && !hasProgress(cloud)) {
+      const local = Object.keys(snapshot());
+      const bring = local.some(isProgress) && confirm(T(
+        '這台電腦有訪客時的遊戲進度，要帶進你的帳號嗎？\n\n按「確定」：帶進帳號\n按「取消」：不帶，帳號從頭開始（這台電腦的訪客進度會清掉）',
+        'This computer has guest progress. Bring it into your account?\n\nOK: bring it in\nCancel: start fresh (guest progress on this computer will be cleared)'));
+      pending = local.filter((k) => (bring || !isProgress(k)) && !(k in cloud));
+      if (!bring) for (const k of local) if (isProgress(k)) localStorage.removeItem(k);
+    }
     const next = pending.length ? mergeSaved(cloud, snapshot(), pending) : cloud;
     for (const k of syncKeys()) if (!(k in next)) localStorage.removeItem(k);
     for (const [k, v] of Object.entries(next)) if (SYNC.test(k) && typeof v === 'string') setItem.call(localStorage, k, v);
