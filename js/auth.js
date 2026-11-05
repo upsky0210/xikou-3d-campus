@@ -9,7 +9,10 @@
          上傳時先讀雲端那份合併再寫回（mergeSaved），舊電腦不會蓋掉新紀錄。
          登入時用雲端那份蓋掉這台電腦的進度（共用電腦不會混到別人的）；登出時清掉這台電腦的進度。
          遊戲大多在開始時才讀進度，換了資料就重新整理一次。
-   Firebase 連不上（例如網路擋掉 gstatic）時不影響逛校園，只是登入按鈕不會出現。 */
+   Firebase 連不上（例如網路擋掉 gstatic）時不影響逛校園，只是登入按鈕不會出現。
+   沒有打開 Firestore 本機快取（persistentLocalCache）：離線排隊的寫入不能先讀雲端再合併，連上線時會直接蓋掉新紀錄；
+   這裡的進度本來就在 localStorage，沒傳完的 key 也記著（DIRTY_KEY），不需要第二份。
+   快取還會把 email 和進度留在共用電腦的 IndexedDB，登出時又要另外清。 */
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
 const CONFIG = {
@@ -35,6 +38,7 @@ const snapshot = () => Object.fromEntries(syncKeys().map((k) => [k, localStorage
 const SCORE = /^campus-(cat-found|sand-castles|rps-wins.*|.+-(best|wins|count))$/;
 const FEWER_IS_BETTER = new Set(['campus-colors-best']);
 const PASSPORT = 'campus-passport';
+const DIRTY_KEY = 'campus-sync-dirty';
 const positive = (v) => { const n = Number(v); return n > 0 ? n : 0; };   // 壞掉的值、0 都當作沒有紀錄
 function mergeScore(k, a, b) {
   const x = positive(a), y = positive(b);
@@ -69,7 +73,10 @@ export async function initLogin({ T, toast }) {
   ]);
   const app = initializeApp(CONFIG), auth = A.getAuth(app), db = F.getFirestore(app);
   const setItem = Storage.prototype.setItem;
-  const dirty = new Set();     // 這台電腦改過、還沒上傳成功的 key
+  // 這台電腦改過、還沒上傳成功的 key；也記在 localStorage，關掉分頁、斷網也不會丟，下次登入時補傳
+  const dirty = new Set();
+  const saveDirty = () => { try { if (dirty.size) setItem.call(localStorage, DIRTY_KEY, JSON.stringify({ uid: user.uid, keys: [...dirty] })); else localStorage.removeItem(DIRTY_KEY); } catch { /* 私密模式 */ } };
+  const loadDirty = (uid) => { try { const o = JSON.parse(localStorage.getItem(DIRTY_KEY)); return o?.uid === uid && Array.isArray(o.keys) ? o.keys : []; } catch { return []; } };
   let user = null, role = null, timer = 0;
 
   // 上傳：進度有變動 1.5 秒後存一次（連續答題不會一直寫）。先讀雲端那份合併再寫回；兩邊一樣就不寫。
@@ -86,14 +93,18 @@ export async function initLogin({ T, toast }) {
       // 上傳期間又有變動的 key（值已經不一樣）留著下次傳；其他的把合併結果（可能是別台電腦的新紀錄）寫回這台
       const changedSince = (k) => { try { return localStorage.getItem(k) !== (local[k] ?? null); } catch { return false; } };
       for (const k of keys) if (!changedSince(k)) dirty.delete(k);
+      saveDirty();
       for (const [k, v] of Object.entries(merged)) if (!dirty.has(k) && !changedSince(k) && local[k] !== v) { try { setItem.call(localStorage, k, v); } catch { /* 私密模式 */ } }
     } catch (e) { console.warn('進度上傳失敗', e); }
   };
   Storage.prototype.setItem = function (k, v) {
     setItem.call(this, k, v);
-    if (user && this === localStorage && SYNC.test(k)) { dirty.add(k); clearTimeout(timer); timer = setTimeout(upload, 1500); }
+    if (user && this === localStorage && SYNC.test(k)) { dirty.add(k); saveDirty(); clearTimeout(timer); timer = setTimeout(upload, 1500); }
   };
-  addEventListener('pagehide', () => { if (timer) { clearTimeout(timer); upload(); } });
+  // 一場遊戲結束就立刻上傳；切走分頁、回到分頁、網路恢復時補傳（upload 沒東西要傳時什麼都不做）
+  addEventListener('campus:game-end', upload);
+  document.addEventListener('visibilitychange', upload);
+  addEventListener('online', upload);
 
   // 按鈕：上方工具列一顆、首頁一顆
   const topBtn = document.getElementById('loginBtn'), coverBtn = document.querySelector('#cover [data-act=login]');
@@ -115,7 +126,9 @@ export async function initLogin({ T, toast }) {
   };
   const signOutHere = async () => {
     if (!confirm(T(`要登出 ${user.email} 嗎？\n（進度已經存在雲端，這台電腦上的會清掉）`, `Sign out ${user.email}?`))) return;
-    if (timer) { clearTimeout(timer); await upload(); }
+    await upload();
+    if (dirty.size && !confirm(T('還有進度沒有上傳成功（可能是網路問題），現在登出這些進度會不見。確定要登出嗎？', 'Some progress has not been uploaded (possibly a network problem) and will be lost if you sign out now. Sign out anyway?'))) return;
+    dirty.clear(); saveDirty();
     for (const k of syncKeys()) localStorage.removeItem(k);
     try { sessionStorage.removeItem('campus-auth-reload'); } catch { /* 私密模式 */ }
     await A.signOut(auth);
@@ -145,9 +158,15 @@ export async function initLogin({ T, toast }) {
       return;
     }
     const before = JSON.stringify(snapshot());
-    for (const k of syncKeys()) if (!(k in cloud)) localStorage.removeItem(k);
-    for (const [k, v] of Object.entries(cloud)) if (SYNC.test(k) && typeof v === 'string') setItem.call(localStorage, k, v);
+    // 上次沒傳完的（關掉分頁、斷網）是這個帳號自己的，先合併進來；別的帳號留下的不算
+    const pending = loadDirty(u.uid);
+    const next = pending.length ? mergeSaved(cloud, snapshot(), pending) : cloud;
+    for (const k of syncKeys()) if (!(k in next)) localStorage.removeItem(k);
+    for (const [k, v] of Object.entries(next)) if (SYNC.test(k) && typeof v === 'string') setItem.call(localStorage, k, v);
     user = u; role = r; render();
+    for (const k of pending) dirty.add(k);
+    saveDirty();
+    await upload();
     // 換了進度：重新整理讓遊戲讀到新的（同一個分頁只重整一次，避免開場自動寫入的值造成一直重整）
     let reloaded = false; try { reloaded = sessionStorage.getItem('campus-auth-reload') === u.uid; sessionStorage.setItem('campus-auth-reload', u.uid); } catch { /* 私密模式 */ }
     if (!reloaded && JSON.stringify(snapshot()) !== before) { location.reload(); return; }

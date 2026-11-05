@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=294';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=294';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=294';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=294';
-import { buildCampusWall } from './wall.js?v=294';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=294';
+import { PanoViewer } from './pano.js?v=295';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=295';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=295';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=295';
+import { buildCampusWall } from './wall.js?v=295';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, makeRacket, makeShuttle, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=295';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5263,9 +5263,13 @@ function hamsterHint() {
   if (hamsterWait && performance.now() > hamsterWait && !document.getElementById('toast').classList.contains('on')) { hamsterWait = false; toast(T('🐹 這是竹竹老師的倉鼠奶茶', "🐹 This is 竹竹老師's hamster, Milk Tea")); }
   hamsterNear = near;
 }
+let wasPlaying = false;
 function updateAct(dt) {
   hamsterHint();
   if (act.busy) act.busy.tick(dt);
+  const playing = !!(act.busy || duel);
+  if (wasPlaying && !playing) dispatchEvent(new Event('campus:game-end'));   // auth.js 收到就馬上上傳進度
+  wasPlaying = playing;
   busWedgeCheck();
   act.spot = act.busy ? null : badmintonSpot() || pondSpot() || nearestSpot();   // 靠近老師時打羽球優先（活動中心也有籃框）
   const sp = act.spot;
@@ -11751,4 +11755,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=294').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=295').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
