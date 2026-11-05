@@ -127,7 +127,8 @@ export async function initLogin({ T, toast }) {
     }
   };
   const signOutHere = async () => {
-    if (!confirm(T(`要登出 ${user.email} 嗎？\n（進度已經存在雲端，這台電腦上的會清掉）`, `Sign out ${user.email}?`))) return;
+    if (!confirm(T(`要登出 ${user.email} 嗎？\n（進度已經存在雲端，這台電腦上的會清掉）`, `Sign out ${user.email}?
+(Your progress is saved in the cloud. The copy on this computer will be cleared.)`))) return;
     await upload();
     if (dirty.size && !confirm(T('還有進度沒有上傳成功（可能是網路問題），現在登出這些進度會不見。確定要登出嗎？', 'Some progress has not been uploaded (possibly a network problem) and will be lost if you sign out now. Sign out anyway?'))) return;
     dirty.clear(); saveDirty();
