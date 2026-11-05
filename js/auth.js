@@ -6,6 +6,7 @@
            語言、畫質、音樂、時間這類「這台電腦的設定」不上傳。
    只存 email、身分、進度，不存姓名。
    作法：app.js 本來就把進度寫在 localStorage，這裡攔 localStorage.setItem，有進度變動就（延遲一下）上傳；
+         上傳時先讀雲端那份合併再寫回（mergeSaved），舊電腦不會蓋掉新紀錄。
          登入時用雲端那份蓋掉這台電腦的進度（共用電腦不會混到別人的）；登出時清掉這台電腦的進度。
          遊戲大多在開始時才讀進度，換了資料就重新整理一次。
    Firebase 連不上（例如網路擋掉 gstatic）時不影響逛校園，只是登入按鈕不會出現。 */
@@ -27,25 +28,70 @@ export const roleOf = (email) => DOMAINS[String(email || '').toLowerCase().split
 const syncKeys = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (SYNC.test(k)) out.push(k); } } catch { /* 私密模式 */ } return out; };
 const snapshot = () => Object.fromEntries(syncKeys().map((k) => [k, localStorage.getItem(k)]));
 
+/* 合併雲端和這台電腦的進度，舊電腦不會蓋掉新紀錄：
+   - 分數（-best／-wins／-count 這類）取比較好的值；顏色對對碰記「最少翻牌數」，是取小的
+   - 護照是每個章都留（聯集），挑戰尋路次數取大、最快時間取小
+   - 其他（角色、服裝）：這台電腦剛改過的 key（dirtyKeys）用這台的，沒改過就用雲端的 */
+const SCORE = /^campus-(cat-found|sand-castles|rps-wins.*|.+-(best|wins|count))$/;
+const FEWER_IS_BETTER = new Set(['campus-colors-best']);
+const PASSPORT = 'campus-passport';
+const positive = (v) => { const n = Number(v); return n > 0 ? n : 0; };   // 壞掉的值、0 都當作沒有紀錄
+function mergeScore(k, a, b) {
+  const x = positive(a), y = positive(b);
+  return String(FEWER_IS_BETTER.has(k) ? (x && y ? Math.min(x, y) : x || y) : Math.max(x, y));
+}
+function mergePassport(cloud, local) {
+  const parse = (s) => { try { return JSON.parse(s) || {}; } catch { return {}; } };
+  const c = parse(cloud), l = parse(local), out = { ...l, ...c };
+  for (const kind of ['npc', 'pano', 'rooms', 'eggs']) out[kind] = { ...l[kind], ...c[kind] };   // 兩邊都有的章，留雲端那天的日期
+  const best = [positive(c.nav?.best), positive(l.nav?.best)].filter(Boolean);
+  out.nav = { n: Math.max(positive(c.nav?.n), positive(l.nav?.n)), best: best.length ? Math.min(...best) : 0 };
+  return JSON.stringify(out);
+}
+export function mergeSaved(cloud, local, dirtyKeys = []) {
+  const dirty = new Set(dirtyKeys), out = {};
+  for (const k of new Set([...Object.keys(cloud), ...Object.keys(local)])) {
+    if (!SYNC.test(k)) continue;
+    const c = typeof cloud[k] === 'string' ? cloud[k] : undefined, l = local[k];
+    if (c === undefined) out[k] = l;
+    else if (l === undefined) out[k] = c;
+    else if (SCORE.test(k)) out[k] = mergeScore(k, c, l);
+    else if (k === PASSPORT) out[k] = mergePassport(c, l);
+    else out[k] = dirty.has(k) ? l : c;
+  }
+  return out;
+}
+const sameSaved = (a, b) => { const keys = Object.keys(a); return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]); };
+
 export async function initLogin({ T, toast }) {
   const [{ initializeApp }, A, F] = await Promise.all([
     import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js'),
   ]);
   const app = initializeApp(CONFIG), auth = A.getAuth(app), db = F.getFirestore(app);
+  const setItem = Storage.prototype.setItem;
+  const dirty = new Set();     // 這台電腦改過、還沒上傳成功的 key
   let user = null, role = null, timer = 0;
 
-  // 上傳：進度有變動 1.5 秒後存一次（連續答題不會一直寫）
+  // 上傳：進度有變動 1.5 秒後存一次（連續答題不會一直寫）。先讀雲端那份合併再寫回；兩邊一樣就不寫。
   const upload = async () => {
-    timer = 0;
-    if (!user) return;
+    clearTimeout(timer); timer = 0;
+    if (!user || !dirty.size) return;
+    const ref = F.doc(db, 'users', user.uid), local = snapshot(), keys = [...dirty];
     try {
-      await F.setDoc(F.doc(db, 'users', user.uid), { email: user.email, role, saved: snapshot(), updatedAt: F.serverTimestamp() });
+      const merged = await F.runTransaction(db, async (tx) => {
+        const s = await tx.get(ref), cloud = s.exists() ? s.data().saved || {} : {}, next = mergeSaved(cloud, local, keys);
+        if (!s.exists() || !sameSaved(cloud, next)) tx.set(ref, { email: user.email, role, saved: next, updatedAt: F.serverTimestamp() });
+        return next;
+      });
+      // 上傳期間又有變動的 key（值已經不一樣）留著下次傳；其他的把合併結果（可能是別台電腦的新紀錄）寫回這台
+      const changedSince = (k) => { try { return localStorage.getItem(k) !== (local[k] ?? null); } catch { return false; } };
+      for (const k of keys) if (!changedSince(k)) dirty.delete(k);
+      for (const [k, v] of Object.entries(merged)) if (!dirty.has(k) && !changedSince(k) && local[k] !== v) { try { setItem.call(localStorage, k, v); } catch { /* 私密模式 */ } }
     } catch (e) { console.warn('進度上傳失敗', e); }
   };
-  const setItem = Storage.prototype.setItem;
   Storage.prototype.setItem = function (k, v) {
     setItem.call(this, k, v);
-    if (user && this === localStorage && SYNC.test(k)) { clearTimeout(timer); timer = setTimeout(upload, 1500); }
+    if (user && this === localStorage && SYNC.test(k)) { dirty.add(k); clearTimeout(timer); timer = setTimeout(upload, 1500); }
   };
   addEventListener('pagehide', () => { if (timer) { clearTimeout(timer); upload(); } });
 
@@ -105,7 +151,6 @@ export async function initLogin({ T, toast }) {
     // 換了進度：重新整理讓遊戲讀到新的（同一個分頁只重整一次，避免開場自動寫入的值造成一直重整）
     let reloaded = false; try { reloaded = sessionStorage.getItem('campus-auth-reload') === u.uid; sessionStorage.setItem('campus-auth-reload', u.uid); } catch { /* 私密模式 */ }
     if (!reloaded && JSON.stringify(snapshot()) !== before) { location.reload(); return; }
-    if (!reloaded || JSON.stringify(snapshot()) !== before) upload();
     toast(T(`👋 已登入（${r === 'teacher' ? '老師' : '學生'}），進度會自動存起來`, `👋 Signed in (${r}). Progress will be saved.`));
   });
   render();
