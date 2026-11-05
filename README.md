@@ -22,7 +22,15 @@
 | 360° 景點、介紹文字、位置 | `js/pano-data.js` |
 | 圍牆、人行道、榕樹 | `js/wall.js`（位置在 `campus-data.js` 的 `outdoor.wall`） |
 
-改完後把 `index.html` 和 `js/app.js` 裡的 `?v=` 數字加 1，瀏覽器才會讀到新版。
+## 更新版本號
+
+改完程式或資料後，執行這個指令，瀏覽器才會讀到新版：
+
+```bash
+node tools/bump-version.mjs
+```
+
+它會把 `index.html` 和 `js/` 底下所有 `.js`（包含 `basement.js`、`extras.js`、`field.js`、`furniture.js`、`wall.js` 裡的 `blocks.js?v=`）的 `?v=數字` 一次換成同一個新數字。要指定數字可以寫 `node tools/bump-version.mjs 300`。
 
 ## 本機預覽
 

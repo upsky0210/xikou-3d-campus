@@ -992,7 +992,7 @@
   })();
 </script>
 
-<!-- 修改資料或程式後，把 v= 的數字加 1，瀏覽器才會抓新版 -->
+<!-- 修改資料或程式後，執行 node tools/bump-version.mjs 更新全站 v= 數字，瀏覽器才會抓新版 -->
 <script>
   // 先套用介面風格，避免畫面閃一下
   (function () {
@@ -1001,8 +1001,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=291"></script>
-<script src="js/pano-data.js?v=291"></script>
-<script type="module" src="js/app.js?v=291"></script>
+<script src="js/campus-data.js?v=292"></script>
+<script src="js/pano-data.js?v=292"></script>
+<script type="module" src="js/app.js?v=292"></script>
 </body>
 </html>
