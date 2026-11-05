@@ -220,6 +220,8 @@
     estimated: true,
   };
 
-  window.CAMPUS = { PX_PER_M, ORIGIN, floors, buildings, stairs, corridors, rooms, outdoor,
-    source: '溪口平面圖樓層資訊_260803.pdf（115 學年度）' };
+  const schoolYear = 115;        // 學年度：網頁上顯示的都讀這個（換學年度改這裡，index.html 會自動填入）
+
+  window.CAMPUS = { PX_PER_M, ORIGIN, floors, buildings, stairs, corridors, rooms, outdoor, schoolYear,
+    source: `溪口平面圖樓層資訊_260803.pdf（${schoolYear} 學年度）` };
 })();
