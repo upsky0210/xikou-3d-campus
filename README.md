@@ -21,6 +21,7 @@
 | 教室名稱、位置、班級 | `js/campus-data.js` |
 | 360° 景點、介紹文字、位置 | `js/pano-data.js` |
 | 圍牆、人行道、榕樹 | `js/wall.js`（位置在 `campus-data.js` 的 `outdoor.wall`） |
+| 小遊戲 | `js/games/`（靠近老師才載入；新增互動種類要加到 `app.js` 的 `GAME_FILE` 和該檔案最後的 `play`） |
 
 ## 更新版本號
 
