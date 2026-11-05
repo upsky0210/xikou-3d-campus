@@ -657,13 +657,15 @@
   #cover .credit a { color: #c0392b; text-decoration: underline; text-underline-offset: 2px; }
   #cover .credit a:hover { color: #8e1f14; }
   @media (max-width: 760px), (max-aspect-ratio: 23/20) {
-    #cover .intro { left: 16px; right: 16px; top: 18px; max-width: none; }
+    /* 手機：介紹、導覽卡、製作資訊由上往下排，不用固定高度（導覽卡點地點後會變高，英文字也比較多），螢幕太矮時可以捲動 */
+    #cover { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 12px; overflow-y: auto; }
+    #cover .intro { position: relative; left: auto; top: auto; flex: none; margin-bottom: auto; max-width: none; }
     #cover h1 { font-size: 46px; }
     html[lang="en"] #cover h1 { font-size: 34px; }
     #cover .kicker { padding-right: 60px; }   /* 右上角的語言按鈕不要壓到字 */
     #cover .lead { display: none; }
-    #cover .guide { left: 16px; bottom: 88px; }
-    #cover .credit { left: 16px; right: 16px; bottom: 12px; padding: 4px 10px; font-size: 11px; line-height: 1.45; transform: none; box-shadow: 4px 4px 0 rgba(0,0,0,.25); }
+    #cover .guide { position: relative; left: auto; bottom: auto; flex: none; }
+    #cover .credit { position: relative; right: auto; bottom: auto; flex: none; padding: 4px 10px; font-size: 11px; line-height: 1.45; transform: none; box-shadow: 4px 4px 0 rgba(0,0,0,.25); }
     #cover .credit .hd { display: none; }
     #cover .tags { display: none; }                         /* 手機：浮動紙條太擠，改用下面導覽卡的按鈕 */
   }
@@ -1001,8 +1003,8 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/campus-data.js?v=292"></script>
-<script src="js/pano-data.js?v=292"></script>
-<script type="module" src="js/app.js?v=292"></script>
+<script src="js/campus-data.js?v=293"></script>
+<script src="js/pano-data.js?v=293"></script>
+<script type="module" src="js/app.js?v=293"></script>
 </body>
 </html>
