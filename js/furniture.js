@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=309';
-import { trafficBasement } from './basement.js?v=309';
+import { Batch, mat, SPOTS } from './blocks.js?v=310';
+import { trafficBasement } from './basement.js?v=310';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2952,7 +2952,7 @@ function academicAffairs(put, fr, room) {
   put(mat('wool', '#c9ccd1'), 0.7, 0.7, 1.7, L - 0.4, A * (W / 2 - 0.45), 0);
   put(black, 0.3, 0.3, 0.4, L - 0.3, kv + D * 1.2, 0.92);
   // 中間一長排米色櫃台（灰色桌面），面向門
-  const cu0 = 1.0, cu1 = Math.min(5.0, L - 3.3), cv = D * 0.9;
+  const cu0 = 2.2, cu1 = Math.min(5.0, L - 3.3), cv = D * 0.9;   // 北端留約 1.7 m 進門走道（使用者 11-06：原本 1.0 起算，進門被櫃台和書櫃夾住卡死）
   put(cream, cu1 - cu0, 0.6, 0.95, (cu0 + cu1) / 2, cv, 0); put(top, cu1 - cu0 + 0.1, 0.7, 0.05, (cu0 + cu1) / 2, cv, 0.95);
   // 辦公桌：人坐在西邊、臉朝東（門口）；螢幕在東半邊
   const desk = (u, v, du, monitors, chair = ['#2b2d31', '#202226']) => {
@@ -2964,7 +2964,7 @@ function academicAffairs(put, fr, room) {
     officeChair(put, u, v + A * 0.75, 0, D, ...chair);
   };
   // 4 張 OA 屏風桌（2 × 2），在櫃台西邊
-  const rows = [D * 0.9 + A * 1.45, D * 0.9 + A * 3.0], cols = [cu0 + 0.9, cu0 + 2.5];
+  const rows = [D * 0.9 + A * 1.45, D * 0.9 + A * 3.0], cols = [1.9, 3.5];
   for (const v of rows) for (const u of cols) {
     const pink = v === rows[1] && u === cols[0];                      // 靠窗那排北邊這張：粉紅色椅子（依照片）
     desk(u, v, 1.4, [0], pink ? ['#f2a7c0', '#f6c3d4'] : undefined);
