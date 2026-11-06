@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=307';
-import { trafficBasement } from './basement.js?v=307';
+import { Batch, mat, SPOTS } from './blocks.js?v=308';
+import { trafficBasement } from './basement.js?v=308';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1987,7 +1987,8 @@ function principalOffice(put, fr, room) {
   // 西牆：大電視＋玻璃門矮櫃（L 型轉到北牆），上面咖啡機、飲水機、茶葉袋
   put(pale, 0.5, W - 2.0, 0.85, 0.27, A * 1.0, 0);
   for (let i = 0; i < 9; i++) put(mat('glass'), 0.02, 0.5, 0.7, 0.53, A * 1.0 - (W - 2.0) / 2 + 0.3 + i * 0.6, 0.1);
-  put(M.dark(), 0.07, 2.1, 1.2, 0.05, A * 0.6, 1.25); put(tvMat(), 0.08, 2.0, 1.1, 0.08, A * 0.6, 1.3, true);
+  // 電視加大（使用者 11-06）：目前放第 43 屆體育表演會正式邀請卡（115/12/05），活動過後再換回 tvMat()
+  put(M.dark(), 0.07, 3.12, 1.8, 0.05, A * 0.6, 0.9); put(tvImgMat('img/hall/sports-day-115-card.webp'), 0.08, 3.02, 1.7, 0.08, A * 0.6, 0.95, true);
   put(pale, 2.2, 0.5, 0.85, 1.6, A * (W / 2 - 0.27), 0);
   put(mat('wool', '#d32f2f'), 0.3, 0.3, 0.38, 1.0, A * (W / 2 - 0.3), 0.85);       // 紅色咖啡機
   put(white, 0.4, 0.35, 0.45, 1.6, A * (W / 2 - 0.3), 0.85);                        // 飲水機
