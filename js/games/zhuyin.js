@@ -1,7 +1,7 @@
 /* 注音符號大闖關
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=308';
-import { T, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=308';
+import { faceTeacher } from './common.js?v=309';
+import { T, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=309';
 
 /* ---------------- 注音符號大闖關：在一年一班遇到林老師，三關、每關 4 題、三顆愛心 ----------------
    第一關「找聲母」：這個字是哪個注音開頭？　第二關「拼拼看」：哪一個是正確的拼音？　第三關「第幾聲」。
