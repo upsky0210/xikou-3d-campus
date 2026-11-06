@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=305';
-import { trafficBasement } from './basement.js?v=305';
+import { Batch, mat, SPOTS } from './blocks.js?v=307';
+import { trafficBasement } from './basement.js?v=307';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -346,9 +346,9 @@ function entranceHall(put, fr, room) {
   // 彩色木條天花板
   const slats = ['#c0392b', '#e67e22', '#f1c40f', '#e8d5b0', '#16a085', '#2980b9', '#8e44ad', '#e8d5b0'];
   for (let i = 0; i * 0.62 < L - 0.3; i++) put(mat('planks', slats[i % slats.length]), 0.42, W - 0.6, 0.08, 0.4 + i * 0.62, 0, 2.86);
-  // 電子看板
+  // 電子看板：目前播第 43 屆體育表演會邀請卡（115/12/05），活動過後換回 screenMat()
   put(M.dark(), 0.35, 0.8, 1.9, L - 0.6, W / 2 - 1.6, 0);
-  put(screenMat(), 0.02, 0.7, 1.2, L - 0.78, W / 2 - 1.6, 0.6);
+  put(tvImgMat('img/hall/sports-day-115.webp'), 0.02, 0.7, 1.2, L - 0.78, W / 2 - 1.6, 0.6, true);
 }
 
 
