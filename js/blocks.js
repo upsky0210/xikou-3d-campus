@@ -672,6 +672,7 @@ export function animatePerson(g, phase, amount) {
  * look = {
  *   face: 16 行 × 16 字的像素臉，pal: 字元 → 顏色（'H' 要是頭髮色）
  *   skin, hair, top（上衣）, pants, stripe（褲子側條，可省略）, shoe
+ *   teeImg: { front, back } 上衣前後片用圖片（班服），側面和袖子是 top 的顏色
  *   longHair: 長髮披到胸前, lob: 及肩直髮（垂到肩膀、不披到胸前）, shortHair: 短髮露耳朵, spiky: 刺刺頭
  *   longSleeve: 長袖, whistle: 胸前掛哨子, collar: 襯衫領顏色, zip: 外套拉鍊顏色
  *   cat: 貓頭（虎斑條紋、貓耳、鬍鬚、尾巴；pal.h 是條紋色）
@@ -802,7 +803,10 @@ export function makeBlockNPC(look) {
     box(g, 0.04, 0.2, 0.04, hair, 0.215, 1.44, -0.19);
   }
 
-  box(g, 0.46, 0.6, 0.26, top, 0, 1.0, 0);                  // 上衣
+  if (look.teeImg) {                                        // 班服：前（-z）、後（+z）片是圖片
+    const face = (url) => { const t = new THREE.TextureLoader().load(url); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return new THREE.MeshLambertMaterial({ map: t }); };
+    box(g, 0.46, 0.6, 0.26, [top, top, top, top, face(look.teeImg.back), face(look.teeImg.front)], 0, 1.0, 0);
+  } else box(g, 0.46, 0.6, 0.26, top, 0, 1.0, 0);           // 上衣
   box(g, 0.2, 0.05, 0.27, cloth(look.collar || look.top), 0, 1.3, 0);   // 領子
   if (look.collar) box(g, 0.1, 0.12, 0.02, cloth(look.collar), 0, 1.24, -0.13);   // 領口露出的襯衫
   if (look.tee) {                                           // 吊帶洋裝：上胸露出底下的 T 恤，兩條吊帶繞過肩膀

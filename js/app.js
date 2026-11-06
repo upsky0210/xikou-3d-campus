@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=304';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=304';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=304';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=304';
-import { buildCampusWall } from './wall.js?v=304';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=304';
+import { PanoViewer } from './pano.js?v=305';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=305';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=305';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=305';
+import { buildCampusWall } from './wall.js?v=305';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=305';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3509,9 +3509,9 @@ const NPCS = [
       { floor: '4F', where: '五年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '501'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
     ],
     look: {
-      // 依照片：深藍色 Nike 棒球帽（藍綠色勾勾）、黑色短髮、黑框方眼鏡、笑開露牙；螢光綠連帽拉鍊外套（藍色抽繩）、牛仔褲、黑色斜背包
-      skin: '#efc9a8', hair: '#1b1714', top: '#8fdc2c', pants: '#5a7fb8', shoe: '#3a3a3a',
-      shortHair: true, longSleeve: true, hoodie: '#2a4fb8', pocket: '#84cf26', zip: '#6b7a5a', bag: '#1d1d1f',
+      // 依照片：深藍色 Nike 棒球帽（藍綠色勾勾）、黑色短髮、黑框方眼鏡、笑開露牙；牛仔褲、黑色斜背包。衣服是五年一班的班服（使用者 11-06 給的設計稿，前面 42TH、後面 ONE）
+      skin: '#efc9a8', hair: '#1b1714', top: '#b5e1f8', pants: '#5a7fb8', shoe: '#3a3a3a',
+      shortHair: true, bag: '#1d1d1f', teeImg: { front: 'img/class501/tee-front.webp', back: 'img/class501/tee-back.webp' },
       cap: { color: '#1f2a4a', logo: '#2fc4c4' },
       pal: { H: '#1b1714', h: '#2c2622', S: '#efc9a8', B: '#1b1714', K: '#151515', E: '#1e130d', N: '#ddb08e', M: '#9c3b34', T: '#ffffff' },
       face: [
@@ -4112,9 +4112,9 @@ const NPCS = [
     },
   },
   {
-    name: '吳老師', title: '實習老師', game: 'go',
-    hello: ['🙋 吳老師：我是來實習的吳老師，請大家多多指教！', '⚫ 吳老師：我的專長是圍棋，沒下過也沒關係，我來教你！', '⚪ 吳老師：下圍棋要先學會看「氣」喔！',
-      '🤔 吳老師：要不要來學圍棋？先從吃子開始！'],
+    name: '吳老師', title: '實習老師', game: 'gomoku',
+    hello: ['🙋 吳老師：我是來實習的吳老師，請大家多多指教！', '⚫ 吳老師：我的專長是圍棋，今天先來下簡單的五子棋吧！', '⚪ 吳老師：一邊連線，也要一邊擋對手喔！',
+      '🤔 吳老師：要不要來下一盤五子棋？'],
     // 4 樓勤學樓六年五班（412 室）：導師丁老師在前面講台，實習老師站教室後面、面向黑板（跟一年一班的李老師一樣）
     places: [
       { floor: '4F', where: '六年五班', game: true, at: () => { const r = rooms.find((x) => x.code === '605'); return [r.m.x2 - 1.0, r.cz, Math.PI / 2]; } },
@@ -5311,6 +5311,7 @@ function updateAct(dt) {
     : sp.kind === 'throw' ? T(`⚾ 跟${sp.npc.name}去操場投球 <kbd>F</kbd>`, `⚾ Ball toss on the field with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'perim' ? T(`📐 跟${sp.npc.name}算周長和面積 <kbd>F</kbd>`, `📐 Perimeter & area with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'weave' ? T(`🧵 跟${sp.npc.name}編紙杯墊 <kbd>F</kbd>`, `🧵 Paper weaving with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'gomoku' ? T(`⚫ 跟${sp.npc.name}下五子棋 <kbd>F</kbd>`, `⚫ Gomoku with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'go' ? T(`⚫ 跟${sp.npc.name}學圍棋 <kbd>F</kbd>`, `⚫ Learn Go with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'cut' ? T(`✂️ 跟${sp.npc.name}玩剪紙猜一猜 <kbd>F</kbd>`, `✂️ Paper cutting with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'add4' ? T(`➕ 跟${sp.npc.name}算四位數的加減法 <kbd>F</kbd>`, `➕ 4-digit math with ${sp.npc.name} <kbd>F</kbd>`)
@@ -5355,13 +5356,13 @@ const GAME_FILE = Object.fromEntries(Object.entries({
   quiz: 'glider float heat history traffic fraction life blocks',
   puzzle3d: 'puzzle3d',
   paint: 'paint',
-  kg: 'blindquiz busquiz gymrun stack cubes beads fold cook darkchess shrink bugs animalcall toyhome shadow farm prep mood library notes weather tones add4 perim weave go cut decimal shapes throw units geo',
+  kg: 'blindquiz busquiz gymrun stack cubes beads fold cook darkchess shrink bugs animalcall toyhome shadow farm prep mood library notes weather tones add4 perim weave go gomoku cut decimal shapes throw units geo',
 }).flatMap(([file, kinds]) => kinds.split(' ').map((kind) => [kind, file])));
 const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=304`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=305`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -6176,7 +6177,7 @@ const GAME_INFO = {
   weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
   throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
-  perim: [['周長和面積', 'Perimeter & Area'], 'campus-perim-best', ans], go: [['圍棋入門', 'Intro to Go'], 'campus-go-wins', win], cut: [['剪紙猜一猜', 'Paper Cutting'], 'campus-cut-best', ans],
+  perim: [['周長和面積', 'Perimeter & Area'], 'campus-perim-best', ans], gomoku: [['五子棋', 'Gomoku'], 'campus-gomoku-wins', win], cut: [['剪紙猜一猜', 'Paper Cutting'], 'campus-cut-best', ans],
   weave: [['紙編織杯墊', 'Paper Weaving'], 'campus-weave-best', (v) => T(`${v} 顆星`, `${v} star(s)`)],
   add4: [['四位數的加減法', '4-Digit Add & Subtract'], 'campus-add4-best', ans],
   tones: [['注音聲調大挑戰', 'Zhuyin Tones'], 'campus-tones-best', ans],
@@ -7584,4 +7585,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=304').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=305').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

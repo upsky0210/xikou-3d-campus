@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=304';
-import { trafficBasement } from './basement.js?v=304';
+import { Batch, mat, SPOTS } from './blocks.js?v=305';
+import { trafficBasement } from './basement.js?v=305';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -44,6 +44,11 @@ const tvMat = () => once('tv', () => new THREE.MeshLambertMaterial({ map: bigTex
   c.fillText('溪口國小', w / 2, h / 2 - 6);
   c.font = '500 24px "Noto Sans TC", sans-serif'; c.fillText('Xikou Elementary School', w / 2, h / 2 + 34);
 }), emissive: '#0d1a33', emissiveIntensity: 0.4 }));
+// 電視上放指定的圖片（五年一班：班服設計稿）
+const tvImgMat = (url) => once(`tv:${url}`, () => {
+  const t = new THREE.TextureLoader().load(url); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return new THREE.MeshLambertMaterial({ map: t, emissive: '#ffffff', emissiveMap: t, emissiveIntensity: 0.25 });
+});
 const whiteboardMat = () => once('wb', () => new THREE.MeshLambertMaterial({ map: bigTex(640, 150, (c, w, h) => {
   c.fillStyle = '#f7f8f8'; c.fillRect(0, 0, w, h);
   c.strokeStyle = 'rgba(40,80,160,.55)'; c.lineWidth = 2;
@@ -180,7 +185,7 @@ function chairAt(put, u, v, faceBack = true) {
   put(M.metal(), 0.3, 0.3, 0.4, u, v, 0);
 }
 // 前面牆：黑板 + 86 吋電視
-function frontWall(put, fr, { board = true, tv = true, white = false } = {}) {
+function frontWall(put, fr, { board = true, tv = true, white = false, tvImg = null } = {}) {
   const W = fr.W;
   // 黑板置中；86 吋電視掛在黑板正中間（學校實際配置），兩側露出黑板
   if (board) {
@@ -193,7 +198,7 @@ function frontWall(put, fr, { board = true, tv = true, white = false } = {}) {
     const tv86 = [1.9, 1.07];                            // 86 吋：約 190 × 107 公分
     const tu = board ? 0.1 : 0.035;                      // 在黑板前面一點
     put(M.dark(), 0.07, tv86[0] + 0.06, tv86[1] + 0.06, tu, 0, 0.97);
-    put(tvMat(), 0.08, tv86[0], tv86[1], tu + 0.015, 0, 1.0, true);
+    put(tvImg ? tvImgMat(tvImg) : tvMat(), 0.08, tv86[0], tv86[1], tu + 0.015, 0, 1.0, true);
   }
 }
 function teacherDesk(put, u, v) {
@@ -221,7 +226,7 @@ function classroom(put, fr, room) {
   const W = fr.W, L = fr.L, A = fr.away;
   const senior = grade >= 5;
   if (!low && !senior) paintBands(put, fr, mat('wool', '#bcd9ee'));
-  frontWall(put, fr);
+  frontWall(put, fr, { tvImg: room?.code === '501' ? 'img/class501/tv.webp' : null });
   const bw = Math.min(5.2, W * 0.75);
   for (const s of [-1, 1]) put(corkMat(), 0.03, Math.min(1.0, (W - bw) / 2 - 0.2), 1.0, 0.03, s * (bw / 2 + 0.6), 1.0, true);
   teacherDesk(put, 1.25, A * (W / 2 - 1.0));

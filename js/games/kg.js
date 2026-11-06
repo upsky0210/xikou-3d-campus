@@ -1,8 +1,8 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=304';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=304';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=304';
+import { faceTeacher } from './common.js?v=305';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=305';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=305';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -62,7 +62,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -1574,7 +1574,7 @@ const KG_WEAVE = {
   },
 };
 
-/* ---- 圍棋入門（吳老師，六年五班）：先一步一步教「氣」和「吃子」，再用 7 路小棋盤下吃子棋，先吃到 3 顆就贏。
+/* ---- 圍棋入門（先收著：11-06 使用者說吳老師改玩五子棋，要用時把 NPC 的 game 改回 'go'，再把 app.js 的 GAME_INFO 加回去）：先一步一步教「氣」和「吃子」，再用 7 路小棋盤下吃子棋，先吃到 3 顆就贏。
    真正的圍棋是比誰圍的地多，吃子棋是初學者常用的入門玩法；吃到顆數就結束，所以不用處理打劫 ---- */
 const goNeighbors = (x, y, N) => [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].filter(([a, b]) => a >= 0 && b >= 0 && a < N && b < N);
 const goGroup = (bd, x, y) => {      // 連在一起的整塊棋和它的氣
@@ -1715,6 +1715,91 @@ const KG_GO = {
     ctx.msg('真正的圍棋是比誰圍的地比較大，初學者通常先從「吃子」開始學。沒下過的話，先看教學喔！');
     ctx.stage.innerHTML = '<span class="big">⚫⚪</span>';
     ctx.buttons([{ html: '先看教學', cls: 'wide', on: () => lesson(0) }, { html: '直接下棋', cls: 'wide', on: game }]);
+  },
+};
+
+/* ---- 五子棋（吳老師，六年五班）：9 路棋盤，學生下黑棋先走，橫、直、斜連成五顆就贏（超過五顆也算）。
+   棋盤畫法沿用上面的 goSvg。老師會連線也會擋，但大約四分之一的步數會看漏防守，小朋友才有機會贏 ---- */
+const GOMOKU_DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
+// 從 (x, y) 往 (dx, dy) 兩邊數連續幾顆 c，和兩端有幾端是空的
+const gomokuLine = (bd, x, y, dx, dy, c) => {
+  const N = bd.length, cells = [[x, y]];
+  let open = 0;
+  for (const sgn of [1, -1]) {
+    let a = x + dx * sgn, b = y + dy * sgn;
+    while (a >= 0 && b >= 0 && a < N && b < N && bd[b][a] === c) { cells.push([a, b]); a += dx * sgn; b += dy * sgn; }
+    if (a >= 0 && b >= 0 && a < N && b < N && !bd[b][a]) open++;
+  }
+  return { cells, open };
+};
+const gomokuWin = (bd, x, y, c) => {
+  for (const [dx, dy] of GOMOKU_DIRS) { const l = gomokuLine(bd, x, y, dx, dy, c); if (l.cells.length >= 5) return l.cells; }
+  return null;
+};
+// 下在這格對 c 有多大的好處
+const gomokuValue = (bd, x, y, c) => {
+  let v = 0;
+  for (const [dx, dy] of GOMOKU_DIRS) {
+    const { cells, open } = gomokuLine(bd, x, y, dx, dy, c), k = cells.length;
+    if (k >= 5) v += 100000;
+    else if (!open) continue;
+    else if (k === 4) v += open === 2 ? 10000 : 1000;
+    else if (k === 3) v += open === 2 ? 800 : 80;
+    else if (k === 2) v += open === 2 ? 40 : 8;
+    else v += open;
+  }
+  return v;
+};
+const gomokuMove = (bd) => {
+  const N = bd.length, sloppy = Math.random() < 0.25;
+  let best = null, bestV = -1;
+  bd.forEach((row, y) => row.forEach((v, x) => {
+    if (v) return;
+    let near = false;
+    for (let b = Math.max(0, y - 2); b <= Math.min(N - 1, y + 2); b++) for (let a = Math.max(0, x - 2); a <= Math.min(N - 1, x + 2); a++) if (bd[b][a]) near = true;
+    if (!near) return;
+    const score = gomokuValue(bd, x, y, 'O') + gomokuValue(bd, x, y, 'X') * (sloppy ? 0.02 : 0.9) + Math.random() * 3;
+    if (score > bestV) { bestV = score; best = [x, y]; }
+  }));
+  return best || [N >> 1, N >> 1];
+};
+const KG_GOMOKU = {
+  key: 'campus-gomoku-wins', title: ['⚫ 五子棋', '⚫ Gomoku'], label: ['⚫ 下五子棋中…', '⚫ Playing gomoku…'],
+  bye: (n) => T(`⚫ 下次再來找${n.name}下五子棋！`, `⚫ Come back for gomoku with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, N = 9, bd = Array.from({ length: N }, () => Array(N).fill(''));
+    let last = null, busy = false, over = false, count = 0;
+    const draw = (line) => {
+      ctx.stage.innerHTML = goSvg(bd, { marks: (line || []).map(([x, y]) => [x, y, 'ring']), last });
+      ctx.stage.firstChild.onclick = (e) => { const d = e.target.dataset; if (d?.x !== undefined) pick(+d.x, +d.y); };
+    };
+    const finish = (line, txt, won) => {
+      over = true; draw(line); ctx.face(won ? 'surprised' : 'happy', 2);
+      ctx.later(() => ctx.end(won ? ctx.best + 1 : 0, (b) => `${txt}（贏老師 ${T(`${b} 次`, `${b}×`)}）<br>${n.name}：${won ? '好厲害，被你連成五顆了！' : '沒關係，下次記得一邊連線、一邊擋老師！'}`), 1400);
+    };
+    const teacher = () => {
+      const [x, y] = gomokuMove(bd);
+      bd[y][x] = 'O'; last = [x, y]; count++; busy = false;
+      const line = gomokuWin(bd, x, y, 'O');
+      if (line) { ctx.msg(T('老師連成五顆了！', 'The teacher made five!'), 'no'); return finish(line, T('⚫ 這盤老師贏了', '⚫ The teacher won'), false); }
+      if (count >= N * N) return finish(null, T('⚫ 棋盤下滿了，平手！', '⚫ Board full: a draw!'), false);
+      draw(); ctx.msg(T('換你下。', 'Your turn.'));
+    };
+    function pick(x, y) {
+      if (busy || over) return;
+      if (bd[y][x]) return ctx.msg(T('這裡已經有棋子了。', 'That point is taken.'), 'no');
+      bd[y][x] = 'X'; last = [x, y]; count++;
+      const line = gomokuWin(bd, x, y, 'X');
+      if (line) { ctx.msg(T('你連成五顆了！', 'You made five!'), 'ok'); return finish(line, T('⚫ 你贏了！', '⚫ You won!'), true); }
+      if (count >= N * N) return finish(null, T('⚫ 棋盤下滿了，平手！', '⚫ Board full: a draw!'), false);
+      busy = true; draw(); ctx.msg(T('老師想想…', 'The teacher is thinking…'));
+      ctx.later(teacher, 600);
+    }
+    ctx.prog('');
+    ctx.ask(T('你下黑棋先走，橫、直、斜連成五顆就贏！', 'You play black: five in a row wins!'));
+    ctx.msg(T('棋子下在線的交叉點上，也要記得擋老師喔！', 'Play on the intersections, and remember to block!'));
+    ctx.buttons([]);
+    draw();
   },
 };
 
