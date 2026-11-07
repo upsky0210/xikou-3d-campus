@@ -1,7 +1,7 @@
 /* 剪刀石頭布、顏色對對碰、21 點、OOXX
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=310';
-import { T, scene, makeLabel, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=310';
+import { faceTeacher } from './common.js?v=311';
+import { T, scene, makeLabel, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=311';
 
 /* ---------------- 剪刀石頭布：在五年一班遇到 Poyen 老師，可以猜拳（三戰兩勝，平手重來） ----------------
    點按鈕或按 1／2／3 出拳；喊完「剪刀、石頭、布！」一起亮出來，老師頭上也會冒出他出的拳。 */

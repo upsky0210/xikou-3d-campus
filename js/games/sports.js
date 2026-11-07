@@ -1,8 +1,8 @@
 /* 羽球、桌球、投籃比賽、樂樂棒球
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
 import * as THREE from 'three';
-import { mat, Batch, SPOTS, makeRacket, makeShuttle, animatePerson } from '../blocks.js?v=310';
-import { T, WALL_T, floors, rooms, isWalkable, groundAt, scene, makeLabel, player, avatar, placeAt, mode, keys, stopAuto, joy, toast, BB, placeNPC, npcFace, act, powerBox, spotFloor, limbs, resetPose, gameState, ball, startShot, shoot } from '../app.js?v=310';
+import { mat, Batch, SPOTS, makeRacket, makeShuttle, animatePerson } from '../blocks.js?v=311';
+import { T, WALL_T, floors, rooms, isWalkable, groundAt, scene, makeLabel, player, avatar, placeAt, mode, keys, stopAuto, joy, toast, BB, placeNPC, npcFace, act, powerBox, spotFloor, limbs, resetPose, gameState, ball, startShot, shoot } from '../app.js?v=311';
 
 /* ---------------- 羽球小遊戲：在操場或活動中心遇到會打羽球的老師，就可以跟老師對打 ----------------
    架起球網、學生站到 6 公尺外；左右移動接球（A D／← →／搖桿），羽毛球飛到身邊時按 F／空白鍵（手機按橘色按鈕）揮拍。

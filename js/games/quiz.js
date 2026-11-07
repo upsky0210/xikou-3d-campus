@@ -1,8 +1,8 @@
-/* 二選一問答（startFood）：蜜袋鼯、沉浮、熱脹冷縮、史地、交通安全、分數、生活、電子積木
+/* 二選一問答（startFood）：蜜袋鼯、沉浮、熱脹冷縮、史地、交通安全、分數、生活、自然小觀察、電子積木
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
 import * as THREE from 'three';
-import { faceTeacher } from './common.js?v=310';
-import { T, rooms, scene, player, avatar, placeAt, updateVisibility, stopAuto, toast, npcFace, act, gameState, blocksBoard } from '../app.js?v=310';
+import { faceTeacher } from './common.js?v=311';
+import { T, rooms, scene, player, avatar, placeAt, updateVisibility, stopAuto, toast, npcFace, act, gameState, blocksBoard } from '../app.js?v=311';
 
 /* ---------------- 蜜袋鼯能吃嗎？：遇到邱老師（教務處的花花、泡泡是她養的），判斷每樣東西蜜袋鼯能不能吃 ----------------
    一回 5 題（能吃、不能吃各 2～3 題，順序打亂）；點按鈕或按 1（可以吃）／2（不能吃），答完老師會說明原因。 */
@@ -323,6 +323,32 @@ BLOCKS_Q.show = (q) => blocksBoard.userData.draw(q.parts, false);
 BLOCKS_Q.reveal = (q) => blocksBoard.userData.draw(q.parts, !!q.ok);
 BLOCKS_Q.end = () => blocksBoard.userData.draw(null);
 
+/* ---------------- 自然小觀察：在輔導室遇到特教組長吳老師，判斷自然科的句子對不對 ----------------
+   一回 5 題；答錯時老師用溫和的話帶著看說明（Q.wrong 取代「答錯囉」） */
+const NATURE_KEY = 'campus-nature-best';
+const NATURE_ITEMS = [
+  { e: '🌿', n: '植物的葉子可以利用陽光製造養分', ok: 1, why: '這叫做「光合作用」，葉子是植物的小廚房。' },
+  { e: '🌍', n: '地球繞著太陽轉，大約一年轉一圈', ok: 1, why: '地球繞太陽一圈，大約要 365 天。' },
+  { e: '🌙', n: '月亮的光，其實是反射太陽的光', ok: 1, why: '月亮自己不會發光，是太陽照亮了它。' },
+  { e: '💧', n: '水加熱會變成水蒸氣，遇冷又會變回小水滴', ok: 1, why: '水會在不同狀態之間變化，鍋蓋上的水珠就是這樣來的。' },
+  { e: '🐸', n: '蝌蚪長大以後會變成青蛙', ok: 1, why: '蝌蚪會慢慢長出腳、尾巴變短，最後變成青蛙。' },
+  { e: '🦋', n: '毛毛蟲會先變成蛹，再變成蝴蝶', ok: 1, why: '蝴蝶的一生是卵、幼蟲、蛹、成蟲。' },
+  { e: '🐋', n: '鯨魚是用肺呼吸的動物', ok: 1, why: '鯨魚是哺乳類，要浮到水面換氣。' },
+  { e: '🧲', n: '磁鐵可以吸住鐵釘', ok: 1, why: '鐵會被磁鐵吸引，所以鐵釘會被吸住。' },
+  { e: '🕷️', n: '蜘蛛是昆蟲', ok: 0, why: '昆蟲有 6 隻腳，蜘蛛有 8 隻腳，所以蜘蛛不是昆蟲。' },
+  { e: '🌅', n: '太陽每天從西邊升起', ok: 0, why: '太陽是從東邊升起、往西邊落下。' },
+  { e: '🌵', n: '植物完全不用水也能一直長大', ok: 0, why: '植物都需要水，連仙人掌也會把水存在身體裡。' },
+  { e: '🦇', n: '蝙蝠會飛，所以是鳥類', ok: 0, why: '蝙蝠身上有毛、會餵奶，牠是哺乳類。' },
+  { e: '🎈', n: '空氣完全沒有重量', ok: 0, why: '空氣很輕，但還是有重量。' },
+  { e: '🥫', n: '磁鐵可以吸住鋁罐', ok: 0, why: '鋁不會被磁鐵吸住，資源回收時可以用這點分辨鐵罐和鋁罐。' },
+  { e: '🌖', n: '月亮每天看起來都一模一樣', ok: 0, why: '月亮會有圓缺變化，大約一個月循環一次。' },
+  { e: '🐔', n: '雞是哺乳類，小雞是媽媽直接生出來的', ok: 0, why: '雞是鳥類，小雞是從蛋裡孵出來的。' },
+];
+const NATURE_Q = { en: { title: 'Nature Watch: true or false?', yes: 'True', no: 'False' }, list: NATURE_ITEMS, key: NATURE_KEY, title: '🌱 自然小觀察：這句話對不對？', icon: '🌱', yes: ['⭕', '對'], no: ['❌', '不對'],
+  ask: () => '🌱 慢慢想，這句話對不對？', intro: '我們一起來觀察大自然。慢慢想，答錯也沒關係喔！', wrong: ['🌱 沒關係，我們一起看看！', '🌱 That\'s okay, let\'s look together! '],
+  endTalk: (sc, n) => (sc === n ? '全部答對！你觀察得好仔細！' : sc >= 3 ? '很棒喔！你很認真在想，老師都看到了。' : '沒關係，你願意試就很棒了。下次我們再一起看！'),
+  quitTalk: (n) => `🌱 休息一下也很好，隨時可以再來找${n.name}！` };
+
 function startFood(n, Q = GLIDER_Q) {
   stopAuto();
   const $ = (sel) => foodBox.querySelector(sel);
@@ -358,7 +384,7 @@ function startFood(n, Q = GLIDER_Q) {
     const q = qs[i], right = a === q.ok;
     if (right) score++;
     $('.round').textContent = T(`第 ${i + 1}／${qs.length} 題・答對 ${score}`, `Question ${i + 1}/${qs.length} · ${score} correct`);
-    msg(`${right ? T('✅ 答對了！', '✅ Correct! ') : T('❌ 答錯囉！', '❌ Wrong! ')}${q.ok ? yesT : noT}：${q.why}`, right ? 'ok' : 'no');
+    msg(`${right ? T('✅ 答對了！', '✅ Correct! ') : (Q.wrong ? T(...Q.wrong) : T('❌ 答錯囉！', '❌ Wrong! '))}${q.ok ? yesT : noT}：${q.why}`, right ? 'ok' : 'no');
     Q.reveal?.(q);
     if (n.g) npcFace(n, right ? 'happy' : 'surprised', 1.8);
     setTimeout(() => {
@@ -387,5 +413,5 @@ function startFood(n, Q = GLIDER_Q) {
 // app.js 依互動種類（spot.kind）呼叫
 export const play = {
   glider: (s) => startFood(s.npc), float: (s) => startFood(s.npc, FLOAT_Q), heat: (s) => startFood(s.npc, HEAT_Q), history: (s) => startFood(s.npc, HISTORY_Q),
-  traffic: (s) => startFood(s.npc, TRAFFIC_Q), fraction: (s) => startFood(s.npc, FRACTION_Q), life: (s) => startFood(s.npc, LIFE_Q), blocks: () => startFood({ name: '電子積木' }, BLOCKS_Q),
+  traffic: (s) => startFood(s.npc, TRAFFIC_Q), fraction: (s) => startFood(s.npc, FRACTION_Q), life: (s) => startFood(s.npc, LIFE_Q), nature: (s) => startFood(s.npc, NATURE_Q), blocks: () => startFood({ name: '電子積木' }, BLOCKS_Q),
 };

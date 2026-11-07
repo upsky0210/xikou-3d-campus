@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=310';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=310';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=310';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=310';
-import { buildCampusWall } from './wall.js?v=310';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=310';
+import { PanoViewer } from './pano.js?v=311';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=311';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=311';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=311';
+import { buildCampusWall } from './wall.js?v=311';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=311';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4178,6 +4178,40 @@ const NPCS = [
     },
   },
   {
+    name: '吳老師', title: '特教組長', game: 'nature',
+    // 暫定台詞（使用者說她很有耐心和愛心），等使用者確認
+    hello: ['🌱 吳老師：慢慢來，老師等你。', '💛 吳老師：不會沒關係，我們一起想一想。', '🤗 吳老師：每個人都有自己的步調，你已經很棒了。',
+      '🔬 吳老師：要不要來玩「自然小觀察」？答錯也沒關係喔！'],
+    // 3 樓輔導室（327）裡面：北邊那扇門進來，收納櫃和辦公桌之間的走道東段，面向門口
+    places: [
+      { floor: '3F', where: '輔導室', game: true, at: () => { const r = rooms.find((x) => x.name === '輔導室'); return [r.m.x1 + 4.2, r.m.z1 + 1.8, Math.PI / 2]; } },
+    ],
+    look: {
+      // 依照片：深棕色長髮、旁分斜瀏海、髮尾偏紅棕；深藍白粗橫條紋長袖 V 領毛衣、裡面深色上衣（褲子、鞋子照片沒拍到）
+      skin: '#efc8ab', hair: '#2a1a14', top: '#f1efe8', pants: '#2f3542', shoe: '#3a3a40',
+      longHair: true, longSleeve: true, topStripes: '#2f5273', stripeH: 0.07, collar: '#2a2428',
+      pal: { H: '#2a1a14', h: '#4a2a1c', S: '#efc8ab', K: '#3a2418', E: '#20130d', W: '#ffffff', B: '#eeb4a6', N: '#dfb094', M: '#b8505a' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHhHHHHHH',
+        'HHHHHHHHHHHSHHHH',
+        'HHHHHHHHHHSSSHHH',
+        'HHHHHHHHSSSSSSHH',
+        'HHHHHHSSSSSSSSHH',
+        'HHHHSSSSSSSSSSHH',
+        'HHHKKKSSSSKKKSHH',
+        'HHSWESSSSSWESSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBSSSSSSSSSSBHH',
+        'HHSSSSMMMMSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: 'Jack 老師', title: '英文老師', game: 'prep',
     hello: ['🤫 Jack 老師：來，安靜囉～', '👀 Jack 老師：Eyes on me! 眼睛看老師這邊～', '👂 Jack 老師：Listen carefully! 仔細聽喔！',
       '✋ Jack 老師：Raise your hand! 想回答的請舉手！', '📍 Jack 老師：in、on、at 你分得清楚嗎？要不要來挑戰？'],
@@ -5339,6 +5373,7 @@ function updateAct(dt) {
     : sp.kind === 'cook' ? T(`🍳 跟${sp.npc.name}玩炒菜遊戲 <kbd>F</kbd>`, `🍳 Cooking with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'puzzle3d' ? T(`🧩 跟${sp.npc.name}玩立體拼圖 <kbd>F</kbd>`, `🧩 3D puzzle with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'float' ? T(`🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`, `🧪 Sink or Float with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'nature' ? T(`🌱 跟${sp.npc.name}玩自然小觀察 <kbd>F</kbd>`, `🌱 Nature Watch with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'glider' ? T(`🐿️ 跟${sp.npc.name}玩「蜜袋鼯能吃嗎？」 <kbd>F</kbd>`, `🐿️ "Can Sugar Gliders Eat It?" with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'paint' ? T(`🎨 跟${sp.npc.name}畫畫 <kbd>F</kbd>`, `🎨 Coloring with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'feed' ? T('🐢 餵烏龜 <kbd>F</kbd>', '🐢 Feed the turtles <kbd>F</kbd>')
@@ -5353,7 +5388,7 @@ const GAME_FILE = Object.fromEntries(Object.entries({
   tabletop: 'rps ooxx blackjack colors',
   zhuyin: 'zhuyin',
   music: 'recorder swim',
-  quiz: 'glider float heat history traffic fraction life blocks',
+  quiz: 'glider float heat history traffic fraction life nature blocks',
   puzzle3d: 'puzzle3d',
   paint: 'paint',
   kg: 'blindquiz busquiz gymrun stack cubes beads fold cook darkchess shrink bugs animalcall toyhome shadow farm prep mood library notes weather tones add4 perim weave go gomoku cut decimal shapes throw units geo',
@@ -5362,7 +5397,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=310`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=311`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -6166,6 +6201,7 @@ const GAME_INFO = {
   colors: [['顏色對對碰', 'Color Match'], 'campus-colors-best', (v) => T(`最少翻 ${v} 次`, `Fewest flips: ${v}`)],
   paint: [['著色本', 'Coloring Book'], 'campus-paint-count', (v) => T(`畫了 ${v} 張`, `${v} drawing${v > 1 ? 's' : ''}`)],
   glider: [['蜜袋鼯能吃嗎？', 'Can Sugar Gliders Eat It?'], 'campus-glider-food-best', ans],
+  nature: [['自然小觀察', 'Nature Watch'], 'campus-nature-best', ans],
   float: [['沉浮實驗', 'Sink or Float'], 'campus-float-best', ans], heat: [['熱脹冷縮', 'Heat & Cold'], 'campus-heat-best', ans],
   history: [['臺灣史地大考驗', 'Taiwan History & Geography'], 'campus-history-best', ans],
   traffic: [['交通安全大考驗', 'Traffic Safety Quiz'], 'campus-traffic-best', ans], farm: [['食農教育', 'Little Farm'], 'campus-farm-best', ans],
@@ -7585,4 +7621,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=310').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=311').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

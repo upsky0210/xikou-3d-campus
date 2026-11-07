@@ -909,7 +909,7 @@ export function makeBlockNPC(look) {
     P(0.008, 0.14, 0.09, 0.98);
     P(0.012, 0.13, 0.09, 0.82);
   }
-  if (look.topStripes) for (const y of [0.86, 1.0, 1.14]) box(g, 0.47, 0.035, 0.27, cloth(look.topStripes), 0, y, 0);   // 毛衣上的黑色橫條紋
+  if (look.topStripes) for (const y of [0.86, 1.0, 1.14]) box(g, 0.47, look.stripeH || 0.035, 0.27, cloth(look.topStripes), 0, y, 0);   // 毛衣上的橫條紋（stripeH：條紋粗細）
   if (look.necklace) {                                      // 細繩項鍊：深色繩子繞過脖子到胸前，下面一顆圓墜子
     for (const sd of [-1, 1]) { const b = box(g, 0.015, 0.2, 0.01, cloth(look.necklace), sd * 0.05, 1.2, -0.135); b.rotation.z = sd * 0.35; }
     box(g, 0.05, 0.05, 0.014, cloth('#1a1a1a'), 0, 1.07, -0.138);
@@ -961,7 +961,7 @@ export function makeBlockNPC(look) {
     }
     if (look.longSleeve) {
       box(p, 0.19, 0.58, 0.21, look.sleeve ? cloth(look.sleeve) : top, 0, -0.29, 0);   // sleeve：背心底下的外套袖子
-      if (look.topStripes) for (const y of [-0.2, -0.38]) box(p, 0.2, 0.035, 0.22, cloth(look.topStripes), 0, y, 0);
+      if (look.topStripes) for (const y of [-0.2, -0.38]) box(p, 0.2, look.stripeH || 0.035, 0.22, cloth(look.topStripes), 0, y, 0);
       box(p, 0.16, 0.1, 0.18, skin, 0, -0.63, 0);
     } else {
       if (look.sleeveless) box(p, 0.17, 0.68, 0.18, skin, 0, -0.34, 0);   // 無袖：整條手臂
