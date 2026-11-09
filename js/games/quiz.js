@@ -1,8 +1,8 @@
 /* 二選一問答（startFood）：蜜袋鼯、沉浮、熱脹冷縮、史地、交通安全、分數、生活、自然小觀察、電子積木
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
 import * as THREE from 'three';
-import { faceTeacher } from './common.js?v=312';
-import { T, rooms, scene, player, avatar, placeAt, updateVisibility, stopAuto, toast, npcFace, act, gameState, blocksBoard } from '../app.js?v=312';
+import { faceTeacher } from './common.js?v=313';
+import { T, rooms, scene, player, avatar, placeAt, updateVisibility, stopAuto, toast, npcFace, act, gameState, blocksBoard } from '../app.js?v=313';
 
 /* ---------------- 蜜袋鼯能吃嗎？：遇到邱老師（教務處的花花、泡泡是她養的），判斷每樣東西蜜袋鼯能不能吃 ----------------
    一回 5 題（能吃、不能吃各 2～3 題，順序打亂）；點按鈕或按 1（可以吃）／2（不能吃），答完老師會說明原因。 */

@@ -1,6 +1,6 @@
 /* 小遊戲共用的小工具
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { isWalkable, player, avatar, placeAt } from '../app.js?v=312';
+import { isWalkable, player, avatar, placeAt } from '../app.js?v=313';
 
 // 面對面的小遊戲（猜拳、直笛）：站到老師斜前方 2.2 公尺（偏右一點），鏡頭才不會被自己擋住老師；
 //   先把這層的名牌收起來，老師轉過來面向你、放下打招呼的手

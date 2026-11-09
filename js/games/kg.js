@@ -1,8 +1,8 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=312';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=312';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=312';
+import { faceTeacher } from './common.js?v=313';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=313';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=313';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -1521,7 +1521,7 @@ const KG_PERIM = {
 };
 
 /* ---- 修辭小偵探（駱老師，五年五班；教室貼著「常用修辭」海報）：看句子選出用了哪一種修辭，一回 8 題、每題 4 個選項。
-   七種：譬喻、擬人、誇飾、排比、類疊、設問、映襯。句子都是自己寫的，每句只挑「最明顯」的那一種 ---- */
+   六種：譬喻、擬人、誇飾、排比、類疊、設問（設問六年級才教，五年級先預習；映襯不確定國小有沒有教，拿掉）。句子都是自己寫的，每句只挑「最明顯」的那一種 ---- */
 const RHET_KINDS = {
   譬喻: '把甲比成乙（像、好像、如同、是…）',
   擬人: '把東西寫得像人一樣會想、會做事',
@@ -1529,7 +1529,6 @@ const RHET_KINDS = {
   排比: '三句以上句型一樣、意思相關的句子排在一起',
   類疊: '同一個字詞或句子重複出現',
   設問: '故意提出問題，引起注意',
-  映襯: '把相反的兩件事放在一起，對比更明顯',
 };
 const RHET_Q = [
   ['譬喻', '弟弟的臉紅得像熟透的蘋果。', '用「像」把臉比成蘋果。'],
@@ -1550,9 +1549,6 @@ const RHET_Q = [
   ['設問', '為什麼要好好讀書呢？因為知識可以帶我們看見更大的世界。', '先問問題、自己再回答，是設問（提問）。'],
   ['設問', '誰不希望有一個快樂的童年呢？', '答案就在問題的反面（大家都希望），是設問（激問）。'],
   ['設問', '你知道嗎？每天多讀十分鐘的書，一年就能讀好幾十本。', '用「你知道嗎？」引起注意，是設問。'],
-  ['映襯', '他的個子雖然小，力氣卻很大。', '「小」和「大」放在一起對比，是映襯。'],
-  ['映襯', '外面下著大雨，教室裡卻充滿溫暖的笑聲。', '冷冷的雨和溫暖的笑聲對比，是映襯。'],
-  ['映襯', '失敗並不可怕，可怕的是不敢再試一次。', '把「不可怕」和「可怕」放在一起對比。'],
 ];
 const KG_RHETORIC = {
   key: 'campus-rhetoric-best', title: ['🔍 修辭小偵探', '🔍 Figures of Speech'], label: ['🔍 修辭小偵探…', '🔍 Figures of speech…'],

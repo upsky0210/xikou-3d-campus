@@ -684,6 +684,8 @@ export function animatePerson(g, phase, amount) {
  *   haori: [右半邊布色, 左半邊花紋色們…] 和服外褂（披在 top 外面到大腿：穿的人右邊是素色、左邊是方塊花紋，袖子寬大、袖口白邊）
  *   topButtons: 上衣中間一排扣子的顏色（只在上衣）
  *   openShirt: 敞開穿的襯衫顏色（top 是裡面的 T 恤；袖子用 longSleeve＋sleeve）, minis: T 恤胸前小圖案的顏色 [...]
+ *   幼兒園制服：yoke: 肩膀、兩側、袖口的色塊顏色, shorts: 短褲（膝蓋以下露出腿）, socks: 襪子顏色,
+ *     braids: 兩條垂在耳後的辮子（值是髮圈顏色）, hanky: 胸前夾著的手帕顏色, straw: 嘴巴前面的吹泡泡吸管顏色
  * }
  */
 export function makeBlockNPC(look) {
@@ -796,6 +798,13 @@ export function makeBlockNPC(look) {
     box(g, 0.07, 0.54, 0.44, hair, -0.255, 1.51, 0.02);
     box(g, 0.07, 0.54, 0.44, hair, 0.255, 1.51, 0.02);
   }
+  if (look.braids) {                                        // 兩條辮子：從耳後垂到肩膀，上面一個髮圈
+    for (const s of [-1, 1]) {
+      box(g, 0.09, 0.34, 0.09, hair, s * 0.2, 1.2, 0.17);
+      box(g, 0.1, 0.05, 0.1, cloth(look.braids), s * 0.2, 1.38, 0.17);
+    }
+  }
+  if (look.straw) box(hg, 0.03, 0.03, 0.22, cloth(look.straw), 0, 1.42 - NECK, -0.33);   // 吹泡泡的吸管（從嘴巴往前伸）
   if (look.bun) {                                           // 往後綁的低髮髻＋臉旁兩撮
     box(g, 0.22, 0.2, 0.14, hair, 0, 1.42, 0.29);
     box(g, 0.14, 0.12, 0.06, hair, 0, 1.43, 0.38);
@@ -832,6 +841,15 @@ export function makeBlockNPC(look) {
   if (look.minis) {                                         // T 恤胸前一排小圖案＋下面一行小字
     look.minis.forEach((c, i) => box(g, 0.035, 0.04, 0.01, cloth(c), -0.04 + i * 0.04, 1.03, -0.135));
     box(g, 0.13, 0.012, 0.01, cloth('#6a5a4a'), 0, 0.995, -0.135);
+  }
+  if (look.yoke) {                                          // 幼兒園制服：肩膀一圈、兩側往下的色塊
+    const ym = cloth(look.yoke);
+    box(g, 0.47, 0.1, 0.27, ym, 0, 1.25, 0);
+    for (const s of [-1, 1]) box(g, 0.08, 0.5, 0.272, ym, s * 0.2, 0.98, 0);
+  }
+  if (look.hanky) {                                         // 胸前用夾子夾著的手帕
+    box(g, 0.03, 0.12, 0.014, cloth('#e8e8ec'), 0.1, 1.14, -0.14);
+    box(g, 0.13, 0.2, 0.012, cloth(look.hanky), 0.1, 0.96, -0.142);
   }
   if (look.topButtons) {                                    // 上衣中間一排扣子（只在上衣，下面是褲子、不延伸到裙子）
     const bm = new THREE.MeshLambertMaterial({ color: look.topButtons });
@@ -961,12 +979,14 @@ export function makeBlockNPC(look) {
     }
     if (look.longSleeve) {
       box(p, 0.19, 0.58, 0.21, look.sleeve ? cloth(look.sleeve) : top, 0, -0.29, 0);   // sleeve：背心底下的外套袖子
+      if (look.yoke) { box(p, 0.2, 0.12, 0.22, cloth(look.yoke), 0, -0.05, 0); box(p, 0.2, 0.08, 0.22, cloth(look.yoke), 0, -0.55, 0); }   // 制服：肩膀、袖口
       if (look.topStripes) for (const y of [-0.2, -0.38]) box(p, 0.2, look.stripeH || 0.035, 0.22, cloth(look.topStripes), 0, y, 0);
       box(p, 0.16, 0.1, 0.18, skin, 0, -0.63, 0);
     } else {
       if (look.sleeveless) box(p, 0.17, 0.68, 0.18, skin, 0, -0.34, 0);   // 無袖：整條手臂
       else {
         box(p, 0.2, 0.22, 0.22, look.tee ? cloth(look.tee) : top, 0, -0.11, 0);   // 吊帶洋裝：短袖是底下 T 恤的顏色
+        if (look.yoke) box(p, 0.205, 0.1, 0.225, cloth(look.yoke), 0, -0.05, 0);   // 制服：肩膀的色塊
         box(p, 0.16, 0.46, 0.18, skin, 0, -0.45, 0);
       }
     }
@@ -991,6 +1011,10 @@ export function makeBlockNPC(look) {
       box(rg, 0.025, 0.3, 0.025, M('#c98b4a'), 0, 0.08, 0);
       box(rg, 0.03, 0.05, 0.03, M('#c9cdd1'), 0, 0.25, 0);
       box(rg, 0.035, 0.07, 0.035, M('#e53935'), 0, 0.31, 0);
+    } else if (kind === 'bubbles') {                       // 泡泡水小瓶子（透明瓶身、綠色瓶蓋）
+      rg.position.set(0, -0.68, -0.06);
+      box(rg, 0.11, 0.16, 0.11, new THREE.MeshLambertMaterial({ color: '#dcecf0', transparent: true, opacity: 0.75 }), 0, -0.04, 0);
+      box(rg, 0.12, 0.04, 0.12, M('#3aa655'), 0, 0.06, 0);
     } else if (kind === 'shuttle') {                        // 羽毛球（球頭朝上）
       rg.position.set(0, -0.7, -0.08); rg.add(makeShuttle());
     } else if (kind === 'paperbag') {                       // 紅色紙提袋（白字），提在手上垂下來
@@ -1030,8 +1054,15 @@ export function makeBlockNPC(look) {
   box(g, 0.47, 0.12, 0.27, pants, 0, 0.72, 0);
   const leg = (side) => {
     const p = pivot(side * 0.12, 0.7);
-    box(p, look.widePants ? 0.24 : 0.21, 0.58, look.widePants ? 0.26 : 0.22, pants, 0, -0.29, 0);   // widePants：寬褲
-    if (look.stripe) box(p, 0.02, 0.58, 0.06, cloth(look.stripe), side * 0.11, -0.29, 0);   // 運動褲側條
+    if (look.shorts) {                                      // 短褲：膝蓋以下是腿和襪子
+      box(p, 0.22, 0.26, 0.23, pants, 0, -0.13, 0);
+      if (look.stripe) box(p, 0.02, 0.26, 0.06, cloth(look.stripe), side * 0.115, -0.13, 0);
+      box(p, 0.15, 0.24, 0.16, skin, 0, -0.38, 0);
+      if (look.socks) box(p, 0.16, 0.1, 0.17, cloth(look.socks), 0, -0.53, 0);
+    } else {
+      box(p, look.widePants ? 0.24 : 0.21, 0.58, look.widePants ? 0.26 : 0.22, pants, 0, -0.29, 0);   // widePants：寬褲
+      if (look.stripe) box(p, 0.02, 0.58, 0.06, cloth(look.stripe), side * 0.11, -0.29, 0);   // 運動褲側條
+    }
     box(p, 0.21, 0.09, 0.27, shoe, 0, -0.62, -0.03);
     return p;
   };
