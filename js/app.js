@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=313';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=313';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=313';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=313';
-import { buildCampusWall } from './wall.js?v=313';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=313';
+import { PanoViewer } from './pano.js?v=314';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=314';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=314';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=314';
+import { buildCampusWall } from './wall.js?v=314';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=314';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -5182,7 +5182,8 @@ function updateNPCs(t, dt) {
 /* ---------------- 幼兒園小朋友（中庭）：兩個丟飛盤、兩個吹泡泡 ----------------
    使用者 11-09 給的兩張照片：女生（駱老師的女兒）長袖制服、綁兩條辮子；男生（使用者的兒子六年前）短袖 polo 制服、短褲、西瓜皮。
    四個人＝兩個長袖兩個短袖：丟飛盤是長袖女生＋短袖男生，吹泡泡是長袖男生＋短袖女生（同一張臉、換季節的制服）。
-   黃色上衣、藍色肩膀和兩側、藍褲子黃色側條、胸前夾手帕。下雨、晚上不在中庭（回教室了）。不會打招呼以外的事 */
+   黃色上衣、藍色肩膀和兩側、藍褲子黃色側條、胸前夾手帕。晚上不在中庭（回家了）。不會打招呼以外的事。
+   下雨：移到中庭北邊的走廊屋簷下繼續玩（使用者 11-09：「下雨也要看得到，改成在走廊屋簷下玩」） */
 const KID_PAL = { S: '#f2d2bc', E: '#1e1714', e: '#3a2a22', W: '#ffffff', B: '#f2b8aa', N: '#e6bea6', M: '#c0606a' };
 const KID_FACE = {
   girl: ['HHHHHHHHHHHHHHHH', 'HHHHHHHHHHHHHHHH', 'HHHHHHHHHHHHHHHH', 'HHHHHHHHHHHHHHHH', 'HHHHHHHHHHHHHHHH', 'HHSSHSSHHSSHSSHH',
@@ -5212,10 +5213,17 @@ function placeKids() {
     g.position.set(x, f.y + groundAt(f, x, z), z); f.group.add(g);
     const k = { g, role, say, near: false }; kids.push(k); return k;
   };
+  // 下雨時的位置：中庭北邊那條一樓走廊（敬業樓南側，屋簷下），x 照晴天的位置、z 在走廊中間
+  const cor = (D.corridors['1F'] || []).map((c) => rectM(c.rect || c)).filter((c) => Math.abs(c.z2 - m.z1) < 0.6 && c.x1 < cx && c.x2 > cx)[0];
+  const dry = (k, dx, rotY) => {
+    k.sun = [k.g.position.x, k.g.position.z, k.g.rotation.y];
+    k.dry = cor ? [k.g.position.x + dx, (cor.z1 + cor.z2) / 2, rotY] : null;
+  };
   const face = (a, b) => { a.g.rotation.y = Math.atan2(a.g.position.x - b.g.position.x, a.g.position.z - b.g.position.z); };
   // 丟飛盤：中庭北半邊的草地，相隔 6 公尺
   const A = add(kidLook('girl', true), cx - 7, cz - 6.5, 'disc', '🥏 小朋友：接住喔！'), B = add(kidLook('boy', false), cx - 1, cz - 6.2, 'disc', '🥏 小朋友：要不要一起丟飛盤？');
   face(A, B); face(B, A);
+  dry(A, 0, -Math.PI / 2); dry(B, 0, Math.PI / 2);                       // 走廊上一樣面對面丟（東西向）
   const disc = new THREE.Group();
   const dm = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.035, 20), new THREE.MeshLambertMaterial({ color: '#e8503a' }));
   const rim = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.02, 6, 20), new THREE.MeshLambertMaterial({ color: '#c23a28' })); rim.rotation.x = Math.PI / 2;
@@ -5225,6 +5233,7 @@ function placeKids() {
   const C = add(kidLook('boy', true, { holdL: 'bubbles', straw: '#f2d64a' }), cx + 2.6, cz + 4.6, 'bub', '🫧 小朋友：你看，好多泡泡！');
   const Dk = add(kidLook('girl', false, { holdL: 'bubbles', straw: '#7ac6f0' }), cx + 4.4, cz + 5.1, 'bub', '🫧 小朋友：哥哥姊姊好！');
   C.g.rotation.y = 0.5; Dk.g.rotation.y = -0.25;                        // 面向中庭北邊的草地（走過來就看得到臉）
+  dry(C, 0, Math.PI + 0.25); dry(Dk, 0, Math.PI - 0.25);                 // 下雨：站在走廊邊、朝中庭吹泡泡
   const bubMat = (o) => new THREE.MeshPhongMaterial({ color: '#e6f4ff', emissive: '#4a5aa8', emissiveIntensity: 0.25, specular: '#ffffff', shininess: 120, transparent: true, opacity: o, depthWrite: false });
   const geo = new THREE.SphereGeometry(1, 10, 8);
   for (const k of [C, Dk]) {
@@ -5236,12 +5245,22 @@ function placeKids() {
 const _fw = new THREE.Vector3();
 function updateKids(t, dt) {
   if (!kids.length) return;
-  const away = rain.amt > 0.05 || curKey() === 'night';                 // 下雨、晚上：回教室了
-  const show = !away;
+  const show = curKey() !== 'night';                                     // 晚上：回家了
   for (const k of kids) if (k.g.visible !== show) { k.g.visible = show; if (k.bubs) k.bubs.forEach((b) => (b.m.visible = false)); }
   if (kids.disc.g.visible !== show) kids.disc.g.visible = show;
   if (!show) return;
   const f = floors[1];
+  // 下雨 → 走廊屋簷下；雨停 → 回草地（換位置時泡泡收掉、飛盤回到手上）
+  const wet = rain.amt > 0.05;
+  if (kids.wet !== wet) {
+    kids.wet = wet;
+    for (const k of kids) {
+      const [x, z, ry] = (wet && k.dry) || k.sun;
+      k.g.position.set(x, f.y + groundAt(f, x, z), z); k.g.rotation.y = ry;
+      if (k.bubs) k.bubs.forEach((b) => { b.life = 0; b.m.visible = false; });
+    }
+    kids.disc.t = 0; kids.disc.hold = 0.6;
+  }
   // 靠近時打招呼（離開再回來才會再說一次）
   for (const k of kids) {
     const near = mode !== 'bird' && player.floor === f && Math.hypot(player.x - k.g.position.x, player.z - k.g.position.z) < 2;
@@ -5578,7 +5597,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=313`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=314`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -7804,4 +7823,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=313').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=314').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
