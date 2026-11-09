@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=311';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=311';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=311';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=311';
-import { buildCampusWall } from './wall.js?v=311';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=311';
+import { PanoViewer } from './pano.js?v=312';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=312';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=312';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=312';
+import { buildCampusWall } from './wall.js?v=312';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=312';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -4045,6 +4045,39 @@ const NPCS = [
     },
   },
   {
+    name: '駱老師', title: '五年五班導師', game: 'rhetoric',
+    hello: ['📖 駱老師：今天的國語課文，你讀熟了嗎？', '✏️ 駱老師：寫作文時加一點修辭，句子就會變得好生動喔！',
+      '😊 駱老師：五年五班的大家，下課記得多喝水！', '🔍 駱老師：要不要來當修辭小偵探？'],
+    // 4 樓至善樓五年五班（419 室）：教室前後對調、黑板在南，老師站講台、面向北邊的學生（跟五年四班一樣）
+    places: [
+      { floor: '4F', where: '五年五班', game: true, at: () => { const r = rooms.find((x) => x.code === '505'); return [r.cx + 0.6, r.m.z2 - 1.6, 0]; } },
+    ],
+    look: {
+      // 依照片：黑色及肩髮、側分瀏海、開心露齒的笑容；白色寬鬆長袖襯衫、細金項鍊、牛仔褲（鞋子照片沒拍到）
+      skin: '#f3d6c4', hair: '#241914', top: '#f6f4ef', pants: '#4d6d98', shoe: '#e6e6e6',
+      lob: true, longSleeve: true, necklace: '#d2ad62',
+      pal: { H: '#241914', h: '#3a2a22', S: '#f3d6c4', E: '#2a1610', e: '#5a3424', W: '#ffffff', B: '#f0b2a6', N: '#e4b8a0', M: '#b8505a', T: '#ffffff' },
+      face: [
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHHHHHH',
+        'HHHHHHHHHHHhSHHH',
+        'HHHHHHHHHhSSSSHH',
+        'HHSSHHHHhSSSSSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSEEESSSSEEESHH',
+        'HHSEWeSSSSEWeSHH',
+        'HHSSSSSSSSSSSSHH',
+        'HHSSSSSNNSSSSSHH',
+        'HHBBSSSSSSSSBBHH',
+        'HHSSMWWWWWWMSSHH',
+        'HHSSSMMMMMMSSSHH',
+        'HHHSSSSSSSSSSHHH',
+        'HHHHSSSSSSSSHHHH',
+      ],
+    },
+  },
+  {
     name: '李老師', title: '五年二班導師', game: 'perim',
     hello: ['🌱 李老師：我也是新老師，我們一起學習、一起進步！', '😊 李老師：有不懂的地方儘管問，問問題一點都不丟臉！', '📏 李老師：周長是繞一圈的長度，面積是裡面有多大，別搞混囉～',
       '📐 李老師：要不要來挑戰周長和面積？'],
@@ -5343,6 +5376,7 @@ function updateAct(dt) {
     : sp.kind === 'decimal' ? T(`🔢 跟${sp.npc.name}玩小數點的遊戲 <kbd>F</kbd>`, `🔢 Decimals with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'shapes' ? T(`🔷 跟${sp.npc.name}玩形狀顏色對對碰 <kbd>F</kbd>`, `🔷 Shape match with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'throw' ? T(`⚾ 跟${sp.npc.name}去操場投球 <kbd>F</kbd>`, `⚾ Ball toss on the field with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'rhetoric' ? T(`🔍 跟${sp.npc.name}當修辭小偵探 <kbd>F</kbd>`, `🔍 Figures of speech with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'perim' ? T(`📐 跟${sp.npc.name}算周長和面積 <kbd>F</kbd>`, `📐 Perimeter & area with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'weave' ? T(`🧵 跟${sp.npc.name}編紙杯墊 <kbd>F</kbd>`, `🧵 Paper weaving with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'gomoku' ? T(`⚫ 跟${sp.npc.name}下五子棋 <kbd>F</kbd>`, `⚫ Gomoku with ${sp.npc.name} <kbd>F</kbd>`)
@@ -5391,13 +5425,13 @@ const GAME_FILE = Object.fromEntries(Object.entries({
   quiz: 'glider float heat history traffic fraction life nature blocks',
   puzzle3d: 'puzzle3d',
   paint: 'paint',
-  kg: 'blindquiz busquiz gymrun stack cubes beads fold cook darkchess shrink bugs animalcall toyhome shadow farm prep mood library notes weather tones add4 perim weave go gomoku cut decimal shapes throw units geo',
+  kg: 'blindquiz busquiz gymrun stack cubes beads fold cook darkchess shrink bugs animalcall toyhome shadow farm prep mood library notes weather tones add4 perim rhetoric weave go gomoku cut decimal shapes throw units geo',
 }).flatMap(([file, kinds]) => kinds.split(' ').map((kind) => [kind, file])));
 const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=311`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=312`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -6213,6 +6247,7 @@ const GAME_INFO = {
   weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
   decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
   throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
+  rhetoric: [['修辭小偵探', 'Figures of Speech'], 'campus-rhetoric-best', ans],
   perim: [['周長和面積', 'Perimeter & Area'], 'campus-perim-best', ans], gomoku: [['五子棋', 'Gomoku'], 'campus-gomoku-wins', win], cut: [['剪紙猜一猜', 'Paper Cutting'], 'campus-cut-best', ans],
   weave: [['紙編織杯墊', 'Paper Weaving'], 'campus-weave-best', (v) => T(`${v} 顆星`, `${v} star(s)`)],
   add4: [['四位數的加減法', '4-Digit Add & Subtract'], 'campus-add4-best', ans],
@@ -7621,4 +7656,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=311').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=312').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

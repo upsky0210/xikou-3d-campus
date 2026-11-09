@@ -1,8 +1,8 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=311';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=311';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=311';
+import { faceTeacher } from './common.js?v=312';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=312';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=312';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -62,7 +62,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -1514,6 +1514,66 @@ const KG_PERIM = {
         if (v === ansV) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${why}`, 'ok'); }
         else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${why}`, 'no'); }
         ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`📐 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `📐 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 5 ? '太厲害了，連老師都要跟你學！' : '沒關係，老師也是一步一步學的，我們再練一次！'}`)), 3200);
+      } })));
+    };
+    next();
+  },
+};
+
+/* ---- 修辭小偵探（駱老師，五年五班；教室貼著「常用修辭」海報）：看句子選出用了哪一種修辭，一回 8 題、每題 4 個選項。
+   七種：譬喻、擬人、誇飾、排比、類疊、設問、映襯。句子都是自己寫的，每句只挑「最明顯」的那一種 ---- */
+const RHET_KINDS = {
+  譬喻: '把甲比成乙（像、好像、如同、是…）',
+  擬人: '把東西寫得像人一樣會想、會做事',
+  誇飾: '故意說得很誇張，加深印象',
+  排比: '三句以上句型一樣、意思相關的句子排在一起',
+  類疊: '同一個字詞或句子重複出現',
+  設問: '故意提出問題，引起注意',
+  映襯: '把相反的兩件事放在一起，對比更明顯',
+};
+const RHET_Q = [
+  ['譬喻', '弟弟的臉紅得像熟透的蘋果。', '用「像」把臉比成蘋果。'],
+  ['譬喻', '操場上的跑道是一條彎彎的紅絲帶。', '把跑道比成紅絲帶（「是」也可以當喻詞）。'],
+  ['譬喻', '老師的笑容如同冬天的太陽，讓人覺得好溫暖。', '用「如同」把笑容比成冬天的太陽。'],
+  ['擬人', '風兒輕輕敲著窗戶，想邀我出去玩。', '風不會敲窗、也不會邀人，這是把風當成人來寫。'],
+  ['擬人', '校園裡的大榕樹張開雙手，歡迎我們回來。', '樹沒有手，也不會歡迎人，是擬人。'],
+  ['擬人', '鬧鐘一大早就扯開喉嚨，大聲叫我起床。', '鬧鐘沒有喉嚨，把它寫得像人在叫。'],
+  ['誇飾', '我等公車等到頭髮都白了。', '等公車不可能等到頭髮變白，是故意說得很誇張。'],
+  ['誇飾', '教室裡安靜得連一根針掉在地上都聽得見。', '用誇張的說法強調「非常安靜」。'],
+  ['誇飾', '哥哥肚子餓到可以吞下一整頭牛。', '一個人不可能吞下一頭牛，是誇飾。'],
+  ['排比', '春天賞花，夏天戲水，秋天賞月，冬天看雪。', '四句句型一樣、意思相關，排在一起。'],
+  ['排比', '下課時，有的同學在打球，有的在跳繩，有的在盪鞦韆。', '三個「有的…」句型一樣，是排比。'],
+  ['排比', '讀書可以增長知識，可以開闊眼界，也可以讓心情變好。', '三句句型相同，一起說明讀書的好處。'],
+  ['類疊', '小雨滴滴答答，下個不停。', '「滴滴答答」是疊字，屬於類疊。'],
+  ['類疊', '弟弟高高興興地跑進教室。', '「高高興興」重複了字，是類疊。'],
+  ['類疊', '他走啊走，走啊走，終於走到了山頂。', '「走啊走」重複出現，是類疊。'],
+  ['設問', '為什麼要好好讀書呢？因為知識可以帶我們看見更大的世界。', '先問問題、自己再回答，是設問（提問）。'],
+  ['設問', '誰不希望有一個快樂的童年呢？', '答案就在問題的反面（大家都希望），是設問（激問）。'],
+  ['設問', '你知道嗎？每天多讀十分鐘的書，一年就能讀好幾十本。', '用「你知道嗎？」引起注意，是設問。'],
+  ['映襯', '他的個子雖然小，力氣卻很大。', '「小」和「大」放在一起對比，是映襯。'],
+  ['映襯', '外面下著大雨，教室裡卻充滿溫暖的笑聲。', '冷冷的雨和溫暖的笑聲對比，是映襯。'],
+  ['映襯', '失敗並不可怕，可怕的是不敢再試一次。', '把「不可怕」和「可怕」放在一起對比。'],
+];
+const KG_RHETORIC = {
+  key: 'campus-rhetoric-best', title: ['🔍 修辭小偵探', '🔍 Figures of Speech'], label: ['🔍 修辭小偵探…', '🔍 Figures of speech…'],
+  bye: (n) => T(`🔍 下次再來找${n.name}當修辭小偵探！`, `🔍 Come back and find more figures of speech with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, N = 8, qs = kgShuffle(RHET_Q.slice()).slice(0, N), names = Object.keys(RHET_KINDS);
+    let i = 0, right = 0;
+    const next = () => {
+      const [ansK, text, why] = qs[i];
+      const opts = kgShuffle([ansK, ...kgShuffle(names.filter((k) => k !== ansK)).slice(0, 3)]);
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = `<div style="max-width:420px;margin:6px auto;padding:14px 18px;background:#fffaf0;border:2px solid #e3c48a;border-radius:12px;font-size:20px;line-height:1.7;font-weight:700;color:#3a2a1a;text-align:left">${text}</div>`;
+      ctx.ask(T('這個句子用了哪一種修辭？', 'Which figure of speech is this?'));
+      ctx.msg(i ? '' : T('有些句子不只一種修辭，選最明顯的那一種喔！', 'Pick the most obvious one!'));
+      ctx.buttons(opts.map((k, j) => ({ html: `${k}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.indexOf(ansK)].className = 'opt right';
+        const tip = `${why}<br><small>${ansK}：${RHET_KINDS[ansK]}</small>`;
+        if (k === ansK) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${tip}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${T(`是「${ansK}」。`, `It's ${ansK}. `)}${tip}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`🔍 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `🔍 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 7 ? '你是修辭大偵探！寫作文時也用用看吧！' : '沒關係，多讀幾次課文，修辭就會越認越熟喔！'}`)), 3400);
       } })));
     };
     next();
