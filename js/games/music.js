@@ -1,9 +1,9 @@
 /* 直笛記憶、節奏划水
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
 import * as THREE from 'three';
-import { poolWater } from '../extras.js?v=317';
-import { faceTeacher } from './common.js?v=317';
-import { D, T, BASE, rectM, groundAt, scene, camera, makeLabel, player, wearing, avatar, placeAt, mode, setMode, updateVisibility, stopAuto, toast, bgmHold, npcFace, act, limbs, resetPose, gameState, fmtSec } from '../app.js?v=317';
+import { poolWater } from '../extras.js?v=318';
+import { faceTeacher } from './common.js?v=318';
+import { D, T, BASE, rectM, groundAt, scene, camera, makeLabel, player, wearing, avatar, placeAt, mode, setMode, updateVisibility, stopAuto, toast, bgmHold, npcFace, act, limbs, resetPose, gameState, fmtSec } from '../app.js?v=318';
 
 /* ---------------- 直笛記憶：在音樂教室二遇到小瑜老師，老師吹一段，你照順序吹回去（每過一關多一個音） ----------------
    用直笛最先學的五個音 Sol La Si 高音Do 高音Re；點按鈕或按 1～5。吹錯了老師會再吹一次（兩顆愛心），第二次錯就結束，記錄最高關數。 */

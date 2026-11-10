@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=317';
-import { trafficBasement } from './basement.js?v=317';
+import { Batch, mat, SPOTS } from './blocks.js?v=318';
+import { trafficBasement } from './basement.js?v=318';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -3069,7 +3069,9 @@ function seniorBack(put, fr, room) {
   put(mat('wool', '#b89a72'), sl, 0.35, 0.85, 1.6 + sl / 2, A * (W / 2 - 0.18), 0);
   for (let i = 0; i < sn; i++) put(i % 2 ? lime : wood, sl / sn - 0.05, 0.02, 0.7, 1.6 + (sl / sn) * (i + 0.5), A * (W / 2 - 0.37), 0.08);
   // 前面角落：灰色屏風老師區
-  put(mat('wool', '#b8bcc0'), 1.35, 0.05, 1.2, 1.325, A * (W / 2 - 1.75), 0);    // 屏風跟前牆留 0.65 公尺，走得進老師座位（原本只剩 0.5，人卡住）
+  // 屏風跟前牆留 0.65 公尺，走得進老師座位（原本只剩 0.5，人卡住）；
+  //   後端只到 1.7 m：原本到 2.0 m，跟第一排課桌角只剩 0.53 m（比人還窄），人擠進去就卡住（使用者 11-10 在 502 卡住）
+  put(mat('wool', '#b8bcc0'), 1.05, 0.05, 1.2, 1.175, A * (W / 2 - 1.75), 0);
   // 書櫃（D 側＝門那一側）：放在後門前面的牆邊，不擋門（門寬最多 1.6 m）
   const doorU = (room?.doorPts || []).map((d) => fr.toLocal(d.x, d.z)[0]).sort((a, b) => a - b);
   const backU = doorU.length ? doorU[doorU.length - 1] : L - 1.5;
