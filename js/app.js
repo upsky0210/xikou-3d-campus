@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=314';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=314';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster } from './extras.js?v=314';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=314';
-import { buildCampusWall } from './wall.js?v=314';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=314';
+import { PanoViewer } from './pano.js?v=315';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=315';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=315';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=315';
+import { buildCampusWall } from './wall.js?v=315';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=315';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3110,7 +3110,7 @@ function honkCar(car) {
   } catch { /* 沒有聲音就只閃燈 */ }
 }
 
-/* ---------------- 小寵物：蜜袋鼯（五年四班 1 隻、1F 教務處 2 隻）、倉鼠羞羞（3F 輔導室） ---------------- */
+/* ---------------- 小寵物：蜜袋鼯（五年四班 1 隻、1F 教務處 2 隻）、倉鼠羞羞（3F 輔導室）、五年二班的小狗 ---------------- */
 
 const GLIDERS = [
   {
@@ -3144,6 +3144,13 @@ const GLIDERS = [
     },
   },
 ];
+GLIDERS.push({
+  make: makeDog, name: '小狗', anim: true,
+  // 使用者 11-10：「五年二班要養狗，放在後面布告欄」；說的話照使用者給的兩句
+  hello: ['🐶 汪汪！', '🐶 我很可愛！'], helloEn: ['🐶 Woof woof!', "🐶 I'm so cute!"],
+  // 502 黑板在西邊 → 後面是東牆：站在後面那排高置物櫃上面（櫃頂約 1.41 m）、布告欄前面，面向西邊（教室前面）
+  at: () => { const r = rooms.find((x) => x.code === '502'); return [r.f, r.m.x2 - 0.45, r.cz + 1.2, 1.41, Math.PI / 2]; },
+});
 for (const gl of GLIDERS) {
   const [f, x, z, top, yaw] = gl.at();
   gl.g = (gl.make || makeGlider)(gl.look); gl.f = f; gl.near = false;
@@ -3152,7 +3159,11 @@ for (const gl of GLIDERS) {
   f.group.add(gl.g);
   gl.g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.glider = gl; pickables.push(o); } });
 }
-function meetGlider(gl) { passMark('eggs', 'glider'); toast(T(gl.hello, gl.helloEn)); }
+function meetGlider(gl) {
+  passMark('eggs', 'glider');
+  if (Array.isArray(gl.hello)) { gl.k = ((gl.k ?? -1) + 1) % gl.hello.length; toast(T(gl.hello[gl.k], gl.helloEn[gl.k])); }   // 好幾句：輪流說
+  else toast(T(gl.hello, gl.helloEn));
+}
 
 /* ---------------- 生態池的烏龜：兩隻（一隻在水裡繞圈游、一隻趴在石頭上曬太陽），池邊可以餵食，一天最多餵兩次 ---------------- */
 
@@ -4109,9 +4120,14 @@ const NPCS = [
     hello: ['🌱 李老師：我也是新老師，我們一起學習、一起進步！', '😊 李老師：有不懂的地方儘管問，問問題一點都不丟臉！', '📏 李老師：周長是繞一圈的長度，面積是裡面有多大，別搞混囉～',
       '📐 李老師：要不要來挑戰周長和面積？'],
     // 4 樓勤學樓五年二班（414 室）：黑板在西邊，老師站講台旁、面向東邊的學生
+    //   兩套造型隨機出現（使用者 11-10）：米白色針織毛衣、黑色短袖 T 恤＋牛仔長裙（照片裡抱著狗，但使用者說不要抱狗）
     places: [
       { floor: '4F', where: '五年二班', game: true, at: () => { const r = rooms.find((x) => x.code === '502'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+      { floor: '4F', where: '五年二班', game: true, outfit: 'denim', at: () => { const r = rooms.find((x) => x.code === '502'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
     ],
+    outfits: {
+      denim: { top: '#1c1c20', longSleeve: false, skirt: '#4f74a6', pants: '#4f74a6', shoe: '#f2f2ee' },
+    },
     look: {
       // 依照片：深咖啡色長直髮（中分、兩側順著臉）、淺淺的微笑；米白色針織毛衣（褲子、鞋子照片沒拍到）
       skin: '#f3d3bd', hair: '#4a2f20', top: '#efe8da', pants: '#5a6478', shoe: '#e6e6e6',
@@ -5597,7 +5613,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=314`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=315`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -6287,6 +6303,7 @@ function update(dt) {
     orbit.update();
   }
 
+  for (const gl of GLIDERS) if (gl.anim && gl.f.group.visible) gl.g.userData.anim(t);
   if (floors[1].group.visible) { cat.userData.anim(t); updateBirds(t, dt); updateTurtles(t, dt); updateKids(t, dt); }
   updateNPCs(t, dt);
   // 雲慢慢飄
@@ -7823,4 +7840,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=314').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=315').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

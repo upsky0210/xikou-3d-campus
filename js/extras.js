@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=314';
+import { Batch, mat, SPOTS } from './blocks.js?v=315';
 
 /* =========================================================
  * 戶外特別場景（依使用者提供的照片）
@@ -394,6 +394,55 @@ export function makeCat() {
     tail.rotation.y = Math.sin(t * 2.2) * 0.5;
     head.rotation.y = Math.sin(t * 0.5) * 0.45;
     head.rotation.x = Math.max(0, Math.sin(t * 0.31)) * 0.15;
+  };
+  return g;
+}
+
+/* ---------- 五年二班的小狗（依使用者 11-10 的兩張照片）----------
+   白色捲毛（比熊那種圓滾滾的頭）、黑眼睛黑鼻子、吐粉紅舌頭、淡紫色胸背帶、尾巴毛蓬蓬往上翹；前面是 -z、站著 */
+function curlTex() {
+  return canvasTex(64, 64, (c, w, h) => {
+    c.fillStyle = '#f7f5f0'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 70; i++) {                         // 一圈一圈的捲毛
+      const x = (i * 37) % w, y = (i * 23 + (i >> 3) * 7) % h;
+      c.fillStyle = i % 3 ? '#e9e5dc' : '#ffffff';
+      c.beginPath(); c.arc(x, y, 3 + (i % 3), 0, Math.PI * 2); c.fill();
+    }
+  });
+}
+export function makeDog() {
+  const g = new THREE.Group();
+  const fur = new THREE.MeshLambertMaterial({ map: curlTex() });
+  const dark = new THREE.MeshLambertMaterial({ color: '#141212' });
+  const tongueM = new THREE.MeshLambertMaterial({ color: '#e0607a' });
+  const strap = new THREE.MeshLambertMaterial({ color: '#c9bfe6' });
+  const box = (m, w, h, d, x, y, z, parent = g) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o; };
+  const puff = (r, x, y, z, parent = g, sx = 1, sy = 1, sz = 1) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), fur); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.castShadow = true; parent.add(o); return o; };
+  // 身體：圓滾滾的毛
+  puff(0.13, 0, 0.25, 0, g, 0.95, 0.85, 1.35);
+  for (const [x, z] of [[-0.065, -0.11], [0.065, -0.11], [-0.065, 0.11], [0.065, 0.11]]) {   // 四隻腳（毛很多、粗粗的）
+    box(fur, 0.075, 0.16, 0.075, x, 0.08, z);
+    puff(0.045, x, 0.03, z - 0.01);
+  }
+  // 淡紫色胸背帶
+  box(strap, 0.24, 0.025, 0.2, 0, 0.3, -0.06);
+  box(strap, 0.025, 0.12, 0.025, 0, 0.24, -0.17);
+  // 頭：大大的圓頭（毛蓬蓬）
+  const head = new THREE.Group(); head.position.set(0, 0.42, -0.15); g.add(head);
+  puff(0.135, 0, 0.02, 0, head, 1.05, 1, 0.95);
+  puff(0.07, -0.12, -0.03, 0.01, head, 0.8, 1.3, 0.9); puff(0.07, 0.12, -0.03, 0.01, head, 0.8, 1.3, 0.9);   // 垂下來的耳朵（也是毛球）
+  puff(0.065, 0, -0.04, -0.1, head, 1.1, 0.85, 1);        // 嘴巴那團毛
+  for (const sx of [-1, 1]) box(dark, 0.03, 0.03, 0.01, sx * 0.045, 0.03, -0.128, head);   // 黑眼睛
+  box(dark, 0.04, 0.03, 0.03, 0, -0.02, -0.165, head);    // 黑鼻子
+  const tongue = box(tongueM, 0.04, 0.05, 0.02, 0, -0.09, -0.15, head);   // 粉紅舌頭
+  // 尾巴：一團毛往上翹（會搖）
+  const tail = new THREE.Group(); tail.position.set(0, 0.32, 0.16); g.add(tail);
+  puff(0.06, 0, 0.06, 0.02, tail, 1, 1.2, 1);
+  g.userData.anim = (t) => {
+    tail.rotation.z = Math.sin(t * 9) * 0.45;              // 一直搖尾巴
+    head.rotation.z = Math.sin(t * 0.7) * 0.22;            // 歪頭
+    head.rotation.y = Math.sin(t * 0.43) * 0.3;
+    tongue.scale.y = 1 + Math.max(0, Math.sin(t * 6)) * 0.25;   // 喘氣
   };
   return g;
 }
