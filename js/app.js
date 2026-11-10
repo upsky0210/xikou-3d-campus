@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=315';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=315';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=315';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=315';
-import { buildCampusWall } from './wall.js?v=315';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=315';
+import { PanoViewer } from './pano.js?v=316';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=316';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=316';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=316';
+import { buildCampusWall } from './wall.js?v=316';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=316';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3148,8 +3148,8 @@ GLIDERS.push({
   make: makeDog, name: '小狗', anim: true,
   // 使用者 11-10：「五年二班要養狗，放在後面布告欄」；說的話照使用者給的兩句
   hello: ['🐶 汪汪！', '🐶 我很可愛！'], helloEn: ['🐶 Woof woof!', "🐶 I'm so cute!"],
-  // 502 黑板在西邊 → 後面是東牆：站在後面那排高置物櫃上面（櫃頂約 1.41 m）、布告欄前面，面向西邊（教室前面）
-  at: () => { const r = rooms.find((x) => x.code === '502'); return [r.f, r.m.x2 - 0.45, r.cz + 1.2, 1.41, Math.PI / 2]; },
+  // 使用者 11-10 截圖圈的位置：南邊窗戶下那排矮櫃（櫃頂 0.85 m）、靠後面角落高櫃旁邊，面向教室裡面（北）
+  at: () => { const r = rooms.find((x) => x.code === '502'); return [r.f, r.m.x2 - 1.7, r.m.z2 - 0.38, 0.85, 0]; },
 });
 for (const gl of GLIDERS) {
   const [f, x, z, top, yaw] = gl.at();
@@ -5613,7 +5613,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=315`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=316`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -7840,4 +7840,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); } };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=315').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=316').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
