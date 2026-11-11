@@ -1,6 +1,7 @@
 rules_version = '2';
 // 溪口國小 3D 校園：只有學校網域、email 已驗證的帳號能存取，而且每個人只能讀寫自己的那一份進度
 //   第二階段（2026-11-11）：老師網域、staff 名單裡的帳號可以「唯讀」全部進度（老師進度頁 teacher.html 只顯示自己 Classroom 課程的學生）
+//   2026-11-12：加 seenAt（最後上線時間），老師進度頁多一欄「最後上線」
 //   staff 名單：Firestore 的 staff 集合，文件 ID ＝ email（小寫），只能在主控台新增，網站改不了
 //   老師 @skps.tp.edu.tw → role 'teacher'；學生 @st.skps.tp.edu.tw → role 'student'
 // 這個檔案不會自動生效：改完要貼到 Firebase 主控台 → Firestore Database → 規則 → 發布
@@ -24,13 +25,24 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
+      function mine() {
+        return isSchool() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['email', 'role', 'saved', 'updatedAt', 'seenAt'])
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.role == myRole()
+          && savedIsSmall(request.resource.data.saved);
+      }
       allow read: if (isSchool() && request.auth.uid == uid) || canViewAll();
-      allow create, update: if isSchool() && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['email', 'role', 'saved', 'updatedAt'])
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.role == myRole()
-        && savedIsSmall(request.resource.data.saved)
-        && request.resource.data.updatedAt == request.time;
+      // seenAt＝最後上線時間（2026-11-12 加）：每次打開網站時更新，只能寫成「現在」或維持原值
+      allow create: if mine()
+        && request.resource.data.updatedAt == request.time
+        && (!('seenAt' in request.resource.data) || request.resource.data.seenAt == request.time);
+      allow update: if mine()
+        // 存進度時 updatedAt 一定是「現在」；只更新上線時間時，進度和 updatedAt 都不能動
+        && (request.resource.data.updatedAt == request.time
+            || (request.resource.data.updatedAt == resource.data.updatedAt && request.resource.data.saved == resource.data.saved))
+        && (!('seenAt' in request.resource.data) || request.resource.data.seenAt == request.time
+            || ('seenAt' in resource.data && request.resource.data.seenAt == resource.data.seenAt));
       allow delete: if false;
     }
 

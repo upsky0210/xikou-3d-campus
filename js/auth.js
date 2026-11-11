@@ -89,7 +89,7 @@ export async function initLogin({ T, toast }) {
     try {
       const merged = await F.runTransaction(db, async (tx) => {
         const s = await tx.get(ref), cloud = s.exists() ? s.data().saved || {} : {}, next = mergeSaved(cloud, local, keys);
-        if (!s.exists() || !sameSaved(cloud, next)) tx.set(ref, { email: user.email, role, saved: next, updatedAt: F.serverTimestamp() });
+        if (!s.exists() || !sameSaved(cloud, next)) tx.set(ref, { email: user.email, role, saved: next, updatedAt: F.serverTimestamp() }, { mergeFields: ['email', 'role', 'saved', 'updatedAt'] });   // 不動 seenAt
         return next;
       });
       // 上傳期間又有變動的 key（值已經不一樣）留著下次傳；其他的把合併結果（可能是別台電腦的新紀錄）寫回這台
@@ -103,6 +103,16 @@ export async function initLogin({ T, toast }) {
     setItem.call(this, k, v);
     if (user && this === localStorage && SYNC.test(k)) { dirty.add(k); saveDirty(); clearTimeout(timer); timer = setTimeout(upload, 1500); }
   };
+  // 最後上線時間（seenAt）：打開網站時記一次，之後分頁回到前景、距離上次超過 15 分鐘再記一次；給老師進度頁看
+  // 只改 seenAt 這一欄，不動進度。規則還沒更新時會被擋，安靜略過就好
+  let seenAt = 0;
+  const markSeen = async () => {
+    if (!user || document.hidden || Date.now() - seenAt < 15 * 60e3) return;
+    seenAt = Date.now();
+    try { await F.updateDoc(F.doc(db, 'users', user.uid), { seenAt: F.serverTimestamp() }); }
+    catch (e) { console.debug('上線時間沒有記錄', e.code || e); }
+  };
+  document.addEventListener('visibilitychange', markSeen);
   // 一場遊戲結束就立刻上傳；切走分頁、回到分頁、網路恢復時補傳（upload 沒東西要傳時什麼都不做）
   addEventListener('campus:game-end', upload);
   document.addEventListener('visibilitychange', upload);
@@ -148,7 +158,7 @@ export async function initLogin({ T, toast }) {
   if (coverBtn) coverBtn.onclick = signIn;
 
   A.onAuthStateChanged(auth, async (u) => {
-    if (!u) { user = role = null; canView = false; render(); return; }
+    if (!u) { user = role = null; canView = false; seenAt = 0; render(); return; }
     const r = roleOf(u.email);
     if (!r || !u.emailVerified) {
       await A.signOut(auth);
@@ -188,6 +198,7 @@ export async function initLogin({ T, toast }) {
     for (const k of pending) dirty.add(k);
     saveDirty();
     await upload();
+    markSeen();
     // 換了進度：重新整理讓遊戲讀到新的（同一個分頁只重整一次，避免開場自動寫入的值造成一直重整）
     let reloaded = false; try { reloaded = sessionStorage.getItem('campus-auth-reload') === u.uid; sessionStorage.setItem('campus-auth-reload', u.uid); } catch { /* 私密模式 */ }
     if (!reloaded && JSON.stringify(snapshot()) !== before) { location.reload(); return; }

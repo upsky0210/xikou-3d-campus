@@ -49,11 +49,11 @@
     </div>
     <p class="mute" id="stat"></p>
     <div class="wrap"><table id="tbl"></table></div>
-    <p class="mute">點一下學生那一列，可以看每個小遊戲的紀錄。點欄位名稱可以排序。「還沒登入過」表示這位學生沒有用學校帳號登入 3D 校園（訪客的進度只存在自己的電腦，看不到）。</p>
+    <p class="mute">點一下學生那一列，可以看每個小遊戲的紀錄。點欄位名稱可以排序。「最後上線」是最後一次打開 3D 校園的時間（有登入才記得到），「最後存檔」是最後一次有新進度（玩遊戲、蓋章）的時間。「還沒登入過」表示這位學生沒有用學校帳號登入 3D 校園（訪客的進度只存在自己的電腦，看不到）。</p>
   </div>
 </main>
 <script type="module">
-import { makeGameInfo } from './js/game-info.js?v=325';
+import { makeGameInfo } from './js/game-info.js?v=326';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
 const CONFIG = {
@@ -144,11 +144,14 @@ async function loadCourse() {
     const found = new Map();
     for (let i = 0; i < emails.length; i += 30) {
       const snap = await F.getDocs(F.query(F.collection(db, 'users'), F.where('email', 'in', emails.slice(i, i + 30))));
-      snap.forEach((d) => { const v = d.data(), k = String(v.email || '').toLowerCase(), t = v.updatedAt?.toDate?.() || null; const old = found.get(k); if (!old || (t && (!old.t || t > old.t))) found.set(k, { saved: v.saved || {}, t }); });
+      snap.forEach((d) => { const v = d.data(), k = String(v.email || '').toLowerCase(), t = v.updatedAt?.toDate?.() || null, seen = v.seenAt?.toDate?.() || null;
+        // 最後上線：有記錄 seenAt 就用它；存進度一定也是在線上，所以取兩個裡比較晚的
+        const on = seen && (!t || seen > t) ? seen : t;
+        const old = found.get(k); if (!old || (t && (!old.t || t > old.t))) found.set(k, { saved: v.saved || {}, t, on }); });
     }
     rows = students.map((s, i) => {
       const email = (s.profile?.emailAddress || '').toLowerCase(), f = found.get(email);
-      return { i, name: cleanName(s.profile?.name) || '（沒有姓名）', email, has: !!f, t: f?.t || null, ...(f ? summarize(f.saved) : { games: [], npc: 0, rooms: 0, pano: 0, eggs: 0, nav: 0 }) };
+      return { i, name: cleanName(s.profile?.name) || '（沒有姓名）', email, has: !!f, t: f?.t || null, on: f?.on || null, ...(f ? summarize(f.saved) : { games: [], npc: 0, rooms: 0, pano: 0, eggs: 0, nav: 0 }) };
     });
     const used = rows.filter((r) => r.has).length;
     $('stat').textContent = `學生 ${rows.length} 人，用學校帳號登入過 3D 校園的 ${used} 人。小遊戲共 ${GAMES.size} 種。`;
@@ -166,9 +169,10 @@ const cleanName = (n) => {
   else if (n?.givenName && n.givenName === n.familyName) f = n.givenName;
   return f;
 };
+const timeCell = (t) => `<td title="${t ? esc(t.toLocaleString('zh-TW', { hour12: false })) : ''}">${fmtTime(t)}</td>`;
 const COLS = [
   ['#', (r) => r.i], ['姓名', (r) => r.name], ['小遊戲', (r) => r.games.length], ['認識老師', (r) => r.npc], ['走過地點', (r) => r.rooms],
-  ['360° 實景', (r) => r.pano], ['彩蛋', (r) => r.eggs], ['挑戰尋路', (r) => r.nav], ['最後存檔', (r) => r.t?.getTime() || 0],
+  ['360° 實景', (r) => r.pano], ['彩蛋', (r) => r.eggs], ['挑戰尋路', (r) => r.nav], ['最後上線', (r) => r.on?.getTime() || 0], ['最後存檔', (r) => r.t?.getTime() || 0],
 ];
 const maskName = (n) => n.length <= 1 ? n : n.length === 2 ? n[0] + '○' : n[0] + '○'.repeat(n.length - 2) + n.at(-1);
 // 顯示這台電腦的時間（台灣的電腦就是台北時間）：今天 07:12、昨天 23:40、11/05 14:20
@@ -186,11 +190,11 @@ function render() {
   const head = `<tr>${COLS.map(([h], i) => `<th data-k="${i}">${h}${sortKey === i ? (sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr>`;
   const body = list.map((r) => {
     const name = esc(mask ? maskName(r.name) : r.name);
-    if (!r.has) return `<tr class="none"><td class="n">${r.i + 1}</td><td>${name}</td><td colspan="7">還沒登入過</td></tr>`;
+    if (!r.has) return `<tr class="none"><td class="n">${r.i + 1}</td><td>${name}</td><td colspan="8">還沒登入過</td></tr>`;
     const main = `<tr class="row" data-i="${r.i}"><td class="n">${r.i + 1}</td><td>${name}</td>
       <td><span class="meter"><i style="width:${Math.round(r.games.length / max * 100)}%"></i></span>${r.games.length} / ${max}</td>
-      <td class="n">${r.npc}</td><td class="n">${r.rooms}</td><td class="n">${r.pano}</td><td class="n">${r.eggs}</td><td class="n">${r.nav}</td><td title="${r.t ? esc(r.t.toLocaleString('zh-TW', { hour12: false })) : ''}">${fmtTime(r.t)}</td></tr>`;
-    const det = open.has(r.i) ? `<tr class="detail"><td></td><td colspan="8">${r.games.length ? `<div class="games">${r.games.map((g) => `<span><b>${esc(g.name)}</b>：${esc(g.text)}</span>`).join('')}</div>` : '還沒有小遊戲紀錄'}</td></tr>` : '';
+      <td class="n">${r.npc}</td><td class="n">${r.rooms}</td><td class="n">${r.pano}</td><td class="n">${r.eggs}</td><td class="n">${r.nav}</td>${timeCell(r.on)}${timeCell(r.t)}</tr>`;
+    const det = open.has(r.i) ? `<tr class="detail"><td></td><td colspan="9">${r.games.length ? `<div class="games">${r.games.map((g) => `<span><b>${esc(g.name)}</b>：${esc(g.text)}</span>`).join('')}</div>` : '還沒有小遊戲紀錄'}</td></tr>` : '';
     return main + det;
   }).join('');
   $('tbl').innerHTML = head + body;
