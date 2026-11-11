@@ -26,7 +26,7 @@
   <p class="mute">只給管理者測試用，網站上沒有連結。只讀取，不會改 Classroom，也不會把名單存起來。關掉分頁就沒了。</p>
 
   <div class="card">
-    <button class="main" id="go">用老師帳號登入並讀取 Classroom</button>
+    <button class="main" id="go">用學校帳號登入並讀取 Classroom</button>
     <label style="margin-left:12px"><input type="checkbox" id="full"> 顯示完整姓名和 email</label>
     <p class="mute">預設會遮住姓名和 email，方便截圖給 Claude。登入時如果出現「Google 尚未驗證這個應用程式」，請截圖，然後按「進階」→「前往…」繼續。</p>
   </div>
@@ -86,13 +86,13 @@ $('go').onclick = async () => {
     const auth = A.getAuth(initializeApp(CONFIG));
     const p = new A.GoogleAuthProvider();
     SCOPES.forEach((s) => p.addScope(s));
-    p.setCustomParameters({ prompt: 'consent select_account', hd: 'skps.tp.edu.tw' });
+    p.setCustomParameters({ prompt: 'consent select_account' });
     let res;
     try { res = await A.signInWithPopup(auth, p); }
     catch (e) { check(false, '登入失敗：' + esc(e.code || e.message)); return; }
     const email = res.user.email || '';
-    if (!/@skps\.tp\.edu\.tw$/i.test(email)) { check(false, `這不是老師網域的帳號（${esc(maskMail(email))}），請改用 @skps.tp.edu.tw`); await A.signOut(auth); return; }
-    check(true, `已登入老師帳號 ${esc(maskMail(email))}`);
+    if (!/@(st\.)?skps\.tp\.edu\.tw$/i.test(email)) { check(false, `這不是學校的帳號（${esc(maskMail(email))}）`); await A.signOut(auth); return; }
+    check(true, `已登入 ${esc(maskMail(email))}（${/@st\./i.test(email) ? '學生網域' : '老師網域'}）`);
     const token = A.GoogleAuthProvider.credentialFromResult(res)?.accessToken;
     if (!token) { check(false, '登入成功，但沒有拿到 Classroom 的授權（access token）'); return; }
 
