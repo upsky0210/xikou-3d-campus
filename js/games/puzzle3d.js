@@ -1,8 +1,8 @@
 /* 立體拼圖
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
 import * as THREE from 'three';
-import { faceTeacher } from './common.js?v=324';
-import { T, scene, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=324';
+import { faceTeacher } from './common.js?v=325';
+import { T, scene, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=325';
 
 /* ---------------- 立體拼圖：在幼兒園星星班遇到周周老師，小方塊拼成的東西缺了一塊，從 3 塊裡找出拼得上去的那一塊 ----------------
    一回 5 題（從 6 樣東西裡挑）；點按鈕或按 1～3。選錯可以再選（慢慢來沒關係），第一次就選對才算分。

@@ -111,8 +111,15 @@ export async function initLogin({ T, toast }) {
   // 按鈕：上方工具列一顆、首頁一顆
   const topBtn = document.getElementById('loginBtn'), coverBtn = document.querySelector('#cover [data-act=login]');
   const label = (zh, en) => { topBtn.dataset.zh = zh; topBtn.dataset.en = en; topBtn.innerHTML = T(zh, en); };
+  // 老師（和 staff 名單裡的學生網域管理者）多一顆「學生進度」按鈕，開 teacher.html
+  let canView = false;
+  const viewBtn = document.createElement('a');
+  viewBtn.className = 'iconbtn'; viewBtn.href = 'teacher.html'; viewBtn.target = '_blank'; viewBtn.rel = 'noopener'; viewBtn.hidden = true;
+  viewBtn.style.cssText = 'text-decoration:none;color:inherit'; viewBtn.dataset.zh = '📊 學生進度'; viewBtn.dataset.en = '📊 Student progress';
+  topBtn.after(viewBtn);
   const render = () => {
     topBtn.hidden = false; if (coverBtn) coverBtn.parentElement.hidden = !!user;
+    viewBtn.hidden = !(user && canView); viewBtn.innerHTML = T('📊 學生進度', '📊 Student progress');
     if (!user) label('🔑 登入', '🔑 Sign in');
     else label(role === 'teacher' ? '🧑‍🏫 老師・登出' : '🎒 學生・登出', role === 'teacher' ? '🧑‍🏫 Teacher · Sign out' : '🎒 Student · Sign out');
     topBtn.title = user ? user.email : T('用學校 Google 帳號登入，進度會存起來', 'Sign in with your school Google account to save progress');
@@ -141,7 +148,7 @@ export async function initLogin({ T, toast }) {
   if (coverBtn) coverBtn.onclick = signIn;
 
   A.onAuthStateChanged(auth, async (u) => {
-    if (!u) { user = role = null; render(); return; }
+    if (!u) { user = role = null; canView = false; render(); return; }
     const r = roleOf(u.email);
     if (!r || !u.emailVerified) {
       await A.signOut(auth);
@@ -175,6 +182,8 @@ export async function initLogin({ T, toast }) {
     const next = pending.length ? mergeSaved(cloud, snapshot(), pending) : cloud;
     for (const k of syncKeys()) if (!(k in next)) localStorage.removeItem(k);
     for (const [k, v] of Object.entries(next)) if (SYNC.test(k) && typeof v === 'string') setItem.call(localStorage, k, v);
+    canView = r === 'teacher';
+    if (!canView) { try { canView = (await F.getDoc(F.doc(db, 'staff', u.email.toLowerCase()))).exists(); } catch { /* 規則還沒更新、不在名單 */ } }
     user = u; role = r; render();
     for (const k of pending) dirty.add(k);
     saveDirty();

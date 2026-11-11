@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>學生進度</title>
+<style>
+  :root { --bg: #f6f4ef; --card: #fff; --ink: #222; --mute: #666; --ok: #1d7a3a; --bad: #b3261e; --line: #e2ded6; --hi: #2b5fb3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4em; margin: .3em 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 12px 0; }
+  button, select { font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid #999; background: #fff; cursor: pointer; }
+  button.main { background: var(--hi); color: #fff; border-color: var(--hi); }
+  .mute { color: var(--mute); font-size: .92em; } .bad { color: var(--bad); } .ok { color: var(--ok); }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .95em; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; white-space: nowrap; }
+  th { background: #faf8f3; position: sticky; top: 0; cursor: pointer; user-select: none; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.row { cursor: pointer; } tr.row:hover { background: #f3f6fc; }
+  tr.none td { color: #aaa; }
+  tr.detail td { white-space: normal; background: #fbfaf7; }
+  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 16px; margin: 4px 0; }
+  .games span b { font-weight: 600; }
+  .meter { display: inline-block; width: 60px; height: 8px; background: #eee; border-radius: 4px; vertical-align: middle; margin-right: 6px; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--ok); }
+</style>
+</head>
+<body>
+<main>
+  <h1>📊 溪口 3D 校園・學生進度</h1>
+  <p class="mute">用學校帳號登入，就看得到你在 Google Classroom 當老師的課程裡，學生在 3D 校園的進度。姓名是從 Classroom 即時讀的，這個頁面不會存任何資料。</p>
+
+  <div class="card bar">
+    <button class="main" id="go">用學校帳號登入</button>
+    <span id="who" class="mute"></span>
+  </div>
+  <div class="card" id="msg" hidden></div>
+
+  <div class="card" id="pick" hidden>
+    <div class="bar">
+      <label>課程 <select id="course"></select></label>
+      <button id="reload">重新讀取</button>
+      <label><input type="checkbox" id="mask"> 遮住姓名（投影、截圖用）</label>
+    </div>
+    <p class="mute" id="stat"></p>
+    <div class="wrap"><table id="tbl"></table></div>
+    <p class="mute">點一下學生那一列，可以看每個小遊戲的紀錄。點欄位名稱可以排序。「還沒登入過」表示這位學生沒有用學校帳號登入 3D 校園（訪客的進度只存在自己的電腦，看不到）。</p>
+  </div>
+</main>
+<script type="module">
+import { makeGameInfo } from './js/game-info.js?v=325';
+
+const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const CONFIG = {
+  apiKey: 'AIzaSyAvdmygA7eloYU7B84OlKY2dBlSFiJRATc',
+  authDomain: 'xikou-3d-campus.firebaseapp.com',
+  projectId: 'xikou-3d-campus',
+  appId: '1:893856603463:web:a1f0c474504696d5258062',
+};
+const SCOPES = ['classroom.courses.readonly', 'classroom.rosters.readonly', 'classroom.profile.emails'].map((s) => 'https://www.googleapis.com/auth/' + s);
+const API = 'https://classroom.googleapis.com/v1/';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const say = (html, cls = '') => { $('msg').hidden = !html; $('msg').className = 'card ' + cls; $('msg').innerHTML = html; };
+
+// 小遊戲：同一個 key 只算一次（例如兩位老師都能打羽球）；剪刀石頭布每位老師各有一份紀錄
+const T = (zh) => zh;
+const INFO = makeGameInfo(T);
+const GAMES = new Map();
+for (const [name, key, fmt] of Object.values(INFO)) if (!GAMES.has(key)) GAMES.set(key, { name: name[0], fmt });
+GAMES.set('campus-blocks-best', { name: '電子積木', fmt: (v) => `答對 ${v} 題` });
+const gameOf = (k) => GAMES.get(k) || (/^campus-rps-wins-/.test(k) ? { name: '剪刀石頭布（' + (RPS_WHO[k.slice(16)] || k.slice(16)) + '）', fmt: (v) => `贏老師 ${v} 次` } : null);
+const RPS_WHO = { angela: 'Teacher Angela' };
+const positive = (v) => { const n = Number(v); return n > 0 ? n : 0; };
+
+function summarize(saved) {
+  const games = [];
+  for (const [k, v] of Object.entries(saved || {})) { const g = gameOf(k), n = positive(v); if (g && n) games.push({ name: g.name, text: g.fmt(n) }); }
+  let p = {}; try { p = JSON.parse(saved?.['campus-passport'] || '{}') || {}; } catch { /* 壞掉的護照 */ }
+  const cnt = (o) => Object.keys(o || {}).length;
+  const eggs = cnt(p.eggs) + (positive(saved?.['campus-cat-found']) && !p.eggs?.cat ? 1 : 0) + (positive(saved?.['campus-sand-castles']) && !p.eggs?.sand ? 1 : 0);
+  return { games: games.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')), npc: cnt(p.npc), rooms: cnt(p.rooms), pano: cnt(p.pano), eggs, nav: positive(p.nav?.n) };
+}
+
+let token = '', F = null, db = null, courses = [], rows = [], sortKey = null, sortDir = 1, open = new Set();
+
+async function getAll(path, key) {
+  const out = []; let page = '';
+  do {
+    const r = await fetch(API + path + (path.includes('?') ? '&' : '?') + 'pageSize=100' + (page ? '&pageToken=' + page : ''), { headers: { Authorization: 'Bearer ' + token } });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) throw new Error('登入過期了，請重新整理頁面再登入一次');
+    if (!r.ok) throw new Error(`${r.status} ${j.error?.message || ''}`.trim());
+    out.push(...(j[key] || [])); page = j.nextPageToken || '';
+  } while (page);
+  return out;
+}
+
+$('go').onclick = async () => {
+  $('go').disabled = true; say('登入中…');
+  try {
+    const [{ initializeApp }, A, FS] = await Promise.all([import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
+    const app = initializeApp(CONFIG), auth = A.getAuth(app); F = FS; db = F.getFirestore(app);
+    const p = new A.GoogleAuthProvider();
+    SCOPES.forEach((s) => p.addScope(s));
+    p.setCustomParameters({ prompt: 'select_account' });
+    let res;
+    try { res = await A.signInWithPopup(auth, p); }
+    catch (e) { say(e.code === 'auth/popup-blocked' ? '瀏覽器擋住了登入視窗，請允許這個網站開彈出式視窗。' : e.code === 'auth/popup-closed-by-user' ? '' : '登入失敗：' + esc(e.code || e.message), 'bad'); return; }
+    const email = (res.user.email || '').toLowerCase();
+    token = A.GoogleAuthProvider.credentialFromResult(res)?.accessToken || '';
+    let allowed = /@skps\.tp\.edu\.tw$/.test(email);
+    if (!allowed && /@st\.skps\.tp\.edu\.tw$/.test(email)) {
+      try { allowed = (await F.getDoc(F.doc(db, 'staff', email))).exists(); } catch { allowed = false; }
+    }
+    if (!allowed) { say('這個帳號沒有看學生進度的權限。請用老師的學校帳號（@skps.tp.edu.tw）登入。', 'bad'); await A.signOut(auth); return; }
+    if (!token) { say('登入成功，但 Google 沒有給讀取 Classroom 的授權。請重新整理再登入一次，授權畫面要按「允許」。', 'bad'); return; }
+    $('who').textContent = email; $('go').hidden = true;
+    say('讀取 Classroom 課程…');
+    courses = (await getAll('courses?teacherId=me&courseStates=ACTIVE', 'courses'));
+    if (!courses.length) { say('你在 Classroom 沒有「進行中、而且你是老師」的課程。'); return; }
+    $('course').innerHTML = courses.map((c, i) => `<option value="${i}">${esc(c.name)}${c.section ? '（' + esc(c.section) + '）' : ''}</option>`).join('');
+    $('pick').hidden = false; say('');
+    await loadCourse();
+  } catch (e) { say('發生錯誤：' + esc(e.message), 'bad'); }
+  finally { $('go').disabled = false; }
+};
+$('course').onchange = () => loadCourse();
+$('reload').onclick = () => loadCourse();
+$('mask').onchange = () => render();
+
+async function loadCourse() {
+  const c = courses[+$('course').value]; if (!c) return;
+  $('stat').textContent = '讀取名單和進度…'; $('tbl').innerHTML = ''; open.clear();
+  try {
+    const students = await getAll(`courses/${c.id}/students`, 'students');
+    const emails = [...new Set(students.map((s) => (s.profile?.emailAddress || '').toLowerCase()).filter(Boolean))];
+    // Firestore 一次最多查 30 個 email
+    const found = new Map();
+    for (let i = 0; i < emails.length; i += 30) {
+      const snap = await F.getDocs(F.query(F.collection(db, 'users'), F.where('email', 'in', emails.slice(i, i + 30))));
+      snap.forEach((d) => { const v = d.data(), k = String(v.email || '').toLowerCase(), t = v.updatedAt?.toDate?.() || null; const old = found.get(k); if (!old || (t && (!old.t || t > old.t))) found.set(k, { saved: v.saved || {}, t }); });
+    }
+    rows = students.map((s, i) => {
+      const email = (s.profile?.emailAddress || '').toLowerCase(), f = found.get(email);
+      return { i, name: s.profile?.name?.fullName || '（沒有姓名）', email, has: !!f, t: f?.t || null, ...(f ? summarize(f.saved) : { games: [], npc: 0, rooms: 0, pano: 0, eggs: 0, nav: 0 }) };
+    });
+    const used = rows.filter((r) => r.has).length;
+    $('stat').textContent = `學生 ${rows.length} 人，用學校帳號登入過 3D 校園的 ${used} 人。小遊戲共 ${GAMES.size} 種。`;
+    render();
+  } catch (e) {
+    $('stat').innerHTML = `<span class="bad">讀取失敗：${esc(e.message)}</span>${/permission|insufficient/i.test(e.message) ? '<br>（Firestore 規則可能還沒更新：要把新版 firestore.rules 貼到 Firebase 主控台發布）' : ''}`;
+  }
+}
+
+const COLS = [
+  ['#', (r) => r.i], ['姓名', (r) => r.name], ['小遊戲', (r) => r.games.length], ['認識老師', (r) => r.npc], ['走過地點', (r) => r.rooms],
+  ['360° 實景', (r) => r.pano], ['彩蛋', (r) => r.eggs], ['挑戰尋路', (r) => r.nav], ['最後存檔', (r) => r.t?.getTime() || 0],
+];
+const maskName = (n) => n.length <= 1 ? n : n.length === 2 ? n[0] + '○' : n[0] + '○'.repeat(n.length - 2) + n.at(-1);
+const fmtTime = (t) => { if (!t) return ''; const d = (Date.now() - t) / 864e5; return d < 1 ? '今天' : d < 2 ? '昨天' : d < 30 ? `${Math.floor(d)} 天前` : t.toLocaleDateString('sv'); };
+
+function render() {
+  const list = [...rows];
+  if (sortKey !== null) { const f = COLS[sortKey][1]; list.sort((a, b) => { const x = f(a), y = f(b); return (typeof x === 'string' ? x.localeCompare(y, 'zh-Hant') : x - y) * sortDir; }); }
+  const mask = $('mask').checked, max = GAMES.size;
+  const head = `<tr>${COLS.map(([h], i) => `<th data-k="${i}">${h}${sortKey === i ? (sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr>`;
+  const body = list.map((r) => {
+    const name = esc(mask ? maskName(r.name) : r.name);
+    if (!r.has) return `<tr class="none"><td class="n">${r.i + 1}</td><td>${name}</td><td colspan="7">還沒登入過</td></tr>`;
+    const main = `<tr class="row" data-i="${r.i}"><td class="n">${r.i + 1}</td><td>${name}</td>
+      <td><span class="meter"><i style="width:${Math.round(r.games.length / max * 100)}%"></i></span>${r.games.length} / ${max}</td>
+      <td class="n">${r.npc}</td><td class="n">${r.rooms}</td><td class="n">${r.pano}</td><td class="n">${r.eggs}</td><td class="n">${r.nav}</td><td>${fmtTime(r.t)}</td></tr>`;
+    const det = open.has(r.i) ? `<tr class="detail"><td></td><td colspan="8">${r.games.length ? `<div class="games">${r.games.map((g) => `<span><b>${esc(g.name)}</b>：${esc(g.text)}</span>`).join('')}</div>` : '還沒有小遊戲紀錄'}</td></tr>` : '';
+    return main + det;
+  }).join('');
+  $('tbl').innerHTML = head + body;
+}
+$('tbl').onclick = (e) => {
+  const th = e.target.closest('th');
+  if (th) { const k = +th.dataset.k; sortDir = sortKey === k ? -sortDir : (k <= 1 ? 1 : -1); sortKey = k; render(); return; }
+  const tr = e.target.closest('tr.row');
+  if (tr) { const i = +tr.dataset.i; open.has(i) ? open.delete(i) : open.add(i); render(); }
+};
+</script>
+</body>
+</html>

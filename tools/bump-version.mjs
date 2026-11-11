@@ -17,7 +17,7 @@ const jsFiles = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e
   const p = path.join(dir, e.name);
   return e.isDirectory() ? jsFiles(p) : e.name.endsWith('.js') ? [p] : [];
 });
-const files = [path.join(ROOT, 'index.html'), ...jsFiles(path.join(ROOT, 'js'))];
+const files = [path.join(ROOT, 'index.html'), path.join(ROOT, 'teacher.html'), ...jsFiles(path.join(ROOT, 'js'))];
 
 const arg = process.argv[2];
 if (arg !== undefined && !/^\d+$/.test(arg)) {

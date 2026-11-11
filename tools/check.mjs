@@ -77,7 +77,7 @@ function staticChecks() {
   broken.length ? broken.forEach((b) => bad('語法錯誤 ' + b)) : ok(`${files.length} 個 .js 語法正確`);
 
   const vers = new Map();
-  for (const f of [path.join(ROOT, 'index.html'), ...files]) {
+  for (const f of [path.join(ROOT, 'index.html'), path.join(ROOT, 'teacher.html'), ...files]) {
     for (const m of fs.readFileSync(f, 'utf8').matchAll(/\?v=(\d+)/g)) (vers.get(m[1]) || vers.set(m[1], new Set()).get(m[1])).add(rel(f));
   }
   if (vers.size === 1) ok(`版本號一致（?v=${[...vers.keys()][0]}）`);

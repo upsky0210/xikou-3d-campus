@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=324';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=324';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=324';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=324';
-import { buildCampusWall } from './wall.js?v=324';
-import { makeNPCS } from './npcs.js?v=324';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=324';
+import { PanoViewer } from './pano.js?v=325';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=325';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=325';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=325';
+import { buildCampusWall } from './wall.js?v=325';
+import { makeNPCS } from './npcs.js?v=325';
+import { makeGameInfo } from './game-info.js?v=325';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=325';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -3816,7 +3817,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=324`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=325`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -4607,50 +4608,8 @@ function passNav(sec) {                                         // 挑戰尋路�
 const npcKey = (n) => `${n.name}｜${n.title || ''}`;          // 有同名的老師（兩位陳老師、兩位林老師），加上職稱才分得開
 const fmtSec = (sec) => { sec = Math.round(sec); return sec >= 60 ? T(`${Math.floor(sec / 60)} 分 ${sec % 60} 秒`, `${Math.floor(sec / 60)} min ${sec % 60} s`) : T(`${sec} 秒`, `${sec} s`); };
 const lsNum = (k) => { try { return +localStorage.getItem(k) || 0; } catch { return 0; } };
-const ans = (v) => T(`答對 ${v} 題`, `${v} correct`), win = (v) => T(`贏老師 ${v} 次`, `Beat the teacher ${v}×`);
-const GAME_INFO = {
-  words: [['英文單字', 'English Words'], 'campus-words-best', ans], listen: [['英文聽力', 'English Listening'], 'campus-listen-best', ans],
-  rps: [['剪刀石頭布', 'Rock-Paper-Scissors'], 'campus-rps-wins', win], ooxx: [['OOXX', 'Tic-Tac-Toe'], 'campus-ooxx-wins', win],
-  blackjack: [['21 點', 'Blackjack'], 'campus-blackjack-wins', win], shootout: [['投籃比賽', 'Shootout'], 'campus-shootout-wins', win],
-  badminton: [['羽球', 'Badminton'], 'campus-badminton-best', (v) => T(`連續 ${v} 球`, `${v}-hit rally`)],
-  pingpong: [['桌球', 'Table Tennis'], 'campus-pingpong-best', (v) => T(`連續 ${v} 球`, `${v}-hit rally`)],
-  recorder: [['直笛記憶', 'Recorder Memory'], 'campus-flute-best', (v) => T(`第 ${v} 關`, `Level ${v}`)],
-  swim: [['節奏划水', 'Rhythm Swim'], 'campus-swim-best', (v) => T(`挑戰準確率 ${v}%`, `Challenge accuracy ${v}%`)],
-  zhuyin: [['注音符號大闖關', 'Zhuyin Challenge'], 'campus-zhuyin-best', (v) => T(`過了 ${v} 關`, `${v} level${v > 1 ? 's' : ''} cleared`)],
-  baseball: [['樂樂棒球', 'T-Ball'], 'campus-baseball-best', (v) => T(`${v} 分`, `${v} runs`)],
-  colors: [['顏色對對碰', 'Color Match'], 'campus-colors-best', (v) => T(`最少翻 ${v} 次`, `Fewest flips: ${v}`)],
-  paint: [['著色本', 'Coloring Book'], 'campus-paint-count', (v) => T(`畫了 ${v} 張`, `${v} drawing${v > 1 ? 's' : ''}`)],
-  glider: [['蜜袋鼯能吃嗎？', 'Can Sugar Gliders Eat It?'], 'campus-glider-food-best', ans],
-  nature: [['自然小觀察', 'Nature Watch'], 'campus-nature-best', ans],
-  float: [['沉浮實驗', 'Sink or Float'], 'campus-float-best', ans], heat: [['熱脹冷縮', 'Heat & Cold'], 'campus-heat-best', ans],
-  history: [['臺灣史地大考驗', 'Taiwan History & Geography'], 'campus-history-best', ans],
-  traffic: [['交通安全大考驗', 'Traffic Safety Quiz'], 'campus-traffic-best', ans], farm: [['食農教育', 'Little Farm'], 'campus-farm-best', ans],
-  prep: [['英文小文法 in・on・at', 'in / on / at'], 'campus-prep-best', ans],
-  blindquiz: [['視野死角大考驗', 'Blind Spot Quiz'], 'campus-blindquiz-best', ans], busquiz: [['乘車安全小測驗', 'Bus Safety Quiz'], 'campus-busq-best', ans],
-  gymrun: [['體操闖關', 'Gym Course'], 'campus-gymrun-best', (v) => T(`闖過 ${v} 關`, `${v} cleared`)],
-  mood: [['情緒覺察', 'Mood Check-in'], 'campus-mood-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
-  library: [['整理圖書館', 'Shelve the Books'], 'campus-library-best', ans], notes: [['音符小遊戲', 'Music Notes'], 'campus-notes-best', ans],
-  weather: [['心情晴雨天', 'Weather Mood'], 'campus-weather-count', (v) => T(`做了 ${v} 次`, `${v} time${v > 1 ? 's' : ''}`)],
-  decimal: [['小數點的遊戲', 'Decimals'], 'campus-decimal-best', ans], shapes: [['形狀顏色對對碰', 'Shape & Color Match'], 'campus-shapes-best', (v) => T(`${v} 顆星`, `${v} star${v > 1 ? 's' : ''}`)],
-  throw: [['操場投球', 'Ball Toss'], 'campus-throw-best', (v) => T(`${v} 分`, `${v} pts`)],
-  rhetoric: [['修辭小偵探', 'Figures of Speech'], 'campus-rhetoric-best', ans],
-  perim: [['周長和面積', 'Perimeter & Area'], 'campus-perim-best', ans], gomoku: [['五子棋', 'Gomoku'], 'campus-gomoku-wins', win], cut: [['剪紙猜一猜', 'Paper Cutting'], 'campus-cut-best', ans],
-  weave: [['紙編織杯墊', 'Paper Weaving'], 'campus-weave-best', (v) => T(`${v} 顆星`, `${v} star(s)`)],
-  add4: [['四位數的加減法', '4-Digit Add & Subtract'], 'campus-add4-best', ans],
-  tones: [['注音聲調大挑戰', 'Zhuyin Tones'], 'campus-tones-best', ans],
-  units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
-  fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
-  puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
-  stack: [['動物疊疊樂', 'Animal Stacking'], 'campus-kg-stack-best', (v) => T(`疊了 ${v} 層`, `${v} stacked`)],
-  cubes: [['空間方塊', 'Block Count'], 'campus-kg-cubes-best', ans], beads: [['串珠遊戲', 'Bead Patterns'], 'campus-kg-beads-best', ans],
-  fold: [['摺紙遊戲', 'Origami'], 'campus-kg-fold-best', (v) => T(`一次就選對 ${v} 步`, `${v} steps right`)],
-  cook: [['炒菜遊戲', 'Cooking'], 'campus-kg-cook-best', (v) => T(`做對 ${v} 道菜`, `${v} perfect dishes`)],
-  darkchess: [['暗棋', 'Dark Chess'], 'campus-kg-darkchess-wins', win],
-  shrink: [['熱縮片', 'Shrink Art'], 'campus-kg-shrink-count', (v) => T(`做了 ${v} 個`, `${v} made`)],
-  bugs: [['昆蟲放大鏡', 'Bug Magnifier'], 'campus-kg-bugs-count', (v) => T(`探險 ${v} 次`, `${v} explorations`)],
-  shadow: [['影子配對', 'Shadow Match'], 'campus-kg-shadow-best', ans],
-  animalcall: [['是誰在叫？', 'Who Says That?'], 'campus-kg-animalcall-best', ans], toyhome: [['玩具回家囉', 'Toys Go Home'], 'campus-kg-toyhome-best', ans],
-};
+const ans = (v) => T(`答對 ${v} 題`, `${v} correct`);
+const GAME_INFO = makeGameInfo(T);
 // 小遊戲清單：照老師整理，同一個遊戲、同一份紀錄的老師合成一列（例如兩位老師都能打羽球）
 function passGames() {
   const rows = new Map();
@@ -6045,4 +6004,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   tryMove, canGo, clearAt, groundAt, GAME_FILE, cellAt, getGrid };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=324').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=325').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
