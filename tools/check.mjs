@@ -4,6 +4,7 @@
  *   node tools/check.mjs                 全部檢查（約幾分鐘）
  *   node tools/check.mjs --quick         只做不用開瀏覽器的檢查（語法、版本號、不該上傳的檔案）
  *   node tools/check.mjs --rooms 502,604 只掃這幾間（班級代號或房間名稱的一部分），改完一間教室時用
+ *   node tools/check.mjs --all           不看已知清單，把目前所有問題都列出來
  *   node tools/check.mjs --update        把這次看到的結果存成「已知清單」（tools/check-baseline.json）
  *   node tools/check.mjs --live          推上去以後：等 GitHub Pages 真的換成本機這一版（最多等 6 分鐘）
  *
@@ -11,7 +12,8 @@
  *   1. 每個 .js 語法正確；全站 ?v= 版本號一致；site 裡沒有不該上傳的檔案（pdf、zip、_backup）
  *   2. 網站開得起來：沒有程式錯誤、沒有找不到的檔案
  *   3. 卡住掃描：每間房間每 10 公分放一個人，八個方向都走不出 30 公分的位置＝卡住；
- *      再從周圍實際走走看，走得進去的才算問題（走不進去的小縫不算，加 --gaps 可以列出來）
+ *      再從周圍實際走走看，走得進去、而且按方向鍵 4 秒還出不來（也沒被自動救出）的才算問題；
+ *      走不進去的小縫不算（加 --gaps 可以列出來）
  *   4. 每扇門：從門外 1 公尺自動走進房間，進得了門（離門超過 1.2 公尺）才算過
  *      自動走路：從門口走到房間裡每隔 1.5 公尺的位置（找得到路卻走不到＝路線穿過比人窄的縫）
  *   5. 每位老師：站的位置算得出來、站在走得到的地板上、小遊戲有對應的檔案
@@ -175,7 +177,7 @@ window.__chk = (() => {
       const g = groups.find((g) => g.some((o) => Math.hypot(o[0] - q[0], o[1] - q[1]) < 0.16));
       g ? g.push(q) : groups.push([q]);
     }
-    return groups.map((g) => ({ room: rid(r), x: r2(g.reduce((s, o) => s + o[0], 0) / g.length), z: r2(g.reduce((s, o) => s + o[1], 0) / g.length), n: g.length, enter: canEnter(f, g) }));
+    return groups.map((g) => ({ room: rid(r), x: r2(g.reduce((s, o) => s + o[0], 0) / g.length), z: r2(g.reduce((s, o) => s + o[1], 0) / g.length), n: g.length, enter: canEnter(f, g) })).map((t) => ({ ...t, out: t.enter ? getsOut(f, t.x, t.z) : false }));
   }
   // 這個卡住的位置，人真的走得進去嗎？從周圍 0.8 公尺內「走得動」的每個位置，往 16 個方向走 1.2 公尺（走路、跑步兩種步伐），
   //   中途會不會滑進去（直直走進去、或沿著家具邊緣滑進去都算）。走不進去的只是家具之間的小縫，不會有人卡在那裡
@@ -197,6 +199,15 @@ window.__chk = (() => {
         const a = b / 16 * Math.PI * 2;
         for (let k = 0; k < 1.2 / step; k++) { c.tryMove(Math.cos(a) * step, Math.sin(a) * step); if (hit()) return true; }
       }
+    }
+    return false;
+  }
+  // 真的按方向鍵會怎樣？站在卡住的位置，上下左右各按住 4 秒：走得出去，或被「卡住自動救出」帶到旁邊（離開 1 公尺以上）就不算問題
+  function getsOut(f, x, z) {
+    for (const k of ['KeyW', 'KeyS', 'KeyA', 'KeyD']) {
+      c.placeAt(f, x, z, 0);
+      c.keys[k] = true; c.tick(4); c.keys[k] = false; c.tick(0.1);
+      if (p.floor !== f || Math.hypot(p.x - x, p.z - z) > 1) return true;
     }
     return false;
   }
@@ -243,9 +254,12 @@ window.__chk = (() => {
       if (!c.findPath(f, start[0], start[1], x, z)) continue;
       n++;
       c.walkTo(x, z);
+      if (!c.auto.pts) continue;
+      // 路線的終點（目的地被家具圍住時，路線只會帶到最近、站得下的地方，那不算走不到）
+      const [ex, ez] = c.auto.pts.at(-1);
       for (let t = 0; t < 80 && c.auto.pts; t++) c.tick(0.5);
-      const left = Math.hypot(p.x - x, p.z - z);
-      if (p.floor !== f || left > 0.7) out.push({ room: rid(r), x: r2(x), z: r2(z), sx: r2(p.x), sz: r2(p.z), left: r2(left) });
+      const left = Math.hypot(p.x - ex, p.z - ez);
+      if (p.floor !== f || left > 0.6) out.push({ room: rid(r), x: r2(x), z: r2(z), sx: r2(p.x), sz: r2(p.z), left: r2(left) });
     }
     return { n, out };
   }
@@ -295,7 +309,7 @@ async function browserChecks() {
     real.length ? [...new Set(real)].slice(0, 8).forEach((e) => bad('程式錯誤：' + e)) : ok('沒有程式錯誤');
     missing.length ? [...new Set(missing)].forEach((m) => bad('找不到檔案：' + m)) : ok('沒有找不到的檔案');
 
-    const base = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : { traps: [], doors: [] };
+    const base = fs.existsSync(BASELINE) && !has('--all') ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : { traps: [], doors: [] };
     let rooms = await b.run('return __chk.list()');
     if (only.length) rooms = rooms.filter((r) => only.some((k) => r.code === k || r.name.includes(k)));
     if (only.length && !rooms.length) { bad(`找不到房間：${only.join('、')}`); return; }
@@ -309,11 +323,11 @@ async function browserChecks() {
     process.stdout.write(' '.repeat(60) + '\r');
     const knownT = (t) => base.traps.some((o) => o.room === t.room && Math.hypot(o.x - t.x, o.z - t.z) < 0.35);
     const newT = traps.filter((t) => !knownT(t));
-    const realT = newT.filter((t) => t.enter), gaps = traps.filter((t) => !t.enter);
+    const realT = newT.filter((t) => t.enter && !t.out), gaps = traps.filter((t) => !t.enter), saved = traps.filter((t) => t.enter && t.out);
     realT.length ? realT.forEach((t) => bad(`會卡住：${t.room}（x ${t.x}, z ${t.z}，${t.n} 個點）`))
-      : ok(`沒有新的會卡住的位置（已知清單：會卡住 ${traps.filter((t) => t.enter).length} 處、走不進去的小縫 ${gaps.length} 處）`);
+      : ok(`沒有會卡住出不來的位置（擠得進去但走得出來或會自動救出 ${saved.length} 處、走不進去的小縫 ${gaps.length} 處、已知清單 ${traps.filter((t) => t.enter && !t.out).length} 處）`);
     // 新出現的小縫：模擬走不進去，但昨天沒有、今天有，代表剛改的家具擠出一個縫，提醒看一下（不算沒過）
-    const newGaps = newT.filter((t) => !t.enter);
+    const newGaps = newT.filter((t) => !t.enter || t.out);
     if (newGaps.length) notes.push(`新出現 ${newGaps.length} 處家具之間的小縫（模擬走不進去，但建議看一下是不是太擠）：` + newGaps.slice(0, 6).map((t) => `${t.room}（x ${t.x}, z ${t.z}）`).join('；') + (newGaps.length > 6 ? '…' : ''));
     if (has('--gaps')) gaps.forEach((t) => console.log(`    小縫：${t.room}（x ${t.x}, z ${t.z}）`));
 
@@ -343,7 +357,7 @@ async function browserChecks() {
     process.stdout.write(' '.repeat(60) + '\r');
     const knownW = (w) => (base.walks || []).some((o) => o.room === w.room && Math.hypot(o.x - w.x, o.z - w.z) < 0.35);
     const newW = walks.filter((w) => !knownW(w));
-    newW.length ? newW.forEach((w) => bad(`自動走路走不到：${w.room} 要去（x ${w.x}, z ${w.z}），停在（x ${w.sx}, z ${w.sz}），還差 ${w.left} 公尺`))
+    newW.length ? newW.forEach((w) => bad(`自動走路走不到：${w.room} 要去（x ${w.x}, z ${w.z}），半路停在（x ${w.sx}, z ${w.sz}），離路線終點還有 ${w.left} 公尺`))
       : ok(`${walkN - walks.length} 個位置都走得到（已知走不到的 ${walks.length} 個）`);
 
     if (!only.length) {
@@ -357,11 +371,11 @@ async function browserChecks() {
       const scanned = new Set(rooms.map((r) => r.id));
       const keep = (list) => (only.length ? list.filter((o) => !scanned.has(o.room)) : []);
       const out = { note: '自動檢查的已知清單（node tools/check.mjs --update 產生）。在這裡的位置不會再報；修好以後重新 --update 就會消失。',
-        traps: [...keep(base.traps), ...traps.map(({ room, x, z, n, enter }) => ({ room, x, z, n, enter }))],
+        traps: [...keep(base.traps), ...traps.map(({ room, x, z, n, enter, out }) => ({ room, x, z, n, enter, out }))],
         doors: [...keep(base.doors), ...failD.map(({ room, side, x, z, fail }) => ({ room, side, x, z, fail }))],
         walks: [...keep(base.walks || []), ...walks] };
       fs.writeFileSync(BASELINE, JSON.stringify(out, null, 1) + '\n');
-      console.log(`\n已知清單已更新：會卡住 ${out.traps.filter((t) => t.enter).length} 處、小縫 ${out.traps.filter((t) => !t.enter).length} 處、走不到的門 ${out.doors.length} 扇、自動走路走不到 ${out.walks.length} 個（${rel(BASELINE)}）`);
+      console.log(`\n已知清單已更新：會卡住出不來 ${out.traps.filter((t) => t.enter && !t.out).length} 處、小縫 ${out.traps.filter((t) => !t.enter || t.out).length} 處、走不到的門 ${out.doors.length} 扇、自動走路走不到 ${out.walks.length} 個（${rel(BASELINE)}）`);
       problems.length = 0;
     }
   } finally { b.close(); srv.close(); }

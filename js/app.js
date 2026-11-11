@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=319';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=319';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=319';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=319';
-import { buildCampusWall } from './wall.js?v=319';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=319';
+import { PanoViewer } from './pano.js?v=322';
+import { furnishFloor, ROOM_EN } from './furniture.js?v=322';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=322';
+import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=322';
+import { buildCampusWall } from './wall.js?v=322';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=322';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1958,6 +1958,36 @@ function getGrid(f) {
   }
   // （不直接擋格子：教室課桌之間格子都很靠近桌椅，擋了會整片走不進去；改用成本讓路線盡量遠離家具）
   const near = Float32Array.from(clr);                                            // 只算家具（成本用）
+  // 格子裡要有「人真的站得下」的位置才算路（使用者 11-10 在 502 屏風旁卡住；11-11 全校自動檢查：74 個位置找得到路卻走不到）：
+  //   以前只看格子中心有沒有壓到家具，比人還窄的縫（屏風和課桌之間 0.53 m）也被當成路，走到一半就卡住。
+  //   現在：中心離家具不到一個人的半徑時，在格子裡每 5 公分找一個站得下的位置（rx/rz，路線就走那個點）；整格都站不下 → 不是路。
+  //   站得下的格子一格都不會少（人的中心本來就進不去的格子才擋），所以課桌走道不會被封死
+  const rx = new Float32Array(W * H), rz = new Float32Array(W * H);
+  const fits = (x, z, R = PLAYER_R + 0.005) => {
+    const cell = cellAt(f, x, z), py = f.level === 0 ? groundAt(f, x, z) : 0;
+    for (const o of cell.obs) {
+      const y1 = o.y1 - f.y, y2 = o.y2 - f.y;
+      if (y2 < py + 0.25 || y1 > py + 1.4) continue;
+      if (Math.hypot(Math.max(o.x1 - x, 0, x - o.x2), Math.max(o.z1 - z, 0, z - o.z2)) < R) return false;
+    }
+    for (const q of cell.segs) {
+      if (q.overhead) continue;
+      const dx = q.bx - q.ax, dz = q.bz - q.az, L2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((x - q.ax) * dx + (z - q.az) * dz) / L2));
+      if (Math.hypot(x - q.ax - dx * t, z - q.az - dz * t) < R + WALL_T / 2) return false;
+    }
+    return true;
+  };
+  const OFFS = [];
+  for (let a = -4; a <= 4; a++) for (let b = -4; b <= 4; b++) OFFS.push([a * 0.05, b * 0.05]);
+  OFFS.sort((a, b) => Math.hypot(...a) - Math.hypot(...b));                       // 先試靠中心的
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const m = j * W + i, x = minx + (i + 0.5) * CELL, z = minz + (j + 0.5) * CELL;
+    rx[m] = x; rz[m] = z;
+    if (!free[m] || near[m] > PLAYER_R + 0.02) continue;
+    const o = OFFS.find(([ox, oz]) => isWalkable(f, x + ox, z + oz, 0) && fits(x + ox, z + oz));
+    if (o) { rx[m] = x + o[0]; rz[m] = z + o[1]; } else free[m] = 0;
+  }
   // 牆也算進去（離牆面多遠）：拉直路線斜穿門口時才會檢查到門框（不拿來擋格子，窄門才不會被堵死）
   for (const q of f.segs) {
     if (q.overhead) continue;
@@ -1984,7 +2014,20 @@ function getGrid(f) {
       roomAt[j * W + i] = k + 1;
     }
   });
-  return (f.grid = { minx, minz, W, H, free, clr, near, roomAt });
+  // 相鄰兩格之間走不走得過去（薄薄的屏風、廁所隔間門比格子還窄，擋不到任何一格的中心，以前路線會直接穿過去）：
+  //   兩格「站得下的位置」連一條線，每 10 公分看一次，離家具不到 0.26 公尺（比人的半徑 0.28 小一點點）就是中間有東西擋著或縫太窄。用到才算、算過記起來
+  const edge = new Uint8Array(W * H * 8);
+  const edgeOk = (n, m, k) => {
+    const e = n * 8 + k;
+    if (!edge[e]) {
+      let ok = true;
+      const d = Math.hypot(rx[m] - rx[n], rz[m] - rz[n]), steps = Math.max(2, Math.ceil(d / 0.1));
+      for (let q = 1; q < steps && ok; q++) ok = fits(rx[n] + (rx[m] - rx[n]) * q / steps, rz[n] + (rz[m] - rz[n]) * q / steps, 0.26);
+      edge[e] = ok ? 1 : 2;
+    }
+    return edge[e] === 1;
+  };
+  return (f.grid = { minx, minz, W, H, free, clr, near, roomAt, rx, rz, edgeOk });
 }
 function isPublicRoom(r) { return r.open || r.type === 'hall' || r.type === 'garden'; }
 const ROOM_COST = 40;     // 穿過別人的房間每一格多算 40 格的距離：有走廊可以繞就一定繞，真的沒路才穿過
@@ -2005,7 +2048,8 @@ function findPath(f, sx, sz, tx, tz) {
   if (!s || !t) return null;
   const N = g.W * g.H, gs = new Float32Array(N).fill(Infinity), from = new Int32Array(N).fill(-1);
   const closed = new Uint8Array(N);
-  const si = s[1] * g.W + s[0], ti = t[1] * g.W + t[0];
+  const si = s[1] * g.W + s[0];
+  let ti = t[1] * g.W + t[0];
   // 起點、目的地所在的房間可以自由穿過（點的位置和實際起訖格子都算，免得站在門邊被當成房間外）
   const okRoom = new Set([0, g.roomAt[si], g.roomAt[ti]]);
   for (const [x, z] of [[sx, sz], [tx, tz]]) {
@@ -2017,6 +2061,7 @@ function findPath(f, sx, sz, tx, tz) {
   const push = (n, fv) => { heap.push([fv, n]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
   const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
   const hfn = (n) => { const dx = Math.abs(n % g.W - t[0]), dz = Math.abs(((n / g.W) | 0) - t[1]); return Math.max(dx, dz) + 0.414 * Math.min(dx, dz); };
+  let bestN = si, bestH = Infinity;                       // 走得到的格子裡離目的地最近的那一格
   gs[si] = 0; push(si, hfn(si));
   const dirs = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.414], [1, -1, 1.414], [-1, 1, 1.414], [-1, -1, 1.414]];
   while (heap.length) {
@@ -2024,23 +2069,28 @@ function findPath(f, sx, sz, tx, tz) {
     if (closed[n]) continue;
     closed[n] = 1;
     if (n === ti) break;
+    const hn = hfn(n);
+    if (hn < bestH) { bestH = hn; bestN = n; }
     const i = n % g.W, j = (n / g.W) | 0;
-    for (const [di, dj, c] of dirs) {
+    for (let dk = 0; dk < 8; dk++) {
+      const [di, dj, c] = dirs[dk];
       const a = i + di, b = j + dj;
       if (a < 0 || b < 0 || a >= g.W || b >= g.H) continue;
       const m = b * g.W + a;
       if (!g.free[m] || closed[m]) continue;
       if (di && dj && (!g.free[j * g.W + a] || !g.free[b * g.W + i])) continue;
+      if ((g.near[n] < 0.75 || g.near[m] < 0.75) && !g.edgeOk(n, m, dk)) continue;   // 中間隔著屏風、隔間門
       const ng = gs[n] + c + (g.near[m] < 0.55 ? (0.55 - g.near[m]) * 5 : 0)   // 靠家具太近的格子比較貴
         + (blocked(m) ? c * ROOM_COST : 0);                                     // 別人的房間非常貴
       if (ng < gs[m]) { gs[m] = ng; from[m] = n; push(m, ng + hfn(m)); }
     }
   }
-  if (from[ti] < 0 && ti !== si) return null;
+  // 目的地被家具圍住（課桌中間、關著門的廁所隔間）：帶到走得到、離它最近的地方（3 公尺內才算，太遠就當作走不到）
+  if (from[ti] < 0 && ti !== si) { if (bestH > 6) return null; ti = bestN; }
   const cells = [];
   for (let n = ti; n >= 0; n = from[n]) { cells.push(n); if (n === si) break; }
   cells.reverse();
-  const pts = cells.map((n) => [g.minx + (n % g.W + 0.5) * CELL, g.minz + (((n / g.W) | 0) + 0.5) * CELL]);
+  const pts = cells.map((n) => [g.rx[n], g.rz[n]]);                    // 每一格裡站得下的那個位置（大部分就是格子中心）
   const thru = new Set(cells.map((n) => g.roomAt[n]));   // 真的沒路、A* 不得不穿過的房間，拉直時才可以經過
   // 拉直路徑（視線檢查）：直線經過的地方要真的走得過去——離家具、牆至少一個人的寬度（不然會擦到桌角卡住）
   const roomy = (x, z) => {
@@ -5613,7 +5663,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=319`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=322`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -7839,7 +7889,7 @@ export { D, T, WALL_T, BASE, mx, mz, rectM, floors, rooms, isWalkable, groundAt,
 window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalkable, renderer, scene, togglePerf, applyQuality, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
   step: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); renderer.render(scene, camera); },
   tick: (sec) => { for (let t = 0; t < sec; t += 1 / 30) update(1 / 30); },   // 不畫畫面，只推進（tools/check.mjs 自動檢查用）
-  tryMove, canGo, clearAt, groundAt, GAME_FILE };
+  tryMove, canGo, clearAt, groundAt, GAME_FILE, cellAt, getGrid };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=319').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=322').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
