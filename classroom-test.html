@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Classroom 測試頁</title>
+<style>
+  :root { --bg: #f6f4ef; --card: #fff; --ink: #222; --mute: #666; --ok: #1d7a3a; --bad: #b3261e; --line: #ddd; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4em; margin: .4em 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 12px 0; }
+  button { font: inherit; padding: 8px 16px; border-radius: 8px; border: 1px solid #888; background: #fff; cursor: pointer; }
+  button.main { background: #2b5fb3; color: #fff; border-color: #2b5fb3; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .mute { color: var(--mute); font-size: .92em; }
+  table { border-collapse: collapse; width: 100%; font-size: .95em; }
+  td, th { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; }
+  details summary { cursor: pointer; font-weight: 600; }
+  ul.check { padding-left: 1.2em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🧪 Classroom 測試頁（第二階段）</h1>
+  <p class="mute">只給管理者測試用，網站上沒有連結。只讀取，不會改 Classroom，也不會把名單存起來。關掉分頁就沒了。</p>
+
+  <div class="card">
+    <button class="main" id="go">用老師帳號登入並讀取 Classroom</button>
+    <label style="margin-left:12px"><input type="checkbox" id="full"> 顯示完整姓名和 email</label>
+    <p class="mute">預設會遮住姓名和 email，方便截圖給 Claude。登入時如果出現「Google 尚未驗證這個應用程式」，請截圖，然後按「進階」→「前往…」繼續。</p>
+  </div>
+
+  <div class="card" id="summary" hidden><b>檢查結果</b><ul class="check" id="checks"></ul></div>
+  <div id="out"></div>
+</main>
+<script type="module">
+const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const CONFIG = {
+  apiKey: 'AIzaSyAvdmygA7eloYU7B84OlKY2dBlSFiJRATc',
+  authDomain: 'xikou-3d-campus.firebaseapp.com',
+  projectId: 'xikou-3d-campus',
+  appId: '1:893856603463:web:a1f0c474504696d5258062',
+};
+const SCOPES = ['classroom.courses.readonly', 'classroom.rosters.readonly', 'classroom.profile.emails'].map((s) => 'https://www.googleapis.com/auth/' + s);
+const API = 'https://classroom.googleapis.com/v1/';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const checks = [];
+const check = (ok, text) => { checks.push([ok, text]); $('summary').hidden = false; $('checks').innerHTML = checks.map(([o, t]) => `<li class="${o === true ? 'ok' : o === false ? 'bad' : ''}">${o === true ? '✅' : o === false ? '❌' : 'ℹ️'} ${t}</li>`).join(''); };
+
+// 遮名字：王小明 → 王○明；email：abc123@st... → a***@st...
+const maskName = (n) => { n = String(n || ''); return n.length <= 1 ? n : n.length === 2 ? n[0] + '○' : n[0] + '○'.repeat(n.length - 2) + n.at(-1); };
+const maskMail = (m) => { const [u, d] = String(m || '').split('@'); return d ? u[0] + '***@' + d : ''; };
+let data = null;
+const render = () => {
+  if (!data) return;
+  const full = $('full').checked, N = (n) => esc(full ? n : maskName(n)), M = (m) => esc(full ? m : maskMail(m));
+  $('out').innerHTML = data.map((c) => `
+    <div class="card"><details ${data.length <= 3 ? 'open' : ''}>
+      <summary>${esc(c.name)}${c.section ? '（' + esc(c.section) + '）' : ''}・學生 ${c.students ? c.students.length : '?'} 人</summary>
+      <p class="mute">課程擁有者：${M(c.ownerEmail) || '（讀不到）'}・狀態 ${esc(c.courseState)}</p>
+      ${c.error ? `<p class="bad">讀名單失敗：${esc(c.error)}</p>` : `
+      <table><tr><th>#</th><th>姓名</th><th>email</th></tr>
+      ${c.students.map((s, i) => `<tr><td>${i + 1}</td><td>${N(s.profile?.name?.fullName)}</td><td>${s.profile?.emailAddress ? M(s.profile.emailAddress) : '<span class="bad">（沒有 email）</span>'}</td></tr>`).join('')}
+      </table>`}
+    </details></div>`).join('');
+};
+$('full').onchange = render;
+
+async function getAll(token, path, key) {
+  const out = []; let page = '';
+  do {
+    const r = await fetch(API + path + (path.includes('?') ? '&' : '?') + 'pageSize=100' + (page ? '&pageToken=' + page : ''), { headers: { Authorization: 'Bearer ' + token } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(`${r.status} ${j.error?.status || ''} ${j.error?.message || ''}`.trim());
+    out.push(...(j[key] || [])); page = j.nextPageToken || '';
+  } while (page);
+  return out;
+}
+
+$('go').onclick = async () => {
+  checks.length = 0; data = null; $('out').innerHTML = ''; $('go').disabled = true;
+  try {
+    const [{ initializeApp }, A] = await Promise.all([import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js')]);
+    const auth = A.getAuth(initializeApp(CONFIG));
+    const p = new A.GoogleAuthProvider();
+    SCOPES.forEach((s) => p.addScope(s));
+    p.setCustomParameters({ prompt: 'consent select_account', hd: 'skps.tp.edu.tw' });
+    let res;
+    try { res = await A.signInWithPopup(auth, p); }
+    catch (e) { check(false, '登入失敗：' + esc(e.code || e.message)); return; }
+    const email = res.user.email || '';
+    if (!/@skps\.tp\.edu\.tw$/i.test(email)) { check(false, `這不是老師網域的帳號（${esc(maskMail(email))}），請改用 @skps.tp.edu.tw`); await A.signOut(auth); return; }
+    check(true, `已登入老師帳號 ${esc(maskMail(email))}`);
+    const token = A.GoogleAuthProvider.credentialFromResult(res)?.accessToken;
+    if (!token) { check(false, '登入成功，但沒有拿到 Classroom 的授權（access token）'); return; }
+
+    let courses;
+    try { courses = await getAll(token, 'courses?teacherId=me&courseStates=ACTIVE', 'courses'); }
+    catch (e) { check(false, '讀課程失敗：' + esc(e.message)); return; }
+    check(courses.length > 0 ? true : null, `我是老師、進行中的課程：${courses.length} 個`);
+
+    // 課程擁有者的 email（可以看出有沒有學生網域管理員開的課）
+    const owners = {};
+    for (const c of courses) {
+      if (!(c.ownerId in owners)) {
+        try { const r = await fetch(API + 'userProfiles/' + c.ownerId, { headers: { Authorization: 'Bearer ' + token } }); owners[c.ownerId] = r.ok ? (await r.json()).emailAddress || '' : ''; }
+        catch { owners[c.ownerId] = ''; }
+      }
+      c.ownerEmail = owners[c.ownerId];
+    }
+    const stOwned = courses.filter((c) => /@st\.skps\.tp\.edu\.tw$/i.test(c.ownerEmail)).length;
+    check(null, `其中擁有者是學生網域帳號的課程：${stOwned} 個${stOwned ? '（跨網域讀得到 👍）' : '（如果你知道有這種課，卻是 0，代表跨網域讀不到）'}`);
+
+    for (const c of courses) {
+      try { c.students = await getAll(token, `courses/${c.id}/students`, 'students'); }
+      catch (e) { c.error = e.message; c.students = []; }
+    }
+    data = courses; render();
+    const all = courses.flatMap((c) => c.students), withMail = all.filter((s) => s.profile?.emailAddress);
+    const stMail = withMail.filter((s) => /@st\.skps\.tp\.edu\.tw$/i.test(s.profile.emailAddress)).length;
+    const failed = courses.filter((c) => c.error).length;
+    if (failed) check(false, `${failed} 個課程讀不到名單`);
+    check(all.length ? withMail.length === all.length : null, `學生共 ${all.length} 人次，讀得到 email 的 ${withMail.length} 人次（學生網域 ${stMail}）`);
+    check(null, '登入時有沒有出現「Google 尚未驗證這個應用程式」？請在回覆裡告訴 Claude。');
+  } finally { $('go').disabled = false; }
+};
+</script>
+</body>
+</html>
