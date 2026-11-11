@@ -148,7 +148,7 @@ async function loadCourse() {
     }
     rows = students.map((s, i) => {
       const email = (s.profile?.emailAddress || '').toLowerCase(), f = found.get(email);
-      return { i, name: s.profile?.name?.fullName || '（沒有姓名）', email, has: !!f, t: f?.t || null, ...(f ? summarize(f.saved) : { games: [], npc: 0, rooms: 0, pano: 0, eggs: 0, nav: 0 }) };
+      return { i, name: cleanName(s.profile?.name) || '（沒有姓名）', email, has: !!f, t: f?.t || null, ...(f ? summarize(f.saved) : { games: [], npc: 0, rooms: 0, pano: 0, eggs: 0, nav: 0 }) };
     });
     const used = rows.filter((r) => r.has).length;
     $('stat').textContent = `學生 ${rows.length} 人，用學校帳號登入過 3D 校園的 ${used} 人。小遊戲共 ${GAMES.size} 種。`;
@@ -158,12 +158,26 @@ async function loadCourse() {
   }
 }
 
+// 學生網域帳號的姓和名都填了全名，Classroom 的 fullName 會變成「萬品辰萬品辰」，重複的只留一次
+const cleanName = (n) => {
+  let f = String(n?.fullName || '').trim();
+  const h = f.length / 2;
+  if (f.length >= 4 && Number.isInteger(h) && f.slice(0, h) === f.slice(h)) f = f.slice(0, h);
+  else if (n?.givenName && n.givenName === n.familyName) f = n.givenName;
+  return f;
+};
 const COLS = [
   ['#', (r) => r.i], ['姓名', (r) => r.name], ['小遊戲', (r) => r.games.length], ['認識老師', (r) => r.npc], ['走過地點', (r) => r.rooms],
   ['360° 實景', (r) => r.pano], ['彩蛋', (r) => r.eggs], ['挑戰尋路', (r) => r.nav], ['最後存檔', (r) => r.t?.getTime() || 0],
 ];
 const maskName = (n) => n.length <= 1 ? n : n.length === 2 ? n[0] + '○' : n[0] + '○'.repeat(n.length - 2) + n.at(-1);
-const fmtTime = (t) => { if (!t) return ''; const d = (Date.now() - t) / 864e5; return d < 1 ? '今天' : d < 2 ? '昨天' : d < 30 ? `${Math.floor(d)} 天前` : t.toLocaleDateString('sv'); };
+// 顯示這台電腦的時間（台灣的電腦就是台北時間）：今天 07:12、昨天 23:40、11/05 14:20
+const fmtTime = (t) => {
+  if (!t) return '';
+  const day = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diff = Math.round((day(new Date()) - day(t)) / 864e5), hm = t.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return (diff === 0 ? '今天 ' : diff === 1 ? '昨天 ' : `${t.getFullYear() !== new Date().getFullYear() ? t.getFullYear() + '/' : ''}${t.getMonth() + 1}/${t.getDate()} `) + hm;
+};
 
 function render() {
   const list = [...rows];
@@ -175,7 +189,7 @@ function render() {
     if (!r.has) return `<tr class="none"><td class="n">${r.i + 1}</td><td>${name}</td><td colspan="7">還沒登入過</td></tr>`;
     const main = `<tr class="row" data-i="${r.i}"><td class="n">${r.i + 1}</td><td>${name}</td>
       <td><span class="meter"><i style="width:${Math.round(r.games.length / max * 100)}%"></i></span>${r.games.length} / ${max}</td>
-      <td class="n">${r.npc}</td><td class="n">${r.rooms}</td><td class="n">${r.pano}</td><td class="n">${r.eggs}</td><td class="n">${r.nav}</td><td>${fmtTime(r.t)}</td></tr>`;
+      <td class="n">${r.npc}</td><td class="n">${r.rooms}</td><td class="n">${r.pano}</td><td class="n">${r.eggs}</td><td class="n">${r.nav}</td><td title="${r.t ? esc(r.t.toLocaleString('zh-TW', { hour12: false })) : ''}">${fmtTime(r.t)}</td></tr>`;
     const det = open.has(r.i) ? `<tr class="detail"><td></td><td colspan="8">${r.games.length ? `<div class="games">${r.games.map((g) => `<span><b>${esc(g.name)}</b>：${esc(g.text)}</span>`).join('')}</div>` : '還沒有小遊戲紀錄'}</td></tr>` : '';
     return main + det;
   }).join('');
