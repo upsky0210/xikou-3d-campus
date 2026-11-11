@@ -1,8 +1,9 @@
 /* 二選一問答（startFood）：蜜袋鼯、沉浮、熱脹冷縮、史地、交通安全、分數、生活、自然小觀察、電子積木
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
 import * as THREE from 'three';
-import { faceTeacher } from './common.js?v=323';
-import { T, rooms, scene, player, avatar, placeAt, updateVisibility, stopAuto, toast, npcFace, act, gameState, blocksBoard } from '../app.js?v=323';
+import { faceTeacher } from './common.js?v=324';
+import { useSheet, trueFalse, bothSides } from './bank.js?v=324';
+import { T, rooms, scene, player, avatar, placeAt, updateVisibility, stopAuto, toast, npcFace, act, gameState, blocksBoard } from '../app.js?v=324';
 
 /* ---------------- 蜜袋鼯能吃嗎？：遇到邱老師（教務處的花花、泡泡是她養的），判斷每樣東西蜜袋鼯能不能吃 ----------------
    一回 5 題（能吃、不能吃各 2～3 題，順序打亂）；點按鈕或按 1（可以吃）／2（不能吃），答完老師會說明原因。 */
@@ -411,6 +412,11 @@ function startFood(n, Q = GLIDER_Q) {
 }
 
 // app.js 依互動種類（spot.kind）呼叫
+// 老師可以用 Google 試算表改題目（js/sheet-config.js）；沒設定、讀不到就用上面內建的題目
+for (const [kind, Q] of [['glider', GLIDER_Q], ['float', FLOAT_Q], ['history', HISTORY_Q], ['traffic', TRAFFIC_Q], ['life', LIFE_Q], ['nature', NATURE_Q]]) {
+  useSheet(kind, Q.list, trueFalse(Q.yes[1], Q.no[1], Q.icon), 6, bothSides);
+}
+
 export const play = {
   glider: (s) => startFood(s.npc), float: (s) => startFood(s.npc, FLOAT_Q), heat: (s) => startFood(s.npc, HEAT_Q), history: (s) => startFood(s.npc, HISTORY_Q),
   traffic: (s) => startFood(s.npc, TRAFFIC_Q), fraction: (s) => startFood(s.npc, FRACTION_Q), life: (s) => startFood(s.npc, LIFE_Q), nature: (s) => startFood(s.npc, NATURE_Q), blocks: () => startFood({ name: '電子積木' }, BLOCKS_Q),

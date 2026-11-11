@@ -1,6 +1,6 @@
 /* 著色本
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { T, player, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=323';
+import { T, player, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=324';
 
 /* ---------------- 著色小遊戲：在美勞教室遇到哈囉老師，幫動物線稿塗顏色 ----------------
    動物線稿用程式畫在 400×400 的畫布上；先把「被黑線圍起來的區塊」編號，點一下就把整塊塗成選的顏色（可以一直換色重塗） */

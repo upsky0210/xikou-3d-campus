@@ -1,8 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=323';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=323';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=323';
+import { faceTeacher } from './common.js?v=324';
+import { useSheet, threeChoice } from './bank.js?v=324';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=324';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=324';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -1908,6 +1909,13 @@ const KG_CUT = {
 };
 
 // app.js 依互動種類（spot.kind）呼叫
+// 老師可以用 Google 試算表改題目（js/sheet-config.js）；沒設定、讀不到就用上面內建的題目
+for (const [kind, list, icon] of [['units', UNITS_ITEMS, '📏'], ['geo', GEO_ITEMS, '🗺️'], ['busquiz', BUSQ_ITEMS, '🚌'], ['library', LIB_ITEMS, '📚'], ['decimal', DECIMAL_ITEMS, '🔢']]) {
+  useSheet(kind, list, (r) => { const q = threeChoice(icon)(r); if (q && q.e === '臺灣地圖') q.e = TAIWAN_SVG; return q; }, 5);   // 圖示寫「臺灣地圖」＝顯示臺灣地圖
+}
+// 修辭小偵探：修辭、句子、解說（修辭要是 RHET_KINDS 裡的六種之一）；一回 8 題
+useSheet('rhetoric', RHET_Q, ([k, text, why]) => (RHET_KINDS[k] && text ? [k, text, why || ''] : null), 8);
+
 export const play = {
   blindquiz: (s) => kgPlay(pseudoHost('溪口巴士', s), KG_BLIND), busquiz: (s) => kgPlay(pseudoHost('溪口巴士', s), KG_BUSQ), gymrun: (s) => kgPlay(pseudoHost('體操墊', s), KG_GYMRUN),
 };
