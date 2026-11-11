@@ -84,7 +84,7 @@
     if (!hasWebGL()) { show('webgl'); return; }
     var app = document.createElement('script');
     app.type = 'module';
-    app.src = 'js/app.js?v=318';
+    app.src = 'js/app.js?v=319';
     app.onerror = function () { show('error', 'js/app.js 或它用到的檔案載入失敗'); };
     document.body.appendChild(app);
     setTimeout(function () { show('slow'); }, SLOW_MS);

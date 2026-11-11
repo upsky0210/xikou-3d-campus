@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mat } from './blocks.js?v=318';
+import { mat } from './blocks.js?v=319';
 
 /* =========================================================
  * 勤學樓地下室（丙梯～丁梯）：交通安全教室
