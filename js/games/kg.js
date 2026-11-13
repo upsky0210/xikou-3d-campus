@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=326';
-import { useSheet, threeChoice } from './bank.js?v=326';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=326';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=326';
+import { faceTeacher } from './common.js?v=327';
+import { useSheet, threeChoice } from './bank.js?v=327';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=327';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=327';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -63,7 +63,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -1515,6 +1515,76 @@ const KG_PERIM = {
         if (v === ansV) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${why}`, 'ok'); }
         else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${why}`, 'no'); }
         ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`📐 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `📐 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 5 ? '太厲害了，連老師都要跟你學！' : '沒關係，老師也是一步一步學的，我們再練一次！'}`)), 3200);
+      } })));
+    };
+    next();
+  },
+};
+
+/* ---- 因數與倍數（林老師，五年三班）：程式出題，一回 8 題、每題 3 個選項。
+   前 4 題：找因數、找倍數、哪個不是因數、有幾個因數（順序打亂）；後 4 題：最大公因數、最小公倍數各 2 題 ---- */
+const FAC_N = [12, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 45, 48, 54, 56, 60];
+const facRand = (a, b) => a + (Math.random() * (b - a + 1) | 0);
+const facPick = (arr) => arr[Math.random() * arr.length | 0];
+const factorsOf = (n) => { const f = []; for (let i = 1; i <= n; i++) if (n % i === 0) f.push(i); return f; };
+const gcdOf = (a, b) => (b ? gcdOf(b, a % b) : a);
+const facList = (n) => `${n} 的因數有：${factorsOf(n).join('、')}`;
+// 錯的選項：從候選裡挑跟答案不一樣、沒重複的，湊滿 2 個
+const facWrong = (ans, cands) => { const out = []; for (const w of kgShuffle(cands)) if (w > 0 && w !== ans && !out.includes(w) && out.length < 2) out.push(w); return out; };
+const FAC_GEN = {
+  factor() {
+    const n = facPick(FAC_N), f = factorsOf(n).filter((x) => x > 1 && x < n), ans = facPick(f);
+    const non = []; for (let x = 2; x < n; x++) if (n % x) non.push(x);
+    return { q: `下面哪一個是 ${n} 的因數？`, ans, opts: facWrong(ans, non.filter((x) => Math.abs(x - ans) <= 6)), why: facList(n) + '。' };
+  },
+  multiple() {
+    const k = facRand(3, 9), m = facRand(3, 9), ans = k * m;
+    const near = [ans - 2, ans - 1, ans + 1, ans + 2, ans + 3].filter((x) => x % k);
+    return { q: `下面哪一個是 ${k} 的倍數？`, ans, opts: facWrong(ans, near), why: `${k} × ${m} ＝ ${ans}，所以 ${ans} 是 ${k} 的倍數。` };
+  },
+  notFactor() {
+    const n = facPick(FAC_N), f = factorsOf(n).filter((x) => x > 1 && x < n);
+    const non = []; for (let x = 2; x < n; x++) if (n % x) non.push(x);
+    const ans = facPick(non.filter((x) => x <= Math.max(...f)));
+    return { q: `下面哪一個「不是」${n} 的因數？`, ans, opts: facWrong(ans, f), why: `${n} ÷ ${ans} 除不盡。${facList(n)}。` };
+  },
+  count() {
+    const n = facPick(FAC_N), ans = factorsOf(n).length;
+    return { q: `${n} 一共有幾個因數？`, ans, opts: facWrong(ans, [ans - 2, ans - 1, ans + 1, ans + 2]), unit: '個', why: `${facList(n)}，一共 ${ans} 個。` };
+  },
+  gcd() {
+    let a, b, g;
+    do { g = facRand(2, 9); const x = facRand(1, 5), y = facRand(2, 6); a = g * x; b = g * y; } while (a === b || gcdOf(a, b) !== g || a < 6 || Math.max(a, b) > 60);
+    const fa = factorsOf(a), fb = factorsOf(b), common = fa.filter((x) => fb.includes(x));
+    return { q: `${a} 和 ${b} 的最大公因數是多少？`, ans: g, opts: facWrong(g, [...common.filter((x) => x < g), g * 2, Math.min(a, b), g + 1]),
+      why: `${facList(a)}；${facList(b)}。共同的因數是 ${common.join('、')}，最大的是 ${g}。` };
+  },
+  lcm() {
+    let a, b, l;
+    do { a = facRand(3, 12); b = facRand(3, 12); l = a * b / gcdOf(a, b); } while (a === b || a % b === 0 || b % a === 0 || l > 72);
+    const big = Math.max(a, b), small = Math.min(a, b), ms = []; for (let x = big; x <= l; x += big) ms.push(x);
+    return { q: `${a} 和 ${b} 的最小公倍數是多少？`, ans: l, opts: facWrong(l, [a * b, l * 2, l + big, ms.find((x) => x < l) || l - small].filter((x) => x !== l)),
+      why: `${big} 的倍數：${ms.join('、')}…，第一個也是 ${small} 的倍數的是 ${l}。` };
+  },
+};
+const KG_FACTOR = {
+  key: 'campus-factor-best', title: ['🔢 因數與倍數', '🔢 Factors & Multiples'], label: ['🔢 因數與倍數…', '🔢 Factors & multiples…'],
+  bye: (n) => T(`🔢 下次再來找${n.name}挑戰因數與倍數！`, `🔢 Come back and practice with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, kinds = [...kgShuffle(['factor', 'multiple', 'notFactor', 'count']), ...kgShuffle(['gcd', 'lcm']), ...kgShuffle(['gcd', 'lcm'])], N = kinds.length;
+    let i = 0, right = 0;
+    const next = () => {
+      const q = FAC_GEN[kinds[i]](), opts = kgShuffle([q.ans, ...q.opts]), u = q.unit || '';
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = `<div style="font-size:34px;line-height:1.2;margin:6px 0">${kinds[i] === 'gcd' || kinds[i] === 'lcm' ? '🤝' : kinds[i] === 'multiple' ? '✖️' : '🔢'}</div>`;
+      ctx.ask(q.q);
+      ctx.msg(i ? '' : T('N 除以某個數能除盡，這個數就是 N 的因數；N 乘以 1、2、3…得到的數是 N 的倍數。慢慢想，你可以的！', 'Factors divide N evenly; multiples are N × 1, 2, 3…'));
+      ctx.buttons(opts.map((v, j) => ({ html: `${v}${u}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.indexOf(q.ans)].className = 'opt right';
+        if (v === q.ans) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${q.why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${q.why}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`🔢 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `🔢 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 7 ? '太棒了！你的努力都看得到，繼續保持！' : right >= 4 ? '很不錯喔！再練幾次，你一定會更厲害！' : '願意挑戰就很棒了！我們一起再試一次，一定會進步！'}`)), 3400);
       } })));
     };
     next();

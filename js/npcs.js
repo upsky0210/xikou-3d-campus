@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=326';
+import { poolWater } from './extras.js?v=327';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -663,6 +663,40 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSMMMMMMSSSHH',
           'HHSSSSMTTMSSSSHH',
           'HHHSSSSMMSSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '林老師', title: '五年三班導師', game: 'factor',
+      hello: ['🌟 林老師：你今天也很努力，老師都有看到喔！', '💪 林老師：錯了沒關係，再試一次就會更進步！', '😊 林老師：相信自己，你一定做得到！',
+        '🔢 林老師：要不要來挑戰因數與倍數？'],
+      // 4 樓勤學樓五年三班（415 室）：跟五年二班同一排、黑板在西邊，老師站講台旁、面向東邊的學生
+      places: [
+        { floor: '4F', where: '五年三班', game: true, at: () => { const r = rooms.find((x) => x.code === '503'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+      ],
+      look: {
+        // 依照片（操場跑道拍的）：黑色長髮過肩、齊瀏海、淺淺的微笑；粉紫框眼鏡（淺灰色鏡片）；
+        //   粉紫色和米白色寬橫條紋長袖針織毛衣（粉紫色小立領）、深藍色牛仔褲（鞋子照片沒拍到；左手的白色智慧手錶太小沒做）
+        skin: '#f0cdb4', hair: '#231a16', top: '#f3ece8', pants: '#2f3f63', shoe: '#e6e6e6',
+        longHair: true, longSleeve: true, topStripes: '#b4648f', stripeH: 0.07, collar: '#b4648f',
+        pal: { H: '#231a16', h: '#3a2a22', S: '#f0cdb4', K: '#b87a9a', E: '#2a1610', W: '#d9d6d6', B: '#eeb0a6', N: '#e2b49c', M: '#b8505a', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHhHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHSHHHHHHHHHHSHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHKEEWKSSKEEWKHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSSSMMMMMMSSSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },
