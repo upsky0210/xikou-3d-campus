@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=327';
+import { poolWater } from './extras.js?v=328';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -697,6 +697,41 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSMMMMMMSSSHH',
           'HHSSSSSSSSSSSSHH',
           'HHHSSSSSSSSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '林護理師', title: '健康中心護理師', game: 'healthqa',
+      hello: ['🌳 林護理師：多到戶外活動，看看遠方～', '🦷 林護理師：餐後漱口要潔牙～', '🧊 林護理師：記得還冰敷罐！', '🚶 林護理師：走廊不奔跑！',
+        '🩺 林護理師：要不要來玩健康 Q&A？'],
+      // 1 樓勤學樓健康中心（120 室，門在北邊）：站在西北角接待櫃台的東邊，面向房間裡面（東邊）
+      places: [
+        { floor: '1F', where: '健康中心', game: true, at: () => { const r = rooms.find((x) => x.name === '健康中心'); return [r.m.x1 + 2.5, r.m.z1 + 1.9, -Math.PI / 2]; } },
+      ],
+      look: {
+        // 依照片：黑色長直髮過肩（中分、沒有瀏海）、細金框圓眼鏡、露齒的笑容；
+        //   酒紅色刷毛外套敞開穿（亮粉紅色內裡和領口）、白色針織內搭、淺灰藍底黑色豹紋圍巾（下半身照片沒拍到，用深色長褲）
+        skin: '#f2d0b8', hair: '#1e1714', top: '#f4f0ea', pants: '#2c2d33', shoe: '#3a3434',
+        longHair: true, longSleeve: true, openShirt: '#8c2340', sleeve: '#8c2340', collar: '#e8428a',
+        scarf: ['#c9d3d8', '#b7c3c9'], scarfSpots: '#2a2f33',
+        pal: { H: '#1e1714', h: '#33282a', S: '#f2d0b8', K: '#c4a27a', E: '#2a1610', W: '#ffffff', B: '#eeb0a6', N: '#e2b49c', M: '#b8505a', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHhHHHHHHHH',
+          'HHHHHHHSHHHHHHHH',
+          'HHHHHHSSSHHHHHHH',
+          'HHHHSSSSSSSHHHHH',
+          'HHHSSSSSSSSSSHHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHKEEWKKKKEEWKHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSMTTTTMSSSHH',
+          'HHHSSSMMMMSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },

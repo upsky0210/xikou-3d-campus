@@ -8,7 +8,7 @@
  *     valid   其他條件（例如是非題「對」「錯」各要 3 題以上），不符合也維持內建題目
  *
  * 讀不到（沒網路、試算表沒共用、學校網路擋掉）→ 用上一次成功讀到的（存在這台電腦）→ 再不行用內建題目。 */
-import { SHEETS } from '../sheet-config.js?v=327';
+import { SHEETS } from '../sheet-config.js?v=328';
 
 const CACHE = 'campus-sheet-';
 

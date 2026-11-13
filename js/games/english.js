@@ -1,7 +1,7 @@
 /* 英文單字、英文聽力
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=327';
-import { T, player, updateVisibility, stopAuto, toast, bgmHold, npcFace, act, gameState } from '../app.js?v=327';
+import { faceTeacher } from './common.js?v=328';
+import { T, player, updateVisibility, stopAuto, toast, bgmHold, npcFace, act, gameState } from '../app.js?v=328';
 
 /* ---------------- 英文單字小測驗：遇到 Ashley 老師（輔導室外走廊、2F 英語教室一）可以練背單字 ----------------
    看中文和圖示，用鍵盤打出英文單字，按 Enter 送出；每次隨機考 3～5 個（顏色、動物、文具）。

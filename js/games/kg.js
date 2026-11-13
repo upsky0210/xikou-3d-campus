@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=327';
-import { useSheet, threeChoice } from './bank.js?v=327';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=327';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=327';
+import { faceTeacher } from './common.js?v=328';
+import { useSheet, threeChoice } from './bank.js?v=328';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=328';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=328';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -63,7 +63,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get healthqa() { return KG_HEALTH; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -1058,6 +1058,34 @@ const KG_BUSQ = mcGame({
 });
 KG_BUSQ.noFace = true;
 
+/* ---- 健康 Q&A（林護理師，健康中心）：三選一，一回 5 題（可以用 Google 試算表改題目：healthqa） ---- */
+const HEALTH_ITEMS = [
+  { e: '🌡️', q: '耳溫量到幾度以上，就算是發燒？', a: ['38 度', '37.5 度', '36.5 度'], why: '耳溫 38 度以上就是發燒；覺得身體熱熱的、不舒服，要趕快告訴老師，到健康中心量一量。' },
+  { e: '👃', q: '流鼻血的時候，要怎麼做？', a: ['頭微微往前低，捏住鼻子軟軟的地方', '頭用力往後仰', '馬上躺下來'], why: '頭往前低、捏住鼻翼大約 10 分鐘；頭往後仰，血會流進喉嚨，反而不舒服。' },
+  { e: '🩹', q: '跌倒擦傷流血了，第一步要做什麼？', a: ['用乾淨的清水沖洗傷口', '用口水擦一擦', '用髒手壓住'], why: '先用清水把沙子、髒東西沖乾淨，再到健康中心擦藥。' },
+  { e: '🧊', q: '腳扭到、撞到腫起來，剛受傷的時候要？', a: ['冰敷', '熱敷', '用力揉一揉'], why: '剛受傷先冰敷，可以消腫、減少疼痛。冰敷完，記得把冰敷罐還回健康中心喔！' },
+  { e: '⏱️', q: '冰敷一次大約要多久？', a: ['15～20 分鐘', '1 分鐘就好', '冰一整個晚上'], why: '一次冰敷 15～20 分鐘就好，太久會凍傷皮膚；冰敷罐要用毛巾包著。' },
+  { e: '🔥', q: '不小心被熱水燙到，第一步要？', a: ['用流動的冷水沖', '塗牙膏', '塗醬油'], why: '燙傷口訣「沖、脫、泡、蓋、送」，第一步是用冷水沖；牙膏、醬油都不能塗。' },
+  { e: '🧼', q: '用肥皂洗手，雙手至少要搓多久？', a: ['20 秒', '3 秒', '不用搓，沖一下就好'], why: '搓手至少 20 秒，手心、手背、指縫、指尖、手腕都要搓到（內、外、夾、弓、大、立、腕）。' },
+  { e: '🤧', q: '要咳嗽或打噴嚏的時候，要怎麼做？', a: ['用手帕、衛生紙或衣袖遮住口鼻', '對著旁邊的同學', '用手遮完不用洗手'], why: '遮住口鼻，病菌才不會飛到別人身上；用手遮的話，要記得洗手。' },
+  { e: '👀', q: '「3010」護眼口訣是什麼意思？', a: ['用眼 30 分鐘，休息 10 分鐘', '每天睡 30 小時', '看電視 30 分鐘再看 10 分鐘手機'], why: '看書、用平板 30 分鐘，就要休息 10 分鐘，看看遠方讓眼睛放鬆。' },
+  { e: '🌳', q: '想要保護視力，每天最好到戶外活動多久？', a: ['累積 120 分鐘', '5 分鐘', '不用出去'], why: '「天天戶外 120」：每天在戶外累積 120 分鐘，多看遠方，可以預防近視。' },
+  { e: '📖', q: '看書寫字的時候，眼睛和書本要保持多遠？', a: ['35～45 公分', '10 公分', '貼著書本看'], why: '眼睛和書本保持 35～45 公分，坐姿端正、光線充足，眼睛才不會太累。' },
+  { e: '🦷', q: '一天之中，哪一次刷牙最重要？', a: ['睡前', '起床後想到再刷', '不刷也沒關係'], why: '睡覺時口水變少，細菌最容易蛀牙，所以睡前一定要刷牙。' },
+  { e: '🍱', q: '吃完午餐以後，要記得做什麼？', a: ['漱口、潔牙', '馬上跑去操場', '趴著睡覺就好'], why: '餐後漱口、潔牙，把卡在牙縫的食物清乾淨，牙齒才健康。' },
+  { e: '🪥', q: '牙刷大約多久要換一支新的？', a: ['3 個月', '3 年', '刷毛掉光再換'], why: '牙刷大約 3 個月換一次；刷毛開花就刷不乾淨了。' },
+  { e: '🚶', q: '在走廊上要怎麼走？', a: ['慢慢走、靠右走', '跑最快', '邊跑邊回頭看'], why: '走廊不奔跑！轉角看不到對面的人，用跑的很容易撞在一起受傷。' },
+  { e: '🍎', q: '「我的餐盤」口訣：每餐水果要吃多少？', a: ['一個拳頭大', '一整盤', '不用吃'], why: '「每餐水果拳頭大、菜比水果多一點」，蔬菜水果都要吃。' },
+  { e: '🥤', q: '口渴的時候，最好喝什麼？', a: ['白開水', '含糖飲料', '可樂'], why: '白開水最健康；含糖飲料容易蛀牙、變胖。' },
+  { e: '😴', q: '國小學生每天大約要睡多久？', a: ['9 小時以上', '5 小時', '3 小時'], why: '小學生每天最好睡 9～12 小時，早睡早起，身體才會長高、有精神。' },
+  { e: '🤒', q: '上課時覺得身體不舒服，要怎麼做？', a: ['告訴老師，到健康中心', '忍著不說', '自己找藥來吃'], why: '不舒服要說出來，護理師會幫你；藥不能自己亂吃。' },
+];
+const KG_HEALTH = mcGame({
+  key: 'campus-healthqa-best', title: ['🩺 健康 Q&A', '🩺 Health Q&A'], label: ['🩺 健康 Q&A…', '🩺 Health Q&A…'], icon: '🩺', items: HEALTH_ITEMS,
+  intro: () => T('健康小知識考考你！想一想，怎麼做對身體最好？', 'A little health quiz! What is best for your body?'),
+  good: '你是健康小達人，要繼續照顧好自己喔！', keep: '沒關係，多來健康中心看看衛教海報，下次一定更棒！',
+});
+
 /* ---- 情緒覺察（雅雅老師，輔導老師）：「今天心情如何？」不計分、沒有對錯。
    先選心理感受（舒服／不舒服），再選生理能量（充滿活力／無力），落在四個顏色圈圈的哪一個：
    紅＝不舒服＋充滿活力、黃＝舒服＋充滿活力、藍＝不舒服＋無力、綠＝舒服＋無力。護照只記「做了幾次」，不記心情 ---- */
@@ -1980,7 +2008,7 @@ const KG_CUT = {
 
 // app.js 依互動種類（spot.kind）呼叫
 // 老師可以用 Google 試算表改題目（js/sheet-config.js）；沒設定、讀不到就用上面內建的題目
-for (const [kind, list, icon] of [['units', UNITS_ITEMS, '📏'], ['geo', GEO_ITEMS, '🗺️'], ['busquiz', BUSQ_ITEMS, '🚌'], ['library', LIB_ITEMS, '📚'], ['decimal', DECIMAL_ITEMS, '🔢']]) {
+for (const [kind, list, icon] of [['units', UNITS_ITEMS, '📏'], ['geo', GEO_ITEMS, '🗺️'], ['busquiz', BUSQ_ITEMS, '🚌'], ['library', LIB_ITEMS, '📚'], ['decimal', DECIMAL_ITEMS, '🔢'], ['healthqa', HEALTH_ITEMS, '🩺']]) {
   useSheet(kind, list, (r) => { const q = threeChoice(icon)(r); if (q && q.e === '臺灣地圖') q.e = TAIWAN_SVG; return q; }, 5);   // 圖示寫「臺灣地圖」＝顯示臺灣地圖
 }
 // 修辭小偵探：修辭、句子、解說（修辭要是 RHET_KINDS 裡的六種之一）；一回 8 題
