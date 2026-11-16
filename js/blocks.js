@@ -682,6 +682,7 @@ export function animatePerson(g, phase, amount) {
  *   cap: { color, logo } 棒球帽（帽簷朝前、前面一個勾勾標誌）, pocket: 連帽 T 口袋顏色
  *   vest: [背心色, 滾邊色] 針織 V 領背心（套在 top 那件短袖襯衫外面）
  *   haori: [右半邊布色, 左半邊花紋色們…] 和服外褂（披在 top 外面到大腿：穿的人右邊是素色、左邊是方塊花紋，袖子寬大、袖口白邊）
+ *   skirtPrint: [底色, 花色們…] 碎花裙（配 skirt 或 shortSkirt）
  *   topButtons: 上衣中間一排扣子的顏色（只在上衣）
  *   openShirt: 敞開穿的襯衫顏色（top 是裡面的 T 恤；袖子用 longSleeve＋sleeve）, minis: T 恤胸前小圖案的顏色 [...]
  *   幼兒園制服：yoke: 肩膀、兩側、袖口的色塊顏色, shorts: 短褲（膝蓋以下露出腿）, socks: 襪子顏色,
@@ -960,14 +961,21 @@ export function makeBlockNPC(look) {
     box(g, 0.22, 0.17, 0.09, cloth(look.bag), -0.2, 0.76, -0.12);
   }
   // skirtPlaid：格子長裙（[底色, 格線色]）
+  // skirtPrint：碎花裙（[底色, 花色們…]），長裙、短裙都可以用
+  const skirtPrintM = !look.skirtPrint ? null : new THREE.MeshLambertMaterial({ map: px((c) => {
+    const [bg, ...ink] = look.skirtPrint;
+    c.fillStyle = bg; c.fillRect(0, 0, 16, 16);
+    [[1, 1, 3, 2], [2, 0, 1, 4], [9, 2, 3, 3], [13, 5, 2, 2], [5, 6, 3, 2], [6, 5, 1, 4], [0, 10, 2, 3], [10, 9, 3, 2], [11, 8, 1, 4], [3, 13, 3, 2], [13, 13, 2, 3], [7, 12, 2, 2]]
+      .forEach(([x, y, w, h], i) => { c.fillStyle = ink[i % ink.length]; c.fillRect(x, y, w, h); });
+  }) });
   const skirtM = !look.skirtPlaid ? null : new THREE.MeshLambertMaterial({ map: px((c) => {
     const [bg, ln] = look.skirtPlaid;
     c.fillStyle = bg; c.fillRect(0, 0, 16, 16);
     c.fillStyle = ln; for (const k of [3, 11]) { c.fillRect(k, 0, 2, 16); c.fillRect(0, k, 16, 2); }
     c.globalAlpha = 0.5; for (const k of [7, 15]) { c.fillRect(k, 0, 1, 16); c.fillRect(0, k, 16, 1); }
   }) });
-  if (look.skirt) box(g, 0.5, 0.62, 0.3, skirtM || cloth(look.skirt), 0, 0.42, 0);   // 長裙（蓋到腳踝）
-  if (look.shortSkirt) box(g, 0.5, 0.4, 0.3, cloth(look.shortSkirt), 0, 0.6, 0);   // 膝上短裙
+  if (look.skirt) box(g, 0.5, 0.62, 0.3, skirtM || skirtPrintM || cloth(look.skirt), 0, 0.42, 0);   // 長裙（蓋到腳踝）
+  if (look.shortSkirt) box(g, 0.5, 0.4, 0.3, skirtPrintM || cloth(look.shortSkirt), 0, 0.6, 0);   // 膝上短裙
   if (look.whistle) {
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), 0.06, 1.2, -0.135);

@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=328';
-import { useSheet, threeChoice } from './bank.js?v=328';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=328';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=328';
+import { faceTeacher } from './common.js?v=329';
+import { useSheet, threeChoice } from './bank.js?v=329';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=329';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=329';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -63,7 +63,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get healthqa() { return KG_HEALTH; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -868,6 +868,103 @@ function mcGame({ key, title, label, icon, items, intro, good, keep }) {
     },
   };
 }
+
+/* ---- 整數的四則運算（莊老師，四年四班）：程式出題，一回 6 題、每題 3 個選項。
+   先乘除後加減、括號先算、只有乘除從左算到右；錯的選項多半是「算錯順序」會得到的答案 ---- */
+const arWrong = (ans, cands) => {
+  const out = facWrong(ans, cands.filter((v) => Number.isInteger(v)));
+  for (let d = 1; out.length < 2; d++) for (const v of [ans + d, ans - d]) if (v > 0 && v !== ans && !out.includes(v) && out.length < 2) out.push(v);
+  return out;
+};
+const ARITH_GEN = [
+  () => { const a = facRand(10, 60), b = facRand(2, 9), c = facRand(2, 9), ans = a + b * c;
+    return { q: `${a} ＋ ${b} × ${c} ＝ ？`, ans, opts: arWrong(ans, [(a + b) * c, a + b + c, ans + b]), why: `先算乘法：${b} × ${c} ＝ ${b * c}，再算 ${a} ＋ ${b * c} ＝ ${ans}。` }; },
+  () => { const a = facRand(2, 15), b = facRand(2, 15), c = facRand(2, 6), ans = (a + b) * c;
+    return { q: `（${a} ＋ ${b}）× ${c} ＝ ？`, ans, opts: arWrong(ans, [a + b * c, a * c + b, ans + c]), why: `括號先算：${a} ＋ ${b} ＝ ${a + b}，再算 ${a + b} × ${c} ＝ ${ans}。` }; },
+  () => { const c = facRand(2, 9), k = facRand(2, 9), b = c * k, a = facRand(b + 5, b + 60), ans = a - k;
+    return { q: `${a} － ${b} ÷ ${c} ＝ ？`, ans, opts: arWrong(ans, [(a - b) / c, a - b + c, ans - 10]), why: `先算除法：${b} ÷ ${c} ＝ ${k}，再算 ${a} － ${k} ＝ ${ans}。` }; },
+  () => { let a, b, c, d; do { a = facRand(3, 9); b = facRand(3, 9); c = facRand(2, 9); d = facRand(2, 9); } while (a * b <= c * d);
+    const ans = a * b - c * d;
+    return { q: `${a} × ${b} － ${c} × ${d} ＝ ？`, ans, opts: arWrong(ans, [(a * b - c) * d, ans + d, ans + 10]), why: `先算兩個乘法：${a} × ${b} ＝ ${a * b}、${c} × ${d} ＝ ${c * d}，再算 ${a * b} － ${c * d} ＝ ${ans}。` }; },
+  () => { const a = facRand(30, 90), b = facRand(6, 20), c = facRand(2, b - 2), ans = a - (b - c);
+    return { q: `${a} －（${b} － ${c}）＝ ？`, ans, opts: arWrong(ans, [a - b - c, ans + 10, ans - c]), why: `括號先算：${b} － ${c} ＝ ${b - c}，再算 ${a} － ${b - c} ＝ ${ans}。` }; },
+  () => { const c = facRand(2, 9), k = facRand(3, 12), s = c * k, a = facRand(1, s - 1), b = s - a, ans = k;
+    return { q: `（${a} ＋ ${b}）÷ ${c} ＝ ？`, ans, opts: arWrong(ans, [a + b / c, k * 2, k + c]), why: `括號先算：${a} ＋ ${b} ＝ ${s}，再算 ${s} ÷ ${c} ＝ ${k}。` }; },
+  () => { const b = facRand(2, 9), k = facRand(2, 9), a = b * k, c = facRand(2, 9), ans = k * c;
+    return { q: `${a} ÷ ${b} × ${c} ＝ ？`, ans, opts: arWrong(ans, [a / (b * c), k + c, ans + c]), why: `只有乘除的時候，從左邊算到右邊：${a} ÷ ${b} ＝ ${k}，再算 ${k} × ${c} ＝ ${ans}。` }; },
+];
+const KG_ARITH = {
+  key: 'campus-arith-best', title: ['🧮 整數的四則運算', '🧮 Order of Operations'], label: ['🧮 四則運算…', '🧮 Order of operations…'],
+  bye: (n) => T(`🧮 下次再來找${n.name}練習四則運算！`, `🧮 Come back and practice with ${n.name}!`),
+  start(ctx) {
+    const n = ctx.n, gens = kgShuffle(ARITH_GEN.slice()).slice(0, 6), N = gens.length;
+    let i = 0, right = 0;
+    const next = () => {
+      const q = gens[i](), opts = kgShuffle([q.ans, ...q.opts]);
+      ctx.prog(T(`第 ${i + 1} / ${N} 題`, `${i + 1} / ${N}`));
+      ctx.stage.innerHTML = '<div style="font-size:34px;line-height:1.2;margin:6px 0">🧮</div>';
+      ctx.ask(q.q);
+      ctx.msg(i ? '' : T('記得口訣：括號先算，再算乘除，最後算加減；同一級的從左邊算到右邊。', 'Brackets first, then × ÷, then + −; same level goes left to right.'));
+      ctx.buttons(opts.map((v, j) => ({ html: `${v}<small>${j + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((b) => (b.disabled = true));
+        ctx.btnEls[opts.indexOf(q.ans)].className = 'opt right';
+        if (v === q.ans) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${q.why}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('surprised', 1); ctx.msg(`❌ ${q.why}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (b) => `${T(`🧮 答對 ${right} / ${N} 題（最好紀錄 ${b} 題）`, `🧮 ${right} / ${N} correct (best ${b})`)}<br>${n.name}：${right >= 5 ? '算得又快又對，作業也要這樣認真寫喔！' : right >= 3 ? '不錯喔！先看清楚要先算哪一步，就不會錯了。' : '沒關係，記住「括號先算、先乘除後加減」，再練幾次就會了！'}`)), 3400);
+      } })));
+    };
+    next();
+  },
+};
+
+/* ---- 國語的標點符號（林老師，四年五班）：句子裡空一格，選出正確的標點符號 ---- */
+const PUNCT_ITEMS = [
+  { e: '❓', q: '你今天吃早餐了嗎＿', a: ['？ 問號', '。 句號', '！ 驚嘆號'], why: '這是在問問題，句子最後要用問號「？」。' },
+  { e: '🤩', q: '哇＿這朵花好漂亮！', a: ['！ 驚嘆號', '？ 問號', '、 頓號'], why: '「哇」是很驚訝、很讚嘆的語氣，用驚嘆號「！」。' },
+  { e: '🍎', q: '我喜歡吃蘋果＿香蕉和葡萄。', a: ['、 頓號', '， 逗號', '； 分號'], why: '把幾樣同類的東西排在一起，中間用頓號「、」隔開。' },
+  { e: '🗣️', q: '媽媽說＿「出門記得帶傘。」', a: ['： 冒號', '， 逗號', '； 分號'], why: '後面接著說出來的話，前面要用冒號「：」。' },
+  { e: '🔔', q: '下課鐘響了＿我們一起去操場玩。', a: ['， 逗號', '、 頓號', '： 冒號'], why: '一句話還沒說完、中間要停一下，用逗號「，」。' },
+  { e: '💬', q: '老師問：＿你寫完作業了嗎？」', a: ['「 上引號', '《 書名號', '（ 括號'], why: '說出來的話要用引號包起來，開頭是「，結尾是」。' },
+  { e: '📖', q: '我最喜歡讀＿小王子》這本書。', a: ['《 書名號', '「 上引號', '（ 括號'], why: '書的名字要用書名號《》包起來。' },
+  { e: '⏰', q: '我每天早上七點起床＿', a: ['。 句號', '？ 問號', '、 頓號'], why: '一句完整的話說完了，用句號「。」。' },
+  { e: '🌸', q: '春天到了，花開了＿夏天到了，蟬叫了。', a: ['； 分號', '、 頓號', '： 冒號'], why: '兩個意思並列、句子又比較長時，中間用分號「；」。' },
+  { e: '🏆', q: '太好了＿我們班得到第一名了！', a: ['！ 驚嘆號', '？ 問號', '、 頓號'], why: '「太好了」是很開心的語氣，用驚嘆號「！」。' },
+  { e: '✏️', q: '上課要準備鉛筆、橡皮擦＿和直尺。', a: ['、 頓號', '； 分號', '： 冒號'], why: '鉛筆、橡皮擦、直尺是同類的東西，中間用頓號「、」。' },
+  { e: '🤝', q: '他是我最好的朋友＿小明。', a: ['—— 破折號', '…… 刪節號', '、 頓號'], why: '後面在說明「最好的朋友」是誰，用破折號「——」。' },
+  { e: '🤔', q: '他想了想，小聲的說：「嗯＿」', a: ['…… 刪節號', '—— 破折號', '； 分號'], why: '話沒說完、說到一半停下來，用刪節號「……」。' },
+  { e: '🥤', q: '這是誰的水壺＿', a: ['？ 問號', '！ 驚嘆號', '。 句號'], why: '在問「是誰的」，句子最後要用問號「？」。' },
+];
+const KG_PUNCT = mcGame({
+  key: 'campus-punct-best', title: ['✍️ 國語的標點符號', '✍️ Punctuation'], label: ['✍️ 標點符號…', '✍️ Punctuation…'], icon: '✍️', items: PUNCT_ITEMS,
+  intro: () => T('讀讀看這句話，空格裡要放哪一個標點符號？', 'Read the sentence. Which punctuation mark goes in the blank?'),
+  good: '小朋友做得很好唷！寫作文的時候也要記得用對標點符號！', keep: '沒關係，再讀一次試試看！把句子唸出來，就知道哪裡要停了。',
+});
+
+/* ---- 生活中的長度單位（陳老師，三年二班）：毫米、公分、公尺、公里，估一估、換一換 ---- */
+const LENGTH_ITEMS = [
+  { e: '🍚', q: '一顆米粒大約長 5 ＿＿', a: ['毫米', '公分', '公尺'], why: '米粒很小，大約 5 毫米；1 公分 ＝ 10 毫米。' },
+  { e: '🪙', q: '一元硬幣的直徑大約 20 ＿＿', a: ['毫米', '公分', '公尺'], why: '一元硬幣大約 20 毫米寬，也就是 2 公分。' },
+  { e: '🐜', q: '一隻螞蟻大約長 3 ＿＿', a: ['毫米', '公分', '公里'], why: '螞蟻小小的，大約只有 3 毫米。' },
+  { e: '📐', q: '直尺上 1 公分中間的每一小格，是 1 ＿＿', a: ['毫米', '公分', '公尺'], why: '1 公分分成 10 小格，每一小格就是 1 毫米。' },
+  { e: '🧽', q: '一個橡皮擦大約長 5 ＿＿', a: ['公分', '毫米', '公尺'], why: '橡皮擦大約 5 公分，比手指頭還短一點。' },
+  { e: '🧒', q: '三年級小朋友的身高大約 130 ＿＿', a: ['公分', '公尺', '毫米'], why: '大約 130 公分，也就是 1 公尺 30 公分。' },
+  { e: '🏀', q: '籃球框離地面大約 3 ＿＿', a: ['公尺', '公分', '公里'], why: '籃框大約 3 公尺高，比兩個大人疊起來還高。' },
+  { e: '🏊', q: '學校游泳池游一趟大約 25 ＿＿', a: ['公尺', '公分', '公里'], why: '很多學校的游泳池一趟是 25 公尺。' },
+  { e: '🏙️', q: '臺北 101 大樓大約高 508 ＿＿', a: ['公尺', '公分', '公里'], why: '臺北 101 大約 508 公尺高。' },
+  { e: '🏃', q: '跑完一場馬拉松，大約要跑 42 ＿＿', a: ['公里', '公尺', '公分'], why: '馬拉松全程大約 42 公里，要跑好幾個小時呢！' },
+  { e: '🚲', q: '騎腳踏車 20 分鐘，大約可以騎 5 ＿＿', a: ['公里', '公尺', '公分'], why: '比較遠的路程用公里；1 公里 ＝ 1000 公尺。' },
+  { e: '🔟', q: '1 公分 ＝ ＿＿ 毫米', a: ['10', '100', '1000'], why: '1 公分 ＝ 10 毫米。' },
+  { e: '💯', q: '1 公尺 ＝ ＿＿ 公分', a: ['100', '10', '1000'], why: '1 公尺 ＝ 100 公分。' },
+  { e: '🛣️', q: '1 公里 ＝ ＿＿ 公尺', a: ['1000', '100', '10'], why: '1 公里 ＝ 1000 公尺。' },
+  { e: '📏', q: '3 公分 5 毫米 ＝ ＿＿ 毫米', a: ['35', '305', '8'], why: '3 公分是 30 毫米，再加 5 毫米，一共 35 毫米。' },
+  { e: '🎀', q: '2 公尺 ＝ ＿＿ 公分', a: ['200', '20', '2000'], why: '1 公尺是 100 公分，2 公尺就是 200 公分。' },
+  { e: '🚶', q: '2 公里 ＝ ＿＿ 公尺', a: ['2000', '200', '20'], why: '1 公里是 1000 公尺，2 公里就是 2000 公尺。' },
+];
+const KG_LENGTH = mcGame({
+  key: 'campus-length-best', title: ['📏 生活中的長度', '📏 Length Units'], label: ['📏 生活中的長度…', '📏 Length units…'], icon: '📏', items: LENGTH_ITEMS,
+  intro: () => T('想一想，這個東西大概有多長？毫米、公分、公尺、公里，一個比一個長喔！', 'How long is it? mm, cm, m, km: each one is longer!'),
+  good: '你對長度好有感覺，是測量小達人！', keep: '沒關係，拿直尺量量看身邊的東西，很快就會記住了！',
+});
 
 /* ---- 數學單位量詞大考驗（陳老師，六年三班導師） ---- */
 const UNITS_ITEMS = [

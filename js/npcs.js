@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=328';
+import { poolWater } from './extras.js?v=329';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -732,6 +732,106 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSSSSSSSSSSHH',
           'HHSSSMTTTTMSSSHH',
           'HHHSSSMMMMSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '莊老師', title: '四年四班導師', game: 'arith',
+      hello: ['📚 莊老師：要按時交作業喔！', '🚶 莊老師：走廊上不要奔跑！', '✏️ 莊老師：作業寫得不錯，字有慢慢變好看了！',
+        '🏃 莊老師：有空要多運動，可以去操場跑跑步！', '🧮 莊老師：要不要來練習整數的四則運算？'],
+      // 3 樓思源樓四年四班（319 室）：跟三年一班同一排、黑板在西邊，老師站講台旁、面向東邊的學生
+      places: [
+        { floor: '3F', where: '四年四班', game: true, at: () => { const r = rooms.find((x) => x.code === '404'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+      ],
+      look: {
+        // 依照片：黑色齊下巴短髮（旁分、側邊瀏海）、溫柔的微笑；米白色長袖上衣（袖口金色小扣子太小沒做）、
+        //   黑色細皮帶（金色扣環）、米黃底灰藍色碎花及膝裙（珍珠耳環、手錶太小沒做；鞋子照片沒拍到）
+        skin: '#efc9ad', hair: '#1f1814', top: '#f6f2e8', pants: '#efc9ad', shoe: '#d8c8b6',
+        bob: true, longSleeve: true, belt: '#2a2422', shortSkirt: '#f3efd6', skirtPrint: ['#f3efd6', '#7f87a3', '#b6bccd', '#5f667c'],
+        pal: { H: '#1f1814', h: '#3a2c24', S: '#efc9ad', K: '#3a2418', E: '#20130d', W: '#ffffff', B: '#eeb0a6', N: '#dfb094', M: '#b8505a', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHhHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHHSSHHH',
+          'HHHHHHHHSSSSSSHH',
+          'HHHHHSSSSSSSSSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSKKKSSSSKKKSHH',
+          'HHSSWESSSSWESSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSSMWWWWWWMSSHH',
+          'HHSSSMMMMMMSSSHH',
+          'HHHSSSSSSSSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '林老師', title: '四年五班導師', game: 'punct',
+      hello: ['✏️ 林老師：再算一次試試看！', '🌟 林老師：小朋友做得很好唷！', '💪 林老師：寫錯了擦掉再來，沒關係，每一次都會更好！',
+        '✍️ 林老師：要不要來玩標點符號的遊戲？'],
+      // 3 樓思源樓四年五班（320 室）：跟四年四班同一排、黑板在西邊，老師站講台旁、面向東邊的學生
+      places: [
+        { floor: '3F', where: '四年五班', game: true, at: () => { const r = rooms.find((x) => x.code === '405'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+      ],
+      look: {
+        // 依照片：黑色頭髮中分、往後綁低馬尾；紅棕色細框眼鏡、淺淺的微笑；白色上衣外面套淺藍色短袖開襟外套（褲子、鞋子照片沒拍到）
+        skin: '#efcbb0', hair: '#1a1512', top: '#f8f8f4', pants: '#3b4252', shoe: '#e6e6e6',
+        bun: true, openShirt: '#bcd6e4', sleeve: '#bcd6e4',
+        pal: { H: '#1a1512', h: '#2e2620', S: '#efcbb0', K: '#7a3a34', E: '#2a1610', W: '#e4e0de', B: '#eeb4a6', N: '#e0b49a', M: '#b8505a', T: '#ffffff' },
+        face: [
+          'HHHHHHHhHHHHHHHH',
+          'HHHHHHHSSHHHHHHH',
+          'HHHHHHSSSSHHHHHH',
+          'HHHHHSSSSSSHHHHH',
+          'HHHHSSSSSSSSHHHH',
+          'HHHSSSSSSSSSSHHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHKEEWKSSKEEWKHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBSSSSSSSSSSBHH',
+          'HHSSSSMMMMSSSSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHHSSSSSSSSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '陳老師', title: '三年二班導師', game: 'length',
+      hello: ['🌈 陳老師：每天進步一點點，就很了不起喔！', '🙋 陳老師：遇到不會的，舉手問老師就好，不用怕！', '💖 陳老師：你笑起來好可愛，今天也要開開心心的！',
+        '📏 陳老師：要不要來猜猜看，生活中的東西有多長？'],
+      // 3 樓思源樓三年二班（322 室）：跟三年一班同一排、黑板在西邊，老師站講台旁、面向東邊的學生
+      places: [
+        { floor: '3F', where: '三年二班', game: true, at: () => { const r = rooms.find((x) => x.code === '302'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+      ],
+      look: {
+        // 依照片：深棕色長髮披到胸前（旁分、側邊瀏海）、開心的笑容；淺膚色針織 V 領泡泡袖上衣、淺藍色寬版牛仔褲（鞋子照片沒拍到）
+        skin: '#f0cbb0', hair: '#4a2e20', top: '#e8cbb6', pants: '#a3b8d2', shoe: '#e8e8e8',
+        longHair: true, widePants: true, collar: '#e8cbb6',
+        pal: { H: '#4a2e20', h: '#5e3c2a', S: '#f0cbb0', K: '#4a2e20', E: '#2a1610', W: '#ffffff', B: '#f0b0a4', N: '#e2b49c', M: '#b8505a', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHhHHHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHSSHHHHHHHHHHH',
+          'HHSSSSSSHHHHHHHH',
+          'HHSSSSSSSSHHHHHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSKKKSSSSKKKSHH',
+          'HHSSWESSSSWESSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSMWWWWWWWWMSHH',
+          'HHSSMMMMMMMMSSHH',
+          'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },
