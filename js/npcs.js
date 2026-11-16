@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=329';
+import { poolWater } from './extras.js?v=330';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -745,10 +745,10 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
         { floor: '3F', where: '四年四班', game: true, at: () => { const r = rooms.find((x) => x.code === '404'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
       ],
       look: {
-        // 依照片：黑色齊下巴短髮（旁分、側邊瀏海）、溫柔的微笑；米白色長袖上衣（袖口金色小扣子太小沒做）、
+        // 依照片：黑色齊下巴短髮（旁分、側邊瀏海）、溫柔的微笑（閉著嘴的淺淺笑容；calm：打招呼、答題時不換成張嘴大笑，使用者 11-16：看起來不舒服）；米白色長袖上衣（袖口金色小扣子太小沒做）、
         //   黑色細皮帶（金色扣環）、米黃底灰藍色碎花及膝裙（珍珠耳環、手錶太小沒做；鞋子照片沒拍到）
         skin: '#efc9ad', hair: '#1f1814', top: '#f6f2e8', pants: '#efc9ad', shoe: '#d8c8b6',
-        bob: true, longSleeve: true, belt: '#2a2422', shortSkirt: '#f3efd6', skirtPrint: ['#f3efd6', '#7f87a3', '#b6bccd', '#5f667c'],
+        bob: true, longSleeve: true, calm: true, belt: '#2a2422', shortSkirt: '#f3efd6', skirtPrint: ['#f3efd6', '#7f87a3', '#b6bccd', '#5f667c'],
         pal: { H: '#1f1814', h: '#3a2c24', S: '#efc9ad', K: '#3a2418', E: '#20130d', W: '#ffffff', B: '#eeb0a6', N: '#dfb094', M: '#b8505a', T: '#ffffff' },
         face: [
           'HHHHHHHHHHHHHHHH',
@@ -763,8 +763,8 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSSSSSSSSSSHH',
           'HHSSSSSNNSSSSSHH',
           'HHBBSSSSSSSSBBHH',
-          'HHSSMWWWWWWMSSHH',
-          'HHSSSMMMMMMSSSHH',
+          'HHSSSMSSSSMSSSHH',
+          'HHSSSSMMMMSSSSHH',
           'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
@@ -812,9 +812,9 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
         { floor: '3F', where: '三年二班', game: true, at: () => { const r = rooms.find((x) => x.code === '302'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
       ],
       look: {
-        // 依照片：深棕色長髮披到胸前（旁分、側邊瀏海）、開心的笑容；淺膚色針織 V 領泡泡袖上衣、淺藍色寬版牛仔褲（鞋子照片沒拍到）
+        // 依照片：深棕色長髮披到胸前（旁分、側邊瀏海）、開心的笑容（閉著嘴的微笑；calm：不換成張嘴大笑，使用者 11-16 要求）；淺膚色針織 V 領泡泡袖上衣、淺藍色寬版牛仔褲（鞋子照片沒拍到）
         skin: '#f0cbb0', hair: '#4a2e20', top: '#e8cbb6', pants: '#a3b8d2', shoe: '#e8e8e8',
-        longHair: true, widePants: true, collar: '#e8cbb6',
+        longHair: true, widePants: true, calm: true, collar: '#e8cbb6',
         pal: { H: '#4a2e20', h: '#5e3c2a', S: '#f0cbb0', K: '#4a2e20', E: '#2a1610', W: '#ffffff', B: '#f0b0a4', N: '#e2b49c', M: '#b8505a', T: '#ffffff' },
         face: [
           'HHHHHHHHHHHHHHHH',
@@ -829,8 +829,8 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSSSSSSSSSSHH',
           'HHSSSSSNNSSSSSHH',
           'HHBBSSSSSSSSBBHH',
-          'HHSMWWWWWWWWMSHH',
-          'HHSSMMMMMMMMSSHH',
+          'HHSSSMSSSSMSSSHH',
+          'HHSSSSMMMMSSSSHH',
           'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],

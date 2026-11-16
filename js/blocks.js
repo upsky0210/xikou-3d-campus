@@ -677,7 +677,7 @@ export function animatePerson(g, phase, amount) {
  *   longSleeve: 長袖, whistle: 胸前掛哨子, collar: 襯衫領顏色, zip: 外套拉鍊顏色
  *   cat: 貓頭（虎斑條紋、貓耳、鬍鬚、尾巴；pal.h 是條紋色）
  *   patches: 毛色色塊 [[顏色, x, y, w, h], ...]（取代條紋）, ears: [左耳色, 右耳色], whisker: 鬍鬚色
- *   headScale: 頭放大倍數
+ *   headScale: 頭放大倍數, calm: 不換表情（打招呼、答題時都維持原本的臉）
  *   bun: 頭髮往後綁成低髮髻（臉旁留兩撮）, lanyard: 識別證掛繩顏色, sleeveless: 無袖
  *   cap: { color, logo } 棒球帽（帽簷朝前、前面一個勾勾標誌）, pocket: 連帽 T 口袋顏色
  *   vest: [背心色, 滾邊色] 針織 V 領背心（套在 top 那件短袖襯衫外面）
@@ -705,7 +705,7 @@ export function makeBlockNPC(look) {
   }) });
   // 表情（參考學生美勞作品「方塊人像」）：從原本的臉自動找出眼睛、嘴巴再改畫，各表情的貼圖用到才做
   const drawFace = faceDrawer(look), faces = {};
-  const faceTex = (ex) => (faces[ex] ||= px((c) => drawFace(c, ex)));
+  const faceTex = (ex) => (faces[ex = look.calm ? 'normal' : ex] ||= px((c) => drawFace(c, ex)));   // calm：一直是原本的表情
   const faceMat = new THREE.MeshLambertMaterial({ map: faceTex('normal') });
   const hair = new THREE.MeshLambertMaterial({ map: px((c) => {
     c.fillStyle = look.hair; c.fillRect(0, 0, 16, 16);
