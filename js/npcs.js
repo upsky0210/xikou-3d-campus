@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=335';
+import { poolWater } from './extras.js?v=337';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -733,6 +733,40 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSMTTTTMSSSHH',
           'HHHSSSMMMMSSSHHH',
           'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '趙老師', title: '四年三班導師', game: 'twpuzzle',
+      hello: ['📚 趙老師：認真學習，專心做事！', '✏️ 趙老師：上課專心聽，下課開心玩！', '💪 趙老師：做事情要有始有終，一步一步完成！',
+        '🗺️ 趙老師：要不要來拼立體臺灣？看看臺灣的山和平原在哪裡！'],
+      // 3 樓勤學樓四年三班（318 室）：跟四年四班同一排、黑板在西邊，老師站講台旁、面向東邊的學生
+      places: [
+        { floor: '3F', where: '四年三班', game: true, at: () => { const r = rooms.find((x) => x.code === '403'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } },
+      ],
+      look: {
+        // 依照片（燈塔前拍的）：黑色短髮、深色棒球帽、笑咪咪；紅色短袖 T 恤（胸前白字 Light Up TAIWAN）、深藍色長褲、黑色鞋子
+        skin: '#e9c09c', hair: '#1a1512', top: '#c8202e', pants: '#1f2638', shoe: '#1d1d1f',
+        shortHair: true, cap: { color: '#2a2a2e', logo: '#c8202e' },
+        teeText: { lines: [['Light Up', 17, 46], ['TAIWAN', 18, 68]] },
+        pal: { H: '#1a1512', h: '#2c2420', S: '#e9c09c', E: '#1e130d', W: '#ffffff', B: '#e8a98e', N: '#d9ab88', M: '#a8473c', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HSSSSSSSSSSSSSSH',
+          'HSSSSSSSSSSSSSSH',
+          'SSHHHSSSSSSHHHSS',
+          'SSSSSSSSSSSSSSSS',
+          'SSSEESSSSSSEESSS',
+          'SSSEESSSSSSEESSS',
+          'SSSSSSSSSSSSSSSS',
+          'SSSSSSSSSSSSSSSS',
+          'SSSSSSSNNSSSSSSS',
+          'SSBBSSSSSSSSBBSS',
+          'SSSMMMMMMMMMMSSS',
+          'SSSMTTTTTTTTMSSS',
+          'SSSSMMMMMMMMSSSS',
+          'SSSSSSSSSSSSSSSS',
         ],
       },
     },

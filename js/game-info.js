@@ -38,6 +38,7 @@ export function makeGameInfo(T) {
     units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
     fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
     puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
+    twpuzzle: [['立體臺灣地形拼圖', 'Taiwan Terrain Puzzle'], 'campus-twpuzzle-best', ans],
     stack: [['動物疊疊樂', 'Animal Stacking'], 'campus-kg-stack-best', (v) => T(`疊了 ${v} 層`, `${v} stacked`)],
     cubes: [['空間方塊', 'Block Count'], 'campus-kg-cubes-best', ans], beads: [['串珠遊戲', 'Bead Patterns'], 'campus-kg-beads-best', ans],
     fold: [['摺紙遊戲', 'Origami'], 'campus-kg-fold-best', (v) => T(`一次就選對 ${v} 步`, `${v} steps right`)],

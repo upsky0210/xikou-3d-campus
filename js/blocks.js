@@ -816,6 +816,13 @@ export function makeBlockNPC(look) {
   if (look.teeImg) {                                        // 班服：前（-z）、後（+z）片是圖片
     const face = (url) => { const t = new THREE.TextureLoader().load(url); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return new THREE.MeshLambertMaterial({ map: t }); };
     box(g, 0.46, 0.6, 0.26, [top, top, top, top, face(look.teeImg.back), face(look.teeImg.front)], 0, 1.0, 0);
+  } else if (look.teeText) {                                // T 恤前面印字（例如 Light Up TAIWAN）：用畫布畫，衣服底色＋白字
+    const { lines, ink = '#ffffff' } = look.teeText, cv = document.createElement('canvas'); cv.width = 92; cv.height = 120;
+    const c = cv.getContext('2d'); c.fillStyle = look.top; c.fillRect(0, 0, 92, 120);
+    c.fillStyle = ink; c.textAlign = 'center';
+    lines.forEach(([t, size, y]) => { c.font = `900 ${size}px "Arial Black", "Noto Sans TC", sans-serif`; c.fillText(t, 46, y); });
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    box(g, 0.46, 0.6, 0.26, [top, top, top, top, top, new THREE.MeshLambertMaterial({ map: tex })], 0, 1.0, 0);
   } else box(g, 0.46, 0.6, 0.26, top, 0, 1.0, 0);           // 上衣
   box(g, 0.2, 0.05, 0.27, cloth(look.collar || look.top), 0, 1.3, 0);   // 領子
   if (look.collar) box(g, 0.1, 0.12, 0.02, cloth(look.collar), 0, 1.24, -0.13);   // 領口露出的襯衫
