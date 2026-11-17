@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=330';
+import { Batch, mat, SPOTS } from './blocks.js?v=335';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -181,6 +181,25 @@ export function buildStage(group, m) {
     b.box(peach, cw + 0.02, 0.8, 0.18, x, 3.85, z0 + d);            // 前緣
     b.box(trim, cw + 0.02, 0.1, 0.24, x, 4.3, z0 + d);              // 上緣
     b.box(peach, cw + 0.01, 0.1, d, x, 4.25, z0 + d / 2);
+  }
+  // 115 學年度體育表演會紅布條（依照片，掛在雨遮前緣中間，跟著弧形彎）；活動過後（115/12/05）拿掉這段
+  {
+    const tex = canvasTex(1600, 90, (c, w, h) => {
+      c.fillStyle = '#e8312f'; c.fillRect(0, 0, w, h);
+      c.fillStyle = 'rgba(0,0,0,.12)'; for (const k of [1, 2, 3]) c.fillRect(k * w / 4 - 1, 0, 2, h);   // 布的接縫
+      c.fillStyle = '#ffffff'; c.font = '900 62px "Noto Sans TC", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      const txt = '臺北市文山區溪口國民小學115學年度體育表演會', step = (w - 60) / txt.length;
+      [...txt].forEach((ch, i) => c.fillText(ch, 30 + step * (i + 0.5), h / 2 + 3));
+    });
+    const bm = new THREE.MeshLambertMaterial({ map: tex });
+    const i0 = Math.ceil(0.11 * N), i1 = Math.floor(0.89 * N);
+    for (let i = i0; i < i1; i++) {
+      const x = x1 - 0.2 + cw * (i + 0.5), t = (x - xc) / ((W + 0.4) / 2), d = 2.3 + 0.55 * (1 - t * t);
+      const geo = new THREE.PlaneGeometry(cw + 0.012, 0.56), uv = geo.attributes.uv, a = (i - i0) / (i1 - i0), bb = (i + 1 - i0) / (i1 - i0);
+      for (let k = 0; k < uv.count; k++) uv.setX(k, a + uv.getX(k) * (bb - a));
+      geo.translate(x, 3.88, z0 + d + 0.1);
+      b.add(bm, geo);
+    }
   }
   // 兩側旗桿（白色水泥座）
   for (const x of [x1 - 2.2, x2 + 1.5]) {
@@ -766,4 +785,78 @@ export function buildGuardHouse(group, m, base) {
     c.font = '600 12px sans-serif'; c.fillText('Security Room', 6, 52);
   }), 0.6, 0.3, 0.02, m.x2 - 0.4, base + 2.4, z + 0.02);
   b.build(group);
+}
+
+
+/* ---------- 體育表演會充氣拱門（依照片，115/12/05 活動用；活動過後在 app.js 拿掉呼叫） ----------
+ * 兩根柱子：下藍、中紅、上綠，頂上綠色圓盤＋紅色愛心；中間紅色弧形拱（黃邊）寫「臺北市文山區溪口國民小學體育表演會」，
+ * 拱上面一個個彩色的 Welcome 字母。xc、z：拱門中心；正面朝北（操場）；boxes：碰撞用（柱子會擋路） */
+export function buildArch(group, xc, z, boxes) {
+  const g = new THREE.Group(); g.position.set(xc, 0, z); g.rotation.y = Math.PI;
+  const lam = (c) => new THREE.MeshLambertMaterial({ color: c });
+  const deco = (bg, stars) => {                                       // 柱子上的星星小圖案（繞一圈）
+    const m = new THREE.MeshLambertMaterial({ map: canvasTex(256, 128, (c, w, h) => {
+      c.fillStyle = bg; c.fillRect(0, 0, w, h);
+      for (const [x, y, r, col] of stars) {
+        c.fillStyle = col; c.beginPath();
+        for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r; c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+        c.fill();
+      }
+    }) });
+    return [m, lam(bg), lam(bg)];
+  };
+  const H = 4.6;
+  for (const sx of [-4, 4]) {
+    const seg = (r, h, y, m) => { const me = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 22), m); me.position.set(sx, y + h / 2, 0); g.add(me); };
+    seg(0.62, 1.7, 0, deco('#2f52c8', [[40, 60, 16, '#d32f2f'], [120, 90, 12, '#2e9e48'], [190, 40, 14, '#f2c230'], [235, 95, 10, '#d32f2f']]));
+    seg(0.6, 1.6, 1.7, deco('#d8302c', [[50, 40, 14, '#2f52c8'], [110, 95, 18, '#2e9e48'], [180, 60, 12, '#f2c230'], [230, 30, 11, '#2f52c8']]));
+    seg(0.58, 0.95, 3.3, deco('#2e9e48', [[60, 64, 14, '#f2c230'], [170, 50, 13, '#d32f2f']]));
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.86, 0.42, 22), lam('#2e9e48')); cap.position.set(sx, 4.46, 0); g.add(cap);
+    const hs = new THREE.Shape();
+    hs.moveTo(0, -0.62); hs.bezierCurveTo(-0.15, -0.42, -0.72, -0.15, -0.72, 0.2); hs.bezierCurveTo(-0.72, 0.56, -0.36, 0.72, 0, 0.42);
+    hs.bezierCurveTo(0.36, 0.72, 0.72, 0.56, 0.72, 0.2); hs.bezierCurveTo(0.72, -0.15, 0.15, -0.42, 0, -0.62);
+    const hg = new THREE.ExtrudeGeometry(hs, { depth: 0.36, bevelEnabled: true, bevelSize: 0.1, bevelThickness: 0.12, bevelSegments: 3 });
+    hg.translate(0, 0, -0.18);
+    const heart = new THREE.Mesh(hg, lam('#e0262b')); heart.position.set(sx, H + 0.72, 0); g.add(heart);
+    boxes.push({ x1: xc - sx - 0.65, x2: xc - sx + 0.65, z1: z - 0.65, z2: z + 0.65, y1: 0, y2: H });
+  }
+  // 弧形拱：圓心 (0, 1)、半徑 5（兩端接在柱子上綠色那段），厚 0.9
+  const R = 5, cy = 1, a0 = Math.atan2(3, 4), a1 = Math.PI - a0;
+  const sector = (ri, ro, depth, m) => {
+    const sh = new THREE.Shape(); sh.absarc(0, cy, ro, a0, a1, false); sh.absarc(0, cy, ri, a1, a0, true);
+    const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: false, curveSegments: 40 }); geo.translate(0, 0, -depth / 2);
+    g.add(new THREE.Mesh(geo, m));
+  };
+  sector(R - 0.45, R + 0.45, 0.8, lam('#d8302c'));
+  sector(R + 0.37, R + 0.47, 0.84, lam('#f2c230')); sector(R - 0.47, R - 0.37, 0.84, lam('#f2c230'));
+  // 正面的字和字母（背面再放一份轉 180 度，兩邊看都是正的）
+  const txt = [...'臺北市文山區溪口國民小學體育表演會'], n = txt.length;
+  const atlas = canvasTex(128 * n, 128, (c, w, h) => {
+    c.clearRect(0, 0, w, h); c.fillStyle = '#ffffff'; c.font = '900 104px "Noto Sans TC", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    txt.forEach((ch, i) => c.fillText(ch, 128 * i + 64, 70));
+  });
+  const txtM = new THREE.MeshLambertMaterial({ map: atlas, transparent: true, alphaTest: 0.2 });
+  const WEL = [['W', '#d8302c'], ['e', '#7b3fb5'], ['l', '#f2c230'], ['c', '#2e9e48'], ['o', '#2f7fd8'], ['m', '#3346c8'], ['e', '#f26a2a']];
+  const letterM = WEL.map(([ch, col]) => new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.2, map: canvasTex(128, 160, (c, w, h) => {
+    c.clearRect(0, 0, w, h); c.font = '900 150px "Arial Rounded MT Bold", "Arial Black", sans-serif'; c.textAlign = 'center';
+    c.lineJoin = 'round'; c.lineWidth = 12; c.strokeStyle = 'rgba(0,0,0,.25)'; c.strokeText(ch, w / 2, h - 22);
+    c.fillStyle = col; c.fillText(ch, w / 2, h - 22);
+    c.save(); c.globalCompositeOperation = 'source-atop'; c.fillStyle = 'rgba(255,255,255,.28)'; c.fillRect(0, 0, w * 0.45, h); c.restore();   // 左半邊亮一點，看起來鼓鼓的
+  }) }));
+  const face = new THREE.Group();
+  const span = 1.4, step = span / (n - 1);
+  txt.forEach((ch, i) => {
+    const th = Math.PI / 2 + span / 2 - i * step;
+    const geo = new THREE.PlaneGeometry(0.46, 0.46), uv = geo.attributes.uv;
+    for (let k = 0; k < uv.count; k++) uv.setX(k, (i + uv.getX(k)) / n);
+    const me = new THREE.Mesh(geo, txtM); me.position.set(R * Math.cos(th), cy + R * Math.sin(th), 0.425); me.rotation.z = th - Math.PI / 2; face.add(me);
+  });
+  WEL.forEach((_, i) => {
+    const th = Math.PI / 2 + (3 - i) * 0.17, rr = R + 0.45 + 0.62;
+    const me = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.25), letterM[i]);
+    me.position.set(rr * Math.cos(th), cy + rr * Math.sin(th) + (i % 2 ? 0.08 : -0.04), 0.12); me.rotation.z = th - Math.PI / 2 + (i % 2 ? 0.08 : -0.1); face.add(me);
+  });
+  const back = face.clone(); back.rotation.y = Math.PI;
+  g.add(face, back);
+  group.add(g);
 }

@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=330';
-import { furnishFloor, ROOM_EN } from './furniture.js?v=330';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=330';
-import { buildField, buildStage, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=330';
-import { buildCampusWall } from './wall.js?v=330';
-import { makeNPCS } from './npcs.js?v=330';
-import { makeGameInfo } from './game-info.js?v=330';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=330';
+import { PanoViewer } from './pano.js?v=335';
+import { furnishFloor, ROOM_EN, INDOOR_RAISED } from './furniture.js?v=335';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=335';
+import { buildField, buildStage, buildArch, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=335';
+import { buildCampusWall } from './wall.js?v=335';
+import { makeNPCS } from './npcs.js?v=335';
+import { makeGameInfo } from './game-info.js?v=335';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=335';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -572,7 +572,11 @@ function computeOpenEdges() {
 const STEP_H = 0.3, STEP_D = 0.32, NSTEP = Math.round(BASE / STEP_H);
 // 地面高度（相對於這一層的樓板）：一樓室內 0、戶外 -BASE；司令臺、花台、走廊邊的階梯會比較高
 function groundAt(f, x, z) {
-  if (f.level !== 0) return 0;
+  if (f.level !== 0) {                                         // 樓上：活動中心舞台這類室內墊高的地面
+    let h = 0;
+    for (const r of INDOOR_RAISED) if (r.floorY === f.y && x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) h = Math.max(h, r.h);
+    return h;
+  }
   if (indoor1F(x, z)) return 0;
   let h = -BASE;
   for (const r of raised) if (x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) h = Math.max(h, r.h - BASE);
@@ -1100,6 +1104,9 @@ function buildOutdoor() {
     const cx = mx(O.track.center[0]), cz = mz(O.track.center[1]);
     buildField(g, cx, cz, O.track.size[0] / S / 2, O.track.size[1] / S / 2);
     floors[1].labels.add(makeTag('操場', 'SPORTS FIELD', cx, 0, cz, { accent: '#2d8a57', h: 4.2, stem: 4 }));
+    // 體育表演會充氣拱門（依照片 11-17）：跑道南邊最外圈，正中間對著游泳館西端的藍色泡泡牆（左柱在游泳館白牆前、右柱在遊戲場前），
+    //   面向操場；115/12/05 活動過後拿掉
+    buildArch(g, mx(1100), cz + O.track.size[1] / S / 2 - 0.9, floors[1].boxes);
   }
   {
     // 中庭：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑（依照片）
@@ -3822,7 +3829,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=330`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=335`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -4477,7 +4484,9 @@ function update(dt) {
   // 司令臺、入口階梯這類墊高的地面：慢慢升降，看起來像踩上去（樓梯上的高度在 followStairs 算好了）
   if (!player.onStair && player.ride == null) {
     const gy = groundAt(player.floor, player.x, player.z);
-    player.gy = (player.gy ?? 0) + (gy - (player.gy ?? 0)) * Math.min(1, dt * 12);
+    // 樓上的台階（活動中心舞台）往上走：高度馬上跟上，才不會被下一階擋住；往下、戶外照舊慢慢降
+    if (player.floor.level !== 0 && gy > (player.gy ?? 0)) player.gy = gy;
+    else player.gy = (player.gy ?? 0) + (gy - (player.gy ?? 0)) * Math.min(1, dt * 12);
   }
   if (mode !== 'bird' && !act.busy) unstick(dt);
   const py = player.ride ?? player.floor.y + player.gy + player.jump;   // ride：溜滑梯時的高度
@@ -6009,4 +6018,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   tryMove, canGo, clearAt, groundAt, GAME_FILE, cellAt, getGrid };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=330').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=335').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

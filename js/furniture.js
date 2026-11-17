@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=330';
-import { trafficBasement } from './basement.js?v=330';
+import { Batch, mat, SPOTS } from './blocks.js?v=335';
+import { trafficBasement } from './basement.js?v=335';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -143,6 +143,8 @@ function ceilingTubes(put, fr) {
   }
 }
 
+// 室內墊高、可以走上去的地面（app.js 的 groundAt 會用）
+export const INDOOR_RAISED = [];
 function placer(batch, fr, y0) {
   // 以 (u, v) 為中心、底部在 y 的方塊
   const put = (material, du, dv, h, u, v, y = 0, plain = false) => {
@@ -158,6 +160,11 @@ function placer(batch, fr, y0) {
     if (rotY) geo.rotateY(rotY);
     geo.translate(x, y0 + y, z);
     batch.add(material, geo);
+  };
+  // 登記可以踩上去的墊高地面（例如活動中心舞台、台階）：u1～u2、v1～v2 範圍，高度 h（從這層地板算）
+  put.raise = (u1, u2, v1, v2, h) => {
+    const [xa, za] = fr.toWorld(u1, v1), [xb, zb] = fr.toWorld(u2, v2);
+    INDOOR_RAISED.push({ floorY: y0, x1: Math.min(xa, xb), x2: Math.max(xa, xb), z1: Math.min(za, zb), z2: Math.max(za, zb), h });
   };
   // 登記互動設施：(u, v) 的世界座標；dv 是面向球場的方向（沿 v）
   put.spot = (data, u, v, y, dv = 0, du = 0) => {                 // dv／du：籃框朝哪個方向（沿 v 或沿 u）
@@ -185,7 +192,32 @@ function chairAt(put, u, v, faceBack = true) {
   put(M.metal(), 0.3, 0.3, 0.4, u, v, 0);
 }
 // 前面牆：黑板 + 86 吋電視
-function frontWall(put, fr, { board = true, tv = true, white = false, tvImg = null } = {}) {
+// 班級教室電視上放什麼（依使用者 11-17）：
+//   一～四年級：第 43 屆體育表演會邀請卡（115/12/05，活動過後改回 null）；五年一班：班服設計稿（其他五年級等班服設計圖）；六年級：畢業旅行
+const SPORTS_DAY_CARD = 'img/hall/sports-day-115-card.webp';
+const classTvImg = (room) => {
+  const code = room?.code || '', grade = +code[0];
+  if (code === '501') return 'img/class501/tv.webp';
+  if (grade >= 1 && grade <= 4) return SPORTS_DAY_CARD;
+  return null;
+};
+// 六年級電視：「我們去畢業旅行啦」
+const gradTripMat = () => once('gradtrip', () => new THREE.MeshLambertMaterial({ emissive: '#ffffff', emissiveIntensity: 0.25, map: bigTex(640, 360, (c, w, h) => {
+  const g = c.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#5ec8f2'); g.addColorStop(0.7, '#cdeefc'); g.addColorStop(0.7, '#8fd16a'); g.addColorStop(1, '#5fae47');
+  c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#ffd84d'; c.beginPath(); c.arc(w - 80, 70, 40, 0, 7); c.fill();                       // 太陽
+  c.fillStyle = '#ffffff'; for (const [x, y] of [[90, 60], [150, 48], [210, 64]]) { c.beginPath(); c.arc(x, y, 26, 0, 7); c.fill(); }   // 雲
+  // 遊覽車
+  const bx = 150, by = 205;
+  c.fillStyle = '#f2f2ee'; c.fillRect(bx, by, 340, 80); c.fillStyle = '#e8762b'; c.fillRect(bx, by + 52, 340, 12);
+  c.fillStyle = '#4a7fb5'; for (let i = 0; i < 6; i++) c.fillRect(bx + 14 + i * 52, by + 12, 42, 30);
+  c.fillStyle = '#333'; for (const x of [bx + 60, bx + 280]) { c.beginPath(); c.arc(x, by + 82, 20, 0, 7); c.fill(); }
+  c.fillStyle = '#ffffff'; c.strokeStyle = '#d0452f'; c.lineWidth = 10; c.lineJoin = 'round';
+  c.font = '900 64px "Noto Sans TC", sans-serif'; c.textAlign = 'center';
+  c.strokeText('我們去畢業旅行啦！', w / 2, 150); c.fillText('我們去畢業旅行啦！', w / 2, 150);
+}) }));
+function frontWall(put, fr, { board = true, tv = true, white = false, tvImg = null, tvMat: tvM = null } = {}) {
   const W = fr.W;
   // 黑板置中；86 吋電視掛在黑板正中間（學校實際配置），兩側露出黑板
   if (board) {
@@ -198,7 +230,7 @@ function frontWall(put, fr, { board = true, tv = true, white = false, tvImg = nu
     const tv86 = [1.9, 1.07];                            // 86 吋：約 190 × 107 公分
     const tu = board ? 0.1 : 0.035;                      // 在黑板前面一點
     put(M.dark(), 0.07, tv86[0] + 0.06, tv86[1] + 0.06, tu, 0, 0.97);
-    put(tvImg ? tvImgMat(tvImg) : tvMat(), 0.08, tv86[0], tv86[1], tu + 0.015, 0, 1.0, true);
+    put(tvM || (tvImg ? tvImgMat(tvImg) : tvMat()), 0.08, tv86[0], tv86[1], tu + 0.015, 0, 1.0, true);
   }
 }
 function teacherDesk(put, u, v) {
@@ -226,7 +258,7 @@ function classroom(put, fr, room) {
   const W = fr.W, L = fr.L, A = fr.away;
   const senior = grade >= 5;
   if (!low && !senior) paintBands(put, fr, mat('wool', '#bcd9ee'));
-  frontWall(put, fr, { tvImg: room?.code === '501' ? 'img/class501/tv.webp' : null });
+  frontWall(put, fr, { tvImg: classTvImg(room), tvMat: grade === 6 ? gradTripMat() : null });
   const bw = Math.min(5.2, W * 0.75);
   for (const s of [-1, 1]) put(corkMat(), 0.03, Math.min(1.0, (W - bw) / 2 - 0.2), 1.0, 0.03, s * (bw / 2 + 0.6), 1.0, true);
   teacherDesk(put, 1.25, A * (W / 2 - 1.0));
@@ -813,10 +845,11 @@ function natureRoom(put0, fr, room) {
   const stoolTop = mat('wool', '#f07a4a'), stoolLeg = mat('wool', '#1d1d1d');
   const stack = (u, v) => { for (let k = 0; k < 3; k++) put(stoolTop, 0.34, 0.34, 0.05, u, v, 0.3 + k * 0.12); for (const d of [-0.13, 0.13]) put(stoolLeg, 0.03, 0.03, 0.62, u + d, v + d, 0); };
   // 靠牆兩列各兩張、中間一列三張（門口那段不放桌子，才走得進來）
-  for (const [u, v] of [[3.7, A * 2.2], [6.0, A * 2.2], [3.7, 0], [6.0, 0], [8.3, 0], [3.7, D * 2.2], [6.0, D * 2.2]]) {
-    put(grey, 1.85, 0.95, 0.75, u, v, 0); put(mat('wool', '#d6d8da'), 1.7, 0.85, 0.3, u, v, 0.3);   // 桌身＋置物格
-    put(glassTop, 2.0, 1.05, 0.05, u, v, 0.75);
-    for (const dv of [-0.22, 0.22]) stack(u + 1.25, v + dv);
+  // 使用者 11-17：「會卡住」——桌子縮小（1.5 × 0.9）、靠牆兩列往中間收，桌子和牆、桌子和桌子之間都留 0.7 公尺以上的走道
+  for (const [u, v] of [[3.4, A * 1.95], [6.0, A * 1.95], [3.4, 0], [6.0, 0], [8.6, 0], [3.4, D * 1.95], [6.0, D * 1.95]]) {
+    put(grey, 1.35, 0.8, 0.75, u, v, 0); put(mat('wool', '#d6d8da'), 1.2, 0.7, 0.3, u, v, 0.3);   // 桌身＋置物格
+    put(glassTop, 1.5, 0.9, 0.05, u, v, 0.75);
+    for (const dv of [-0.2, 0.2]) stack(u + 0.94, v + dv);
   }
   // 薄荷綠天花板、長條 LED 燈、吸頂電扇
   put(mat('wool', '#a7dcc9'), L, W, 0.02, L / 2, 0, 2.93);
@@ -1023,7 +1056,7 @@ function meetingRoom(put, fr, room) {
   put(M.dark(), 0.6, 0.6, 0.08, 1.6, D * (W / 2 - 1.6), 0.05);
   put(M.grey(), 0.08, 0.08, 1.0, 1.6, D * (W / 2 - 1.6), 0.1);
   put(M.dark(), 0.08, 1.9, 1.1, 1.6, D * (W / 2 - 1.6), 1.0);
-  put(screenMat(), 0.02, 1.8, 1.0, 1.65, D * (W / 2 - 1.6), 1.05);
+  put(tvImgMat(SPORTS_DAY_CARD), 0.02, 1.8, 1.0, 1.65, D * (W / 2 - 1.6), 1.05, true);   // 11-17：先放體育表演會邀請卡，活動過後換回 screenMat()
   // U 型會議桌（開口朝前面布幕），桌邊與椅子
   const top = mat('wool', '#ece3d0'), base = mat('wool', '#5a3a2a');
   const uA = 2.6, uB = L - 2.2, half = Math.min(2.2, W / 2 - 1.4), tw = 0.9;   // 兩側留得出走道
@@ -1810,7 +1843,7 @@ const gymCourtMat = () => once('gymcourt', () => new THREE.MeshLambertMaterial({
 }) }));
 
 // 活動中心（依 360 照片 22）：淺色楓木地板＋白線籃球場、藍線（羽球／排球）；東邊舞台：木紋板框、深紅布幕（金色流蘇）、
-//   背板（學校標誌、藍色浪花）、兩顆喇叭、紅色計分板；兩個主籃框從天花板吊下來（藍色護墊）；南北兩面牆各四個掛牆練習籃框；
+//   電視牆（11-17 由背板改的，3 × 3 拼接）、兩顆喇叭、紅色計分板；兩個主籃框從天花板吊下來（藍色護墊）；南北兩面牆各四個掛牆練習籃框；
 //   牆邊靠著摺疊桌椅推車、海報。天花板（米白波浪板、鋼架、圓燈）在 app.js（放在天花板群組，鳥瞰時會拿掉）
 const gymMapleMat = (rx, ry) => once('gymmaple' + rx + 'x' + ry, () => new THREE.MeshLambertMaterial({ map: (() => {
   const t = bigTex(128, 128, (c, w, h) => {                                       // 淺色楓木地板：一條條窄木條（一格 2 公尺）
@@ -1829,15 +1862,11 @@ const gymBlueMat = () => once('gymblue', () => new THREE.MeshLambertMaterial({ t
     for (const dx of [130, 290]) { c.beginPath(); c.moveTo(x0 + dx, 40); c.lineTo(x0 + dx, h - 40); c.stroke(); }
   }
 }) }));
-const stageBackMat = () => once('stageback', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 200, (c, w, h) => {
-  c.fillStyle = '#1c2236'; c.fillRect(0, 0, w, h);                               // 深藍背板
-  c.fillStyle = '#e8762b'; c.beginPath(); c.arc(w * 0.6, 60, 28, 0, 7); c.fill();  // 學校標誌（橘色圓）
-  c.fillStyle = '#f4f4f0'; c.font = 'bold 26px "Noto Sans TC", sans-serif'; c.textAlign = 'center'; c.fillText('溪口國小', w * 0.42, 66);
-  for (let i = 0; i < 3; i++) {                                                   // 藍色浪花
-    c.fillStyle = ['#3a8fd0', '#5fb0e6', '#bfe3f5'][i]; c.beginPath(); c.moveTo(w * 0.2, h);
-    for (let x = w * 0.2; x <= w * 0.8; x += 8) c.lineTo(x, h - 50 + i * 14 + Math.sin(x / 18 + i) * 10);
-    c.lineTo(w * 0.8, h); c.closePath(); c.fill();
-  }
+// 舞台電視牆的拼接縫（3 × 3 面 16:9 螢幕）：透明底、深色細線，疊在畫面前面
+const tvWallSeamMat = () => once('tvwallseam', () => new THREE.MeshLambertMaterial({ transparent: true, depthWrite: false, map: bigTex(960, 540, (c, w, h) => {
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = 'rgba(10,10,14,.85)';
+  for (const k of [1, 2]) { c.fillRect(k * w / 3 - 2, 0, 4, h); c.fillRect(0, k * h / 3 - 2, w, 4); }
 }) }));
 function gym(put, fr) {
   const W = fr.W, L = fr.L;   // 活動中心門在東西，u 是南北向（0＝北牆）；這裡改用 v（東西向）擺球場，v 越大越東
@@ -1851,6 +1880,16 @@ function gym(put, fr) {
   const vp = W / 2 - 4.2, ow = 9, oh = 4.0, sw = 11, panel = mat('planks', '#b8673a');
   put(mat('wool', '#4a2a1e'), sw, 0.6, 1.0, L / 2, vp - 0.3, 0);                 // 台前緣
   put(M.wood(), sw, W / 2 - vp, 1.0, L / 2, (vp + W / 2) / 2, 0);               // 台面
+  // 使用者 11-17：舞台改成可以上去——台前兩頭各一組木頭台階（4 階、每階 20 公分），台面整片可以走
+  put.raise(L / 2 - sw / 2, L / 2 + sw / 2, vp - 0.6, W / 2, 1.0);
+  for (const s of [-1, 1]) {
+    const uc = L / 2 + s * (ow / 2 - 0.9);                                        // 對準舞台口裡面（不會撞到兩側木紋板）
+    for (let i = 1; i <= 4; i++) {
+      const v2 = vp - 0.6 - (4 - i) * 0.32, v1 = v2 - 0.32;
+      put(i % 2 ? M.wood() : mat('planks', '#a8683e'), 1.4, 0.32, 0.2 * i, uc, (v1 + v2) / 2, 0);
+      put.raise(uc - 0.7, uc + 0.7, v1, v2, 0.2 * i);
+    }
+  }
   for (const s of [-1, 1]) {
     const a = L / 2 + s * ow / 2, b = L / 2 + s * (sw / 2 + 0.3);
     put(panel, Math.abs(b - a), 0.3, 6.5, (a + b) / 2, vp, 0);                    // 舞台口兩側的木紋板
@@ -1861,10 +1900,13 @@ function gym(put, fr) {
   put(new THREE.MeshLambertMaterial({ color: '#d32f2f', emissive: '#b01818', emissiveIntensity: 0.6 }), 0.9, 0.05, 0.4, L / 2 - (ow / 2 + 0.95), vp - 0.17, 2.6);   // 紅色計分板
   // 布幕：深紅色，兩邊拉開、上面一排帷幔＋金色流蘇；後面是背板
   const red = mat('wool', '#7a1420');
-  for (const s of [-1, 1]) put(red, 2.4, 0.15, oh, L / 2 + s * (ow / 2 - 1.2), vp + 0.4, 1.0);
+  for (const s of [-1, 1]) put(red, 1.6, 0.15, oh, L / 2 + s * (ow / 2 - 0.8), vp + 0.4, 1.0);   // 布幕拉開一點，電視牆才不會被遮住
   put(red, ow, 0.15, 0.7, L / 2, vp + 0.3, 1.0 + oh - 0.7);
   put(mat('wool', '#d9a93a'), ow, 0.16, 0.08, L / 2, vp + 0.3, 1.0 + oh - 0.78);
-  put(stageBackMat(), ow - 1, 0.05, 3.2, L / 2, W / 2 - 0.2, 1.0, true);
+  // 使用者 11-17：背板改成電視牆（3 × 3 面拼接，16:9）；目前播第 43 屆體育表演會邀請卡（115/12/05），活動過後再換別的畫面
+  put(M.dark(), ow - 1, 0.05, 3.3, L / 2, W / 2 - 0.2, 1.0, true);
+  put(tvImgMat('img/hall/sports-day-115-card.webp'), 5.6, 0.04, 3.15, L / 2, W / 2 - 0.25, 1.1, true);
+  put(tvWallSeamMat(), 5.6, 0.01, 3.15, L / 2, W / 2 - 0.28, 1.1, true);
   for (const s of [-1, 1]) put(panel, 0.3, W / 2 - vp, 6.5, L / 2 + s * (sw / 2 + 0.15), (vp + W / 2) / 2, 0);   // 舞台兩側的牆（後台和通道隔開）
   // 兩個主籃框：從天花板吊下來（吊桿＋玻璃籃板、藍色護墊），標準高度 3.05 公尺
   const half = CL / 2, blue = mat('wool', '#1f4fb8');
