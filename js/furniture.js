@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=338';
-import { trafficBasement } from './basement.js?v=338';
-import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=338';
+import { Batch, mat, SPOTS } from './blocks.js?v=339';
+import { trafficBasement } from './basement.js?v=339';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=339';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -363,30 +363,82 @@ const checkerMat = () => once('checker', () => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 7);
   return new THREE.MeshLambertMaterial({ map: t });
 });
-// 穿堂的耶誕樹（依照片：綠色樹身、紅底白雪花緞帶蝴蝶結、銀色圓球和禮物盒、金色星星、底下一堆禮物）；到 2027/01/04 0:00 自動收起來（event-dates.js）
-const xmasLightMat = () => once('xmaslight', () => new THREE.MeshLambertMaterial({ color: '#ffe9a0', emissive: '#ffcc55', emissiveIntensity: 0.9 }));
-function xmasTree(put, tu, tv) {
-  const green = mat('wool', '#1f6b34'), green2 = mat('wool', '#2a8040'), red = mat('wool', '#c8202e'), silver = mat('wool', '#d4d8dc');
-  const gold = mat('wool', '#e0b84a'), brown = mat('wool', '#5a3a22');
-  put(red, 1.5, 1.5, 0.04, tu, tv, 0, true);                                   // 樹裙（紅色）
-  put(brown, 0.3, 0.3, 0.4, tu, tv, 0.04);                                     // 樹幹：擋得住人
-  const tiers = [[1.3, 0.3, 0.45], [1.05, 0.7, 0.45], [0.8, 1.1, 0.45], [0.55, 1.5, 0.4], [0.3, 1.85, 0.3]];
-  tiers.forEach(([s, y, h], i) => put(i % 2 ? green2 : green, s, s, h, tu, tv, y, i > 0));
-  put(gold, 0.22, 0.22, 0.22, tu, tv, 2.12, true);                             // 星星
-  put(gold, 0.36, 0.06, 0.06, tu, tv, 2.2, true); put(gold, 0.06, 0.36, 0.06, tu, tv, 2.2, true);
-  // 紅色蝴蝶結（四面）、銀色圓球、小燈
-  const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-  tiers.slice(0, 4).forEach(([s, y, h], i) => sides.forEach(([a, b], k) => {
-    const off = s / 2 + 0.03, along = ((i + k) % 2 ? 1 : -1) * s * 0.2;
-    const du = a ? 0 : along, dv = b ? 0 : along;
-    put(red, a ? 0.08 : 0.22, b ? 0.08 : 0.22, 0.18, tu + a * off + du, tv + b * off + dv, y + h * 0.35, true);
-    put(silver, a ? 0.08 : 0.12, b ? 0.08 : 0.12, 0.12, tu + a * off - du * 0.9, tv + b * off - dv * 0.9, y + h * 0.15, true);
-    put(xmasLightMat(), a ? 0.06 : 0.07, b ? 0.06 : 0.07, 0.07, tu + a * off + du * 0.3, tv + b * off + dv * 0.3, y + h * 0.7, true);
-  }));
-  // 樹下的禮物
-  put(gold, 0.4, 0.4, 0.3, tu + 0.55, tv + 0.35, 0.04, true); put(mat('wool', '#3f8f4a'), 0.42, 0.08, 0.32, tu + 0.55, tv + 0.35, 0.04, true);
-  put(red, 0.3, 0.3, 0.24, tu - 0.55, tv - 0.4, 0.04, true); put(silver, 0.32, 0.06, 0.26, tu - 0.55, tv - 0.4, 0.04, true);
-  put(mat('wool', '#e8dcc4'), 0.28, 0.28, 0.2, tu - 0.5, tv + 0.5, 0.04, true);
+// 穿堂的耶誕樹（使用者 11-18 第二版，依照片重做、比第一版縮成 85%）：一層層的圓錐樹身、紅底白雪花緞帶蝴蝶結、銀色圓球和小禮物盒、
+//   暖黃和綠色小燈、樹頂銀色星星和 Merry Christmas 牌、紅色樹裙、底下的金色大禮物；擺在東端主題牆（夜空門的畫）正前方
+//   到 2027/01/04 0:00 自動收起來（event-dates.js）
+const xmasLightMat = (c) => once(`xmaslight${c}`, () => new THREE.MeshLambertMaterial({ color: c, emissive: c, emissiveIntensity: 0.9 }));
+const xmasBowMat = () => once('xmasbow', () => { const m = new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, emissive: '#6a6a6a', map: bigTex(128, 104, (c) => {
+  c.fillStyle = '#d8d8de';                                                   // 銀色緞帶尾巴
+  c.beginPath(); c.moveTo(58, 52); c.lineTo(30, 100); c.lineTo(44, 102); c.lineTo(62, 58); c.fill();
+  c.beginPath(); c.moveTo(70, 52); c.lineTo(98, 100); c.lineTo(84, 102); c.lineTo(66, 58); c.fill();
+  c.fillStyle = '#c4161f';
+  for (const s of [-1, 1]) { c.beginPath(); c.ellipse(64 + s * 30, 38, 32, 22, s * -0.35, 0, Math.PI * 2); c.fill(); }   // 兩個圈
+  c.beginPath(); c.moveTo(56, 54); c.lineTo(40, 92); c.lineTo(52, 94); c.lineTo(62, 58); c.fill();
+  c.beginPath(); c.moveTo(72, 54); c.lineTo(88, 92); c.lineTo(76, 94); c.lineTo(66, 58); c.fill();
+  c.strokeStyle = '#ffffff'; c.lineWidth = 2;                                 // 白色雪花
+  for (const [x, y] of [[18, 32], [36, 22], [42, 46], [28, 50], [86, 22], [104, 34], [92, 48], [110, 52], [50, 30], [78, 32], [46, 78], [82, 80]]) {
+    for (let a = 0; a < 3; a++) { const dx = Math.cos(a * Math.PI / 3) * 4, dy = Math.sin(a * Math.PI / 3) * 4; c.beginPath(); c.moveTo(x - dx, y - dy); c.lineTo(x + dx, y + dy); c.stroke(); }
+  }
+  c.fillStyle = '#a80f18'; c.beginPath(); c.ellipse(64, 42, 10, 12, 0, 0, Math.PI * 2); c.fill();   // 中間的結
+}) }); m.emissiveMap = m.map; return m; });   // 穿堂比較暗：自己亮一點，紅色才鮮豔
+const xmasSignMat = () => once('xmassign', () => new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, emissive: '#555555', map: bigTex(320, 170, (c, w) => {
+  c.textAlign = 'center'; c.lineJoin = 'round';
+  c.font = 'italic bold 70px "Brush Script MT", "Segoe Script", cursive';
+  for (const [t, y] of [['Merry', 70], ['Christmas', 145]]) {
+    c.lineWidth = 8; c.strokeStyle = '#8a8a92'; c.strokeText(t, w / 2, y);
+    c.fillStyle = '#f4f4f8'; c.fillText(t, w / 2, y);
+  }
+}) }));
+function xmasTree(put, fr, tu, tv) {
+  const [cx, cz] = fr.toWorld(tu, tv);
+  // (u, v) 朝外的方向（世界座標）：平面的東西（蝴蝶結、牌子、星星）用 lookAt 轉成面向外面
+  const face = (geo, u, v) => { const [x, z] = fr.toWorld(u, v); geo.lookAt(new THREE.Vector3(x - cx, 0, z - cz)); return geo; };
+  const front = [tu, tv - 1];                                                // 前面：遠離主題牆（v 變小）
+  const dark = mat('wool', '#174a26'), green = mat('wool', '#1f6131'), green2 = mat('wool', '#276e38');
+  const silver = new THREE.MeshLambertMaterial({ color: '#dcdfe4', emissive: '#3a3d42' });
+  const red = mat('wool', '#c8202e');
+  const lit = (c, e) => new THREE.MeshLambertMaterial({ color: c, emissive: e });   // 禮物：穿堂比較暗，自己亮一點
+  const gold = lit('#e9c25a', '#4a3810');
+  // 紅色樹裙、樹幹（擋得住人，藏在最下層裡面）
+  put.geo(red, new THREE.CylinderGeometry(0.66, 0.66, 0.03, 16), tu, tv, 0.015);
+  put(dark, 0.6, 0.6, 0.38, tu, tv, 0.03);
+  // 樹身：四層圓錐疊起來（[底部高度, 高, 半徑]）
+  const tiers = [[0.12, 0.85, 0.58], [0.58, 0.75, 0.47], [0.98, 0.62, 0.36], [1.34, 0.5, 0.24]];
+  tiers.forEach(([y, h, r], i) => put.geo([green, green2][i % 2], new THREE.ConeGeometry(r, h, 12), tu, tv, y + h / 2, i * 0.26));
+  const radiusAt = (y) => Math.max(0.03, ...tiers.map(([y0, h, r]) => (y >= y0 && y <= y0 + h ? r * (1 - (y - y0) / h) : 0)));
+  const onTree = (a, y, out = 0.02) => { const r = radiusAt(y) + out; return [tu + Math.cos(a) * r, tv + Math.sin(a) * r]; };
+  // 蝴蝶結：一圈一圈錯開排
+  [[0.32, 7, 0], [0.7, 6, 0.4], [1.06, 5, 0.1], [1.4, 3, 0.7]].forEach(([y, n, a0]) => {
+    for (let k = 0; k < n; k++) {
+      const a = a0 + k * Math.PI * 2 / n, [u, v] = onTree(a, y, 0.03), s = y > 1.3 ? 0.75 : 1;
+      put.geo(xmasBowMat(), face(new THREE.PlaneGeometry(0.26 * s, 0.21 * s), u, v), u, v, y);
+    }
+  });
+  // 銀色圓球、銀色小禮物盒
+  for (let k = 0; k < 22; k++) {
+    const y = 0.22 + (k * 0.37) % 1.3, a = k * 2.4, [u, v] = onTree(a, y, 0.01);
+    if (k % 4 === 3) put.geo(silver, face(new THREE.BoxGeometry(0.08, 0.08, 0.08), u, v), u, v, y);
+    else put.geo(silver, new THREE.SphereGeometry(0.04, 8, 6), u, v, y);
+  }
+  // 小燈：繞著樹轉圈往上，大部分暖黃、少數綠色
+  for (let k = 0; k < 46; k++) {
+    const y = 0.18 + k * 0.032, a = k * 0.95, [u, v] = onTree(a, y, 0.0);
+    put.geo(xmasLightMat(k % 6 === 5 ? '#5fe07a' : '#ffd77a'), new THREE.SphereGeometry(0.018, 6, 4), u, v, y);
+  }
+  // 樹頂：Merry Christmas 牌、銀色星星
+  { const [u, v] = onTree(-Math.PI / 2, 1.58, 0.05); put.geo(xmasSignMat(), face(new THREE.PlaneGeometry(0.42, 0.22), u, v), u, v, 1.6); }
+  {
+    const sh = new THREE.Shape();
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? 0.045 : 0.11, a = Math.PI / 2 + i * Math.PI / 5; sh[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); }
+    const g = new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: false }); g.translate(0, 0, -0.015);
+    put.geo(new THREE.MeshLambertMaterial({ color: '#efe6c8', emissive: '#8a7c4a' }), face(g, ...front), tu, tv, 1.95);
+  }
+  // 樹下的禮物（前面）：金色大禮物（綠色緞帶）、金色花紋盒、紅白盒
+  const gU = (du) => tu + du, gV = (dv) => tv + dv;
+  put(gold, 0.42, 0.34, 0.3, gU(0.3), gV(-0.5), 0.03, true); put(lit('#b8d49a', '#2a3a20'), 0.44, 0.07, 0.32, gU(0.3), gV(-0.5), 0.03, true);
+  put(lit('#b8d49a', '#2a3a20'), 0.07, 0.36, 0.32, gU(0.3), gV(-0.5), 0.03, true);
+  put(lit('#d8b070', '#3a2810'), 0.3, 0.3, 0.26, gU(-0.42), gV(-0.42), 0.03, true); put(silver, 0.32, 0.05, 0.28, gU(-0.42), gV(-0.42), 0.03, true);
+  put(lit('#c0303a', '#3a0a0c'), 0.26, 0.26, 0.18, gU(-0.05), gV(-0.62), 0.03, true); put(mat('wool', '#f0f0f0'), 0.05, 0.28, 0.2, gU(-0.05), gV(-0.62), 0.03, true);
 }
 function entranceHall(put, fr, room) {
   const W = fr.W, L = fr.L;              // u：南北向、v：東西向（v 越大越靠中庭）
@@ -407,7 +459,7 @@ function entranceHall(put, fr, room) {
   // 電子看板：目前播第 43 屆體育表演會邀請卡（115/12/05），活動過後換回 screenMat()
   put(M.dark(), 0.35, 0.8, 1.9, L - 0.6, W / 2 - 1.6, 0);
   put(SPORTS_DAY_ON ? tvImgMat('img/hall/sports-day-115-front.webp') : screenMat(), 0.02, 0.7, 1.2, L - 0.78, W / 2 - 1.6, 0.6, true);   // 12/08 0:00 起自動換回 screenMat()
-  if (XMAS_ON) xmasTree(put, 1.5, ev - 1.7);
+  if (XMAS_ON) xmasTree(put, fr, L / 2, ev - 0.95);   // 主題牆正前方（兩盆盆栽中間）
 }
 
 
