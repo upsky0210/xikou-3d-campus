@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=337';
+import { Batch, mat, SPOTS } from './blocks.js?v=338';
+import { SPORTS_DAY_ON } from './event-dates.js?v=338';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）
@@ -183,7 +184,7 @@ export function buildStage(group, m) {
     b.box(peach, cw + 0.01, 0.1, d, x, 4.25, z0 + d / 2);
   }
   // 115 學年度體育表演會紅布條（依照片，掛在雨遮前緣中間，跟著弧形彎）；活動過後（115/12/05）拿掉這段
-  {
+  if (SPORTS_DAY_ON) {   // 12/08 0:00 起自動拿掉（event-dates.js）
     const tex = canvasTex(1600, 90, (c, w, h) => {
       c.fillStyle = '#e8312f'; c.fillRect(0, 0, w, h);
       c.fillStyle = 'rgba(0,0,0,.12)'; for (const k of [1, 2, 3]) c.fillRect(k * w / 4 - 1, 0, 2, h);   // 布的接縫

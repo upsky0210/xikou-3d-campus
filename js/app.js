@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=337';
-import { furnishFloor, ROOM_EN, INDOOR_RAISED } from './furniture.js?v=337';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=337';
-import { buildField, buildStage, buildArch, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=337';
-import { buildCampusWall } from './wall.js?v=337';
-import { makeNPCS } from './npcs.js?v=337';
-import { makeGameInfo } from './game-info.js?v=337';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=337';
+import { PanoViewer } from './pano.js?v=338';
+import { furnishFloor, ROOM_EN, INDOOR_RAISED } from './furniture.js?v=338';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=338';
+import { buildField, buildStage, buildArch, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=338';
+import { buildCampusWall } from './wall.js?v=338';
+import { makeNPCS } from './npcs.js?v=338';
+import { makeGameInfo } from './game-info.js?v=338';
+import { SPORTS_DAY_ON } from './event-dates.js?v=338';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=338';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1106,7 +1107,7 @@ function buildOutdoor() {
     floors[1].labels.add(makeTag('操場', 'SPORTS FIELD', cx, 0, cz, { accent: '#2d8a57', h: 4.2, stem: 4 }));
     // 體育表演會充氣拱門（依照片 11-17）：跑道南邊最外圈，正中間對著游泳館西端的藍色泡泡牆（左柱在游泳館白牆前、右柱在遊戲場前），
     //   面向操場；115/12/05 活動過後拿掉
-    buildArch(g, mx(1100), cz + O.track.size[1] / S / 2 - 0.9, floors[1].boxes);
+    if (SPORTS_DAY_ON) buildArch(g, mx(1100), cz + O.track.size[1] / S / 2 - 0.9, floors[1].boxes);   // 12/08 0:00 起自動拿掉（event-dates.js）
   }
   {
     // 中庭：敬業樓、勤學樓面向中庭的立面、會議室前小花台、電腦教室前沙坑（依照片）
@@ -3803,6 +3804,7 @@ function updateAct(dt) {
     : sp.kind === 'beads' ? T(`📿 跟${sp.npc.name}玩串珠遊戲 <kbd>F</kbd>`, `📿 Bead patterns with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'fold' ? T(`🐶 跟${sp.npc.name}玩摺紙遊戲 <kbd>F</kbd>`, `🐶 Origami with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'cook' ? T(`🍳 跟${sp.npc.name}玩炒菜遊戲 <kbd>F</kbd>`, `🍳 Cooking with ${sp.npc.name} <kbd>F</kbd>`)
+    : sp.kind === 'food6' ? T(`🥗 跟${sp.npc.name}玩健康六大類食物 <kbd>F</kbd>`, `🥗 Six food groups with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'twpuzzle' ? T(`🗺️ 跟${sp.npc.name}玩立體臺灣地形拼圖 <kbd>F</kbd>`, `🗺️ Taiwan terrain puzzle with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'puzzle3d' ? T(`🧩 跟${sp.npc.name}玩立體拼圖 <kbd>F</kbd>`, `🧩 3D puzzle with ${sp.npc.name} <kbd>F</kbd>`)
     : sp.kind === 'float' ? T(`🧪 跟${sp.npc.name}做沉浮實驗 <kbd>F</kbd>`, `🧪 Sink or Float with ${sp.npc.name} <kbd>F</kbd>`)
@@ -3825,13 +3827,13 @@ const GAME_FILE = Object.fromEntries(Object.entries({
   puzzle3d: 'puzzle3d',
   taiwan3d: 'twpuzzle',
   paint: 'paint',
-  kg: 'blindquiz busquiz gymrun stack cubes beads fold cook darkchess shrink bugs animalcall toyhome shadow farm prep mood library notes weather tones add4 perim factor arith punct length healthqa rhetoric weave go gomoku cut decimal shapes throw units geo',
+  kg: 'blindquiz busquiz gymrun stack cubes beads fold cook darkchess shrink bugs animalcall toyhome shadow farm prep mood library notes weather tones add4 perim factor arith punct length healthqa food6 rhetoric weave go gomoku cut decimal shapes throw units geo',
 }).flatMap(([file, kinds]) => kinds.split(' ').map((kind) => [kind, file])));
 const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=337`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=338`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -6020,4 +6022,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   tryMove, canGo, clearAt, groundAt, GAME_FILE, cellAt, getGrid };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=337').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=338').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

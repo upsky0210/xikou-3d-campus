@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=337';
+import { poolWater } from './extras.js?v=338';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -732,6 +732,40 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSSSSSSSSSSHH',
           'HHSSSMTTTTMSSSHH',
           'HHHSSSMMMMSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '張老師', title: '四年一班導師', game: 'food6',
+      hello: ['🐢 張老師：慢慢來比較快！', '🌟 張老師：相信自己，你一定可以的！', '💛 張老師：你每一次的努力，老師都有看到喔！',
+        '🥗 張老師：要不要來玩「健康六大類食物」？看看你認識幾種食物！'],
+      // 3 樓思源樓四年一班（314 室）：跟四年二班同一排，老師站講台旁、面向學生
+      places: [
+        { floor: '3F', where: '四年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '401'); return D_CLASS_FRONT(r); } },
+      ],
+      look: {
+        // 依照片：紅棕色染髮、直髮過肩（旁分）、咖啡色細框眼鏡、開心的笑容（閉著嘴的微笑；calm：不換成張嘴大笑）；
+        //   磚紅色法蘭絨長袖襯衫（立領、中間一排扣子）、牛仔褲（鞋子照片沒拍到；照片裡手上拿的飲料不做）
+        skin: '#f2cdb0', hair: '#8c3f27', top: '#b4472f', pants: '#6f93b6', shoe: '#e6e6e6',
+        longHair: true, longSleeve: true, calm: true, collar: '#a63e29', topButtons: '#6a2a1c',
+        pal: { H: '#8c3f27', h: '#a65234', S: '#f2cdb0', K: '#6b3b2c', E: '#2a1610', W: '#e4e0de', B: '#f0b0a4', N: '#e2b49c', M: '#b8505a', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHhHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHSSHHHHHHHHHHH',
+          'HHSSSSSSHHHHHHHH',
+          'HHSSSSSSSSHHHHHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHKEEWKSSKEEWKHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSSSMSSSSMSSSHH',
+          'HHSSSSMMMMSSSSHH',
+          'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },

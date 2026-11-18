@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=337';
-import { trafficBasement } from './basement.js?v=337';
+import { Batch, mat, SPOTS } from './blocks.js?v=338';
+import { trafficBasement } from './basement.js?v=338';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=338';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -198,7 +199,7 @@ const SPORTS_DAY_CARD = 'img/hall/sports-day-115-card.webp';
 const classTvImg = (room) => {
   const code = room?.code || '', grade = +code[0];
   if (code === '501') return 'img/class501/tv.webp';
-  if (grade >= 1 && grade <= 4) return SPORTS_DAY_CARD;
+  if (grade >= 1 && grade <= 4) return SPORTS_DAY_ON ? SPORTS_DAY_CARD : null;   // 12/08 0:00 起自動改回原本的電視（event-dates.js）
   return null;
 };
 // 六年級電視：「我們去畢業旅行啦」
@@ -362,6 +363,31 @@ const checkerMat = () => once('checker', () => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 7);
   return new THREE.MeshLambertMaterial({ map: t });
 });
+// 穿堂的耶誕樹（依照片：綠色樹身、紅底白雪花緞帶蝴蝶結、銀色圓球和禮物盒、金色星星、底下一堆禮物）；到 2027/01/04 0:00 自動收起來（event-dates.js）
+const xmasLightMat = () => once('xmaslight', () => new THREE.MeshLambertMaterial({ color: '#ffe9a0', emissive: '#ffcc55', emissiveIntensity: 0.9 }));
+function xmasTree(put, tu, tv) {
+  const green = mat('wool', '#1f6b34'), green2 = mat('wool', '#2a8040'), red = mat('wool', '#c8202e'), silver = mat('wool', '#d4d8dc');
+  const gold = mat('wool', '#e0b84a'), brown = mat('wool', '#5a3a22');
+  put(red, 1.5, 1.5, 0.04, tu, tv, 0, true);                                   // 樹裙（紅色）
+  put(brown, 0.3, 0.3, 0.4, tu, tv, 0.04);                                     // 樹幹：擋得住人
+  const tiers = [[1.3, 0.3, 0.45], [1.05, 0.7, 0.45], [0.8, 1.1, 0.45], [0.55, 1.5, 0.4], [0.3, 1.85, 0.3]];
+  tiers.forEach(([s, y, h], i) => put(i % 2 ? green2 : green, s, s, h, tu, tv, y, i > 0));
+  put(gold, 0.22, 0.22, 0.22, tu, tv, 2.12, true);                             // 星星
+  put(gold, 0.36, 0.06, 0.06, tu, tv, 2.2, true); put(gold, 0.06, 0.36, 0.06, tu, tv, 2.2, true);
+  // 紅色蝴蝶結（四面）、銀色圓球、小燈
+  const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  tiers.slice(0, 4).forEach(([s, y, h], i) => sides.forEach(([a, b], k) => {
+    const off = s / 2 + 0.03, along = ((i + k) % 2 ? 1 : -1) * s * 0.2;
+    const du = a ? 0 : along, dv = b ? 0 : along;
+    put(red, a ? 0.08 : 0.22, b ? 0.08 : 0.22, 0.18, tu + a * off + du, tv + b * off + dv, y + h * 0.35, true);
+    put(silver, a ? 0.08 : 0.12, b ? 0.08 : 0.12, 0.12, tu + a * off - du * 0.9, tv + b * off - dv * 0.9, y + h * 0.15, true);
+    put(xmasLightMat(), a ? 0.06 : 0.07, b ? 0.06 : 0.07, 0.07, tu + a * off + du * 0.3, tv + b * off + dv * 0.3, y + h * 0.7, true);
+  }));
+  // 樹下的禮物
+  put(gold, 0.4, 0.4, 0.3, tu + 0.55, tv + 0.35, 0.04, true); put(mat('wool', '#3f8f4a'), 0.42, 0.08, 0.32, tu + 0.55, tv + 0.35, 0.04, true);
+  put(red, 0.3, 0.3, 0.24, tu - 0.55, tv - 0.4, 0.04, true); put(silver, 0.32, 0.06, 0.26, tu - 0.55, tv - 0.4, 0.04, true);
+  put(mat('wool', '#e8dcc4'), 0.28, 0.28, 0.2, tu - 0.5, tv + 0.5, 0.04, true);
+}
 function entranceHall(put, fr, room) {
   const W = fr.W, L = fr.L;              // u：南北向、v：東西向（v 越大越靠中庭）
   put(checkerMat(), L, W, 0.012, L / 2, 0, 0, true);
@@ -380,7 +406,8 @@ function entranceHall(put, fr, room) {
   for (let i = 0; i * 0.62 < L - 0.3; i++) put(mat('planks', slats[i % slats.length]), 0.42, W - 0.6, 0.08, 0.4 + i * 0.62, 0, 2.86);
   // 電子看板：目前播第 43 屆體育表演會邀請卡（115/12/05），活動過後換回 screenMat()
   put(M.dark(), 0.35, 0.8, 1.9, L - 0.6, W / 2 - 1.6, 0);
-  put(tvImgMat('img/hall/sports-day-115-front.webp'), 0.02, 0.7, 1.2, L - 0.78, W / 2 - 1.6, 0.6, true);
+  put(SPORTS_DAY_ON ? tvImgMat('img/hall/sports-day-115-front.webp') : screenMat(), 0.02, 0.7, 1.2, L - 0.78, W / 2 - 1.6, 0.6, true);   // 12/08 0:00 起自動換回 screenMat()
+  if (XMAS_ON) xmasTree(put, 1.5, ev - 1.7);
 }
 
 
@@ -1056,7 +1083,7 @@ function meetingRoom(put, fr, room) {
   put(M.dark(), 0.6, 0.6, 0.08, 1.6, D * (W / 2 - 1.6), 0.05);
   put(M.grey(), 0.08, 0.08, 1.0, 1.6, D * (W / 2 - 1.6), 0.1);
   put(M.dark(), 0.08, 1.9, 1.1, 1.6, D * (W / 2 - 1.6), 1.0);
-  put(tvImgMat(SPORTS_DAY_CARD), 0.02, 1.8, 1.0, 1.65, D * (W / 2 - 1.6), 1.05, true);   // 11-17：先放體育表演會邀請卡，活動過後換回 screenMat()
+  put(SPORTS_DAY_ON ? tvImgMat(SPORTS_DAY_CARD) : screenMat(), 0.02, 1.8, 1.0, 1.65, D * (W / 2 - 1.6), 1.05, true);   // 11-17：先放體育表演會邀請卡，活動過後換回 screenMat()
   // U 型會議桌（開口朝前面布幕），桌邊與椅子
   const top = mat('wool', '#ece3d0'), base = mat('wool', '#5a3a2a');
   const uA = 2.6, uB = L - 2.2, half = Math.min(2.2, W / 2 - 1.4), tw = 0.9;   // 兩側留得出走道
@@ -1905,7 +1932,7 @@ function gym(put, fr) {
   put(mat('wool', '#d9a93a'), ow, 0.16, 0.08, L / 2, vp + 0.3, 1.0 + oh - 0.78);
   // 使用者 11-17：背板改成電視牆（3 × 3 面拼接，16:9）；目前播第 43 屆體育表演會邀請卡（115/12/05），活動過後再換別的畫面
   put(M.dark(), ow - 1, 0.05, 3.3, L / 2, W / 2 - 0.2, 1.0, true);
-  put(tvImgMat('img/hall/sports-day-115-card.webp'), 5.6, 0.04, 3.15, L / 2, W / 2 - 0.25, 1.1, true);
+  put(SPORTS_DAY_ON ? tvImgMat('img/hall/sports-day-115-card.webp') : screenMat(), 5.6, 0.04, 3.15, L / 2, W / 2 - 0.25, 1.1, true);
   put(tvWallSeamMat(), 5.6, 0.01, 3.15, L / 2, W / 2 - 0.28, 1.1, true);
   for (const s of [-1, 1]) put(panel, 0.3, W / 2 - vp, 6.5, L / 2 + s * (sw / 2 + 0.15), (vp + W / 2) / 2, 0);   // 舞台兩側的牆（後台和通道隔開）
   // 兩個主籃框：從天花板吊下來（吊桿＋玻璃籃板、藍色護墊），標準高度 3.05 公尺
@@ -2030,7 +2057,7 @@ function principalOffice(put, fr, room) {
   put(pale, 0.5, W - 2.0, 0.85, 0.27, A * 1.0, 0);
   for (let i = 0; i < 9; i++) put(mat('glass'), 0.02, 0.5, 0.7, 0.53, A * 1.0 - (W - 2.0) / 2 + 0.3 + i * 0.6, 0.1);
   // 電視加大（使用者 11-06）：目前放第 43 屆體育表演會正式邀請卡（115/12/05），活動過後再換回 tvMat()
-  put(M.dark(), 0.07, 3.12, 1.8, 0.05, A * 0.6, 0.9); put(tvImgMat('img/hall/sports-day-115-card.webp'), 0.08, 3.02, 1.7, 0.08, A * 0.6, 0.95, true);
+  put(M.dark(), 0.07, 3.12, 1.8, 0.05, A * 0.6, 0.9); put(SPORTS_DAY_ON ? tvImgMat('img/hall/sports-day-115-card.webp') : tvMat(), 0.08, 3.02, 1.7, 0.08, A * 0.6, 0.95, true);
   put(pale, 2.2, 0.5, 0.85, 1.6, A * (W / 2 - 0.27), 0);
   put(mat('wool', '#d32f2f'), 0.3, 0.3, 0.38, 1.0, A * (W / 2 - 0.3), 0.85);       // 紅色咖啡機
   put(white, 0.4, 0.35, 0.45, 1.6, A * (W / 2 - 0.3), 0.85);                        // 飲水機

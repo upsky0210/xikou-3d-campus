@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=337';
-import { useSheet, threeChoice } from './bank.js?v=337';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=337';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=337';
+import { faceTeacher } from './common.js?v=338';
+import { useSheet, threeChoice } from './bank.js?v=338';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=338';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=338';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -63,7 +63,7 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get food6() { return KG_FOOD6; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
@@ -1181,6 +1181,44 @@ const KG_HEALTH = mcGame({
   key: 'campus-healthqa-best', title: ['🩺 健康 Q&A', '🩺 Health Q&A'], label: ['🩺 健康 Q&A…', '🩺 Health Q&A…'], icon: '🩺', items: HEALTH_ITEMS,
   intro: () => T('健康小知識考考你！想一想，怎麼做對身體最好？', 'A little health quiz! What is best for your body?'),
   good: '你是健康小達人，要繼續照顧好自己喔！', keep: '沒關係，多來健康中心看看衛教海報，下次一定更棒！',
+});
+
+/* ---- 健康六大類食物（張老師，四年一班）：衛福部「每日飲食指南」的六大類，一回 5 題，選出食物屬於哪一類 ---- */
+const FOOD6_GROUPS = ['全穀雜糧類', '豆魚蛋肉類', '乳品類', '蔬菜類', '水果類', '油脂與堅果種子類'];
+const FOOD6_RAW = [
+  ['🍚', '白飯', 0, '米飯是全穀雜糧類，是身體主要的能量來源。'],
+  ['🍜', '麵條', 0, '麵條是麥子做的，屬於全穀雜糧類，讓我們有力氣。'],
+  ['🍠', '地瓜', 0, '地瓜、馬鈴薯、玉米雖然像蔬菜，但在六大類裡都屬於全穀雜糧類喔！'],
+  ['🌽', '玉米', 0, '玉米屬於全穀雜糧類，可以當主食吃。'],
+  ['🍞', '吐司', 0, '吐司是麥子做的，屬於全穀雜糧類。'],
+  ['🥚', '雞蛋', 1, '蛋屬於豆魚蛋肉類，可以幫助身體長肌肉。'],
+  ['🐟', '魚', 1, '魚肉屬於豆魚蛋肉類，蛋白質很豐富。'],
+  ['🍗', '雞肉', 1, '雞肉屬於豆魚蛋肉類，是很好的蛋白質來源。'],
+  ['🫘', '豆腐', 1, '豆腐是黃豆做的，屬於豆魚蛋肉類。'],
+  ['🥛', '豆漿', 1, '豆漿是黃豆做的，屬於豆魚蛋肉類，不是乳品類喔！'],
+  ['🥛', '牛奶', 2, '牛奶屬於乳品類，有很多鈣質，幫助骨頭和牙齒長得好。'],
+  ['🥣', '優格', 2, '優格是牛奶發酵做的，屬於乳品類。'],
+  ['🧀', '起司', 2, '起司（乳酪）是牛奶做的，屬於乳品類。'],
+  ['🥬', '高麗菜', 3, '高麗菜屬於蔬菜類，有很多纖維，讓大便順暢。'],
+  ['🥕', '紅蘿蔔', 3, '紅蘿蔔屬於蔬菜類，還有維生素 A，對眼睛好。'],
+  ['🥦', '花椰菜', 3, '花椰菜屬於蔬菜類，每餐都要吃一些蔬菜。'],
+  ['🥒', '小黃瓜', 3, '小黃瓜屬於蔬菜類。'],
+  ['🍎', '蘋果', 4, '蘋果屬於水果類，每天都要吃一些水果。'],
+  ['🍌', '香蕉', 4, '香蕉屬於水果類。'],
+  ['🍊', '橘子', 4, '橘子屬於水果類，有很多維生素 C。'],
+  ['🍉', '西瓜', 4, '西瓜屬於水果類，夏天吃很消暑。'],
+  ['🥜', '花生', 5, '花生屬於油脂與堅果種子類，吃一小把就夠了。'],
+  ['🫒', '橄欖油', 5, '油屬於油脂與堅果種子類，炒菜用一點點就夠。'],
+  ['🍳', '沙拉油', 5, '炒菜用的油屬於油脂與堅果種子類，吃太多會變胖，要少一點。'],
+];
+const FOOD6_ITEMS = FOOD6_RAW.map(([e, n, g, why]) => ({
+  e, q: `「${n}」屬於六大類食物裡的哪一類？`,
+  a: [FOOD6_GROUPS[g], ...kgShuffle(FOOD6_GROUPS.filter((_, k) => k !== g)).slice(0, 2)], why,
+}));
+const KG_FOOD6 = mcGame({
+  key: 'campus-food6-best', title: ['🥗 健康六大類食物', '🥗 Six Food Groups'], label: ['🥗 六大類食物…', '🥗 Six food groups…'], icon: '🥗', items: FOOD6_ITEMS,
+  intro: () => T('每天都要吃到六大類食物，身體才會均衡長大。想一想，它是哪一類呢？', 'Eat all six food groups every day! Which group is it?'),
+  good: '你很認識食物，要記得每天都吃得均衡喔！', keep: '慢慢來比較快，多認識幾種食物，下次一定更棒！',
 });
 
 /* ---- 情緒覺察（雅雅老師，輔導老師）：「今天心情如何？」不計分、沒有對錯。
