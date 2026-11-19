@@ -9,7 +9,7 @@
  *   node tools/check.mjs --live          推上去以後：等 GitHub Pages 真的換成本機這一版（最多等 6 分鐘）
  *
  * 檢查項目：
- *   1. 每個 .js 語法正確；全站 ?v= 版本號一致；site 裡沒有不該上傳的檔案（pdf、zip、_backup）
+ *   1. 每個 .js 語法正確；全站 ?v= 版本號一致；site 裡沒有不該上傳的檔案（pdf、zip、_backup）；每位老師的小遊戲都有提示文字和護照名稱
  *   2. 網站開得起來：沒有程式錯誤、沒有找不到的檔案
  *   3. 卡住掃描：每間房間每 10 公分放一個人，八個方向都走不出 30 公分的位置＝卡住；
  *      再從周圍實際走走看，走得進去、而且按方向鍵 4 秒還出不來（也沒被自動救出）的才算問題；
@@ -88,6 +88,14 @@ function staticChecks() {
   const tracked = g.status === 0 ? g.stdout.split('\n').filter(Boolean) : [];
   const forbid = tracked.filter((f) => /\.(pdf|zip|7z|rar|skp)$/i.test(f) || /(^|\/)_backup(\/|$)/.test(f));
   forbid.length ? bad('這些檔案不應該在 site 裡：' + forbid.join('、')) : ok(`沒有不該上傳的檔案（共 ${tracked.length} 個檔案）`);
+  // 每位老師的小遊戲：app.js 要有互動提示文字（不然會出現「🛝 溜undefined」）、game-info.js 要有名稱（護照、學生進度頁用）
+  const src = (f) => fs.readFileSync(path.join(ROOT, 'js', f), 'utf8');
+  const appSrc = src('app.js'), infoSrc = src('game-info.js');
+  const kinds = [...new Set([...src('npcs.js').matchAll(/\bgame: '([a-z0-9]+)'/g)].map((m) => m[1]))];
+  const noLabel = kinds.filter((k) => !appSrc.includes(`sp.kind === '${k}'`));
+  const noInfo = kinds.filter((k) => !new RegExp(`[\\s,{]${k}: \\[\\[`).test(infoSrc));
+  noLabel.length ? bad('這些小遊戲在 app.js 沒有互動提示文字（sp.kind === …）：' + noLabel.join('、')) : ok(`${kinds.length} 種老師小遊戲都有互動提示文字`);
+  noInfo.length ? bad('這些小遊戲在 game-info.js 沒有名稱：' + noInfo.join('、')) : ok(`${kinds.length} 種老師小遊戲都有護照名稱`);
 }
 
 /* ---------------- 本機網站＋無畫面瀏覽器 ---------------- */
