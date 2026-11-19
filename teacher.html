@@ -45,6 +45,7 @@
     <div class="bar">
       <label>課程 <select id="course"></select></label>
       <button id="reload">重新讀取</button>
+      <label id="allWrap" hidden><input type="checkbox" id="all"> 顯示全校課程（管理員）</label>
       <label><input type="checkbox" id="mask"> 遮住姓名（投影、截圖用）</label>
     </div>
     <p class="mute" id="stat"></p>
@@ -53,7 +54,7 @@
   </div>
 </main>
 <script type="module">
-import { makeGameInfo } from './js/game-info.js?v=341';
+import { makeGameInfo } from './js/game-info.js?v=342';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
 const CONFIG = {
@@ -87,6 +88,7 @@ function summarize(saved) {
   return { games: games.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')), npc: cnt(p.npc), rooms: cnt(p.rooms), pano: cnt(p.pano), eggs, nav: positive(p.nav?.n) };
 }
 
+let mine = [], allCourses = [], mineIds = new Set();
 let token = '', F = null, db = null, courses = [], rows = [], sortKey = null, sortDir = 1, open = new Set();
 
 async function getAll(path, key) {
@@ -122,14 +124,30 @@ $('go').onclick = async () => {
     if (!token) { say('登入成功，但 Google 沒有給讀取 Classroom 的授權。請重新整理再登入一次，授權畫面要按「允許」。', 'bad'); return; }
     $('who').textContent = email; $('go').hidden = true;
     say('讀取 Classroom 課程…');
-    courses = (await getAll('courses?teacherId=me&courseStates=ACTIVE', 'courses'));
-    if (!courses.length) { say('你在 Classroom 沒有「進行中、而且你是老師」的課程。'); return; }
-    $('course').innerHTML = courses.map((c, i) => `<option value="${i}">${esc(c.name)}${c.section ? '（' + esc(c.section) + '）' : ''}</option>`).join('');
+    mine = await getAll('courses?teacherId=me&courseStates=ACTIVE', 'courses');
+    // Google Workspace 管理員：不指定 teacherId 會拿到整個網域的課程（一般老師只會拿到自己有參加的課，數量跟上面差不多）
+    try {
+      const every = await getAll('courses?courseStates=ACTIVE', 'courses');
+      const ids = new Set(mine.map((c) => c.id));
+      if (every.filter((c) => !ids.has(c.id)).length > 3) {
+        allCourses = every.sort((a, b) => (ids.has(b.id) - ids.has(a.id)) || a.name.localeCompare(b.name, 'zh-Hant'));
+        mineIds = ids; $('allWrap').hidden = false;
+      }
+    } catch { /* 不是管理員或讀不到：只顯示自己的課 */ }
+    if (!mine.length && !allCourses.length) { say('你在 Classroom 沒有「進行中、而且你是老師」的課程。'); return; }
+    if (!mine.length) $('all').checked = true;
+    fillCourses();
     $('pick').hidden = false; say('');
     await loadCourse();
   } catch (e) { say('發生錯誤：' + esc(e.message), 'bad'); }
   finally { $('go').disabled = false; }
 };
+// 課程下拉選單：平常只列自己教的課；管理員勾「顯示全校課程」就列整個網域（自己的課排前面、加 ★）
+function fillCourses() {
+  courses = $('all').checked ? allCourses : mine;
+  $('course').innerHTML = courses.map((c, i) => `<option value="${i}">${$('all').checked && mineIds.has(c.id) ? '★ ' : ''}${esc(c.name)}${c.section ? '（' + esc(c.section) + '）' : ''}</option>`).join('');
+}
+$('all').onchange = () => { fillCourses(); loadCourse(); };
 $('course').onchange = () => loadCourse();
 $('reload').onclick = () => loadCourse();
 $('mask').onchange = () => render();
