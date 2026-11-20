@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=342';
-import { trafficBasement } from './basement.js?v=342';
-import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=342';
+import { Batch, mat, SPOTS } from './blocks.js?v=343';
+import { trafficBasement } from './basement.js?v=343';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=343';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -1620,6 +1620,94 @@ function parentsRoom(put, fr, room) {
   officeChair(put, 0.8, S - 0.95, 1, 0, '#8a8e94');                            // 灰色高背辦公椅
   // 南端西邊地上的提袋
   for (const [c, dv] of [['#e06a9a', -0.2], ['#3ab08a', 0.15], ['#f0f0f0', 0.45]]) put(mat('wool', c), 0.3, 0.3, 0.4, 0.75, S - 1.9 + dv, 0, true);
+  parentsLedge(put, N, du + 0.85, L + 0.17);                                 // 走廊那面的窗台（擺飾）
+}
+// 家長會北牆外（走廊那面）的磁磚窗台（使用者 11-20 照片）：轉盤「要這樣說」、「溪口超強！」「溪口啾甘心」「I ♥ 溪口」牌子、
+//   壓克力架上兩隻穿溪口運動服的小熊（白熊、咖啡熊）、紫色 NO1 底座小花束、「成為自己的光」壓克力、樂高小火車
+const cutoutMat = (key, w, h, draw) => once(key, () => new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, map: bigTex(w, h, draw) }));
+const cloud = (c, w, h, fill = '#ffffff') => {
+  c.fillStyle = fill; c.strokeStyle = '#c9b8e0'; c.lineWidth = 3;
+  c.beginPath(); c.roundRect(6, 14, w - 12, h - 22, 26); c.fill(); c.stroke();
+  for (let x = 30; x < w - 20; x += 46) { c.beginPath(); c.arc(x, 18, 16, Math.PI, 0); c.fill(); }
+};
+const ledgeWheelMat = () => cutoutMat('ledgewheel', 256, 256, (c, w, h) => {
+  const cx = w / 2, cy = h / 2, R = 124, cols = ['#ef6b7a', '#f7a8c4', '#d7b8ee', '#f05a6a', '#f4b6d2', '#c9a8e8'];
+  cols.forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R, i * Math.PI / 3, (i + 1) * Math.PI / 3); c.fill(); });
+  c.strokeStyle = '#ffffff'; c.lineWidth = 4; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
+  c.font = '30px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  ['🦊', '🐯', '🦁', '🦥', '🐻', '🐰'].forEach((e, i) => { const a = (i + 0.5) * Math.PI / 3; c.fillText(e, cx + Math.cos(a) * 88, cy + Math.sin(a) * 88); });
+  c.fillStyle = '#f7e23a'; c.beginPath(); c.arc(cx, cy, 46, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#222'; c.font = 'bold 22px sans-serif'; c.fillText('要這樣說', cx, cy + 4);
+  c.fillStyle = '#c0392b'; c.beginPath(); c.moveTo(cx - 6, cy - 20); c.lineTo(cx - 70, cy - 44); c.lineTo(cx - 4, cy - 30); c.fill();   // 指針
+});
+const ledgeSignMat = (key, text, cols) => cutoutMat(key, 320, 130, (c, w, h) => {
+  cloud(c, w, h);
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = 'bold 56px sans-serif'; c.lineJoin = 'round';
+  const chars = [...text], step = (w - 50) / chars.length;
+  chars.forEach((ch, i) => {
+    const x = 25 + step * (i + 0.5), y = h / 2 + 6 + (i % 2 ? -4 : 4);
+    c.lineWidth = 9; c.strokeStyle = '#ffffff'; c.strokeText(ch, x, y);
+    c.lineWidth = 3; c.strokeStyle = '#3a2a5a'; c.strokeText(ch, x, y);
+    c.fillStyle = cols[i % cols.length]; c.fillText(ch, x, y);
+  });
+});
+const loveXikouMat = () => cutoutMat('lovexikou', 384, 110, (c, w, h) => {
+  c.fillStyle = '#ffffff'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = '#d99ac8'; c.lineWidth = 6; c.strokeRect(4, 4, w - 8, h - 8);
+  c.fillStyle = 'rgba(200,160,220,.25)'; for (let i = 0; i < 12; i++) { c.beginPath(); c.moveTo(w / 2, h / 2); c.lineTo(i * 34, 0); c.lineTo(i * 34 + 14, 0); c.fill(); }
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = 'bold 64px sans-serif';
+  c.fillStyle = '#8a6ad8'; c.fillText('I', 70, h / 2 + 4);
+  c.fillStyle = '#e8304a'; c.fillText('♥', 150, h / 2 + 4);
+  c.fillStyle = '#3a7ad8'; c.fillText('溪口', 280, h / 2 + 4);
+});
+const lightBlockMat = () => cutoutMat('lightblock', 128, 96, (c, w, h) => {
+  const g = c.createLinearGradient(0, 0, w, 0); ['#f06a8a', '#f7c84a', '#6ad08a', '#5aa8f0', '#a87ae8'].forEach((col, i) => g.addColorStop(i / 4, col));
+  c.fillStyle = g; c.fillRect(0, 0, w, 64);
+  c.fillStyle = '#c9a26a'; c.fillRect(0, 64, w, 32); c.fillStyle = '#3a2a1a'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText('成為自己的光', w / 2, 86);
+});
+function ledgeBear(put, u, v, y, fur, face) {                                 // 坐著的小熊（穿紅色運動服、黑褲子）
+  const red = mat('wool', '#c8202e'), blk = mat('wool', '#26282c'), f = mat('wool', fur), m = mat('wool', face);
+  put(blk, 0.22, 0.18, 0.08, u, v, y, true);                                  // 腿（黑褲子）
+  put(f, 0.07, 0.08, 0.07, u - 0.07, v - 0.12, y, true); put(f, 0.07, 0.08, 0.07, u + 0.07, v - 0.12, y, true);   // 腳掌
+  put(red, 0.22, 0.16, 0.18, u, v + 0.02, y + 0.08, true);                    // 身體（紅衣服）
+  put(mat('wool', '#d8d8d8'), 0.23, 0.02, 0.03, u, v - 0.07, y + 0.17, true);  // 衣服上的灰線
+  put(f, 0.2, 0.17, 0.17, u, v + 0.02, y + 0.26, true);                       // 頭
+  put(m, 0.09, 0.03, 0.07, u, v - 0.07, y + 0.29, true);                      // 鼻子嘴巴
+  put(blk, 0.03, 0.01, 0.03, u, v - 0.09, y + 0.33, true);
+  for (const k of [-1, 1]) {
+    put(blk, 0.025, 0.01, 0.025, u + k * 0.05, v - 0.065, y + 0.37, true);   // 眼睛
+    put(f, 0.06, 0.05, 0.06, u + k * 0.08, v + 0.02, y + 0.43, true);         // 耳朵
+    put(red, 0.06, 0.08, 0.14, u + k * 0.13, v, y + 0.12, true);              // 手
+  }
+}
+function parentsLedge(put0, N, u0, u1) {
+  // 照片從走廊看過去：左（東）邊是轉盤、右（西）邊是小熊和火車 → 擺的時候整排左右對調
+  const put = (m, du, dv, h, u, v, y, pl) => put0(m, du, dv, h, u0 + u1 - u, v, y, pl);
+  put.geo = (m, g, u, v, y, r) => put0.geo(m, g, u0 + u1 - u, v, y, r);
+  const back = N - 0.34, front = N - 0.67, mid = (back + front) / 2, top = 0.95, F = Math.PI;   // F：平面轉向走廊（北）
+  put(mat('tile', '#d8c0ad'), u1 - u0, 0.33, top, (u0 + u1) / 2, mid, 0);   // 磁磚窗台（擋得住人）
+  put(mat('tile', '#e2cfbe'), u1 - u0 + 0.02, 0.35, 0.03, (u0 + u1) / 2, mid, top - 0.03, true);
+  const plane = (m, w, h, u, v, y, tilt = 0) => put.geo(m, new THREE.PlaneGeometry(w, h).rotateX(tilt), u, v, y + h / 2, F);
+  let u = u0 + 0.38;
+  plane(ledgeWheelMat(), 0.72, 0.72, u, back - 0.04, top, -0.12);                // 轉盤：靠在窗上
+  plane(ledgeSignMat('sign-strong', '溪口超強!', ['#e8304a', '#3a7ad8', '#e8304a', '#f0a020', '#8a4ad8']), 0.62, 0.26, u + 0.25, front + 0.1, top);
+  put(mat('wool', '#a88ae0'), 0.12, 0.12, 0.12, u + 0.62, mid + 0.02, top, true);   // NO1 底座＋藍綠色小花束
+  put.geo(mat('wool', '#2aa0a8'), new THREE.ConeGeometry(0.07, 0.24, 8).rotateX(Math.PI), u + 0.62, mid + 0.02, top + 0.26);
+  plane(ledgeSignMat('sign-jiu', '溪口啾甘心', ['#3a7ad8', '#e8304a', '#f0a020', '#e8304a', '#f0a020']), 0.7, 0.27, u + 0.98, back - 0.07, top);
+  // 壓克力架、I ♥ 溪口、兩隻小熊、「成為自己的光」、樂高小火車
+  const su = u1 - 0.62;
+  plane(loveXikouMat(), 0.95, 0.27, su, back - 0.03, top);
+  const acr = mat('glass');
+  put(acr, 0.85, 0.22, 0.02, su, mid, top + 0.2, true);
+  for (const k of [-1, 1]) put(acr, 0.02, 0.22, 0.2, su + k * 0.42, mid, top, true);
+  ledgeBear(put, su - 0.25, mid, top + 0.22, '#f4f1ea', '#e8dccb');
+  ledgeBear(put, su + 0.25, mid, top + 0.22, '#a8703e', '#d8b080');
+  put(lightBlockMat(), 0.14, 0.04, 0.1, su - 0.08, front + 0.07, top, true);
+  ['#e8304a', '#f0a020', '#f2d02a', '#e86ab0', '#3a8ad8'].forEach((c, i) => {
+    const cu = su + 0.08 + i * 0.1;
+    put(mat('wool', c), 0.09, 0.07, 0.07, cu, front + 0.07, top + 0.025, true);
+    put(mat('wool', '#26282c'), 0.08, 0.08, 0.025, cu, front + 0.07, top, true);
+  });
 }
 function foldingChairU(put, u, v, faceU) {                                     // 白色摺疊椅：人面向 -faceU（椅背在 faceU 那一側）
   const white = mat('wool', '#ececea'), grey = mat('wool', '#b9bcc0');
