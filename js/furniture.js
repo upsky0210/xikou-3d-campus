@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=343';
-import { trafficBasement } from './basement.js?v=343';
-import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=343';
+import { Batch, mat, SPOTS } from './blocks.js?v=345';
+import { trafficBasement } from './basement.js?v=345';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=345';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2207,8 +2207,8 @@ function gym(put, fr) {
   put(mat('wool', '#d9a93a'), ow, 0.16, 0.08, L / 2, vp + 0.3, 1.0 + oh - 0.78);
   // 使用者 11-17：背板改成電視牆（3 × 3 面拼接，16:9）；目前播第 43 屆體育表演會邀請卡（115/12/05），活動過後再換別的畫面
   put(M.dark(), ow - 1, 0.05, 3.3, L / 2, W / 2 - 0.2, 1.0, true);
-  put(SPORTS_DAY_ON ? tvImgMat('img/hall/sports-day-115-card.webp') : screenMat(), 5.6, 0.04, 3.15, L / 2, W / 2 - 0.25, 1.1, true);
-  put(tvWallSeamMat(), 5.6, 0.01, 3.15, L / 2, W / 2 - 0.28, 1.1, true);
+  put(SPORTS_DAY_ON ? tvImgMat('img/hall/sports-day-115-card.webp') : screenMat(), 3.7, 0.04, 2.08, L / 2, W / 2 - 0.25, 1.1, true);   // 11-23：上面 3.3 公尺是 5 樓看台的樓板，電視牆要低於它才不會被擋住
+  put(tvWallSeamMat(), 3.7, 0.01, 2.08, L / 2, W / 2 - 0.28, 1.1, true);
   for (const s of [-1, 1]) put(panel, 0.3, W / 2 - vp, 6.5, L / 2 + s * (sw / 2 + 0.15), (vp + W / 2) / 2, 0);   // 舞台兩側的牆（後台和通道隔開）
   // 兩個主籃框：從天花板吊下來（吊桿＋玻璃籃板、藍色護墊），標準高度 3.05 公尺
   const half = CL / 2, blue = mat('wool', '#1f4fb8');

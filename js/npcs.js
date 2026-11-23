@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=343';
+import { poolWater } from './extras.js?v=345';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -1402,6 +1402,40 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSMMMMMMMMSSHH',
           'HHSSSMTTTTMSSSHH',
           'HHHSSSMMMMSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '趙老師', title: '三年三班導師', game: 'punct',
+      hello: ['🌷 趙老師：慢慢來，不用急，老師等你。', '🌱 趙老師：一步一步走，你會越來越好的。', '🍀 趙老師：寫錯了沒關係，再讀一次，你就會發現了。',
+        '✍️ 趙老師：我們慢慢讀一句話……要不要來玩標點符號？'],
+      // 3 樓至善樓三年三班（325 室）：跟三年四班同一排、黑板在南，站教室前面、面向學生
+      places: [
+        { floor: '3F', where: '三年三班', game: true, at: () => { const r = rooms.find((x) => x.code === '303'); return [r.cx - 0.6, r.m.z2 - 1.6, 0]; } },
+      ],
+      look: {
+        // 依照片：黑色長直髮（中間偏一邊分線、沒有瀏海）、細銀框眼鏡（半框）、閉著嘴淺淺的微笑（calm）；
+        //   黑底白格、桃紅細線的長袖格子洋裝（同一塊布、前面一排深色扣子）；裙長、腿和鞋子照片沒拍到，用及膝裙和深色；胸前口袋沒做
+        skin: '#f0cfba', hair: '#151214', top: '#1d1820', pants: '#2c2a30', shoe: '#3a3a3a',
+        longHair: true, longSleeve: true, calm: true, plaid: ['#1d1820', '#d8d2dc', '#a82a68'], shortSkirt: '#1d1820', collar: '#1d1820', topButtons: '#0c0a0c',
+        pal: { H: '#151214', h: '#2a2428', S: '#f0cfba', K: '#b4b2ba', E: '#2a1610', W: '#ffffff', B: '#eeb4a8', N: '#e0b49e', M: '#bf5a66', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHhHHHHHHHHH',
+          'HHHHHHSSHHHHHHHH',
+          'HHHHHSSSSSHHHHHH',
+          'HHHHSSSSSSSSHHHH',
+          'HHHSSSSSSSSSSHHH',
+          'HHSSHHSSSSHHSSHH',
+          'HHKKKKSSSSKKKKHH',
+          'HHKEEWSKKSEEWKHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHSBBSSSSSSBBSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSSMMMMMSSSHH',
+          'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },

@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=343';
-import { useSheet, threeChoice } from './bank.js?v=343';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=343';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=343';
+import { faceTeacher } from './common.js?v=345';
+import { useSheet, threeChoice } from './bank.js?v=345';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=345';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=345';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -917,7 +917,7 @@ const KG_ARITH = {
   },
 };
 
-/* ---- 國語的標點符號（林老師，四年五班）：句子裡空一格，選出正確的標點符號 ---- */
+/* ---- 國語的標點符號（林老師，四年五班；趙老師，三年三班）：句子裡空一格，選出正確的標點符號 ---- */
 const PUNCT_ITEMS = [
   { e: '❓', q: '你今天吃早餐了嗎＿', a: ['？ 問號', '。 句號', '！ 驚嘆號'], why: '這是在問問題，句子最後要用問號「？」。' },
   { e: '🤩', q: '哇＿這朵花好漂亮！', a: ['！ 驚嘆號', '？ 問號', '、 頓號'], why: '「哇」是很驚訝、很讚嘆的語氣，用驚嘆號「！」。' },
@@ -929,7 +929,7 @@ const PUNCT_ITEMS = [
   { e: '⏰', q: '我每天早上七點起床＿', a: ['。 句號', '？ 問號', '、 頓號'], why: '一句完整的話說完了，用句號「。」。' },
   { e: '🌸', q: '春天到了，花開了＿夏天到了，蟬叫了。', a: ['； 分號', '、 頓號', '： 冒號'], why: '兩個意思並列、句子又比較長時，中間用分號「；」。' },
   { e: '🏆', q: '太好了＿我們班得到第一名了！', a: ['！ 驚嘆號', '？ 問號', '、 頓號'], why: '「太好了」是很開心的語氣，用驚嘆號「！」。' },
-  { e: '✏️', q: '上課要準備鉛筆、橡皮擦＿和直尺。', a: ['、 頓號', '； 分號', '： 冒號'], why: '鉛筆、橡皮擦、直尺是同類的東西，中間用頓號「、」。' },
+  { e: '✏️', q: '上課要準備鉛筆＿橡皮擦和直尺。', a: ['、 頓號', '； 分號', '： 冒號'], why: '鉛筆、橡皮擦、直尺是同類的東西，中間用頓號「、」；最後一樣前面有「和」，就不用再加頓號。' },
   { e: '🤝', q: '他是我最好的朋友＿小明。', a: ['—— 破折號', '…… 刪節號', '、 頓號'], why: '後面在說明「最好的朋友」是誰，用破折號「——」。' },
   { e: '🤔', q: '他想了想，小聲的說：「嗯＿」', a: ['…… 刪節號', '—— 破折號', '； 分號'], why: '話沒說完、說到一半停下來，用刪節號「……」。' },
   { e: '🥤', q: '這是誰的水壺＿', a: ['？ 問號', '！ 驚嘆號', '。 句號'], why: '在問「是誰的」，句子最後要用問號「？」。' },
