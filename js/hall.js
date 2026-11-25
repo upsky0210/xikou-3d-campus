@@ -5,7 +5,7 @@
      （大耶誕樹在 furniture.js 的 xmasTree）
    座標：s＝從主題牆左端（北）往右（南）幾公尺，d＝離牆往外幾公尺，y＝高度 */
 import * as THREE from 'three';
-import { mat } from './blocks.js?v=346';
+import { mat } from './blocks.js?v=347';
 
 const cache = {};
 const once = (k, f) => (cache[k] ||= f());
@@ -281,6 +281,9 @@ export function hallXmas(put, fr, ev, xmasTree) {
     carry = t - len;
   }
   for (const [s, d, m] of [[1.5, 1.75, gold], [2.45, 1.45, wine], [2.62, 1.2, gold], [3.35, 1.6, gold], [4.35, 1.58, gold], [4.42, 1.6, gold], [1.75, 1.45, rose]]) K.ball(m, 0.03, 0.03, 0.03, s, 0.05, d, 8);
+
+  // 整塊布置都擋住（到牆邊、連兩邊的盆栽）：木頭高高低低，只靠木頭擋的話會從矮的那幾根走進去，進去就出不來
+  for (const [s1, s2, d] of [[0.1, 0.9, 0.6], [0.86, 1.25, 1.5], [1.1, 2.9, 1.85], [1.6, 2.55, 2.08], [2.5, 2.75, 1.98], [2.7, 5.28, 1.8], [5.2, 6.38, 0.64]]) put.block(u0 + s1, u0 + s2, ev - d, ev + 0.1, 1.0);
 
   /* 樹：大耶誕樹（furniture.js）、前面的白樹、右邊覆雪小樹（金色花盆） */
   xmasTree(put, fr, u0 + 1.72, ev - 0.82);

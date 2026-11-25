@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=346';
-import { trafficBasement } from './basement.js?v=346';
-import { hallThemeWall, hallXmas } from './hall.js?v=346';
-import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=346';
+import { Batch, mat, SPOTS } from './blocks.js?v=347';
+import { trafficBasement } from './basement.js?v=347';
+import { hallThemeWall, hallXmas } from './hall.js?v=347';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=347';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -167,6 +167,11 @@ function placer(batch, fr, y0) {
   put.raise = (u1, u2, v1, v2, h) => {
     const [xa, za] = fr.toWorld(u1, v1), [xb, zb] = fr.toWorld(u2, v2);
     INDOOR_RAISED.push({ floorY: y0, x1: Math.min(xa, xb), x2: Math.max(xa, xb), z1: Math.min(za, zb), z2: Math.max(za, zb), h });
+  };
+  // 登記一塊看不見、擋住人的範圍（例如圍籬裡面整塊都不能進去）：u1～u2、v1～v2，高度 h
+  put.block = (u1, u2, v1, v2, h) => {
+    const [xa, za] = fr.toWorld(u1, v1), [xb, zb] = fr.toWorld(u2, v2);
+    Batch.collector?.push({ x1: Math.min(xa, xb), x2: Math.max(xa, xb), z1: Math.min(za, zb), z2: Math.max(za, zb), y1: y0, y2: y0 + h });
   };
   // 登記互動設施：(u, v) 的世界座標；dv 是面向球場的方向（沿 v）
   put.spot = (data, u, v, y, dv = 0, du = 0) => {                 // dv／du：籃框朝哪個方向（沿 v 或沿 u）
