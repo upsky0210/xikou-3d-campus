@@ -5,7 +5,7 @@
      （大耶誕樹在 furniture.js 的 xmasTree）
    座標：s＝從主題牆左端（北）往右（南）幾公尺，d＝離牆往外幾公尺，y＝高度 */
 import * as THREE from 'three';
-import { mat } from './blocks.js?v=348';
+import { mat } from './blocks.js?v=349';
 
 const cache = {};
 const once = (k, f) => (cache[k] ||= f());

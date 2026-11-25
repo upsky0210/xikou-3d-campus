@@ -807,6 +807,7 @@ export function makeBlockNPC(look) {
     box(g, 0.07, 0.54, 0.44, hair, -0.255, 1.51, 0.02);
     box(g, 0.07, 0.54, 0.44, hair, 0.255, 1.51, 0.02);
   }
+  if (look.lobFront) for (const s of [-1, 1]) box(g, 0.1, 0.34, 0.07, hair, s * 0.2, 1.2, -0.15);   // 及肩髮披到胸前的兩撮（搭配 lob）
   if (look.braids) {                                        // 兩條辮子：從耳後垂到肩膀，上面一個髮圈
     for (const s of [-1, 1]) {
       box(g, 0.09, 0.34, 0.09, hair, s * 0.2, 1.2, 0.17);
@@ -824,6 +825,11 @@ export function makeBlockNPC(look) {
   if (look.teeImg) {                                        // 班服：前（-z）、後（+z）片是圖片
     const face = (url) => { const t = new THREE.TextureLoader().load(url); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return new THREE.MeshLambertMaterial({ map: t }); };
     box(g, 0.46, 0.6, 0.26, [top, top, top, top, face(look.teeImg.back), face(look.teeImg.front)], 0, 1.0, 0);
+  } else if (look.teeDraw) {                                // 衣服前面的圖案自己畫：teeDraw(c) 畫在 92×120 的畫布上（底色先塗好 top）
+    const cv = document.createElement('canvas'); cv.width = 92; cv.height = 120;
+    const c = cv.getContext('2d'); c.fillStyle = look.top; c.fillRect(0, 0, 92, 120); look.teeDraw(c);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    box(g, 0.46, 0.6, 0.26, [top, top, top, top, top, new THREE.MeshLambertMaterial({ map: tex })], 0, 1.0, 0);
   } else if (look.teeText) {                                // T 恤前面印字（例如 Light Up TAIWAN）：用畫布畫，衣服底色＋白字
     const { lines, ink = '#ffffff' } = look.teeText, cv = document.createElement('canvas'); cv.width = 92; cv.height = 120;
     const c = cv.getContext('2d'); c.fillStyle = look.top; c.fillRect(0, 0, 92, 120);
@@ -975,6 +981,17 @@ export function makeBlockNPC(look) {
     const strap = box(g, 0.03, 0.66, 0.015, cloth(look.bag), 0.02, 1.03, -0.14); strap.rotation.z = -0.62;
     box(g, 0.22, 0.17, 0.09, cloth(look.bag), -0.2, 0.76, -0.12);
   }
+  if (look.phone) {                                         // 手機斜背帶：[背帶色, 手機殼色]，背帶從右肩斜到左腰，手機掛在左腰前
+    const strap = box(g, 0.026, 0.66, 0.015, cloth(look.phone[0]), 0.02, 1.03, -0.14); strap.rotation.z = -0.62;
+    box(g, 0.1, 0.18, 0.025, cloth(look.phone[1]), -0.2, 0.68, -0.15);
+    box(g, 0.03, 0.03, 0.01, cloth('#2a2a2a'), -0.215, 0.735, -0.166);
+  }
+  if (look.tote) {                                          // 側背大袋子：掛在右肩、垂在手臂外側
+    const tm = cloth(look.tote);
+    box(g, 0.1, 0.34, 0.44, tm, 0.48, 0.84, 0.02);
+    for (const z of [-0.1, 0.12]) { const b = box(g, 0.03, 0.4, 0.04, tm, 0.4, 1.16, z * 0.8); b.rotation.z = 0.32; }
+    box(g, 0.06, 0.03, 0.22, tm, 0.33, 1.335, 0.01);
+  }
   // skirtPlaid：格子長裙（[底色, 格線色]）
   // skirtPrint：碎花裙（[底色, 花色們…]），長裙、短裙都可以用
   const skirtPrintM = !look.skirtPrint ? null : new THREE.MeshLambertMaterial({ map: px((c) => {
@@ -1057,6 +1074,12 @@ export function makeBlockNPC(look) {
       box(rg, 0.13, 0.06, 0.13, M('#1c1c1e'), 0, -0.09, 0);                // 瓶蓋
       box(rg, 0.12, 0.34, 0.12, M('#3b4c66'), 0, -0.29, 0);                // 壺身
       box(rg, 0.122, 0.04, 0.122, M('#8fa3bf'), 0, -0.36, 0);             // 刻度那圈淺色
+    } else if (kind === 'pouch') {                          // 藍底碎花小布袋＋蜜桃色小吊飾，提在手上
+      rg.position.set(0, -0.72, 0);
+      box(rg, 0.02, 0.12, 0.05, M('#1f6fb0'), 0, -0.04, 0);
+      box(rg, 0.08, 0.36, 0.16, M('#1f6fb0'), 0, -0.27, 0);
+      for (const [y, z, c] of [[-0.15, -0.04, '#f2f6fa'], [-0.21, 0.04, '#f2d86a'], [-0.27, -0.03, '#f2f6fa'], [-0.33, 0.04, '#8fd0f0'], [-0.39, -0.02, '#f2f6fa'], [-0.17, 0.05, '#8fd0f0']]) { box(rg, 0.086, 0.035, 0.035, M(c), 0, y, z); box(rg, 0.035, 0.03, 0.166, M(c), (z > 0 ? 0.015 : -0.015), y - 0.02, 0); }
+      box(rg, 0.06, 0.08, 0.06, M('#f6d8c0'), 0.06, -0.15, -0.06);
     } else if (kind === 'magazine') {                       // 雜誌（彩色封面朝前，斜斜拿在手上）
       rg.position.set(0.02, -0.62, -0.2); rg.rotation.set(0, 0, -0.35);
       box(rg, 0.3, 0.4, 0.02, M('#eef3f6'), 0, 0.12, 0);
@@ -1092,7 +1115,11 @@ export function makeBlockNPC(look) {
       box(p, look.widePants ? 0.24 : 0.21, 0.58, look.widePants ? 0.26 : 0.22, pants, 0, -0.29, 0);   // widePants：寬褲
       if (look.stripe) box(p, 0.02, 0.58, 0.06, cloth(look.stripe), side * 0.11, -0.29, 0);   // 運動褲側條
     }
-    box(p, 0.21, 0.09, 0.27, shoe, 0, -0.62, -0.03);
+    if (look.sandals) {                                     // 涼鞋：鞋底、露出腳、兩條寬帶
+      box(p, 0.19, 0.05, 0.25, skin, 0, -0.615, -0.04);
+      box(p, 0.21, 0.035, 0.29, shoe, 0, -0.65, -0.04);
+      for (const z of [-0.1, 0.0]) box(p, 0.2, 0.06, 0.045, shoe, 0, -0.612, z);
+    } else box(p, 0.21, 0.09, 0.27, shoe, 0, -0.62, -0.03);
     return p;
   };
   const legL = leg(-1), legR = leg(1);

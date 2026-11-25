@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=348';
-import { useSheet, threeChoice } from './bank.js?v=348';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=348';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=348';
+import { faceTeacher } from './common.js?v=349';
+import { useSheet, threeChoice } from './bank.js?v=349';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=349';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=349';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -63,8 +63,104 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get food6() { return KG_FOOD6; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get quickpick() { return KG_QUICK; }, get food6() { return KG_FOOD6; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
+
+/* ---- 眼明手快找一找（吳老師，潛能教室三）：五樣東西各有自己的顏色，卡片上畫兩樣、顏色可能畫錯。
+   有一樣的顏色是對的 → 找那一樣；兩樣都畫錯 → 找「東西和顏色都沒有出現」的那一樣（一定只有一個答案）。
+   一回 8 題，前 2 題一定有畫對的；不倒數、答錯有提示可以再選，第一次就選對才算分；最後告訴你平均幾秒 ---- */
+const QP_ITEMS = [
+  { n: '綠烏龜', en: 'green turtle', t: '烏龜', col: '#3f9a46', c: '綠色', cen: 'green' },
+  { n: '紅書包', en: 'red schoolbag', t: '書包', col: '#d63a35', c: '紅色', cen: 'red' },
+  { n: '藍水壺', en: 'blue bottle', t: '水壺', col: '#2f78c8', c: '藍色', cen: 'blue' },
+  { n: '黃鉛筆', en: 'yellow pencil', t: '鉛筆', col: '#f2c230', c: '黃色', cen: 'yellow' },
+  { n: '紫雨傘', en: 'purple umbrella', t: '雨傘', col: '#8a4fb8', c: '紫色', cen: 'purple' },
+];
+// 出一張卡：{ card: [[東西, 顏色], [東西, 顏色]], ans, same }；same：有一樣顏色畫對
+function qpCard(easy) {
+  const [a, b, x, y, z] = kgShuffle([0, 1, 2, 3, 4]);
+  if (easy) return { card: kgShuffle([[a, a], [b, kgShuffle([x, y, z])[0]]]), ans: a, same: true };
+  // 兩樣都畫錯，而且東西和顏色合起來剛好用掉四樣 → 只剩一樣沒出現
+  const [cx, cy] = kgShuffle([x, y]);
+  return { card: kgShuffle([[a, cx], [b, cy]]), ans: z, same: false };
+}
+// 畫一樣東西：k 哪一樣、col 顏色，畫在 (cx, cy)、大約 100×100
+function qpDraw(c, k, col, cx, cy, s = 1) {
+  c.save(); c.translate(cx, cy); c.scale(s, s); c.lineWidth = 4; c.lineJoin = c.lineCap = 'round'; c.strokeStyle = '#2b2b2b'; c.fillStyle = col;
+  const path = (f) => { c.beginPath(); f(); c.fill(); c.stroke(); };
+  const rr = (x, y, w, h, r) => path(() => c.roundRect(x, y, w, h, r));
+  const light = (f) => { c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); f(); c.fill(); c.fillStyle = col; };
+  if (k === 0) {                                                                             // 烏龜
+    for (const [x, y, r] of [[-26, 24, 0.5], [22, 24, -0.5]]) path(() => c.ellipse(x, y, 12, 9, r, 0, 7));
+    path(() => c.ellipse(42, 4, 14, 12, -0.3, 0, 7));
+    path(() => { c.moveTo(-44, 18); c.quadraticCurveTo(-40, -34, -4, -34); c.quadraticCurveTo(32, -34, 34, 18); c.closePath(); });
+    c.beginPath(); c.moveTo(-22, 18); c.lineTo(-14, -8); c.lineTo(6, -8); c.lineTo(14, 18); c.moveTo(-14, -8); c.lineTo(-22, -24); c.moveTo(6, -8); c.lineTo(16, -26); c.stroke();
+    c.fillStyle = '#2b2b2b'; c.beginPath(); c.arc(46, 1, 3, 0, 7); c.fill();
+  } else if (k === 1) {                                                                      // 書包
+    path(() => { c.moveTo(-16, -34); c.quadraticCurveTo(0, -52, 16, -34); c.lineTo(10, -32); c.quadraticCurveTo(0, -42, -10, -32); c.closePath(); });
+    rr(-36, -34, 72, 78, 16); rr(-26, 6, 52, 30, 8); light(() => c.roundRect(-28, -26, 56, 8, 4));
+    c.beginPath(); c.moveTo(-36, -6); c.lineTo(36, -6); c.stroke(); c.fillStyle = '#f6f1e4'; rr(-6, 14, 12, 8, 3);
+  } else if (k === 2) {                                                                      // 水壺
+    path(() => { c.ellipse(26, 8, 18, 22, 0, -1.4, 1.4); c.ellipse(26, 8, 10, 13, 0, 1.4, -1.4, true); c.closePath(); });
+    rr(-26, -22, 52, 66, 12); light(() => c.roundRect(-18, -12, 9, 46, 4)); c.fillStyle = '#f6f1e4'; rr(-18, -42, 36, 20, 6);
+  } else if (k === 3) {                                                                      // 鉛筆（斜的）
+    c.rotate(-0.75); rr(-36, -12, 60, 24, 2); light(() => c.rect(-34, -8, 56, 6));
+    c.fillStyle = '#f3d9b0'; path(() => { c.moveTo(24, -12); c.lineTo(48, 0); c.lineTo(24, 12); c.closePath(); });
+    c.fillStyle = '#2b2b2b'; c.beginPath(); c.moveTo(40, -4); c.lineTo(48, 0); c.lineTo(40, 4); c.fill(); c.fillStyle = '#f6f1e4'; rr(-48, -12, 12, 24, 4);
+  } else {                                                                                   // 雨傘
+    c.beginPath(); c.moveTo(0, -38); c.lineTo(0, 34); c.quadraticCurveTo(0, 46, 11, 46); c.quadraticCurveTo(20, 46, 20, 36); c.stroke();
+    path(() => { c.moveTo(-46, 6); c.quadraticCurveTo(-42, -38, 0, -40); c.quadraticCurveTo(42, -38, 46, 6); c.quadraticCurveTo(30, -6, 16, 6); c.quadraticCurveTo(0, -8, -16, 6); c.quadraticCurveTo(-30, -6, -46, 6); });
+    c.beginPath(); c.moveTo(0, -40); c.quadraticCurveTo(-16, -22, -16, 6); c.moveTo(0, -40); c.quadraticCurveTo(16, -22, 16, 6); c.stroke();
+  }
+  c.restore();
+}
+let qpIcons = null;
+const qpIcon = (k) => (qpIcons ||= QP_ITEMS.map((it, i) => { const cv = document.createElement('canvas'); cv.width = cv.height = 110; qpDraw(cv.getContext('2d'), i, it.col, 53, 55); return cv.toDataURL(); }))[k];
+const KG_QUICK = {
+  key: 'campus-quickpick-best', title: ['👀 眼明手快找一找', '👀 Quick Pick'], label: ['👀 眼明手快找一找…', '👀 Quick Pick…'],
+  bye: (n) => T(`👀 下次再來找${n.name}玩眼明手快找一找！`, `👀 Come back to play Quick Pick with ${n.name}!`),
+  start(ctx) {
+    const N = 8; let i = 0, score = 0, tries = 0, t0 = 0, open = false, q = null; const times = [];
+    const cv = kgCanvas(ctx, 300, 150), c = cv.getContext('2d'); cv.style.cursor = 'default';
+    const nm = (k) => T(QP_ITEMS[k].n, QP_ITEMS[k].en);
+    const paint = (ready) => {
+      c.clearRect(0, 0, 300, 150); c.fillStyle = '#fffdf5'; c.strokeStyle = '#c9b88a'; c.lineWidth = 4; c.beginPath(); c.roundRect(3, 3, 294, 144, 16); c.fill(); c.stroke();
+      if (ready) { c.fillStyle = '#8a7a52'; c.textAlign = 'center'; c.font = '900 30px "Noto Sans TC", sans-serif'; c.fillText(T('預備…', 'Ready…'), 150, 86); return; }
+      q.card.forEach(([k, col], j) => qpDraw(c, k, QP_ITEMS[col].col, 80 + j * 140, 76, 1.12));
+    };
+    const pick = (k, el) => {
+      if (!open) return;
+      tries++;
+      if (k !== q.ans) {
+        el.disabled = true; el.classList.add('wrong'); ctx.face('normal');
+        ctx.msg(q.same ? T('🌱 沒關係，再看一次：哪一樣的顏色，跟下面按鈕上的一樣？', '🌱 That\'s OK. Which one has the same color as its button?')
+          : T(`🌱 沒關係，兩樣都畫錯顏色了。把出現過的東西和顏色都刪掉：${[...q.card[0], ...q.card[1]].filter((x, j) => tries > 1 || j % 2 === 0).map(nm).join('、')}${tries > 1 ? '都不是，剩下哪一個？' : '不是，再看看顏色～'}`,
+            `🌱 That's OK. Both colors are wrong. Cross out what you see: ${[...q.card[0], ...q.card[1]].filter((x, j) => tries > 1 || j % 2 === 0).map(nm).join(', ')}.`), 'no');
+        return;
+      }
+      open = false; const sec = (performance.now() - t0) / 1000;
+      ctx.btnEls.forEach((b) => { b.disabled = true; }); el.classList.add('right'); ctx.face('happy');
+      if (tries === 1) { score++; times.push(sec); }
+      const why = q.same ? T(`${nm(k)}的顏色是對的！`, `The ${nm(k)} has its own color!`) : T(`${nm(k)}的樣子和${QP_ITEMS[k].c}都沒有出現！`, `Neither the ${nm(k)} nor its color is on the card!`);
+      ctx.msg(`${tries === 1 ? T(`👏 ${sec.toFixed(1)} 秒找到！`, `👏 Found in ${sec.toFixed(1)} s!`) : T('👏 你自己想出來了！', '👏 You worked it out!')}${why}`, 'ok');
+      ctx.later(() => { if (++i < N) next(); else finish(); }, 1900);
+    };
+    const next = () => {
+      q = qpCard(i < 2 || Math.random() < 0.45); tries = 0; open = false;
+      ctx.prog(T(`第 ${i + 1}／${N} 題　一次就對 ${score} 題`, `${i + 1}/${N} · first try ${score}`));
+      ctx.ask(T('有一樣顏色是對的 → 選它<br>兩樣顏色都不對 → 選「都沒出現」的', 'One has its own color → pick it<br>Both colors wrong → pick what is NOT there'));
+      ctx.msg(i ? '' : T('先看看下面五樣東西平常的顏色喔！', 'First, look at the five things and their colors.'));
+      ctx.buttons(QP_ITEMS.map((it, k) => ({ html: `<img src="${qpIcon(k)}" alt=""><small>${T(it.n, it.en)}</small>`, cls: 'qp', on: (el) => pick(k, el) })));
+      paint(true);
+      ctx.later(() => { paint(false); open = true; t0 = performance.now(); }, i ? 900 : 2600);
+    };
+    const finish = () => {
+      const avg = times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : null;
+      ctx.end(score, (best) => `${T(`👀 一次就找到 ${score}／${N} 題（最佳紀錄：${best} 題）${avg ? `，平均 ${avg} 秒` : ''}`, `👀 ${score}/${N} on the first try (best ${best})${avg ? `, ${avg} s on average` : ''}`)}<br>${ctx.n.name}：${score >= 6 ? T('眼睛好亮、腦筋也轉得好快，真替你開心！', 'Sharp eyes and a quick mind. I am so happy for you!') : T('謝謝你這麼有耐心，每一題都想到會，這樣最棒了！', 'Thank you for being so patient. You thought every one through!')}`);
+    };
+    next();
+  },
+};
 
 /* ---- 動物疊疊樂（小粉老師，太陽班）：上面的動物積木左右移動，按「放下」（F／空白鍵）疊上去；疊歪太多會倒，倒了 3 次就結束，疊到 10 層全對 ---- */
 const STACK_ANIMALS = ['🐘', '🦒', '🐼', '🐰', '🐻', '🐷', '🐸', '🐱', '🐶', '🦁', '🐯', '🐨'];

@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=348';
+import { poolWater } from './extras.js?v=349';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -966,6 +966,50 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSMMMMMMMMSSHH',
           'HHSSMTTTTTTMSSHH',
           'HHHSSMMMMMMSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '吳老師', title: '潛能老師', game: 'quickpick',
+      hello: ['🌷 吳老師：慢慢來沒關係，老師會等你～', '💛 吳老師：你願意試試看，就已經很棒了！', '🌱 吳老師：答錯也沒關係，我們再想一次就好。', '👏 吳老師：你看，你又進步一點點了！',
+        '👀 吳老師：要不要來玩「眼明手快找一找」？'],
+      // 3 樓潛能教室三（306）：一進門旁邊、推車白板和小桌中間的空地，斜斜面向門口（不站在推車白板後面）
+      places: [
+        { floor: '3F', where: '潛能教室三', game: true, at: () => { const r = rooms.find((x) => x.name === '潛能教室三'); return [r.cx - 0.05, r.cz - 2.55, -Math.PI / 4]; } },
+      ],
+      look: {
+        // 依照片（帽子依使用者說明不做）：深色及肩長髮披到胸前、薄瀏海、張嘴開心笑；白色無袖上衣（胸前黑灰白流線圖案、下面尖尖的像方巾）、
+        //   黑色寬褲、黑色涼鞋、橘黃色手機斜背帶、右肩黑色大袋子、藍色碎花小布袋（照片在右手；右手要揮手打招呼，改提在左手）；耳環、手環太小沒做
+        skin: '#efc9a8', hair: '#231815', top: '#f6f6f3', pants: '#1c1b1d', shoe: '#1a1a1a',
+        lob: true, lobFront: true, sleeveless: true, widePants: true, sandals: true, phone: ['#d8a65a', '#d5dbe2'], tote: '#232326', holdL: 'pouch',
+        teeDraw: (c) => {
+          const P = (pts, col) => { c.fillStyle = col; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.fill(); };
+          P([[4, 46], [30, 36], [62, 36], [88, 46], [88, 84], [48, 118], [4, 84]], '#1d1d1f');                     // 方巾形的外框
+          P([[9, 52], [31, 43], [61, 43], [83, 52], [83, 81], [48, 111], [9, 81]], '#8f9194');
+          c.save(); c.beginPath(); [[9, 52], [31, 43], [61, 43], [83, 52], [83, 81], [48, 111], [9, 81]].forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.clip();
+          const B = (x, y, rx, ry, r, col) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, rx, ry, r, 0, 7); c.fill(); };   // 流線的色塊
+          B(26, 56, 18, 9, -0.4, '#f2f2f0'); B(62, 60, 20, 10, 0.5, '#1d1d1f'); B(40, 74, 14, 8, 0.9, '#1d1d1f'); B(66, 82, 16, 7, -0.6, '#f2f2f0');
+          B(20, 78, 12, 7, 0.4, '#55585c'); B(48, 94, 13, 7, -0.3, '#f2f2f0'); B(70, 50, 8, 5, 0.2, '#f2f2f0'); B(33, 66, 5, 5, 0, '#f2f2f0'); B(33, 66, 2, 2, 0, '#1d1d1f'); B(54, 72, 6, 4, 0.4, '#8f9194');
+          c.restore();
+        },
+        pal: { H: '#231815', h: '#3c2a24', S: '#efc9a8', E: '#1c1210', e: '#4a3328', W: '#ffffff', B: '#f0a898', N: '#dcae8c', M: '#b8484a', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHhHHhHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHSHHSHHSHHSHHH',
+          'HHSSHSSHSSHSSSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSEEESSSSEEESHH',
+          'HHSEWESSSSEWESHH',
+          'HHSEEESSSSEEESHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSSSMTTTTMSSSHH',
+          'HHSSSMMMMMMSSSHH',
+          'HHHSSSMMMMSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },

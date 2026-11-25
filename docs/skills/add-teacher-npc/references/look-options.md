@@ -8,7 +8,7 @@
 ## 頭
 - 髮型：
   - `shortHair` 短髮、`spiky` 刺刺短髮
-  - `bob` 齊下巴鮑伯頭、`lob` 及肩直髮、`longHair` 長髮
+  - `bob` 齊下巴鮑伯頭、`lob` 及肩直髮（加 `lobFront` 披到胸前兩撮）、`longHair` 長髮
   - `bun` 低髮髻、`braids` 兩條辮子
 - 帽子：
   - `cap: { color, logo }` 棒球帽
@@ -29,6 +29,7 @@
   - `vest: [背心色, 滾邊色]`、`haori` 和服外褂
 - 印字、圖案：
   - `teeText: { lines: [['Light Up', 17, 46], ['TAIWAN', 18, 68]], ink }` T 恤前面印字。每行是 [文字, 字級, y]，畫布 92×120。
+  - `teeDraw: (c) => {…}` 衣服前面的圖案自己畫（畫布 92×120，底色已塗好 `top`）。
   - `teeImg: { front, back }` 班服圖片，放在 `site/img/…`，要使用者給的設計稿。
   - `print` 線條圖案、`bear` 小熊、`minis` 一排小圖案、`sushi`
 - 配件：
@@ -36,6 +37,7 @@
   - `shades` 領口的太陽眼鏡、`camera` 相機、`hanky` 手帕
   - `scarf: [主色, 垂下那端的顏色]` 圍巾、`scarfSpots` 豹紋斑點顏色
   - `neckerchief` 領巾、`bag` 斜背包顏色
+  - `phone: [背帶色, 手機殼色]` 手機斜背帶、`tote` 右肩側背大袋子
   - `yoke` 幼兒園制服色塊
 
 ## 下半身
@@ -46,9 +48,10 @@
   - `widePants` 寬褲、`shorts` 短褲（`socks` 襪子）
   - `stripe` 運動褲側條、`pantsPrint`
 - `belt` 皮帶
+- `sandals` 涼鞋（露出腳、兩條寬帶，顏色用 `shoe`）
 
 ## 手上拿的
-`holdL` / `holdR`：左右手拿東西，例如 `'bouquet'`、`'bubbles'`。可以用哪些值要看 blocks.js 的 `holdItem`。
+`holdL` / `holdR`：左右手拿東西，例如 `'bouquet'`、`'bubbles'`。可以用哪些值要看 blocks.js 的 `holdItem`。右手（`holdR`）會舉起來揮手打招呼，會甩動的東西（提袋、小布袋）放 `holdL`。
 
 ## 表情
 - 預設：打招呼、答對時會換成張嘴大笑的臉。
