@@ -35,7 +35,7 @@
   [hidden] { display: none !important; }
 
   /* 上方列 */
-  #top { position: fixed; top: 12px; left: 12px; right: 12px; display: flex; gap: 10px; align-items: flex-start; pointer-events: none; }
+  #top { position: fixed; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: flex-start; pointer-events: none; }   /* 14 吋小螢幕按鈕擠不下就換到第二行（登入後還會多出幾顆），不要被吃掉 */
   #top > * { pointer-events: auto; }
   .brand { background: var(--panel); border-radius: 14px; padding: 8px 14px; box-shadow: var(--shadow); line-height: 1.2; }
   .brand b { font-size: 18px; font-weight: 900; }
@@ -396,7 +396,7 @@
   #perf button { margin-top: 3px; font: inherit; font-size: 11px; padding: 1px 8px; border-radius: 6px; background: #3a4452; color: #fff; }
   /* 幼兒園小遊戲（疊疊樂、空間方塊、串珠、摺紙、炒菜）共用的面板 */
   /* 同學在線上 */
-  #online { position: fixed; top: 84px; right: 12px; z-index: 12; width: min(320px, calc(100vw - 24px)); max-height: calc(100vh - 110px); overflow: auto; padding: 12px 14px; background: #fbf6ea; color: #2b2b2b; border: 3px solid #2b2b2b; box-shadow: 6px 6px 0 rgba(0,0,0,.25); font-size: 14px; line-height: 1.6; }
+  #online { position: fixed; top: calc(var(--topbot, 76px) + 8px); right: 12px; z-index: 12; width: min(320px, calc(100vw - 24px)); max-height: calc(100vh - var(--topbot, 76px) - 34px); overflow: auto; padding: 12px 14px; background: #fbf6ea; color: #2b2b2b; border: 3px solid #2b2b2b; box-shadow: 6px 6px 0 rgba(0,0,0,.25); font-size: 14px; line-height: 1.6; }
   #online .hd { display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
   #online p { margin: 6px 0 10px; }
   #online ul { list-style: none; margin: 0 0 10px; padding: 0; max-height: 240px; overflow: auto; }
@@ -1053,9 +1053,9 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/boot.js?v=350" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
-<script src="js/campus-data.js?v=350"></script>
-<script src="js/pano-data.js?v=350"></script>
+<script src="js/boot.js?v=351" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
+<script src="js/campus-data.js?v=351"></script>
+<script src="js/pano-data.js?v=351"></script>
 <!-- js/app.js 由 boot.js 確認支援 WebGL 後才載入 -->
 </body>
 </html>
