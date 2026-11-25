@@ -54,8 +54,10 @@ function walkRule(p) {                                       // 這條路徑上�
   }
   return out;
 }
+let CUR = null;
+Date.now = () => (CUR ? CUR.time : 0);                         // 連線核心用 Date.now 判斷開放時段：跟假資料庫的時間一致，什麼時候跑測試結果都一樣
 class FakeDB {
-  constructor() { this.data = {}; this.time = Date.UTC(2026, 10, 25, 2, 0); this.clients = new Set(); }   // 臺灣 10:00
+  constructor() { this.data = {}; this.time = Date.UTC(2026, 10, 25, 2, 0); this.clients = new Set(); CUR = this; }   // 臺灣 10:00
   canRead(auth, p) {
     const root = snap(this.data, '/');
     return walkRule(p).some((r) => r.node && '.read' in r.node && evalRule(r.node['.read'], { auth, now: this.time, root, data: snap(this.data, r.path) }, r.vars));
@@ -187,9 +189,9 @@ console.log('【開關、時段、名單】');
 console.log('【連線核心】');
 const wait = (ms = 0) => new Promise((r) => setTimeout(r, ms));
 function person(db, auth, over = {}) {
-  const c = client(db, auth), s = { at: { f: '3F', x: 0, z: 0, yaw: 0, walk: false, h: 0 }, look: { g: 'boy', o: 'uniform' }, players: new Map(), pos: new Map(), states: [], c };
+  const c = client(db, auth), s = { at: { f: '3F', x: 0, z: 0, yaw: 0, walk: false, h: 0 }, look: { g: 'boy', o: 'uniform' }, players: new Map(), pos: new Map(), states: [], acts: [], c };
   s.net = new OnlineNet({ D: c.D, db, me: { uid: auth.uid, n: cleanName(auth.token.name), r: /@st\./i.test(auth.token.email) ? 's' : 't', admin: false, tester: false, ...over }, look: () => s.look, where: () => s.at,
-    on: { player: (u, v) => (v ? s.players.set(u, v) : s.players.delete(u)), pos: (u, v) => (v ? s.pos.set(u, v) : s.pos.delete(u)), floor: () => s.pos.clear(), state: (a, b) => s.states.push(b ? `${a}:${b}` : a) } });
+    on: { act: (u, v) => s.acts.push([u, v.k]), config: (v) => { s.cfg = v; }, player: (u, v) => (v ? s.players.set(u, v) : s.players.delete(u)), pos: (u, v) => (v ? s.pos.set(u, v) : s.pos.delete(u)), floor: () => s.pos.clear(), state: (a, b) => s.states.push(b ? `${a}:${b}` : a) } });
   return s;
 }
 {
@@ -218,6 +220,44 @@ function person(db, auth, over = {}) {
   db.write(boss, { ['/online/testers/' + emailKey(stu.token.email)]: true });
   const a2 = person(db, stu, { tester: true }); a2.net.join(); await wait(10); ok(a2.states.at(-1) === 'online', '測試名單可以加入');
   await a2.net.leave('user'); await wait(5); ok(!db.data.online.players && a2.states.at(-1) === 'left:user' && !a2.c.online, '自己離開：清乾淨、斷線');
+}
+console.log('【說話、動作、紀錄】');
+{
+  const db = fresh(), a = person(db, stu), b = person(db, stu2), c = person(db, A('s3', 's3@st.skps.tp.edu.tw', '李小安')), t = person(db, tea), AT = '/online/act/3F/';
+  for (const p of [a, b, c, t]) p.net.join(); await wait(5);
+  ok(await a.net.say('s5'), '說一句話');
+  await wait(2); ok(b.acts.some(([u, k]) => u === 's1' && k === 's5') && t.acts.some(([u, k]) => u === 's1' && k === 's5') && !a.acts.length, '同一層的同學看得到、自己不重複收到');
+  ok(Object.values(db.data.online.log || {}).some((l) => l.u === 's1' && l.n === '王小明' && l.k === 's5' && l.f === '3F'), '紀錄有留（誰、什麼、哪一層）');
+  ok(!await a.net.say('a1'), '5 秒內不能再說（本機擋）');
+  a.net.lastSay = 0;
+  ok(!can(() => db.write(stu, { [AT + 's1']: { k: 'a1', t: { '.sv': 'timestamp' } } })), '規則：4 秒內不能再寫');
+  db.time += 5000; ok(await a.net.say('a1'), '過 5 秒可以做動作'); await wait(2); ok(b.acts.at(-1)[1] === 'a1', '動作同步');
+  ok(!can(() => db.write(stu, { [AT + 's1']: { k: 'x9', t: { '.sv': 'timestamp' } } })) && !can(() => db.write(stu, { [AT + 's1']: '罵人的話' })) && !can(() => db.write(stu, { [AT + 's1']: { k: 's1', t: { '.sv': 'timestamp' }, msg: '髒話' } })), '規則：只收固定代號、不能夾帶文字');
+  db.time += 5000;
+  ok(!can(() => db.write(stu, { [AT + 's2']: { k: 's1', t: { '.sv': 'timestamp' } } })), '不能冒用別人說話');
+  ok(!can(() => db.write(stu, { '/online/act/4F/s1': { k: 's1', t: { '.sv': 'timestamp' } } })), '樓層和名牌不同不能說');
+  ok(!can(() => db.write(A('s9', 's9@st.skps.tp.edu.tw', '無名'), { '/online/act/3F/s9': { k: 's1', t: { '.sv': 'timestamp' } } })), '沒有名牌不能說');
+  ok(!can(() => db.write(stu, { '/online/log/1_s1': { u: 's1', n: '校長', k: 's1', f: '3F', t: { '.sv': 'timestamp' } } })) && !can(() => db.write(stu, { '/online/log/1_s1': { u: 's2', n: '陳小華', k: 's1', f: '3F', t: { '.sv': 'timestamp' } } })), '紀錄不能假造名字、不能寫別人的');
+  ok(!db.canRead(stu, '/online/log') && !db.canRead(tea, '/online/log') && db.canRead(boss, '/online/log'), '紀錄只有管理員讀得到');
+  const id = Object.keys(db.data.online.log)[0];
+  ok(!can(() => db.write(stu, { ['/online/log/' + id]: null })) && can(() => db.write(boss, { ['/online/log/' + id]: null })), '紀錄只有管理員刪得掉');
+  // 管理員關掉說話：只剩動作
+  db.write(boss, { '/online/config/chat': false }); await wait(5); db.time += 5000;
+  ok(c.cfg?.chat === false, '大家收得到「說話關了」');
+  a.net.lastSay = 0; ok(!await a.net.say('s1') && a.net.joined, '說話關了：說不出來、但不會被踢出去');
+  b.net.lastSay = 0; ok(await b.net.say('a2'), '說話關了：動作還可以');
+  db.write(boss, { '/online/config/chat': true });
+  // 隱藏自己
+  await c.net.setHidden(true); await wait(5);
+  ok(!db.data.online.players?.s3 && !JSON.stringify(db.data.online.pos || {}).includes('s3') && !b.players.has('s3'), '隱藏自己：別人看不到（名牌、位置都撤掉）');
+  ok(c.players.has('s1') || c.players.has('s2'), '隱藏自己：我還是看得到大家');
+  c.at.x = 5; await c.net.tick(); ok(!JSON.stringify(db.data.online.pos || {}).includes('s3'), '隱藏時走動不會傳位置');
+  c.net.lastSay = 0; ok(!await c.net.say('s1'), '隱藏時不能說話');
+  await c.net.setHidden(false); await wait(5); ok(b.players.has('s3') && b.pos.has('s3'), '取消隱藏：又出現了');
+  // 離開、斷線：說話也清掉
+  await a.net.leave('user'); await wait(5); ok(!db.data.online.act?.['3F']?.s1, '離開：說話的資料清掉');
+  b.c.cut(); await wait(5); ok(!db.data.online.act?.['3F']?.s2, '斷線：說話的資料清掉');
+  for (const p of [a, b, c, t]) clearInterval(p.net.timer);
 }
 console.log(fails ? `✘ ${fails}／${n} 項沒過` : `✔ ${n} 項全部通過`);
 process.exit(fails ? 1 : 0);

@@ -19,6 +19,9 @@
         "to": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 24"
         },
+        "chat": {
+          ".validate": "newData.isBoolean()"
+        },
         "$other": {
           ".validate": false
         }
@@ -60,6 +63,52 @@
           },
           "o": {
             ".validate": "newData.isString() && newData.val().length <= 24 && newData.val().matches(/^[-a-z]+$/)"
+          },
+          "f": {
+            ".validate": "newData.isString() && newData.val().matches(/^[B1-5][1F]$/)"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "act": {
+        "$floor": {
+          ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/config/on').val() === true && ((now + 28800000) % 86400000) >= root.child('online/config/from').val() * 3600000 && ((now + 28800000) % 86400000) < root.child('online/config/to').val() * 3600000 && (root.child('online/config/stage').val() === 'all' || root.child('online/testers/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true || root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true) && !root.child('online/blocked/' + auth.uid).exists()",
+          "$uid": {
+            ".write": "(auth != null && auth.uid === $uid && (!newData.exists() || (auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/config/on').val() === true && ((now + 28800000) % 86400000) >= root.child('online/config/from').val() * 3600000 && ((now + 28800000) % 86400000) < root.child('online/config/to').val() * 3600000 && (root.child('online/config/stage').val() === 'all' || root.child('online/testers/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true || root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true) && !root.child('online/blocked/' + auth.uid).exists()))) || (!newData.exists() && auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true)",
+            ".validate": "$floor.matches(/^[B1-5][1F]$/) && newData.hasChildren(['k', 't']) && newData.parent().parent().parent().child('players').child($uid).child('f').val() === $floor && (!data.exists() || newData.child('t').val() >= data.child('t').val() + 4000)",
+            "k": {
+              ".validate": "newData.isString() && newData.val().matches(/^(a[1-4]|s[1-5])$/) && (newData.val().matches(/^a/) || root.child('online/config/chat').val() !== false)"
+            },
+            "t": {
+              ".validate": "newData.val() === now"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        }
+      },
+      "log": {
+        ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true",
+        ".indexOn": [
+          "t"
+        ],
+        "$id": {
+          ".write": "(newData.exists() && !data.exists() && newData.child('u').val() === auth.uid && (auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/config/on').val() === true && ((now + 28800000) % 86400000) >= root.child('online/config/from').val() * 3600000 && ((now + 28800000) % 86400000) < root.child('online/config/to').val() * 3600000 && (root.child('online/config/stage').val() === 'all' || root.child('online/testers/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true || root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true) && !root.child('online/blocked/' + auth.uid).exists())) || (!newData.exists() && (auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true))",
+          ".validate": "$id.matches(/^[0-9]+_[A-Za-z0-9]+$/) && newData.hasChildren(['u', 'n', 'k', 'f', 't'])",
+          "u": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "n": {
+            ".validate": "newData.val() === root.child('online/players/' + newData.parent().child('u').val() + '/n').val()"
+          },
+          "k": {
+            ".validate": "newData.isString() && newData.val().matches(/^(a[1-4]|s[1-5])$/)"
           },
           "f": {
             ".validate": "newData.isString() && newData.val().matches(/^[B1-5][1F]$/)"

@@ -407,6 +407,16 @@
   #online .big { width: 100%; padding: 9px; font-size: 15px; } #online .join { background: #2f6fb5; color: #fff; }
   #online .admin { margin-top: 12px; padding-top: 10px; border-top: 3px solid #2b2b2b; } #online .admin .sw { background: #2d8a57; color: #fff; margin: 6px 0; } #online .admin .sw.off { background: #c0392b; }
   #online .admin label { display: block; margin: 6px 0; } #online input, #online select { font: inherit; font-size: 14px; padding: 3px 6px; border: 2px solid #2b2b2b; background: #fff; color: #2b2b2b; -webkit-user-select: text; user-select: text; }
+  #online li .mute, #online li .kick { margin-left: 4px; }
+  #online .muted { margin: 4px 0 8px; } #online .muted button { margin: 2px 2px 0 0; }
+  #online .lg { max-height: 200px; font-size: 13px; line-height: 1.4; }
+  #onlineBar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 11; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+  #onlineBar > * { pointer-events: auto; }
+  #onlineBar .row2 { display: flex; gap: 8px; }
+  #onlineBar .iconbtn.m.on { background: var(--accent); color: #fff; } #onlineBar .iconbtn[disabled] { opacity: .5; }
+  #onlineBar .menu { display: flex; flex-direction: column; gap: 6px; padding: 8px; background: #fbf6ea; border: 3px solid #2b2b2b; box-shadow: 6px 6px 0 rgba(0,0,0,.25); }
+  #onlineBar .menu button { font: inherit; font-weight: 700; font-size: 15px; padding: 7px 14px; background: #fff; color: #2b2b2b; border: 2px solid #2b2b2b; border-radius: 0; text-shadow: none; box-shadow: none; text-align: left; white-space: nowrap; }
+  #onlineBar .menu button:hover { background: #fff1c2; }
   #online input[type=number] { width: 58px; } #online .row { display: flex; gap: 6px; } #online .row input { flex: 1; min-width: 0; }
   #kg { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
@@ -1053,9 +1063,9 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/boot.js?v=351" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
-<script src="js/campus-data.js?v=351"></script>
-<script src="js/pano-data.js?v=351"></script>
+<script src="js/boot.js?v=352" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
+<script src="js/campus-data.js?v=352"></script>
+<script src="js/pano-data.js?v=352"></script>
 <!-- js/app.js 由 boot.js 確認支援 WebGL 後才載入 -->
 </body>
 </html>

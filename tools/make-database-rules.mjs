@@ -39,6 +39,7 @@ const rules = {
         stage: { '.validate': "newData.val() === 'test' || newData.val() === 'all'" },
         from: { '.validate': 'newData.isNumber() && newData.val() >= 0 && newData.val() <= 24' },
         to: { '.validate': 'newData.isNumber() && newData.val() >= 0 && newData.val() <= 24' },
+        chat: { '.validate': 'newData.isBoolean()' },                         // false＝只留動作、不能說話（沒有這一欄＝可以說話）
         $other: { '.validate': false },
       },
       admins: { $key: { '.read': `${SCHOOL} && ${KEY} === $key` } },
@@ -59,6 +60,34 @@ const rules = {
           r: { '.validate': `(newData.val() === 't' && ${TEACHER}) || (newData.val() === 's' && ${STUDENT})` },
           g: { '.validate': "newData.val() === 'boy' || newData.val() === 'girl'" },
           o: { '.validate': 'newData.isString() && newData.val().length <= 24 && newData.val().matches(/^[-a-z]+$/)' },
+          f: { '.validate': 'newData.isString() && newData.val().matches(/^[B1-5][1F]$/)' },
+          t: { '.validate': 'newData.val() === now' },
+          $other: { '.validate': false },
+        },
+      },
+      // 說話、動作：只能是固定的代號（s1～s5 話、a1～a4 動作），同一人至少隔 4 秒；要先有名牌、樓層一樣；管理員關了說話（chat=false）就只剩動作
+      act: {
+        $floor: {
+          '.read': CAN,
+          $uid: {
+            '.write': OWN,
+            '.validate': "$floor.matches(/^[B1-5][1F]$/) && newData.hasChildren(['k', 't']) && newData.parent().parent().parent().child('players').child($uid).child('f').val() === $floor && (!data.exists() || newData.child('t').val() >= data.child('t').val() + 4000)",
+            k: { '.validate': "newData.isString() && newData.val().matches(/^(a[1-4]|s[1-5])$/) && (newData.val().matches(/^a/) || root.child('online/config/chat').val() !== false)" },
+            t: { '.validate': 'newData.val() === now' },
+            $other: { '.validate': false },
+          },
+        },
+      },
+      // 紀錄：每次說話、動作記一筆，只有管理員讀得到、刪得掉（網站每次開管理面板會清掉 190 天前的）
+      log: {
+        '.read': ADMIN,
+        '.indexOn': ['t'],
+        $id: {
+          '.write': `(newData.exists() && !data.exists() && newData.child('u').val() === auth.uid && (${CAN})) || (!newData.exists() && (${ADMIN}))`,
+          '.validate': "$id.matches(/^[0-9]+_[A-Za-z0-9]+$/) && newData.hasChildren(['u', 'n', 'k', 'f', 't'])",
+          u: { '.validate': 'newData.isString() && newData.val().length <= 40' },
+          n: { '.validate': "newData.val() === root.child('online/players/' + newData.parent().child('u').val() + '/n').val()" },
+          k: { '.validate': "newData.isString() && newData.val().matches(/^(a[1-4]|s[1-5])$/)" },
           f: { '.validate': 'newData.isString() && newData.val().matches(/^[B1-5][1F]$/)' },
           t: { '.validate': 'newData.val() === now' },
           $other: { '.validate': false },
