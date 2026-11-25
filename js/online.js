@@ -2,9 +2,9 @@
    只有登入的溪口師生，而且按了「加入」才會被看到；按「離開」、關網頁、分頁放到背景 3 分鐘就消失。
    登入後由 auth.js 載入。沒加入之前不開即時連線（免費方案同時 100 個），只用一般的網路請求看一下有沒有開放、幾個人。 */
 import * as THREE from 'three';
-import { makeBlockPerson, animatePerson, mergeStatic } from './blocks.js?v=353';
-import { T, scene, floors, player, avatar, wearing, mode, makeLabel, toast, frameHooks, mapHooks, AVATAR_SCALE } from './app.js?v=353';
-import { DB_URL, SAY_GAP, KEEP_DAYS, OnlineNet, cleanName, emailKey, denyReason } from './online-net.js?v=353';
+import { makeBlockPerson, animatePerson, mergeStatic } from './blocks.js?v=354';
+import { T, scene, floors, player, avatar, wearing, mode, makeLabel, toast, frameHooks, mapHooks, AVATAR_SCALE } from './app.js?v=354';
+import { DB_URL, SAY_GAP, KEEP_DAYS, OnlineNet, cleanName, emailKey, denyReason } from './online-net.js?v=354';
 
 const JOIN_KEY = 'campus-online';                            // 這台電腦上次加入的帳號（記 uid；換人登入不會自動加入）
 const MAX_BODY = 24, FAR = 45, LABEL_FAR = 16;               // 最多畫幾個人、多遠就不畫、名牌多遠就不顯示
@@ -176,7 +176,8 @@ function where() {
 /* ---- 面板 ---- */
 const REASON = {
   off: ['「同學在線上」目前關閉', 'Online mode is closed right now'], hours: ['現在不是開放時間', 'Online mode is not open at this hour'],
-  test: ['還在測試，過一陣子再來看看', 'Still being tested. Come back later.'], denied: ['目前不能加入（已關閉，或這個帳號被停用）', 'You cannot join right now'], error: ['連線出了問題，請再試一次', 'Connection problem. Please try again.'],
+  test: ['還在測試，過一陣子再來看看', 'Still being tested. Come back later.'], denied: ['目前不能加入（已關閉，或這個帳號被停用）', 'You cannot join right now'],
+  afk: ['閒置太久，先離開了。要的話再按「加入」', 'You were away for a while, so you left. Press Join to come back.'], error: ['連線出了問題，請再試一次', 'Connection problem. Please try again.'],
 };
 export function initOnline({ app, user, role, SDK, after }) {
   let cfg = null, me = null, net = null, db = null, D = null, state = 'left', count = null, slowT = 0, hideT = 0, adminOffs = [];
@@ -253,6 +254,13 @@ export function initOnline({ app, user, role, SDK, after }) {
     if (document.hidden) hideT = setTimeout(() => { if (net?.joined) { idle = true; net.leave('idle'); } }, 180e3);
     else if (idle) { idle = false; join(true); }
   });
+  // 閒置太久就請出去：IDLE_MIN 分鐘沒有按鍵、滑鼠、觸控，人也沒走動（蓋上螢幕、人離開座位，分頁卻沒有進背景的情況）
+  const IDLE_MIN = 5; let lastIn = Date.now(), lastXZ = [player.x, player.z];
+  for (const ev of ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel']) addEventListener(ev, () => { lastIn = Date.now(); }, { passive: true, capture: true });
+  setInterval(() => {
+    if (Math.hypot(player.x - lastXZ[0], player.z - lastXZ[1]) > 0.5) { lastXZ = [player.x, player.z]; lastIn = Date.now(); }
+    if (net?.joined && Date.now() - lastIn > IDLE_MIN * 60e3) { try { localStorage.removeItem(JOIN_KEY); } catch { /* 私密模式 */ } net.leave('afk'); }
+  }, 15e3);
   addEventListener('pagehide', () => { if (net?.joined) { net.leave('idle'); idle = true; } });
   addEventListener('pageshow', (e) => { if (e.persisted && idle) { idle = false; join(true); } });
 
