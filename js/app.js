@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=349';
-import { furnishFloor, ROOM_EN, INDOOR_RAISED } from './furniture.js?v=349';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=349';
-import { buildField, buildStage, buildArch, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=349';
-import { buildCampusWall } from './wall.js?v=349';
-import { makeNPCS } from './npcs.js?v=349';
-import { makeGameInfo } from './game-info.js?v=349';
-import { SPORTS_DAY_ON } from './event-dates.js?v=349';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=349';
+import { PanoViewer } from './pano.js?v=350';
+import { furnishFloor, ROOM_EN, INDOOR_RAISED } from './furniture.js?v=350';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=350';
+import { buildField, buildStage, buildArch, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=350';
+import { buildCampusWall } from './wall.js?v=350';
+import { makeNPCS } from './npcs.js?v=350';
+import { makeGameInfo } from './game-info.js?v=350';
+import { SPORTS_DAY_ON } from './event-dates.js?v=350';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=350';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -1655,6 +1655,7 @@ scene.add(buildingLabels);
 
 /* ---------------- 玩家 ---------------- */
 
+const frameHooks = [], mapHooks = [];                          // online.js（同學在線上）掛在這裡：每張畫面、畫小地圖時呼叫
 const player = { x: 0, z: 0, floor: floorById['1F'], yaw: 0, pitch: -0.05, vy: 0, jump: 0 };
 // 角色：男學生 / 女學生（記在瀏覽器，下次不用再選）
 const AVATAR_KEY = 'campus-avatar';
@@ -2775,6 +2776,7 @@ function drawMinimap() {
     const [a, b] = toS(...auto.pts.at(-1));
     mmc.fillStyle = '#ffd400'; mmc.beginPath(); mmc.arc(a, b, 6, 0, Math.PI * 2); mmc.fill();
   }
+  for (const h of mapHooks) h(mmc, toS, N);
   // 自己：紅色箭頭（朝人物面向的方向）
   mmc.save(); mmc.translate(N / 2, N / 2); mmc.rotate(-avatar.rotation.y);
   mmc.fillStyle = '#e53935'; mmc.strokeStyle = '#fff'; mmc.lineWidth = 3;
@@ -3867,7 +3869,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=349`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=350`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -4562,6 +4564,7 @@ function update(dt) {
   for (const gl of GLIDERS) if (gl.anim && gl.f.group.visible) gl.g.userData.anim(t);
   if (floors[1].group.visible) { cat.userData.anim(t); updateBirds(t, dt); updateTurtles(t, dt); updateKids(t, dt); }
   updateNPCs(t, dt);
+  for (const h of frameHooks) h(dt);
   // 雲慢慢飄
   if (clouds) {
     const sp = clouds.userData.spread;
@@ -6047,7 +6050,7 @@ loop();
 window.__campusBooted = true;                                           // js/boot.js：啟動完成
 
 // js/games/ 的小遊戲會用到的（小遊戲是之後才載入，這時候這些都已經準備好了）
-export { D, T, WALL_T, BASE, mx, mz, rectM, floors, rooms, isWalkable, canGo, groundAt, scene, camera, makeLabel, player, wearing, avatar, placeAt, mode, setMode, updateVisibility, keys, stopAuto, joy, toast, bgmHold, BB, placeNPC, npcFace, act, powerBox, spotFloor, limbs, resetPose, blocksBoard, ball, startShot, shoot, fmtSec };
+export { frameHooks, mapHooks, AVATAR_SCALE, D, T, WALL_T, BASE, mx, mz, rectM, floors, rooms, isWalkable, canGo, groundAt, scene, camera, makeLabel, player, wearing, avatar, placeAt, mode, setMode, updateVisibility, keys, stopAuto, joy, toast, bgmHold, BB, placeNPC, npcFace, act, powerBox, spotFloor, limbs, resetPose, blocksBoard, ball, startShot, shoot, fmtSec };
 
 // 除錯用：在主控台可用 __campus 檢查狀態、__campus.step(秒) 手動推進
 window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalkable, renderer, scene, togglePerf, applyQuality, rooms, floors, player, nav, navigateTo, placeAt, cat, viewer, panoScenes, openPano, setMode, findPath, camera, orbit, keys, auto, walkTo, stairs, climbStairs, cam, camBlocked, act, SPOTS, doAction,
@@ -6056,4 +6059,5 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   tryMove, canGo, clearAt, groundAt, GAME_FILE, cellAt, getGrid };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=349').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).get('onlinedemo')) import('./online.js?v=350').then((m) => m.demo(+new URLSearchParams(location.search).get('onlinedemo') || 6));   // 本機測試「同學在線上」的畫面
+import('./auth.js?v=350').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));

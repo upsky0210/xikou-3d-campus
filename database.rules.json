@@ -1,0 +1,86 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "online": {
+      "config": {
+        ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/))",
+        ".write": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true",
+        ".validate": "newData.hasChildren(['on', 'stage', 'from', 'to'])",
+        "on": {
+          ".validate": "newData.isBoolean()"
+        },
+        "stage": {
+          ".validate": "newData.val() === 'test' || newData.val() === 'all'"
+        },
+        "from": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 24"
+        },
+        "to": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 24"
+        },
+        "$other": {
+          ".validate": false
+        }
+      },
+      "admins": {
+        "$key": {
+          ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && auth.token.email.toLowerCase().replace('.', ',') === $key"
+        }
+      },
+      "testers": {
+        ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true",
+        "$key": {
+          ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && auth.token.email.toLowerCase().replace('.', ',') === $key",
+          ".write": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true",
+          ".validate": "newData.val() === true"
+        }
+      },
+      "blocked": {
+        ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true",
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        }
+      },
+      "players": {
+        ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/config/on').val() === true && ((now + 28800000) % 86400000) >= root.child('online/config/from').val() * 3600000 && ((now + 28800000) % 86400000) < root.child('online/config/to').val() * 3600000 && (root.child('online/config/stage').val() === 'all' || root.child('online/testers/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true || root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true) && !root.child('online/blocked/' + auth.uid).exists()",
+        "$uid": {
+          ".write": "(auth != null && auth.uid === $uid && (!newData.exists() || (auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/config/on').val() === true && ((now + 28800000) % 86400000) >= root.child('online/config/from').val() * 3600000 && ((now + 28800000) % 86400000) < root.child('online/config/to').val() * 3600000 && (root.child('online/config/stage').val() === 'all' || root.child('online/testers/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true || root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true) && !root.child('online/blocked/' + auth.uid).exists()))) || (!newData.exists() && auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true)",
+          ".validate": "newData.hasChildren(['n', 'r', 'g', 'o', 'f', 't'])",
+          "n": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40 && (auth.token.name === newData.val() || auth.token.name === newData.val() + newData.val() || auth.token.name === newData.val() + ' ' + newData.val())"
+          },
+          "r": {
+            ".validate": "(newData.val() === 't' && auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/)) || (newData.val() === 's' && auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/))"
+          },
+          "g": {
+            ".validate": "newData.val() === 'boy' || newData.val() === 'girl'"
+          },
+          "o": {
+            ".validate": "newData.isString() && newData.val().length <= 24 && newData.val().matches(/^[-a-z]+$/)"
+          },
+          "f": {
+            ".validate": "newData.isString() && newData.val().matches(/^[B1-5][1F]$/)"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "pos": {
+        "$floor": {
+          ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/config/on').val() === true && ((now + 28800000) % 86400000) >= root.child('online/config/from').val() * 3600000 && ((now + 28800000) % 86400000) < root.child('online/config/to').val() * 3600000 && (root.child('online/config/stage').val() === 'all' || root.child('online/testers/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true || root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true) && !root.child('online/blocked/' + auth.uid).exists()",
+          "$uid": {
+            ".write": "(auth != null && auth.uid === $uid && (!newData.exists() || (auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/config/on').val() === true && ((now + 28800000) % 86400000) >= root.child('online/config/from').val() * 3600000 && ((now + 28800000) % 86400000) < root.child('online/config/to').val() * 3600000 && (root.child('online/config/stage').val() === 'all' || root.child('online/testers/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true || root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true) && !root.child('online/blocked/' + auth.uid).exists()))) || (!newData.exists() && auth != null && auth.token.email_verified === true && (auth.token.email.toLowerCase().matches(/^[^@]+@skps[.]tp[.]edu[.]tw$/) || auth.token.email.toLowerCase().matches(/^[^@]+@st[.]skps[.]tp[.]edu[.]tw$/)) && root.child('online/admins/' + auth.token.email.toLowerCase().replace('.', ',')).val() === true)",
+            ".validate": "$floor.matches(/^[B1-5][1F]$/) && newData.isString() && newData.val().length <= 30 && newData.val().matches(/^[-0-9]+,[-0-9]+,[0-9]+,[01],[-0-9]+$/) && newData.parent().parent().parent().child('players').child($uid).child('f').val() === $floor"
+          }
+        }
+      }
+    }
+  }
+}

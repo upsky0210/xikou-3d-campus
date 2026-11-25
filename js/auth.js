@@ -202,6 +202,8 @@ export async function initLogin({ T, toast }) {
     // 換了進度：重新整理讓遊戲讀到新的（同一個分頁只重整一次，避免開場自動寫入的值造成一直重整）
     let reloaded = false; try { reloaded = sessionStorage.getItem('campus-auth-reload') === u.uid; sessionStorage.setItem('campus-auth-reload', u.uid); } catch { /* 私密模式 */ }
     if (!reloaded && JSON.stringify(snapshot()) !== before) { location.reload(); return; }
+    // 同學在線上（有開放才會出現 👥 按鈕）
+    import('./online.js?v=350').then((m) => m.initOnline({ app, user, role, SDK, after: viewBtn })).catch((e) => console.warn('同學在線上沒有載入', e));
     toast(T(`👋 已登入（${r === 'teacher' ? '老師' : '學生'}），進度會自動存起來`, `👋 Signed in (${r}). Progress will be saved.`));
   });
   render();

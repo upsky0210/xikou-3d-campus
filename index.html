@@ -395,6 +395,19 @@
   #perf b { font-size: 15px; } #perf .ok { color: #7ee08a; } #perf .mid { color: #ffd166; } #perf .bad { color: #ff7b72; }
   #perf button { margin-top: 3px; font: inherit; font-size: 11px; padding: 1px 8px; border-radius: 6px; background: #3a4452; color: #fff; }
   /* 幼兒園小遊戲（疊疊樂、空間方塊、串珠、摺紙、炒菜）共用的面板 */
+  /* 同學在線上 */
+  #online { position: fixed; top: 84px; right: 12px; z-index: 12; width: min(320px, calc(100vw - 24px)); max-height: calc(100vh - 110px); overflow: auto; padding: 12px 14px; background: #fbf6ea; color: #2b2b2b; border: 3px solid #2b2b2b; box-shadow: 6px 6px 0 rgba(0,0,0,.25); font-size: 14px; line-height: 1.6; }
+  #online .hd { display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
+  #online p { margin: 6px 0 10px; }
+  #online ul { list-style: none; margin: 0 0 10px; padding: 0; max-height: 240px; overflow: auto; }
+  #online li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed #d8cdb4; }
+  #online li span { flex: 1; overflow-wrap: anywhere; } #online li small { color: #6b6255; } #online li.none { color: #6b6255; }
+  #online button { font: inherit; font-weight: 700; font-size: 13px; padding: 3px 9px; background: #fff; color: #2b2b2b; border: 2px solid #2b2b2b; border-radius: 0; text-shadow: none; box-shadow: none; }
+  #online .x { border: 0; background: none; font-size: 18px; }
+  #online .big { width: 100%; padding: 9px; font-size: 15px; } #online .join { background: #2f6fb5; color: #fff; }
+  #online .admin { margin-top: 12px; padding-top: 10px; border-top: 3px solid #2b2b2b; } #online .admin .sw { background: #2d8a57; color: #fff; margin: 6px 0; } #online .admin .sw.off { background: #c0392b; }
+  #online .admin label { display: block; margin: 6px 0; } #online input, #online select { font: inherit; font-size: 14px; padding: 3px 6px; border: 2px solid #2b2b2b; background: #fff; color: #2b2b2b; -webkit-user-select: text; user-select: text; }
+  #online input[type=number] { width: 58px; } #online .row { display: flex; gap: 6px; } #online .row input { flex: 1; min-width: 0; }
   #kg { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(380px, calc(100vw - 24px)); z-index: 6;
     background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 8px 12px 10px; text-align: center; }
   #kg .top { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
@@ -1016,7 +1029,7 @@
     <label><span data-en="Walking speed">移動速度</span> <input id="speed" type="range" min="50" max="200" value="150"> <span id="speedV">150%</span></label>
     <label><span data-en="Turning sensitivity">轉頭靈敏度</span> <input id="sens" type="range" min="30" max="250" value="100"> <span id="sensV">100%</span></label>
     <h3 data-en="Privacy">隱私說明</h3>
-    <p style="margin:0;font-size:14px" data-en="Signing in with a school account saves only your email, your role (teacher or student) and your game progress (including your character and outfit), so you can continue on another computer. Your name is not saved. As a guest, nothing is uploaded; progress stays on this computer.">用學校帳號登入時，只會存 email、身分（老師或學生）和遊戲進度（包含角色、服裝），讓你換電腦也能接著玩，不會存姓名。訪客不會上傳任何資料，進度只留在這台電腦。</p>
+    <p style="margin:0;font-size:14px" data-en="Signing in with a school account saves only your email, your role (teacher or student) and your game progress (including your character and outfit), so you can continue on another computer. Your name is not saved. As a guest, nothing is uploaded; progress stays on this computer. If you choose to join &quot;Who is online&quot;, signed-in Xikou teachers and students can see your name and where you are in the campus while you are online; it is deleted when you leave and no location history is kept.">用學校帳號登入時，只會存 email、身分（老師或學生）和遊戲進度（包含角色、服裝），讓你換電腦也能接著玩，不會存姓名。訪客不會上傳任何資料，進度只留在這台電腦。如果按了「同學在線上」的「加入」，線上的時候，登入的溪口師生會看到你的名字和你在 3D 校園的位置；離開或關掉網頁就刪除，不會留下位置紀錄。</p>
     <p style="font-size:12px;color:#8a96a3;margin:14px 0 0" data-sy data-en="Source: school floor plans for school year {SY} (2026-08-03). Locations are estimated from the plans and for reference only.">資料來源：<span class="sy">115</span> 學年度校區平面圖（2026-08-03 版）。位置為依平面圖估算，僅供參考。</p>
   </div>
 </div>
@@ -1040,9 +1053,9 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/boot.js?v=349" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
-<script src="js/campus-data.js?v=349"></script>
-<script src="js/pano-data.js?v=349"></script>
+<script src="js/boot.js?v=350" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
+<script src="js/campus-data.js?v=350"></script>
+<script src="js/pano-data.js?v=350"></script>
 <!-- js/app.js 由 boot.js 確認支援 WebGL 後才載入 -->
 </body>
 </html>
