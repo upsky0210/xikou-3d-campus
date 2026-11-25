@@ -25,6 +25,19 @@ export function cleanName(s) {
   const h = t.length / 2;
   return h >= 2 && Number.isInteger(h) && t.slice(0, h) === t.slice(h) ? t.slice(0, h) : t;
 }
+// 老師（skps.tp.edu.tw）顯示「名＋老師」（例如 陳大明 → 大明老師），學生才不會直接叫老師全名。
+//   given：Google 帳號的「名」（登入時拿到、存在這台電腦）；沒有就從全名去掉姓（複姓算兩個字）
+const COMPOUND = ['歐陽', '司馬', '諸葛', '上官', '司徒', '東方', '張簡', '范姜', '周黃', '張廖', '簡張', '江謝', '劉張', '陳吳', '黃林'];
+export function teacherName(full, given) {
+  let g = cleanName(given);
+  if (!g) {
+    const n = cleanName(full);
+    if (n.endsWith('老師')) return n;
+    if (/^[一-鿿]{2,5}$/.test(n)) g = n.slice(n.length >= 4 && COMPOUND.some((c) => n.startsWith(c)) ? 2 : 1);
+    else g = n.split(' ')[0];
+  }
+  return !g ? '' : g.endsWith('老師') ? g : g + '老師';
+}
 // 現在（毫秒）是不是在開放時段：臺灣時間 from 點到 to 點
 export const inHours = (cfg, now) => { const h = ((now + 8 * 3600e3) % 86400e3) / 3600e3; return h >= cfg.from && h < cfg.to; };
 // 這個人現在可不可以加入；回傳 '' 可以，或原因

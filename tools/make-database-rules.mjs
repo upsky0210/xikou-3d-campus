@@ -24,6 +24,8 @@ const CAN = `${SCHOOL} && ${CFG('on')} === true && ${HOUR} >= ${CFG('from')} * 3
   + ` && !root.child('online/blocked/' + auth.uid).exists()`;
 // 自己的那一格：刪除隨時可以（斷線、離開），寫入要符合 CAN；管理員可以刪別人的
 const OWN = `(auth != null && auth.uid === $uid && (!newData.exists() || (${CAN}))) || (!newData.exists() && ${ADMIN})`;
+// 老師：名字一定是「○○老師」，○○ 要是自己 Google 名字裡的一段（不能冒用別人）
+const TNAME = `newData.isString() && newData.val().length >= 3 && newData.val().length <= 40 && newData.val().endsWith('老師') && auth.token.name.contains(newData.val().replace('老師', ''))`;
 const NAME = `newData.isString() && newData.val().length >= 1 && newData.val().length <= 40 && (auth.token.name === newData.val() || auth.token.name === newData.val() + newData.val() || auth.token.name === newData.val() + ' ' + newData.val())`;
 
 const rules = {
@@ -56,7 +58,7 @@ const rules = {
         $uid: {
           '.write': OWN,
           '.validate': "newData.hasChildren(['n', 'r', 'g', 'o', 'f', 't'])",
-          n: { '.validate': NAME },
+          n: { '.validate': `(${TEACHER} && ${TNAME}) || (${STUDENT} && ${NAME})` },
           r: { '.validate': `(newData.val() === 't' && ${TEACHER}) || (newData.val() === 's' && ${STUDENT})` },
           g: { '.validate': "newData.val() === 'boy' || newData.val() === 'girl'" },
           o: { '.validate': 'newData.isString() && newData.val().length <= 24 && newData.val().matches(/^[-a-z]+$/)' },

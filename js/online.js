@@ -2,9 +2,9 @@
    只有登入的溪口師生，而且按了「加入」才會被看到；按「離開」、關網頁、分頁放到背景 3 分鐘就消失。
    登入後由 auth.js 載入。沒加入之前不開即時連線（免費方案同時 100 個），只用一般的網路請求看一下有沒有開放、幾個人。 */
 import * as THREE from 'three';
-import { makeBlockPerson, animatePerson, mergeStatic } from './blocks.js?v=355';
-import { T, scene, floors, player, avatar, wearing, mode, makeLabel, toast, frameHooks, mapHooks, AVATAR_SCALE } from './app.js?v=355';
-import { DB_URL, SAY_GAP, KEEP_DAYS, OnlineNet, cleanName, emailKey, denyReason } from './online-net.js?v=355';
+import { makeBlockPerson, animatePerson, mergeStatic } from './blocks.js?v=356';
+import { T, scene, floors, player, avatar, wearing, mode, makeLabel, toast, frameHooks, mapHooks, AVATAR_SCALE } from './app.js?v=356';
+import { DB_URL, SAY_GAP, KEEP_DAYS, OnlineNet, cleanName, teacherName, emailKey, denyReason } from './online-net.js?v=356';
 
 const JOIN_KEY = 'campus-online';                            // 這台電腦上次加入的帳號（記 uid；換人登入不會自動加入）
 const MAX_BODY = 24, FAR = 45, LABEL_FAR = 16;               // 最多畫幾個人、多遠就不畫、名牌多遠就不顯示
@@ -283,7 +283,9 @@ export function initOnline({ app, user, role, SDK, after }) {
 
   const start = async () => {
     const t = await user.getIdTokenResult(), key = emailKey(user.email);
-    me = { uid: user.uid, n: cleanName(t.claims.name || user.displayName), r: role === 'teacher' ? 't' : 's', admin: false, tester: false };
+    let given = ''; try { const o = JSON.parse(localStorage.getItem('campus-given-name')); if (o?.uid === user.uid) given = o.g; } catch { /* 沒有就算了 */ }
+    const full = t.claims.name || user.displayName;
+    me = { uid: user.uid, n: role === 'teacher' ? teacherName(full, given) : cleanName(full), r: role === 'teacher' ? 't' : 's', admin: false, tester: false };
     [cfg, me.admin, me.tester] = await Promise.all([rest('online/config').catch(() => null), rest(`online/admins/${key}`).then((v) => v === true).catch(() => false), rest(`online/testers/${key}`).then((v) => v === true).catch(() => false)]);
     const y = why();
     if (!me.n || (!me.admin && (y === 'off' || y === 'test'))) return;                 // 沒開放：不顯示按鈕

@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { OnlineNet, cleanName, emailKey, packPos, unpackPos, inHours, denyReason } from '../js/online-net.js';
+import { OnlineNet, cleanName, teacherName, emailKey, packPos, unpackPos, inHours, denyReason } from '../js/online-net.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RULES = JSON.parse(fs.readFileSync(path.join(ROOT, 'database.rules.json'), 'utf8')).rules;
@@ -29,6 +29,7 @@ class Str {                                                 // 規則裡的字�
   static wrap(v) { return v; }
 }
 String.prototype.matches = function (re) { return re.test(this); };
+String.prototype.contains = function (x) { return this.includes(x); };
 const snap = (root, p) => ({
   val: () => { const v = get(root, p); return v && typeof v === 'object' ? { ...v } : v; },
   exists: () => get(root, p) !== null,
@@ -160,6 +161,16 @@ console.log('【誰可以進來】');
   ok(!can(() => db.write(stu, { '/online/junk': 1 })) && !can(() => db.write(stu, { '/junk': 1 })) && !db.canRead(stu, '/') && !db.canRead(stu, '/online'), '其他位置都不行');
   ok(!can(() => db.write(stu, { '/online/players': null })), '不能清掉全部人');
 }
+console.log('【老師的名字：名＋老師】');
+for (const [full, given, want] of [['陳大明', '', '大明老師'], ['陳大明', '大明', '大明老師'], ['陳大明陳大明', '', '大明老師'], ['歐陽小美', '', '小美老師'], ['王明', '', '明老師'], ['林老師', '', '林老師'], ['Amy Lin', '', 'Amy老師'], ['陳大明', '大明大明', '大明老師']]) ok(teacherName(full, given) === want, `teacherName(${full}, ${given}) → ${teacherName(full, given)}`);
+{
+  const db = fresh(), t2 = A('t2', 't2@skps.tp.edu.tw', '陳大明');
+  ok(can(() => db.write(t2, { [P('t2')]: card({ n: '大明老師', r: 't' }) })), '老師用「名＋老師」加入');
+  ok(!can(() => db.write(t2, { [P('t2')]: card({ n: '陳大明', r: 't' }) })), '老師不能用全名（一定要加老師）');
+  ok(!can(() => db.write(t2, { [P('t2')]: card({ n: '校長老師', r: 't' }) })) && !can(() => db.write(t2, { [P('t2')]: card({ n: '小美老師', r: 't' }) })), '老師不能冒用別人的名字');
+  ok(!can(() => db.write(t2, { [P('t2')]: card({ n: '老師', r: 't' }) })), '不能只寫「老師」');
+  ok(!can(() => db.write(stu, { [P('s1')]: card({ n: '王小明老師' }) })) && !can(() => db.write(stu, { [P('s1')]: card({ n: '小明老師' }) })), '學生不能加「老師」');
+}
 console.log('【開關、時段、名單】');
 {
   const db = fresh();
@@ -169,7 +180,7 @@ console.log('【開關、時段、名單】');
   ok(db.canRead(stu, '/online/config'), '關了還是讀得到設定（畫面要顯示）');
   db.write(boss, { '/online/config': { on: true, stage: 'test', from: 7, to: 21 } });
   ok(!can(() => db.write(stu, { [P('s1')]: card() })), '測試階段：不在名單不能加入');
-  ok(can(() => db.write(boss, { [P('a1')]: card({ n: '管理員', r: 't' }) })), '測試階段：管理員可以');
+  ok(can(() => db.write(boss, { [P('a1')]: card({ n: '管理老師', r: 't' }) })), '測試階段：管理員可以');
   ok(!can(() => db.write(stu, { ['/online/testers/' + emailKey(stu.token.email)]: true })) && !can(() => db.write(tea, { ['/online/testers/' + emailKey(stu.token.email)]: true })), '不能自己加名單');
   ok(!can(() => db.write(boss, { ['/online/admins/' + emailKey(stu.token.email)]: true })), '管理員名單網站改不了');
   ok(can(() => db.write(boss, { ['/online/testers/' + emailKey(stu.token.email)]: true, ['/online/testers/' + emailKey(stu2.token.email)]: true })), '管理員加測試名單');
