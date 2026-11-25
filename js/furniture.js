@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=345';
-import { trafficBasement } from './basement.js?v=345';
-import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=345';
+import { Batch, mat, SPOTS } from './blocks.js?v=346';
+import { trafficBasement } from './basement.js?v=346';
+import { hallThemeWall, hallXmas } from './hall.js?v=346';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=346';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -299,28 +300,6 @@ function classroom(put, fr, room) {
 
 // 穿堂（依照片）：東端深色主題牆（山、月亮、星星、小門）＋兩側玻璃磚、背面是中庭「豐盈圓滿」壁畫（下面是生態池）
 //                兩側海報牆＋長木椅、彩色木條天花板、棕米色格子地磚、電子看板
-const darkThemeMat = () => once('darktheme', () => new THREE.MeshLambertMaterial({ map: bigTex(512, 440, (c, w, h) => {
-  c.fillStyle = '#2b333b'; c.fillRect(0, 0, w, h);
-  c.fillStyle = '#20272e';
-  c.beginPath(); c.moveTo(0, 300); c.lineTo(90, 230); c.lineTo(170, 280); c.lineTo(260, 210); c.lineTo(360, 270); c.lineTo(440, 220); c.lineTo(w, 260); c.lineTo(w, h); c.lineTo(0, h); c.fill();
-  c.fillStyle = '#f2d36b'; c.beginPath(); c.arc(410, 70, 22, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#2b333b'; c.beginPath(); c.arc(420, 62, 20, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#f2d36b';
-  for (const [x, y] of [[80, 60], [150, 110], [300, 50], [350, 130], [470, 150]]) c.fillRect(x, y, 4, 4);
-  // 中間的小門（米白色門框＋小窗）
-  c.fillStyle = '#e9dfc6'; c.fillRect(220, 150, 80, 230);
-  c.fillStyle = '#c4a46a'; c.fillRect(232, 165, 56, 200);
-  c.fillStyle = '#9fc7e8'; c.fillRect(244, 178, 32, 32);
-  c.fillStyle = 'rgba(255,255,255,.75)'; c.font = '14px sans-serif'; c.fillText('Save the world, one book at a time', 310, 230);
-}) }));
-const glassBlockMat = () => once('glassblock', () => new THREE.MeshLambertMaterial({ emissive: '#9fd8d8', emissiveIntensity: 0.25, map: bigTex(160, 256, (c, w, h) => {
-  c.fillStyle = '#e8f2f2'; c.fillRect(0, 0, w, h);
-  for (let x = 0; x < w; x += 32) for (let y = 0; y < h; y += 32) {
-    const g = c.createLinearGradient(x, y, x + 30, y + 30);
-    g.addColorStop(0, '#bfe3e3'); g.addColorStop(1, '#8fc7c9');
-    c.fillStyle = g; c.fillRect(x + 2, y + 2, 28, 28);
-  }
-}) }));
 // 中庭「豐盈圓滿」壁畫（依 360 照片 10-2）：白牆、上面一道黃藍弧線；中間一圈彩色圓環和跳舞的人；左「豐盈圓滿」、右「大器今生」（紅色書法字）；兩旁玻璃磚窗
 const muralMat = () => once('mural', () => new THREE.MeshLambertMaterial({ map: bigTex(800, 360, (c, w, h) => {
   c.fillStyle = '#f7f5ef'; c.fillRect(0, 0, w, h);
@@ -364,7 +343,7 @@ const checkerMat = () => once('checker', () => {
   return new THREE.MeshLambertMaterial({ map: t });
 });
 // 穿堂的耶誕樹（使用者 11-18 第二版，依照片重做、比第一版縮成 85%）：一層層的圓錐樹身、紅底白雪花緞帶蝴蝶結、銀色圓球和小禮物盒、
-//   暖黃和綠色小燈、樹頂銀色星星和 Merry Christmas 牌、紅色樹裙、底下的金色大禮物；擺在東端主題牆（夜空門的畫）正前方
+//   暖黃和綠色小燈、樹頂銀色星星和 Merry Christmas 牌、紅色樹裙；11-25 起擺在左邊玻璃磚窗前，其他耶誕布置在 hall.js
 //   到 2027/01/04 0:00 自動收起來（event-dates.js）
 const xmasLightMat = (c) => once(`xmaslight${c}`, () => new THREE.MeshLambertMaterial({ color: c, emissive: c, emissiveIntensity: 0.9 }));
 const xmasBowMat = () => once('xmasbow', () => { const m = new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, emissive: '#6a6a6a', map: bigTex(128, 104, (c) => {
@@ -385,8 +364,8 @@ const xmasSignMat = () => once('xmassign', () => new THREE.MeshLambertMaterial({
   c.textAlign = 'center'; c.lineJoin = 'round';
   c.font = 'italic bold 70px "Brush Script MT", "Segoe Script", cursive';
   for (const [t, y] of [['Merry', 70], ['Christmas', 145]]) {
-    c.lineWidth = 8; c.strokeStyle = '#8a8a92'; c.strokeText(t, w / 2, y);
-    c.fillStyle = '#f4f4f8'; c.fillText(t, w / 2, y);
+    c.lineWidth = 8; c.strokeStyle = '#8a8a92'; c.strokeText(t, w / 2, y, w - 24);
+    c.fillStyle = '#f4f4f8'; c.fillText(t, w / 2, y, w - 24);
   }
 }) }));
 function xmasTree(put, fr, tu, tv) {
@@ -433,23 +412,17 @@ function xmasTree(put, fr, tu, tv) {
     const g = new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: false }); g.translate(0, 0, -0.015);
     put.geo(new THREE.MeshLambertMaterial({ color: '#efe6c8', emissive: '#8a7c4a' }), face(g, ...front), tu, tv, 1.95);
   }
-  // 樹下的禮物（前面）：金色大禮物（綠色緞帶）、金色花紋盒、紅白盒
-  const gU = (du) => tu + du, gV = (dv) => tv + dv;
-  put(gold, 0.42, 0.34, 0.3, gU(0.3), gV(-0.5), 0.03, true); put(lit('#b8d49a', '#2a3a20'), 0.44, 0.07, 0.32, gU(0.3), gV(-0.5), 0.03, true);
-  put(lit('#b8d49a', '#2a3a20'), 0.07, 0.36, 0.32, gU(0.3), gV(-0.5), 0.03, true);
-  put(lit('#d8b070', '#3a2810'), 0.3, 0.3, 0.26, gU(-0.42), gV(-0.42), 0.03, true); put(silver, 0.32, 0.05, 0.28, gU(-0.42), gV(-0.42), 0.03, true);
-  put(lit('#c0303a', '#3a0a0c'), 0.26, 0.26, 0.18, gU(-0.05), gV(-0.62), 0.03, true); put(mat('wool', '#f0f0f0'), 0.05, 0.28, 0.2, gU(-0.05), gV(-0.62), 0.03, true);
+  // 樹旁（依 11-25 照片）：右後方金色盒子、左前方銀色包裝
+  put(gold, 0.34, 0.3, 0.3, tu + 0.55, tv + 0.35, 0.03, true);
+  put(silver, 0.2, 0.18, 0.18, tu - 0.42, tv - 0.42, 0.03, true);
 }
 function entranceHall(put, fr, room) {
   const W = fr.W, L = fr.L;              // u：南北向、v：東西向（v 越大越靠中庭）
   put(checkerMat(), L, W, 0.012, L / 2, 0, 0, true);
   // 東端主題牆（牆本身在 app.js 加，這裡貼兩面的畫）；牆往後退到走廊東邊時，畫和盆栽跟著退（ev 是牆的位置）
   const wallLen = L - 2.16, ev = W / 2 + ((room?.endWallM ?? room?.m.x2 ?? 0) - (room?.m.x2 ?? 0));
-  put(darkThemeMat(), 3.4, 0.03, 2.9, L / 2, ev, 0, true);
-  for (const s of [-1, 1]) put(glassBlockMat(), (wallLen - 3.4) / 2 - 0.05, 0.03, 2.5, L / 2 + s * ((wallLen - 3.4) / 4 + 1.7), ev, 0.25, true);
+  hallThemeWall(put, fr, ev);                                              // 主題牆、玻璃磚窗、時鐘、盆栽（hall.js）
   put(muralMat(), wallLen, 0.03, 2.9, L / 2, ev + 0.335, 0, true);
-  for (const s of [-1, 1]) put.geo(mat('wool', '#c0392b'), new THREE.CylinderGeometry(0.3, 0.25, 0.4, 12), L / 2 + s * 2.2, ev - 0.5, 0.2);   // 盆栽
-  for (const s of [-1, 1]) put.geo(mat('leaves'), new THREE.SphereGeometry(0.45, 8, 6), L / 2 + s * 2.2, ev - 0.5, 0.75);
   // 兩側海報牆＋長木椅
   for (const u of [0.015, L - 0.015]) put(posterWallMat(), 0.03, 6.8, 1.7, u, 1.2, 0.85, true);
   for (const u of [0.4, L - 0.4]) { put(M.wood(), 0.4, 3.6, 0.08, u, 1.2, 0.4); put(M.wood(), 0.3, 3.4, 0.4, u, 1.2, 0); }
@@ -459,7 +432,7 @@ function entranceHall(put, fr, room) {
   // 電子看板：目前播第 43 屆體育表演會邀請卡（115/12/05），活動過後換回 screenMat()
   put(M.dark(), 0.35, 0.8, 1.9, L - 0.6, W / 2 - 1.6, 0);
   put(SPORTS_DAY_ON ? tvImgMat('img/hall/sports-day-115-front.webp') : screenMat(), 0.02, 0.7, 1.2, L - 0.78, W / 2 - 1.6, 0.6, true);   // 12/08 0:00 起自動換回 screenMat()
-  if (XMAS_ON) xmasTree(put, fr, L / 2, ev - 0.95);   // 主題牆正前方（兩盆盆栽中間）
+  if (XMAS_ON) hallXmas(put, fr, ev, xmasTree);   // 耶誕布置（hall.js）：大耶誕樹在左邊玻璃磚窗前
 }
 
 
