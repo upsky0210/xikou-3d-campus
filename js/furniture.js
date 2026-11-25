@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=352';
-import { trafficBasement } from './basement.js?v=352';
-import { hallThemeWall, hallXmas } from './hall.js?v=352';
-import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=352';
+import { Batch, mat, SPOTS } from './blocks.js?v=353';
+import { trafficBasement } from './basement.js?v=353';
+import { hallThemeWall, hallXmas } from './hall.js?v=353';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=353';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
