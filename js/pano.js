@@ -68,6 +68,8 @@ export class PanoViewer {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     host.appendChild(this.renderer.domElement);
+    // 畫面中斷／恢復：通知 app.js 顯示提示
+    for (const [ev, lost] of [['webglcontextlost', true], ['webglcontextrestored', false]]) this.renderer.domElement.addEventListener(ev, () => dispatchEvent(new CustomEvent('campus-gfx', { detail: lost })));
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 200);
     this.camera.rotation.order = 'YXZ';

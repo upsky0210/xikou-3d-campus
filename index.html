@@ -688,12 +688,14 @@
   }
 
   /* 啟動失敗（js/boot.js）：提示訊息與不需要 WebGL 的實景導覽 */
-  #bootError { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 16px; background: #f3eee3; color: #2b2b2b; }
-  #bootError .card { max-width: 460px; background: #fbf6ea; border: 3px solid #2b2b2b; box-shadow: 8px 8px 0 rgba(0,0,0,.25); padding: 18px 20px; }
-  #bootError h2 { margin: 0 0 8px; font-size: 22px; font-weight: 900; }
-  #bootError p { margin: 0 0 16px; font-size: 15px; line-height: 1.7; }
-  #bootError .btns { display: flex; flex-wrap: wrap; gap: 10px; }
-  #bootError button, #bootTour button { padding: 9px 14px; font-weight: 800; font-size: 15px; border: 2px solid #2b2b2b; border-radius: 0; background: #fff; color: #2b2b2b; text-shadow: none; cursor: pointer; }
+  #bootError, #gfxLost { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 16px; background: #f3eee3; color: #2b2b2b; }
+  #bootError .card, #gfxLost .card { max-width: 460px; background: #fbf6ea; border: 3px solid #2b2b2b; box-shadow: 8px 8px 0 rgba(0,0,0,.25); padding: 18px 20px; }
+  #bootError h2, #gfxLost h2 { margin: 0 0 8px; font-size: 22px; font-weight: 900; }
+  #bootError p, #gfxLost p { margin: 0 0 16px; font-size: 15px; line-height: 1.7; }
+  #bootError .btns, #gfxLost .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+  #gfxLost { z-index: 95; background: rgba(243,238,227,.94); }
+  #gfxLost[hidden] { display: none; }
+  #bootError button, #gfxLost button, #bootTour button { padding: 9px 14px; font-weight: 800; font-size: 15px; border: 2px solid #2b2b2b; border-radius: 0; background: #fff; color: #2b2b2b; text-shadow: none; cursor: pointer; }
   #bootError .tour { background: #c0392b; color: #fff; }
   #bootTour { position: fixed; inset: 0; z-index: 91; display: flex; flex-direction: column; background: #1d2733; color: #fff; user-select: text; -webkit-user-select: text; }
   #bootTour .bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
@@ -714,7 +716,7 @@
 <div id="scene"></div>
 
 <div id="top">
-  <div class="brand"><b data-en="Xikou 3D Campus">溪口國小 3D 校園</b><small><span data-sy data-en="Year {SY} · Now: ">{SY} 學年度 · 目前：</span><span id="floorName">全校</span></small></div>
+  <div class="brand"><b data-en="Xikou 3D Campus">溪口國小 3D 校園</b><small><span data-sy data-en="Year {SY} · Now: "><span class="sy">115</span> 學年度 · 目前：</span><span id="floorName">全校</span></small></div>
   <div class="seg" role="group" aria-label="視角" data-en-aria="View">
     <button data-mode="bird" data-en="🛰️ Bird's-eye">🛰️ 鳥瞰</button>
     <button data-mode="third" data-en="🧍 Third">🧍 第三人稱</button>
@@ -889,7 +891,7 @@
   <div class="intro">
     <div class="kicker">XIKOU ELEMENTARY · 3D CAMPUS</div>
     <h1 data-en="Xikou<br>Elementary">溪口國小</h1>
-    <p class="sub" data-sy data-en="3D Campus · School Year {SY}">3D 校園 · {SY} 學年度</p>
+    <p class="sub" data-sy data-en="3D Campus · School Year {SY}">3D 校園 · <span class="sy">115</span> 學年度</p>
     <p class="lead" data-en="Walk into Xikou Elementary,<br>find any room, follow the yellow line,<br>and explore 360° views.">走進溪口國小，<br>找教室、跟著黃線帶路、<br>看 360° 實景。</p>
     <div class="btns"><button class="primary" data-act="walk" data-en="Walk in">走進校園</button><button data-act="bird" data-en="Bird's-eye view">先看鳥瞰</button></div>
     <p class="login"><button data-act="login" data-en="🔑 Sign in with school Google account">🔑 用學校 Google 帳號登入</button><small data-en="Or just walk in as a guest (progress stays on this computer)">不登入也可以逛（訪客），進度只留在這台電腦</small></p>
@@ -1014,7 +1016,7 @@
     <label><span data-en="Turning sensitivity">轉頭靈敏度</span> <input id="sens" type="range" min="30" max="250" value="100"> <span id="sensV">100%</span></label>
     <h3 data-en="Privacy">隱私說明</h3>
     <p style="margin:0;font-size:14px" data-en="Signing in with a school account saves only your email, your role (teacher or student) and your game progress (including your character and outfit), so you can continue on another computer. Your name is not saved. As a guest, nothing is uploaded; progress stays on this computer.">用學校帳號登入時，只會存 email、身分（老師或學生）和遊戲進度（包含角色、服裝），讓你換電腦也能接著玩，不會存姓名。訪客不會上傳任何資料，進度只留在這台電腦。</p>
-    <p style="font-size:12px;color:#8a96a3;margin:14px 0 0" data-sy data-en="Source: school floor plans for school year {SY} (2026-08-03). Locations are estimated from the plans and for reference only.">資料來源：{SY} 學年度校區平面圖（2026-08-03 版）。位置為依平面圖估算，僅供參考。</p>
+    <p style="font-size:12px;color:#8a96a3;margin:14px 0 0" data-sy data-en="Source: school floor plans for school year {SY} (2026-08-03). Locations are estimated from the plans and for reference only.">資料來源：<span class="sy">115</span> 學年度校區平面圖（2026-08-03 版）。位置為依平面圖估算，僅供參考。</p>
   </div>
 </div>
 
@@ -1037,9 +1039,9 @@
     if (s !== 'classic') document.body.classList.add('mc');
   })();
 </script>
-<script src="js/boot.js?v=347" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
-<script src="js/campus-data.js?v=347"></script>
-<script src="js/pano-data.js?v=347"></script>
+<script src="js/boot.js?v=348" onerror="document.querySelector('#loading span').textContent='載入失敗，請檢查網路後重新整理 / Failed to load. Check the network and reload.'"></script>
+<script src="js/campus-data.js?v=348"></script>
+<script src="js/pano-data.js?v=348"></script>
 <!-- js/app.js 由 boot.js 確認支援 WebGL 後才載入 -->
 </body>
 </html>

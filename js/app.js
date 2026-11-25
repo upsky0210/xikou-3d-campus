@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PanoViewer } from './pano.js?v=347';
-import { furnishFloor, ROOM_EN, INDOOR_RAISED } from './furniture.js?v=347';
-import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=347';
-import { buildField, buildStage, buildArch, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=347';
-import { buildCampusWall } from './wall.js?v=347';
-import { makeNPCS } from './npcs.js?v=347';
-import { makeGameInfo } from './game-info.js?v=347';
-import { SPORTS_DAY_ON } from './event-dates.js?v=347';
-import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=347';
+import { PanoViewer } from './pano.js?v=348';
+import { furnishFloor, ROOM_EN, INDOOR_RAISED } from './furniture.js?v=348';
+import { poolWallMat, poolStripeMat, poolStripeGeo, poolDoor, poolSideDoor, POOL_SIDE_DOOR_H, poolWater, buildPool, buildPoolPlayground, buildElevator, makeCat, makeGlider, makeTurtle, makeHamster, makeDog } from './extras.js?v=348';
+import { buildField, buildStage, buildArch, buildFacadeC, buildMuralBlock, buildCourtyard, buildParking, buildFrontYard, buildGuardHouse } from './field.js?v=348';
+import { buildCampusWall } from './wall.js?v=348';
+import { makeNPCS } from './npcs.js?v=348';
+import { makeGameInfo } from './game-info.js?v=348';
+import { SPORTS_DAY_ON } from './event-dates.js?v=348';
+import { BLOCKY, STYLE, setStyle, mat, blockBox, Batch, mergeStatic, SPOTS, makeBlockPerson, OUTFITS, BB_GIRL, outfitFor, makeBlockNPC, NPC_FACES, animatePerson, addBlockTree, makeClouds } from './blocks.js?v=348';
 
 /* =========================================================
  * 溪口國小 3D 校園
@@ -28,9 +28,9 @@ let LANG = (() => {
   try { return sessionStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh'; } catch { return 'zh'; }
 })();
 const T = (zh, en) => (LANG === 'en' ? en : zh);
-// 學年度集中在 campus-data.js 的 schoolYear；index.html 標了 data-sy 的文字，裡面的 {SY} 在這裡填入
+// 學年度集中在 campus-data.js 的 schoolYear；index.html 標了 data-sy 的文字，裡面的 <span class="sy">（中文，先寫好 115，程式沒跑也看得到）和 data-en 的 {SY} 在這裡填入
 for (const el of document.querySelectorAll('[data-sy]')) {
-  el.innerHTML = el.innerHTML.replaceAll('{SY}', D.schoolYear);
+  const y = el.querySelector('.sy'); if (y) y.textContent = D.schoolYear;
   el.dataset.en = el.dataset.en.replaceAll('{SY}', D.schoolYear);
 }
 function applyStaticLang() {
@@ -2539,8 +2539,17 @@ document.getElementById('stairPanel').addEventListener('click', (e) => {
 
 const keys = {};
 const settings = { speed: 1.5, sens: 1 };   // 預設移動速度 150%
+// 正在打字（輸入框、多行文字、下拉選單、可編輯的文字）：不要觸發快捷鍵
+const isTyping = (el) => !!el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable);
+// Ctrl／Alt／⌘ 加其他鍵是瀏覽器的功能（Ctrl+P 列印、Ctrl+C 複製、Ctrl+F 找字、Ctrl+1 換分頁、Alt+← 上一頁…）：
+//   全站的快捷鍵（走路、換角色、小遊戲按 1～3 作答、實景換下一張…）都不要收到；瀏覽器自己的動作照常
 addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT' || viewer.isOpen) return;
+  if (!e.ctrlKey && !e.metaKey && !e.altKey) return;
+  if (e.key === 'Meta' || e.metaKey) releaseKeys();                              // Mac 按著 ⌘ 時收不到其他鍵放開：先全部放開，才不會一直走
+  if (!isTyping(e.target)) e.stopImmediatePropagation();
+}, true);
+addEventListener('keydown', (e) => {
+  if (isTyping(e.target) || viewer.isOpen) return;
   keys[e.code] = true;
   if (e.code === 'KeyE') { changeFloor(1); currentStair = undefined; }
   if (e.code === 'KeyQ') { changeFloor(-1); currentStair = undefined; }
@@ -2560,6 +2569,30 @@ addEventListener('keyup', (e) => { keys[e.code] = false; });
 const releaseKeys = () => { for (const k in keys) keys[k] = false; };
 addEventListener('blur', releaseKeys);
 document.addEventListener('visibilitychange', () => { if (document.hidden) releaseKeys(); });
+
+// 3D 畫面中斷（顯示卡重置、平板切到別的 App 太久）：畫面會變空白，跳出提示；恢復了就自動收起來（Three.js 會自己把東西重新送進顯示卡）
+//   校園畫面和 360° 實景（pano.js，發 campus-gfx 事件）共用
+const gfxLost = new Set();
+let gfxBox = null, gfxTimer = 0;
+function gfxState(who, lost) {
+  lost ? gfxLost.add(who) : gfxLost.delete(who);
+  clearTimeout(gfxTimer);
+  if (!gfxLost.size) { if (gfxBox) gfxBox.hidden = true; return; }
+  releaseKeys();
+  gfxTimer = setTimeout(() => {                                                   // 馬上就恢復的不用跳出來
+    if (!gfxBox) {
+      gfxBox = document.createElement('div');
+      gfxBox.id = 'gfxLost'; gfxBox.setAttribute('role', 'alertdialog');
+      document.body.appendChild(gfxBox);
+    }
+    gfxBox.innerHTML = `<div class="card"><h2>${T('3D 畫面暫時中斷了', 'The 3D view was interrupted')}</h2><p>${T('可能是顯示卡重新啟動，或是切到別的 App 太久。通常等幾秒就會自己恢復；一直沒有好的話，請按「重新載入」。', 'The graphics card may have restarted, or the page was in the background for too long. It usually recovers in a few seconds. If not, please reload.')}</p><div class="btns"><button type="button">${T('重新載入', 'Reload')}</button></div></div>`;
+    gfxBox.querySelector('button').onclick = () => location.reload();
+    gfxBox.hidden = false;
+  }, 600);
+}
+renderer.domElement.addEventListener('webglcontextlost', () => gfxState('campus', true));
+renderer.domElement.addEventListener('webglcontextrestored', () => gfxState('campus', false));
+addEventListener('campus-gfx', (e) => gfxState('pano', e.detail));
 
 // 拖曳轉視角 / 點擊選取
 let drag = null;
@@ -3101,7 +3134,7 @@ function updatePanoPrompt() {
 }
 document.getElementById('panoPrompt').onclick = () => nearPano && openPano(nearPano);
 addEventListener('keydown', (e) => {
-  if (e.code === 'Enter' && nearPano && !viewer.isOpen && document.activeElement?.tagName !== 'INPUT') openPano(nearPano);
+  if (e.code === 'Enter' && nearPano && !viewer.isOpen && !isTyping(document.activeElement)) openPano(nearPano);
 });
 
 // 實景導覽清單
@@ -3833,7 +3866,7 @@ const gameModules = {};       // 已經載入好的檔案
 const gameLoads = {};         // 檔案 → 載入中／載入完的 Promise（失敗就清掉，下次按 F 再試）
 let gameFailed = false;       // 自動載入失敗後先不再試，等玩家按 F
 function loadGameFile(file) {
-  return gameLoads[file] ||= import(`./games/${file}.js?v=347`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
+  return gameLoads[file] ||= import(`./games/${file}.js?v=348`).then((m) => { gameFailed = false; return (gameModules[file] = m); })
     .catch((e) => { delete gameLoads[file]; gameFailed = true; throw e; });
 }
 function preloadGame(kind) {
@@ -4720,7 +4753,7 @@ perfBox.addEventListener('pointerdown', (e) => e.stopPropagation());
 perfBox.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') applyQuality((quality.level + 1) % 3); });
 function togglePerf(on = perfBox.hidden) { perfBox.hidden = !on; perf.n = 0; perf.ms = 0; perf.worst = 0; perf.since = performance.now(); if (on) perfBox.textContent = '量測中…'; }
 if (new URLSearchParams(location.search).has('perf')) togglePerf(true);
-addEventListener('keydown', (e) => { if (e.code === 'Backquote' && e.target.tagName !== 'INPUT') togglePerf(); });
+addEventListener('keydown', (e) => { if (e.code === 'Backquote' && !isTyping(e.target)) togglePerf(); });
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
@@ -6022,4 +6055,4 @@ window.__campus = { guide, setGuide, THREE, collide, NPCS, movePlacesNPC, isWalk
   tryMove, canGo, clearAt, groundAt, GAME_FILE, cellAt, getGrid };
 
 // 學校 Google 帳號登入（js/auth.js）：另外載入，Firebase 連不上也不影響逛校園
-import('./auth.js?v=347').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
+import('./auth.js?v=348').then((m) => m.initLogin({ T, toast })).catch((e) => console.warn('登入功能沒有載入', e));
