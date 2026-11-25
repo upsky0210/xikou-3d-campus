@@ -2,9 +2,9 @@
    只有登入的溪口師生，而且按了「加入」才會被看到；按「離開」、關網頁、分頁放到背景 3 分鐘就消失。
    登入後由 auth.js 載入。沒加入之前不開即時連線（免費方案同時 100 個），只用一般的網路請求看一下有沒有開放、幾個人。 */
 import * as THREE from 'three';
-import { makeBlockPerson, animatePerson, mergeStatic } from './blocks.js?v=354';
-import { T, scene, floors, player, avatar, wearing, mode, makeLabel, toast, frameHooks, mapHooks, AVATAR_SCALE } from './app.js?v=354';
-import { DB_URL, SAY_GAP, KEEP_DAYS, OnlineNet, cleanName, emailKey, denyReason } from './online-net.js?v=354';
+import { makeBlockPerson, animatePerson, mergeStatic } from './blocks.js?v=355';
+import { T, scene, floors, player, avatar, wearing, mode, makeLabel, toast, frameHooks, mapHooks, AVATAR_SCALE } from './app.js?v=355';
+import { DB_URL, SAY_GAP, KEEP_DAYS, OnlineNet, cleanName, emailKey, denyReason } from './online-net.js?v=355';
 
 const JOIN_KEY = 'campus-online';                            // 這台電腦上次加入的帳號（記 uid；換人登入不會自動加入）
 const MAX_BODY = 24, FAR = 45, LABEL_FAR = 16;               // 最多畫幾個人、多遠就不畫、名牌多遠就不顯示
@@ -26,7 +26,7 @@ function pose(g, k, t) {
   const e = Math.min(1, t * 5, (dur - t) * 5);                // 開頭、結尾 0.2 秒慢慢進出，不會突然跳
   if (k === 'a1') { armR.rotation.x = 0; armR.rotation.z = (2.5 + Math.sin(t * 11) * 0.35) * e * ARM_SIDE; }
   else if (k === 'a2') { armL.rotation.x = armR.rotation.x = -Math.PI * 0.95 * e; armL.rotation.z = armR.rotation.z = 0; g.position.y += Math.abs(Math.sin(t * 7)) * 0.12 * e; }
-  else if (k === 'a3') g.rotation.x = Math.sin(Math.min(1, t / dur) * Math.PI) * 0.95;
+  else if (k === 'a3') g.rotation.x = -Math.sin(Math.min(1, t / dur) * Math.PI) * 0.7;   // 鞠躬：往前彎（臉在 -z，所以是負的）
   else { const w = Math.sin(t * 8); armL.rotation.x = -Math.PI * 0.8 * e * (w > 0 ? 1 : 0.2); armR.rotation.x = -Math.PI * 0.8 * e * (w > 0 ? 0.2 : 1); legL.rotation.x = w * 0.5 * e; legR.rotation.x = -w * 0.5 * e; g.rotation.z = Math.sin(t * 4) * 0.12 * e; g.position.y += Math.abs(w) * 0.1 * e; }
   return true;
 }
@@ -141,6 +141,7 @@ function receiveAct(uid, k) {
   const q = people.get(uid);
   if (!q?.card || muted.has(uid) || !(SAY[k] || ACT[k])) return;
   if (ACT[k]) q.act = { k, t0: performance.now() };
+  if (k === 'a2') highFive(uid);
   if (q.say?.label) dropLabel(q.say.label);
   q.say = { k, t0: performance.now(), label: null };
 }
@@ -160,8 +161,76 @@ frameHooks.push(() => {
 function showMine(k) {
   mine.x = player.x; mine.z = player.z;
   if (ACT[k]) mine.act = { k, t0: performance.now() };
+  if (k === 'a2') highFive('me');
   if (mine.say) { dropLabel(mine.say.label); mine.say = null; }
   if (mode !== 'first') { const label = makeBubble(k); group.add(label); mine.say = { label, t0: performance.now() }; }
+}
+
+/* ---- 擊掌彩蛋：兩個人站得近（2.6 公尺內）、3 秒內都做「擊掌」→ 兩人轉向對方、中間噴彩帶＋拍手聲
+   不用另外傳資料：每台電腦看自己收到的動作各自判斷，旁邊的同學也看得到彩帶 ---- */
+const HF_MS = 3000, HF_DIST = 2.6, HF_KEY = 'campus-online-highfive-count';
+const hfRecent = [];
+const posOf = (who) => (who === 'me' ? { x: player.x, z: player.z, y: player.floor.y + (player.gy || 0) } : (() => { const q = people.get(who); return q?.cur ? { x: q.cur.x, z: q.cur.z, y: player.floor.y + (q.cur.h || 0) } : null; })());
+const faceYaw = (a, b) => Math.atan2(-(b.x - a.x), -(b.z - a.z));
+function highFive(who) {
+  const now = performance.now(), at = posOf(who);
+  if (!at) return;
+  for (let i = hfRecent.length - 1; i >= 0; i--) if (now - hfRecent[i].t > HF_MS) hfRecent.splice(i, 1);
+  const mate = hfRecent.find((r) => r.who !== who && !r.used && Math.hypot(r.x - at.x, r.z - at.z) < HF_DIST);
+  if (!mate) { hfRecent.push({ who, t: now, ...at }); return; }
+  mate.used = true;
+  const pb = posOf(mate.who) || mate;
+  burst((at.x + pb.x) / 2, Math.max(at.y, pb.y) + 1.75 * AVATAR_SCALE, (at.z + pb.z) / 2);
+  // 兩個人轉向對方（我自己：直接轉；別人：在我的畫面上轉過來，他那邊也會轉、位置更新時傳過來）
+  for (const [w, o] of [[who, pb], [mate.who, at]]) {
+    if (w === 'me') { avatar.rotation.y = faceYaw(posOf('me'), o); continue; }
+    const q = people.get(w); if (q?.to) { q.to.yaw = faceYaw(q.cur, o); }
+  }
+  const other = who === 'me' ? mate.who : mate.who === 'me' ? who : null;
+  if (other) {
+    clap();
+    let n = 1; try { n = (+localStorage.getItem(HF_KEY) || 0) + 1; localStorage.setItem(HF_KEY, String(n)); } catch { /* 私密模式 */ }
+    const nm = people.get(other)?.card?.n || T('同學', 'a friend');
+    toast(T(`🙌 跟${esc(nm)}擊掌成功！（第 ${n} 次）`, `🙌 High five with ${esc(nm)}! (#${n})`));
+  }
+}
+// 彩帶：一把小方塊往上噴、慢慢轉著落下，1.8 秒後收掉
+const confetti = [], CONF_COL = ['#ff4d6d', '#ffd23f', '#3ec1d3', '#7bd389', '#b07cff', '#ff9f1c', '#ffffff'];
+const confGeo = new THREE.BoxGeometry(0.07, 0.07, 0.015);
+const confMat = CONF_COL.map((c) => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide }));
+function burst(x, y, z) {
+  for (let i = 0; i < 48; i++) {
+    const m = new THREE.Mesh(confGeo, confMat[i % confMat.length]), a = Math.random() * Math.PI * 2, s = 1.2 + Math.random() * 2.2;
+    m.position.set(x, y, z); m.rotation.set(Math.random() * 6, Math.random() * 6, 0);
+    m.userData = { v: new THREE.Vector3(Math.cos(a) * s * 0.6, 2.4 + Math.random() * 2.4, Math.sin(a) * s * 0.6), w: (Math.random() - 0.5) * 14, life: 1.8 };
+    group.add(m); confetti.push(m);
+  }
+}
+frameHooks.push((dt) => {
+  for (let i = confetti.length - 1; i >= 0; i--) {
+    const m = confetti[i], u = m.userData;
+    u.life -= dt; u.v.y -= 6 * dt; u.v.multiplyScalar(1 - dt * 1.5);
+    m.position.addScaledVector(u.v, dt); m.rotation.x += u.w * dt; m.rotation.y += u.w * 0.7 * dt;
+    if (u.life <= 0) { group.remove(m); confetti.splice(i, 1); }
+  }
+});
+// 拍手聲＋叮（WebAudio，現場合成，不用下載音檔）
+let hfAudio = null;
+function clap() {
+  try {
+    hfAudio ||= new (window.AudioContext || window.webkitAudioContext)();
+    const a = hfAudio, t = a.currentTime;
+    const n = a.createBuffer(1, a.sampleRate * 0.12, a.sampleRate), d = n.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+    const src = a.createBufferSource(), bp = a.createBiquadFilter(), g = a.createGain();
+    src.buffer = n; bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 0.8; g.gain.value = 0.6;
+    src.connect(bp).connect(g).connect(a.destination); src.start(t);
+    [1318.5, 1760, 2093].forEach((f, i) => {
+      const o = a.createOscillator(), gg = a.createGain(); o.type = 'triangle'; o.frequency.value = f;
+      gg.gain.setValueAtTime(0, t + 0.08 + i * 0.07); gg.gain.linearRampToValueAtTime(0.12, t + 0.1 + i * 0.07); gg.gain.exponentialRampToValueAtTime(0.001, t + 0.5 + i * 0.07);
+      o.connect(gg).connect(a.destination); o.start(t + 0.08 + i * 0.07); o.stop(t + 0.6 + i * 0.07);
+    });
+  } catch { /* 沒有聲音也沒關係 */ }
 }
 
 /* ---- 我自己的狀態（給連線用） ---- */
@@ -366,5 +435,5 @@ export function demo(n) {
   bots.forEach((b, i) => setCard(b.uid, { n: NAMES[i % 6] + (i > 5 ? i : ''), r: i % 11 === 10 ? 't' : 's', g: i % 2 ? 'girl' : 'boy', o: FITS[i % 5], f: player.floor.id }));
   const step = () => bots.forEach((b) => { b.a += 0.35; const x = b.x + Math.cos(b.a) * b.r, z = b.z + Math.sin(b.a) * b.r; setPos(b.uid, { x, z, yaw: -b.a - Math.PI, walk: true, h: player.gy || 0 }); });
   step(); const timer = setInterval(step, 500);
-  window.__onlineDemo = { people, receiveAct, showMine, pose, stop: () => { clearInterval(timer); for (const b of bots) setCard(b.uid, null); } };
+  window.__onlineDemo = { people, receiveAct, showMine, pose, confetti, stop: () => { clearInterval(timer); for (const b of bots) setCard(b.uid, null); } };
 }
