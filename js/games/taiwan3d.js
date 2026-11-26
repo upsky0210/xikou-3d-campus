@@ -5,8 +5,8 @@
    老師前面的小桌子上也有一模一樣的立體臺灣，選對了那一塊會從上面放下去。
    地形是依大約的經緯度做的示意（一格約 5 公里，高度分 6 層、有放大），不是精確的地圖。 */
 import * as THREE from 'three';
-import { faceTeacher } from './common.js?v=356';
-import { T, scene, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=356';
+import { faceTeacher } from './common.js?v=357';
+import { T, scene, updateVisibility, stopAuto, toast, npcFace, act, gameState } from '../app.js?v=357';
 
 const KEY = 'campus-twpuzzle-best';
 

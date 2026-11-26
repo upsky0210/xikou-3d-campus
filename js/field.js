@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=356';
-import { SPORTS_DAY_ON } from './event-dates.js?v=356';
+import { Batch, mat, SPOTS } from './blocks.js?v=357';
+import { SPORTS_DAY_ON } from './event-dates.js?v=357';
 
 /* =========================================================
  * 操場一帶（依 2026-10-12 使用者照片）

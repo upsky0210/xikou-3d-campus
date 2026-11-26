@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=356';
-import { useSheet, threeChoice } from './bank.js?v=356';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=356';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=356';
+import { faceTeacher } from './common.js?v=357';
+import { useSheet, threeChoice } from './bank.js?v=357';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=357';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=357';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -63,8 +63,103 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get quickpick() { return KG_QUICK; }, get food6() { return KG_FOOD6; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get quickpick() { return KG_QUICK; }, get pop() { return KG_POP; }, get food6() { return KG_FOOD6; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
+
+/* ---- 英文泡泡快快戳（白老師，二年二班）：老師唸一個英文單字（畫面也寫出來），4 顆泡泡從下面往上飄，戳對的那一顆。
+   低年級：顏色、數字 1～10、動物、水果；同一題 4 顆都同一類。泡泡飄出去了就重新冒出來（不會失敗），錯了也可以再戳。
+   一回 8 題，第一次就戳對才算分；點泡泡或按 1～4（從左到右），按 R 或點喇叭再聽一次 ---- */
+const POP_BANK = {
+  color: [['red', '#e53935'], ['blue', '#1e6fd9'], ['green', '#2e9e4a'], ['yellow', '#f6c90e'], ['orange', '#f57c00'], ['purple', '#8e44ad'], ['pink', '#f48fb1'], ['brown', '#8d5a3b'], ['black', '#222222'], ['white', '#ffffff']],
+  number: [['one', '1'], ['two', '2'], ['three', '3'], ['four', '4'], ['five', '5'], ['six', '6'], ['seven', '7'], ['eight', '8'], ['nine', '9'], ['ten', '10']],
+  animal: [['cat', '🐱'], ['dog', '🐶'], ['bird', '🐦'], ['fish', '🐟'], ['pig', '🐷'], ['duck', '🦆'], ['rabbit', '🐰'], ['bear', '🐻'], ['lion', '🦁'], ['monkey', '🐵']],
+  fruit: [['apple', '🍎'], ['banana', '🍌'], ['grape', '🍇'], ['lemon', '🍋'], ['orange', '🍊'], ['strawberry', '🍓'], ['watermelon', '🍉'], ['peach', '🍑']],
+};
+const popSay = (w) => { try { if (!window.speechSynthesis) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(w); u.lang = 'en-US'; u.rate = 0.8; speechSynthesis.speak(u); } catch { /* 不支援就算了 */ } };
+// 出一題：同一類抽 4 個（不重複），第一個是答案。orange 同時是顏色和水果，出顏色題時不會跟橘子同一題（不同類不會混在一起）
+function popRound() {
+  const cats = Object.keys(POP_BANK), cat = cats[Math.random() * cats.length | 0];
+  const four = kgShuffle(POP_BANK[cat].slice()).slice(0, 4);
+  return { cat, ans: four[0][0], opts: kgShuffle(four.map(([w, v]) => ({ w, v }))) };
+}
+const KG_POP = {
+  key: 'campus-pop-best', title: ['🫧 英文泡泡快快戳', '🫧 Quick Bubble Pop'], label: ['🫧 英文泡泡快快戳…', '🫧 Quick Bubble Pop…'],
+  bye: (n) => T(`🫧 下次再來找${n.name}戳泡泡！快快快～`, `🫧 Come back and pop bubbles with ${n.name}! Quick, quick!`),
+  start(ctx) {
+    const W = 300, H = 210, N = 8, R0 = 30;
+    const cv = kgCanvas(ctx, W, H), c = cv.getContext('2d');
+    let i = 0, score = 0, tries = 0, q = null, bubbles = [], pops = [], lock = false, t = 0;
+    const spawn = () => {                                                 // 4 顆泡泡從下面冒出來（一顆一顆錯開）
+      bubbles = q.opts.map((o, k) => ({ ...o, x: 42 + k * 72, y: H + R0 + k * 22 + Math.random() * 18, sp: 26 + Math.random() * 10, ph: Math.random() * 6, gone: false, wrong: false }));
+    };
+    const ask = () => {
+      ctx.ask(`<button class="spk" type="button" title="R">🔊</button> <span style="font-size:24px;letter-spacing:1px">${q.ans}</span>`);
+      ctx.stage.parentElement.querySelector('.spk').onclick = () => popSay(q.ans);
+    };
+    const next = () => {
+      q = popRound(); tries = 0; lock = false;
+      ctx.prog(T(`第 ${i + 1}／${N} 題　一次就對 ${score} 題`, `${i + 1}/${N} · first try ${score}`));
+      ask(); ctx.msg(i ? '' : T(`${ctx.n.name}：聽到哪一個，就快點戳它！`, `${ctx.n.name}: Pop the one you hear, quick!`));
+      spawn(); popSay(q.ans);
+    };
+    const hit = (b) => {
+      if (lock || b.gone || b.wrong) return;
+      tries++;
+      if (b.w !== q.ans) { b.wrong = true; ctx.face('surprised', 0.8); ctx.msg(T(`快！再聽一次，是 ${q.ans}！`, `Quick! Listen again: ${q.ans}!`), 'no'); popSay(q.ans); return; }
+      lock = true; b.gone = true; pops.push({ x: b.x, y: b.y, t: 0 });
+      if (tries === 1) score++;
+      ctx.face('happy'); popSay(q.ans);
+      ctx.msg(tries === 1 ? T(`👍 Good job！好快！`, '👍 Good job! So fast!') : T('👍 戳到了！下一題，快快快～', '👍 Got it! Next one, hurry!'), 'ok');
+      ctx.later(() => (++i < N ? next() : ctx.end(score, (best) => `${T(`🫧 一次就戳對 ${score}／${N} 題（最佳紀錄：${best} 題）`, `🫧 ${score}/${N} on the first try (best ${best})`)}<br>${ctx.n.name}：${score >= 6 ? T('哇，又快又準！英文耳朵好厲害！', 'Wow, fast and right! Great listening!') : T('不錯喔！多聽幾次會更快，我們下次再來！', 'Nice! Listen more and you will get faster!')}`)), 1100);
+    };
+    const byOrder = () => bubbles.filter((b) => !b.gone).sort((a, b) => a.x - b.x);
+    cv.style.cursor = 'pointer';
+    cv.onclick = (e) => {
+      const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+      const b = bubbles.find((b) => !b.gone && Math.hypot(b.x + Math.sin(b.ph) * 8 - x, b.y - y) < R0 + 4);
+      if (b) hit(b);
+    };
+    ctx.onKey = (e) => {
+      if (e.code === 'KeyR') { popSay(q.ans); return true; }
+      const m = /^(?:Digit|Numpad)([1-4])$/.exec(e.code);
+      if (m) { const b = byOrder()[+m[1] - 1]; if (b) hit(b); return true; }
+      return false;
+    };
+    const draw = () => {
+      c.clearRect(0, 0, W, H);
+      const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#dff3ff'); g.addColorStop(1, '#9fd5f5');
+      c.fillStyle = g; c.beginPath(); c.roundRect(0, 0, W, H, 14); c.fill();
+      byOrder().forEach((b, k) => {
+        const x = b.x + Math.sin(b.ph) * 8, y = b.y;
+        c.globalAlpha = b.wrong ? 0.35 : 1;
+        c.fillStyle = 'rgba(255,255,255,.55)'; c.strokeStyle = '#4a8fc4'; c.lineWidth = 3;
+        c.beginPath(); c.arc(x, y, R0, 0, Math.PI * 2); c.fill(); c.stroke();
+        c.textAlign = 'center'; c.textBaseline = 'middle';
+        if (q.cat === 'color') { c.fillStyle = b.v; c.strokeStyle = '#555'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, R0 - 9, 0, Math.PI * 2); c.fill(); c.stroke(); }
+        else if (q.cat === 'number') { c.fillStyle = '#1e3a5f'; c.font = '900 28px "Noto Sans TC", sans-serif'; c.fillText(b.v, x, y + 1); }
+        else { c.font = '30px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif'; c.fillText(b.v, x, y + 2); }
+        c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.ellipse(x - 11, y - 13, 7, 4, -0.6, 0, Math.PI * 2); c.fill();   // 亮點
+        c.fillStyle = '#1e3a5f'; c.font = '700 11px sans-serif'; c.fillText(String(k + 1), x, y + R0 + 9);
+        c.globalAlpha = 1;
+      });
+      for (const p of pops) {                                             // 戳破：一圈小水珠往外散
+        c.strokeStyle = `rgba(74,143,196,${1 - p.t})`; c.lineWidth = 3;
+        for (let a = 0; a < 8; a++) { const ang = a * Math.PI / 4, r = 10 + p.t * 34; c.beginPath(); c.arc(p.x + Math.cos(ang) * r, p.y + Math.sin(ang) * r, 3, 0, Math.PI * 2); c.stroke(); }
+      }
+    };
+    ctx.tick = (dt) => {
+      if (!q) return;
+      t += dt;
+      for (const b of bubbles) { if (b.gone) continue; b.y -= b.sp * dt; b.ph += dt * 1.6; }
+      for (const p of pops) p.t += dt * 2;
+      pops = pops.filter((p) => p.t < 1);
+      // 答案那顆飄出去了：全部重新冒出來（不扣分，老師催一下）
+      if (!lock && bubbles.some((b) => b.w === q.ans && b.y < -R0)) { spawn(); popSay(q.ans); ctx.msg(T('快快快～泡泡又來了！', 'Hurry! Here they come again!')); }
+      draw();
+    };
+    next(); draw();
+  },
+};
 
 /* ---- 眼明手快找一找（吳老師，潛能教室三）：五樣東西各有自己的顏色，卡片上畫兩樣、顏色可能畫錯。
    有一樣的顏色是對的 → 找那一樣；兩樣都畫錯 → 找「東西和顏色都沒有出現」的那一樣（一定只有一個答案）。
