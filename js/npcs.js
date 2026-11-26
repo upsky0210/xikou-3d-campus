@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=357';
+import { poolWater } from './extras.js?v=358';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -1010,6 +1010,44 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSMTTTTMSSSHH',
           'HHSSSMMMMMMSSSHH',
           'HHHSSSMMMMSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '陳老師', title: '二年三班導師', game: 'coins',
+      hello: ['🙂 陳老師：慢慢做，一題一題來就好。', '📒 陳老師：今天的作業有寫完嗎？寫完記得再檢查一次。', '👍 陳老師：你有認真想，這樣就很好。',
+        '🪙 陳老師：要不要來練習數錢幣？'],
+      // 2 樓勤學樓二年三班（218 室）：黑板在西邊，老師站講台旁、面向東邊的學生
+      places: [{ floor: '2F', where: '二年三班', game: true, at: () => { const r = rooms.find((x) => x.code === '203'); return [r.m.x1 + 1.3, r.cz - 0.8, -Math.PI / 2]; } }],
+      look: {
+        // 依照片（口罩依使用者說明不做；嘴巴被口罩擋住，用閉嘴微笑）：白色棒球帽、黑色細框眼鏡、深色低馬尾；
+        //   淺紫灰色運動外套敞開、裡面灰綠色 T 恤（胸前淺色地圖圖案）；下半身照片沒拍到，先用深灰長褲、深色鞋
+        skin: '#efcfb6', hair: '#2a1c16', top: '#a9b59a', pants: '#3e4248', shoe: '#2f3033',
+        ponytail: true, cap: { color: '#f4f3f0', logo: '#f4f3f0' }, longSleeve: true, openShirt: '#cbc6d4', sleeve: '#cbc6d4', calm: true,
+        teeDraw: (c) => {                                    // T 恤上的淺色地圖圖案
+          c.fillStyle = '#dfe3d2';
+          c.beginPath(); c.moveTo(52, 52); c.lineTo(62, 58); c.lineTo(66, 78); c.lineTo(58, 104); c.lineTo(48, 98); c.lineTo(44, 74); c.closePath(); c.fill();
+          c.fillStyle = '#5f6a58'; c.fillRect(52, 66, 6, 5); c.fillRect(50, 84, 5, 4);
+          c.beginPath(); c.ellipse(36, 92, 7, 3, -0.3, 0, 7); c.fill();
+        },
+        pal: { H: '#2a1c16', h: '#3a2a22', S: '#efcfb6', E: '#2a1610', e: '#5a3424', W: '#ffffff', K: '#1c1a1a', B: '#efb4a4', N: '#e0b49a', M: '#b8605e' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHHhSSHHHHHH',
+          'HHHHhSSSSSSSHHHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHKKKKKSSKKKKKHH',
+          'HHKSEESKKSEESKHH',
+          'HHKSEWSSSSWESKHH',
+          'HHKKKKKSSKKKKKHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSSSMSSSSMSSSHH',
+          'HHSSSSMMMMSSSSHH',
+          'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },

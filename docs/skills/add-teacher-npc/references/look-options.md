@@ -9,7 +9,7 @@
 - 髮型：
   - `shortHair` 短髮、`spiky` 刺刺短髮
   - `bob` 齊下巴鮑伯頭、`lob` 及肩直髮（加 `lobFront` 披到胸前兩撮）、`longHair` 長髮
-  - `bun` 低髮髻、`braids` 兩條辮子
+  - `bun` 低髮髻、`ponytail` 低馬尾、`braids` 兩條辮子
 - 帽子：
   - `cap: { color, logo }` 棒球帽
   - `beanie` 毛線帽（`beanieCuff` 反折帽緣的顏色）

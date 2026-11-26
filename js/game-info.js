@@ -38,6 +38,7 @@ export function makeGameInfo(T) {
     units: [['數學單位量詞大考驗', 'Math Units Quiz'], 'campus-units-best', ans], geo: [['臺灣地理大考驗', 'Taiwan Geography Quiz'], 'campus-geo-best', ans],
     fraction: [['分數計算', 'Fractions'], 'campus-fraction-best', ans], life: [['生活大考驗', 'Everyday Life Quiz'], 'campus-life-best', ans],
     puzzle3d: [['立體拼圖', '3D Puzzle'], 'campus-p3d-best', (v) => T(`一次就拼對 ${v} 個`, `${v} right on the first try`)],
+    coins: [['數錢幣', 'Count the Coins'], 'campus-coins-best', ans],
     pop: [['英文泡泡快快戳', 'Quick Bubble Pop'], 'campus-pop-best', (v) => T(`一次就戳對 ${v} 題`, `${v} on the first try`)],
     quickpick: [['眼明手快找一找', 'Quick Pick'], 'campus-quickpick-best', (v) => T(`一次就找到 ${v} 題`, `${v} on the first try`)],
     food6: [['健康六大類食物', 'Six Food Groups'], 'campus-food6-best', ans],

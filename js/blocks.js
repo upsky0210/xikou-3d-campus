@@ -807,6 +807,10 @@ export function makeBlockNPC(look) {
     box(g, 0.07, 0.54, 0.44, hair, -0.255, 1.51, 0.02);
     box(g, 0.07, 0.54, 0.44, hair, 0.255, 1.51, 0.02);
   }
+  if (look.ponytail) {                                      // 低馬尾：頭髮往後綁，在後腦下面垂一束（搭配 cap 也行）
+    box(g, 0.16, 0.1, 0.12, cloth(look.ponytail === true ? look.hair : look.ponytail), 0, 1.44, 0.27);
+    box(g, 0.13, 0.36, 0.1, hair, 0, 1.24, 0.29);
+  }
   if (look.lobFront) for (const s of [-1, 1]) box(g, 0.1, 0.34, 0.07, hair, s * 0.2, 1.2, -0.15);   // 及肩髮披到胸前的兩撮（搭配 lob）
   if (look.braids) {                                        // 兩條辮子：從耳後垂到肩膀，上面一個髮圈
     for (const s of [-1, 1]) {
