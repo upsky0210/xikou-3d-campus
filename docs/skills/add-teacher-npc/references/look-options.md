@@ -43,7 +43,7 @@
 ## 下半身
 - 裙子：
   - `skirt` 長裙、`shortSkirt` 短裙
-  - `skirtPlaid: [底色, 格線]` 格子裙、碎花裙看 `skirtPrint`（grep 確認參數）
+  - `skirtPlaid: [底色, 格線]` 格子裙、`skirtPin: [底色, 條紋]` 細直條紋長裙（配 teeDraw 畫吊帶胸片就是吊帶裙）、碎花裙看 `skirtPrint`（grep 確認參數）
 - 褲子：
   - `widePants` 寬褲、`shorts` 短褲（`socks` 襪子）
   - `stripe` 運動褲側條、`pantsPrint`
