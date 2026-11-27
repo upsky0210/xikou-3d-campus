@@ -1,9 +1,9 @@
 /* 幼兒園與各科老師的題庫小遊戲（kgPlay、mcGame）
    靠近老師（出現互動提示）時才由 app.js 載入，見 app.js 的 GAME_FILE。 */
-import { faceTeacher } from './common.js?v=358';
-import { useSheet, threeChoice } from './bank.js?v=358';
-import { p3dGroup, p3dImage } from './puzzle3d.js?v=358';
-import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=358';
+import { faceTeacher } from './common.js?v=359';
+import { useSheet, threeChoice } from './bank.js?v=359';
+import { p3dGroup, p3dImage } from './puzzle3d.js?v=359';
+import { D, T, mx, mz, floors, rooms, player, avatar, placeAt, updateVisibility, stopAuto, toast, placeNPC, npcFace, act, spotFloor, gameState } from '../app.js?v=359';
 
 /* ---------------- 幼兒園小遊戲（共用一個面板 #kg）：動物疊疊樂（小粉老師）、空間方塊（雅如老師）、串珠遊戲（何何老師）、
    摺紙遊戲（喵喵老師）、炒菜遊戲（高阿姨）。每個遊戲只寫自己的玩法，開始／結束／Esc／紀錄交給 kgPlay ---------------- */
@@ -63,8 +63,62 @@ function kgPlay(n, G) {
   G.start(ctx);
 }
 const KG_GAMES = { get stack() { return KG_STACK; }, get cubes() { return KG_CUBES; }, get beads() { return KG_BEADS; }, get fold() { return KG_FOLD; }, get cook() { return KG_COOK; },
-  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get quickpick() { return KG_QUICK; }, get pop() { return KG_POP; }, get coins() { return KG_COINS; }, get food6() { return KG_FOOD6; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
+  get darkchess() { return KG_DARKCHESS; }, get shrink() { return KG_SHRINK; }, get bugs() { return KG_BUGS; }, get animalcall() { return KG_ANIMALCALL; }, get toyhome() { return KG_TOYHOME; }, get shadow() { return KG_SHADOW; }, get farm() { return KG_FARM; }, get prep() { return KG_PREP; }, get mood() { return KG_MOOD; }, get library() { return KG_LIB; }, get notes() { return KG_NOTES; }, get weather() { return KG_WEATHER; }, get tones() { return KG_TONES; }, get add4() { return KG_ADD4; }, get perim() { return KG_PERIM; }, get factor() { return KG_FACTOR; }, get arith() { return KG_ARITH; }, get punct() { return KG_PUNCT; }, get length() { return KG_LENGTH; }, get healthqa() { return KG_HEALTH; }, get quickpick() { return KG_QUICK; }, get pop() { return KG_POP; }, get coins() { return KG_COINS; }, get times() { return KG_TIMES; }, get food6() { return KG_FOOD6; }, get rhetoric() { return KG_RHETORIC; }, get weave() { return KG_WEAVE; }, get go() { return KG_GO; }, get gomoku() { return KG_GOMOKU; }, get cut() { return KG_CUT; }, get decimal() { return KG_DECIMAL; }, get shapes() { return KG_SHAPES; }, get throw() { return KG_THROW; }, get units() { return KG_UNITS; }, get geo() { return KG_GEO; } };
 const kgCanvas = (ctx, w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; ctx.stage.innerHTML = ''; ctx.stage.appendChild(cv); return cv; };
+
+/* ---- 九九乘法（趙老師，二年一班）：程式出題，一回 8 題、每題 4 個選項；前 3 題只出 2、3、5 的乘法。
+   畫面用點點排：a × b 是「a 的 b 倍」＝ 一排 a 個、排 b 排（台灣課本的寫法）；答完顯示口訣（三四十二、二三得六）。
+   錯的選項是常見的背錯：多一排、少一排、每排多一個、加法當乘法 ---- */
+const ZH = '零一二三四五六七八九';
+function kouJue(a, b) {                                                 // 口訣：小的數字在前
+  const [x, y] = a < b ? [a, b] : [b, a], p = x * y;
+  const num = p < 10 ? '得' + ZH[p] : (p >= 20 ? ZH[p / 10 | 0] : '') + '十' + (p % 10 ? ZH[p % 10] : '');
+  return ZH[x] + ZH[y] + num;
+}
+function timesRound(easy, seen) {
+  let a, b;
+  do { a = easy ? [2, 3, 5][Math.random() * 3 | 0] : 2 + (Math.random() * 8 | 0); b = 2 + (Math.random() * 8 | 0); } while (seen.has(a + 'x' + b));
+  seen.add(a + 'x' + b);
+  const ans = a * b, wrong = [];
+  const add = (v) => { if (v > 0 && v !== ans && !wrong.includes(v)) wrong.push(v); };
+  for (const v of kgShuffle([a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, a + b])) add(v);
+  for (let d = 1; wrong.length < 3; d++) { add(ans + d); add(ans - d); }
+  return { a, b, ans, opts: kgShuffle([ans, ...kgShuffle(wrong).slice(0, 3)]) };
+}
+function drawDots(c, a, b, W, H) {
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = '#2f5d46'; c.beginPath(); c.roundRect(0, 0, W, H, 12); c.fill();                 // 小黑板
+  const step = Math.min(24, (H - 16) / b, (W - 60) / a), r = step * 0.34, x0 = (W - step * a) / 2 + step / 2, y0 = (H - step * b) / 2 + step / 2;
+  c.fillStyle = '#fff6c8'; c.textAlign = 'right'; c.textBaseline = 'middle'; c.font = `700 ${Math.max(9, step * 0.5)}px "Noto Sans TC", sans-serif`;
+  for (let j = 0; j < b; j++) {
+    c.fillStyle = 'rgba(255,246,200,.7)'; c.fillText(String(j + 1), x0 - step * 0.7, y0 + j * step);
+    for (let i = 0; i < a; i++) { c.fillStyle = j % 2 ? '#ffd166' : '#ffffff'; c.beginPath(); c.arc(x0 + i * step, y0 + j * step, r, 0, Math.PI * 2); c.fill(); }
+  }
+}
+const KG_TIMES = {
+  key: 'campus-times-best', title: ['✖️ 九九乘法', '✖️ Times Tables'], label: ['✖️ 九九乘法…', '✖️ Times tables…'],
+  bye: (n) => T(`✖️ 下次再來找${n.name}背九九乘法。`, `✖️ Come back and practice times tables with ${n.name}.`),
+  start(ctx) {
+    const N = 8, W = 300, H = 150, cv = kgCanvas(ctx, W, H), c = cv.getContext('2d'), seen = new Set(); cv.style.cursor = 'default';
+    let i = 0, right = 0;
+    const next = () => {
+      const q = timesRound(i < 3, seen);
+      ctx.prog(T(`第 ${i + 1}／${N} 題`, `${i + 1}/${N}`));
+      drawDots(c, q.a, q.b, W, H);
+      ctx.ask(`${q.a} × ${q.b} ＝ ？`);
+      ctx.msg(i ? '' : T(`一排有 ${q.a} 個，有 ${q.b} 排。想不起來可以數點點。`, `${q.a} in each row, ${q.b} rows. You can count the dots.`));
+      ctx.buttons(q.opts.map((v, k) => ({ html: `${v}<small>${k + 1}</small>`, cls: 'opt', on: (el) => {
+        ctx.btnEls.forEach((x) => (x.disabled = true));
+        ctx.btnEls[q.opts.indexOf(q.ans)].className = 'opt right';
+        const how = `${q.a} × ${q.b} ＝ ${q.ans}（${kouJue(q.a, q.b)}）`;
+        if (v === q.ans) { right++; ctx.face('happy'); ctx.msg(`⭕ ${T('答對了！', 'Correct! ')}${how}`, 'ok'); }
+        else { el.className = 'opt wrong'; ctx.face('normal'); ctx.msg(`${T('沒關係，記起來：', 'Remember: ')}${how}`, 'no'); }
+        ctx.later(() => (++i < N ? next() : ctx.end(right, (best) => `${T(`✖️ 答對 ${right}／${N} 題（最好紀錄 ${best} 題）`, `✖️ ${right}/${N} correct (best ${best})`)}<br>${ctx.n.name}：${right >= 7 ? T('好厲害！九九乘法背得很熟喔！', 'Great! You know your times tables well!') : T('沒關係，每天念一次口訣，很快就會背熟了！', 'That is OK. Say the tables once a day and you will get it!')}`)), 2200);
+      } })));
+    };
+    next();
+  },
+};
 
 /* ---- 數錢幣（陳老師，二年三班）：程式出題，看桌上的錢幣，一共幾元？一回 6 題、每題 3 個選項。
    二年級：1 元、5 元、10 元、50 元，合起來 100 元以內；前 2 題只有 1、5、10 元。

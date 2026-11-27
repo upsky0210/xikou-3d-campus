@@ -12,7 +12,7 @@
  *
  * 站位要用到教室位置，所以這裡是一個函式：app.js 建好教室（rooms）以後呼叫 makeNPCS(ctx) 拿到清單。
  * 改完一定要跑 node tools/check.mjs（會檢查每位老師站得到、小遊戲有檔案）。 */
-import { poolWater } from './extras.js?v=358';
+import { poolWater } from './extras.js?v=359';
 
 export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
   // Teacher Angela 在科任教師辦公室站的地方
@@ -1010,6 +1010,46 @@ export function makeNPCS({ D, rooms, mx, mz, S, rectM }) {
           'HHSSSMTTTTMSSSHH',
           'HHSSSMMMMMMSSSHH',
           'HHHSSSMMMMSSSHHH',
+          'HHHHSSSSSSSSHHHH',
+        ],
+      },
+    },
+    {
+      name: '趙老師', title: '二年一班導師', game: 'times',
+      hello: ['🤝 趙老師：希望大家都能和同學友善互動喔！', '😊 趙老師：看到同學需要幫忙，記得伸出手幫一下喔！', '🗣️ 趙老師：有話好好說，說「請、謝謝、對不起」喔！',
+        '✖️ 趙老師：要不要來練習九九乘法？'],
+      // 2 樓思源樓二年一班（214 室）：黑板在南邊，跟其他思源樓班級一樣站講台旁
+      places: [{ floor: '2F', where: '二年一班', game: true, at: () => { const r = rooms.find((x) => x.code === '201'); return D_CLASS_FRONT(r); } }],
+      look: {
+        // 依照片：深棕黑色過肩長直髮、微旁分；露齒笑、沒戴眼鏡；白色短袖 T 恤外面穿灰色細直條紋吊帶裙（胸片＋兩條吊帶、銀色扣環）；
+        //   下半身被桌子擋住，裙長、鞋子照片沒拍到，先用長裙、深灰鞋
+        skin: '#f1cdb4', hair: '#2a1d18', top: '#f4f2ee', pants: '#6a6b6e', shoe: '#3a3a3a',
+        longHair: true, skirt: '#6a6b6e', skirtPin: ['#6a6b6e', '#b9bbbe'],
+        teeDraw: (c) => {                                    // 吊帶裙的胸片和吊帶（白 T 恤上）
+          c.fillStyle = '#6a6b6e'; c.fillRect(14, 70, 64, 50);                         // 胸片
+          c.fillRect(16, 0, 9, 72); c.fillRect(67, 0, 9, 72);                         // 吊帶
+          c.fillStyle = '#b9bbbe'; for (let x = 18; x < 78; x += 7) c.fillRect(x, 70, 1, 50);
+          c.fillRect(19, 0, 1, 70); c.fillRect(71, 0, 1, 70);
+          c.fillStyle = '#c9ccd0'; c.fillRect(15, 60, 11, 7); c.fillRect(66, 60, 11, 7); // 扣環
+          c.fillStyle = '#5a5b5e'; c.fillRect(17, 62, 7, 3); c.fillRect(68, 62, 7, 3);
+        },
+        pal: { H: '#2a1d18', h: '#4a332a', S: '#f1cdb4', E: '#2a1610', e: '#6b3a26', W: '#ffffff', B: '#efb0a4', N: '#e0b49a', M: '#c0505a', T: '#ffffff' },
+        face: [
+          'HHHHHHHHHHHHHHHH',
+          'HHHHHHhHHHHHHHHH',
+          'HHHHHHSHHHHHHHHH',
+          'HHHHHSSSHHHHHHHH',
+          'HHHHSSSSSSHHHHHH',
+          'HHHSSSSSSSSSSHHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSEEESSSSEEESHH',
+          'HHSEWeSSSSEWeSHH',
+          'HHSSSSSSSSSSSSHH',
+          'HHSSSSSNNSSSSSHH',
+          'HHBBSSSSSSSSBBHH',
+          'HHSSSMTTTTMSSSHH',
+          'HHHSSSMMMMSSSHHH',
+          'HHHSSSSSSSSSSHHH',
           'HHHHSSSSSSSSHHHH',
         ],
       },

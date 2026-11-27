@@ -1010,7 +1010,11 @@ export function makeBlockNPC(look) {
     c.fillStyle = ln; for (const k of [3, 11]) { c.fillRect(k, 0, 2, 16); c.fillRect(0, k, 16, 2); }
     c.globalAlpha = 0.5; for (const k of [7, 15]) { c.fillRect(k, 0, 1, 16); c.fillRect(0, k, 16, 1); }
   }) });
-  if (look.skirt) box(g, 0.5, 0.62, 0.3, skirtM || skirtPrintM || plaidM || cloth(look.skirt), 0, 0.42, 0);   // 長裙（蓋到腳踝）
+  // skirtPin：細直條紋長裙（[底色, 條紋色]），配 teeDraw 畫的吊帶胸片＝吊帶裙
+  const skirtPinM = !look.skirtPin ? null : new THREE.MeshLambertMaterial({ map: px((c) => {
+    c.fillStyle = look.skirtPin[0]; c.fillRect(0, 0, 16, 16); c.fillStyle = look.skirtPin[1]; for (const k of [2, 7, 12]) c.fillRect(k, 0, 1, 16);
+  }) });
+  if (look.skirt) box(g, 0.5, 0.62, 0.3, skirtPinM || skirtM || skirtPrintM || plaidM || cloth(look.skirt), 0, 0.42, 0);   // 長裙（蓋到腳踝）
   if (look.shortSkirt) box(g, 0.5, 0.4, 0.3, skirtPrintM || plaidM || cloth(look.shortSkirt), 0, 0.6, 0);   // 膝上短裙
   if (look.whistle) {
     box(g, 0.02, 0.2, 0.01, cloth('#1e88e5'), -0.06, 1.2, -0.135);   // 掛繩
