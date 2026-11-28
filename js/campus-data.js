@@ -139,7 +139,7 @@
   R('2F', 'A', [1350, 398, 1510, 545], { no: '209', name: '幼兒多功能活動室一', type: 'kinder', doors: 'NS', mainDoor: 'S' });
   R('2F', 'B', [1555, 150, 1690, 330], { name: '露臺（小田園）', type: 'garden', open: true, farm: true });
   R('2F', 'B', [1555, 400, 1690, 480], { name: '廁所', type: 'wc', doors: 'W' });
-  R('2F', 'B', [1555, 480, 1690, 595], { no: '208', name: '幼兒園辦公室', type: 'office', doors: 'W' });   // 跟隔壁中間不留縫
+  R('2F', 'B', [1555, 480, 1690, 595], { no: '208', name: '幼兒園辦公室', type: 'office', doors: 'W', frameDoors: 'N' });   // 家具整組轉 90 度（11-28）：粉紅服務台在最內側（東），人面向門   // 跟隔壁中間不留縫
   R('2F', 'B', [1555, 595, 1690, 750], { no: '227', name: '幼兒多功能活動室二', type: 'kinder', doors: 'W' });
   R('2F', 'B', [1555, 755, 1690, 905], { no: '226', code: '305', type: 'class', doors: 'W' });
   R('2F', 'B', [1555, 910, 1690, 1060], { no: '225', code: '104', type: 'class', doors: 'W' });

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Batch, mat, SPOTS } from './blocks.js?v=359';
-import { trafficBasement } from './basement.js?v=359';
-import { hallThemeWall, hallXmas } from './hall.js?v=359';
-import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=359';
+import { Batch, mat, SPOTS } from './blocks.js?v=360';
+import { trafficBasement } from './basement.js?v=360';
+import { hallThemeWall, hallXmas } from './hall.js?v=360';
+import { SPORTS_DAY_ON, XMAS_ON } from './event-dates.js?v=360';
 
 /* =========================================================
  * 教室裝潢 + 門口的班牌 / 教室牌
@@ -2657,7 +2657,8 @@ const phonicsMat = () => once('phonics', () => new THREE.MeshLambertMaterial({ m
 //   東牆：到頂的毛玻璃白板拉門櫃（下面米色櫃門、中間格子放資料夾，白板上畫「溪口附幼 115 學年度 福氣滿滿」）
 //   中間：淡紫色玻璃大長桌＋藍色塑膠椅、一盆粉色花；南端：白色百葉玻璃門、時鐘、影印機、茶水角（吊櫃、水槽、烘碗機）
 //   西牆（門那側）：行事曆大白板、壁扇
-// u：從北牆往南；v：A 東（櫃子）、D 西（門）
+// 11-28 使用者要求整組轉 90 度：下面寫的「北端」實際在東牆（最內側），「南端」在西牆（門），「東牆」在南牆，「西牆」在北牆
+// u：從「北牆」（實際東牆）往門；v：A＝「東」（實際南）、D＝「西」（實際北）
 function kinderOffice(put, fr) {
   const W = fr.W, L = fr.L, A = fr.away, D = -A, s = W / 2;
   const beige = mat('wool', '#e6dac6'), grey = mat('wool', '#b8bcc0'), frost = mat('wool', '#dcebe2');
@@ -2702,9 +2703,8 @@ function kinderOffice(put, fr) {
   put.geo(M.white(), new THREE.CylinderGeometry(0.1, 0.08, 0.16, 12), tu - 0.3, tv, 0.84);
   put.geo(mat('wool', '#f2b8b0'), new THREE.SphereGeometry(0.14, 10, 8), tu - 0.3, tv, 1.0);   // 粉色花
   /* ---- 南端：百葉玻璃門、時鐘、影印機、茶水角 ---- */
-  put(M.white(), 0.04, 1.0, 2.2, L - 0.02, D * 0.6, 0, true);
-  for (let y = 0.25; y < 2.0; y += 0.1) put(M.grey(), 0.02, 0.85, 0.02, L - 0.05, D * 0.6, y);
-  put.geo(M.white(), new THREE.CylinderGeometry(0.16, 0.16, 0.04, 20).rotateX(Math.PI / 2), L - 0.03, D * 0.6, 2.45, fr.alongX ? Math.PI / 2 : 0);
+  // （轉 90 度後這面就是真的門那面，原本畫的百葉玻璃門拿掉，只留門上的時鐘）
+  put.geo(M.white(), new THREE.CylinderGeometry(0.16, 0.16, 0.04, 20).rotateX(Math.PI / 2), L - 0.03, 0, 2.45, fr.alongX ? Math.PI / 2 : 0);
   put(mat('wool', '#3a3a3a'), 0.6, 0.6, 1.1, L - 0.4, D * (s - 0.45), 0); put(M.white(), 0.55, 0.55, 0.2, L - 0.4, D * (s - 0.45), 1.1);   // 影印機
   put(beige, 0.6, 1.8, 0.85, L - 0.32, A * (s - 1.1), 0); put(mat('wool', '#c4c8cc'), 0.6, 1.8, 0.03, L - 0.32, A * (s - 1.1), 0.85);
   put(beige, 0.4, 1.8, 0.8, L - 0.22, A * (s - 1.1), 1.75);                         // 吊櫃
@@ -2842,7 +2842,7 @@ function office(put, fr, name, room) {
   const W = fr.W, L = fr.L;
   if (name.includes('校長室') && room) return principalOffice(put, fr, room);
   if (name === '科任教師辦公室' && room) return subjectOffice(put, fr, room);   // 依照片
-  if (name === '幼兒園辦公室') return kinderOffice(put, fr);   // 依照片
+  if (name === '幼兒園辦公室') return kinderOffice(...flipU(put, fr));   // 依照片；frameDoors 'N'＋flipU：u 從東牆（最內側）往西邊的門
   if (name.includes('總務處') && room) return generalOffice(...flipU(put, fr), room);   // 白板在南牆、玻璃書櫃在北牆（使用者 10-27 說明）
   if (name.includes('會議室')) {
     put(M.wood(), L * 0.6, Math.min(2.2, W * 0.4), 0.75, L / 2, 0, 0);
